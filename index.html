@@ -94,9 +94,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- PIXEL ART ICONS (32x32) ---
-        const PixelIcon = ({ children, size = 32, ...props }) => (
-            <svg {...props} width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ imageRendering: 'pixelated' }}>
+        // --- PIXEL ART ICONS (64x64) ---
+        const PixelIcon = ({ children, size = 64, ...props }) => (
+            <svg {...props} width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ imageRendering: 'pixelated' }}>
                 {children}
             </svg>
         );
@@ -105,94 +105,94 @@
             // System Info - Monitor with info screen
             Terminal: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="18" fill="#000" />
-                    <rect x="6" y="6" width="20" height="14" fill="#fff" />
-                    <rect x="8" y="8" width="16" height="2" fill="#000" />
-                    <rect x="8" y="12" width="12" height="2" fill="#000" />
-                    <rect x="8" y="16" width="8" height="2" fill="#000" />
-                    <rect x="12" y="22" width="8" height="2" fill="#000" />
-                    <rect x="10" y="24" width="12" height="4" fill="#000" />
+                    <rect x="8" y="8" width="48" height="36" fill="#000" />
+                    <rect x="12" y="12" width="40" height="28" fill="#fff" />
+                    <rect x="16" y="16" width="32" height="4" fill="#000" />
+                    <rect x="16" y="24" width="24" height="4" fill="#000" />
+                    <rect x="16" y="32" width="16" height="4" fill="#000" />
+                    <rect x="24" y="44" width="16" height="4" fill="#000" />
+                    <rect x="20" y="48" width="24" height="8" fill="#000" />
                 </PixelIcon>
             ),
             // Media Library - Stack of folders
             Folder: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="10" width="24" height="18" fill="#000" />
-                    <rect x="6" y="12" width="20" height="14" fill="#fff" />
-                    <rect x="4" y="8" width="10" height="4" fill="#000" />
-                    <rect x="6" y="6" width="6" height="4" fill="#000" />
-                    <rect x="8" y="16" width="14" height="2" fill="#000" />
-                    <rect x="8" y="20" width="10" height="2" fill="#000" />
+                    <rect x="8" y="20" width="48" height="36" fill="#000" />
+                    <rect x="12" y="24" width="40" height="28" fill="#fff" />
+                    <rect x="8" y="16" width="20" height="8" fill="#000" />
+                    <rect x="12" y="12" width="12" height="8" fill="#000" />
+                    <rect x="16" y="32" width="28" height="4" fill="#000" />
+                    <rect x="16" y="40" width="20" height="4" fill="#000" />
                 </PixelIcon>
             ),
             // Paint - Brush icon
             Palette: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="22" y="2" width="6" height="6" fill="#000" />
-                    <rect x="18" y="6" width="6" height="6" fill="#000" />
-                    <rect x="14" y="10" width="6" height="6" fill="#000" />
-                    <rect x="10" y="14" width="6" height="6" fill="#000" />
-                    <rect x="6" y="18" width="6" height="6" fill="#000" />
-                    <rect x="2" y="22" width="8" height="8" fill="#000" />
-                    <rect x="4" y="24" width="4" height="4" fill="#fff" />
+                    <rect x="44" y="4" width="12" height="12" fill="#000" />
+                    <rect x="36" y="12" width="12" height="12" fill="#000" />
+                    <rect x="28" y="20" width="12" height="12" fill="#000" />
+                    <rect x="20" y="28" width="12" height="12" fill="#000" />
+                    <rect x="12" y="36" width="12" height="12" fill="#000" />
+                    <rect x="4" y="44" width="16" height="16" fill="#000" />
+                    <rect x="8" y="48" width="8" height="8" fill="#fff" />
                 </PixelIcon>
             ),
             // Snake Game - Pixel snake
             Snek: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="12" width="4" height="4" fill="#000" />
-                    <rect x="8" y="12" width="4" height="4" fill="#000" />
-                    <rect x="12" y="12" width="4" height="4" fill="#000" />
-                    <rect x="16" y="12" width="4" height="4" fill="#000" />
-                    <rect x="16" y="16" width="4" height="4" fill="#000" />
-                    <rect x="16" y="20" width="4" height="4" fill="#000" />
-                    <rect x="20" y="20" width="4" height="4" fill="#000" />
-                    <rect x="24" y="20" width="4" height="4" fill="#000" />
-                    <rect x="2" y="10" width="2" height="2" fill="#000" />
-                    <rect x="2" y="14" width="2" height="2" fill="#000" />
-                    <rect x="26" y="24" width="4" height="4" fill="#fff" stroke="#000" strokeWidth="1" />
+                    <rect x="8" y="24" width="8" height="8" fill="#000" />
+                    <rect x="16" y="24" width="8" height="8" fill="#000" />
+                    <rect x="24" y="24" width="8" height="8" fill="#000" />
+                    <rect x="32" y="24" width="8" height="8" fill="#000" />
+                    <rect x="32" y="32" width="8" height="8" fill="#000" />
+                    <rect x="32" y="40" width="8" height="8" fill="#000" />
+                    <rect x="40" y="40" width="8" height="8" fill="#000" />
+                    <rect x="48" y="40" width="8" height="8" fill="#000" />
+                    <rect x="4" y="20" width="4" height="4" fill="#000" />
+                    <rect x="4" y="28" width="4" height="4" fill="#000" />
+                    <rect x="52" y="48" width="8" height="8" fill="#fff" stroke="#000" strokeWidth="2" />
                 </PixelIcon>
             ),
             // Trash Can - Desktop trash
             TrashCan: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="6" y="4" width="20" height="4" fill="#000" />
-                    <rect x="10" y="2" width="12" height="4" fill="#000" />
-                    <rect x="8" y="8" width="16" height="20" fill="#000" />
-                    <rect x="10" y="10" width="12" height="16" fill="#fff" />
-                    <rect x="12" y="12" width="2" height="12" fill="#000" />
-                    <rect x="15" y="12" width="2" height="12" fill="#000" />
-                    <rect x="18" y="12" width="2" height="12" fill="#000" />
+                    <rect x="12" y="8" width="40" height="8" fill="#000" />
+                    <rect x="20" y="4" width="24" height="8" fill="#000" />
+                    <rect x="16" y="16" width="32" height="40" fill="#000" />
+                    <rect x="20" y="20" width="24" height="32" fill="#fff" />
+                    <rect x="24" y="24" width="4" height="24" fill="#000" />
+                    <rect x="30" y="24" width="4" height="24" fill="#000" />
+                    <rect x="36" y="24" width="4" height="24" fill="#000" />
                 </PixelIcon>
             ),
             // Undo arrow
             Undo: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="12" width="4" height="4" fill="#000" />
-                    <rect x="8" y="8" width="4" height="4" fill="#000" />
-                    <rect x="12" y="4" width="4" height="4" fill="#000" />
-                    <rect x="8" y="16" width="16" height="4" fill="#000" />
-                    <rect x="20" y="20" width="4" height="8" fill="#000" />
+                    <rect x="8" y="24" width="8" height="8" fill="#000" />
+                    <rect x="16" y="16" width="8" height="8" fill="#000" />
+                    <rect x="24" y="8" width="8" height="8" fill="#000" />
+                    <rect x="16" y="32" width="32" height="8" fill="#000" />
+                    <rect x="40" y="40" width="8" height="16" fill="#000" />
                 </PixelIcon>
             ),
             // Redo arrow
             Redo: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="24" y="12" width="4" height="4" fill="#000" />
-                    <rect x="20" y="8" width="4" height="4" fill="#000" />
-                    <rect x="16" y="4" width="4" height="4" fill="#000" />
-                    <rect x="8" y="16" width="16" height="4" fill="#000" />
-                    <rect x="8" y="20" width="4" height="8" fill="#000" />
+                    <rect x="48" y="24" width="8" height="8" fill="#000" />
+                    <rect x="40" y="16" width="8" height="8" fill="#000" />
+                    <rect x="32" y="8" width="8" height="8" fill="#000" />
+                    <rect x="16" y="32" width="32" height="8" fill="#000" />
+                    <rect x="16" y="40" width="8" height="16" fill="#000" />
                 </PixelIcon>
             ),
             // File icon for trash items
             FileDoc: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="6" y="2" width="16" height="28" fill="#000" />
-                    <rect x="8" y="4" width="12" height="24" fill="#fff" />
-                    <rect x="10" y="8" width="8" height="2" fill="#000" />
-                    <rect x="10" y="12" width="8" height="2" fill="#000" />
-                    <rect x="10" y="16" width="6" height="2" fill="#000" />
+                    <rect x="12" y="4" width="32" height="56" fill="#000" />
+                    <rect x="16" y="8" width="24" height="48" fill="#fff" />
+                    <rect x="20" y="16" width="16" height="4" fill="#000" />
+                    <rect x="20" y="24" width="16" height="4" fill="#000" />
+                    <rect x="20" y="32" width="12" height="4" fill="#000" />
                 </PixelIcon>
             ),
             X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
@@ -203,147 +203,149 @@
             // Media folder icons
             Movies: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <polygon points="12,12 12,20 20,16" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <polygon points="24,24 24,40 40,32" fill="#000" />
                 </PixelIcon>
             ),
             Books: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="10" y="11" width="12" height="2" fill="#000" />
-                    <rect x="10" y="15" width="8" height="2" fill="#000" />
-                    <rect x="10" y="19" width="10" height="2" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="20" y="22" width="24" height="4" fill="#000" />
+                    <rect x="20" y="30" width="16" height="4" fill="#000" />
+                    <rect x="20" y="38" width="20" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Games: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="10" y="12" width="4" height="4" fill="#000" />
-                    <rect x="18" y="12" width="4" height="4" fill="#000" />
-                    <rect x="12" y="18" width="8" height="2" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="20" y="24" width="8" height="8" fill="#000" />
+                    <rect x="36" y="24" width="8" height="8" fill="#000" />
+                    <rect x="24" y="36" width="16" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Music: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="18" y="10" width="2" height="10" fill="#000" />
-                    <rect x="14" y="18" width="6" height="4" fill="#000" />
-                    <rect x="18" y="10" width="6" height="4" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="36" y="20" width="4" height="20" fill="#000" />
+                    <rect x="28" y="36" width="12" height="8" fill="#000" />
+                    <rect x="36" y="20" width="12" height="8" fill="#000" />
                 </PixelIcon>
             ),
             Back: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>,
             // New App Icons
             Void: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="24" fill="#000" />
-                    <rect x="6" y="6" width="20" height="20" fill="#fff" />
-                    <rect x="8" y="8" width="16" height="2" fill="#000" />
-                    <rect x="8" y="12" width="12" height="2" fill="#333" />
-                    <rect x="8" y="16" width="14" height="2" fill="#666" />
-                    <rect x="8" y="20" width="8" height="2" fill="#999" />
+                    <rect x="8" y="8" width="48" height="48" fill="#000" />
+                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
+                    <rect x="16" y="16" width="32" height="4" fill="#000" />
+                    <rect x="16" y="24" width="24" height="4" fill="#333" />
+                    <rect x="16" y="32" width="28" height="4" fill="#666" />
+                    <rect x="16" y="40" width="16" height="4" fill="#999" />
                 </PixelIcon>
             ),
             Oracle: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="10" y="2" width="12" height="4" fill="#000" />
-                    <rect x="8" y="6" width="16" height="4" fill="#000" />
-                    <rect x="6" y="10" width="20" height="12" fill="#000" />
-                    <rect x="8" y="12" width="16" height="8" fill="#fff" />
-                    <rect x="12" y="14" width="3" height="3" fill="#000" />
-                    <rect x="17" y="14" width="3" height="3" fill="#000" />
-                    <rect x="6" y="22" width="6" height="6" fill="#000" />
-                    <rect x="20" y="22" width="6" height="6" fill="#000" />
+                    <rect x="20" y="4" width="24" height="8" fill="#000" />
+                    <rect x="16" y="12" width="32" height="8" fill="#000" />
+                    <rect x="12" y="20" width="40" height="24" fill="#000" />
+                    <rect x="16" y="24" width="32" height="16" fill="#fff" />
+                    <rect x="24" y="28" width="6" height="6" fill="#000" />
+                    <rect x="34" y="28" width="6" height="6" fill="#000" />
+                    <rect x="12" y="44" width="12" height="12" fill="#000" />
+                    <rect x="40" y="44" width="12" height="12" fill="#000" />
                 </PixelIcon>
             ),
             Radio: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="8" width="24" height="18" fill="#000" />
-                    <rect x="6" y="10" width="20" height="14" fill="#fff" />
-                    <rect x="8" y="12" width="8" height="8" fill="#000" />
-                    <rect x="10" y="14" width="4" height="4" fill="#fff" />
-                    <rect x="18" y="12" width="6" height="2" fill="#000" />
-                    <rect x="18" y="16" width="6" height="2" fill="#000" />
-                    <rect x="14" y="2" width="2" height="8" fill="#000" />
-                    <rect x="12" y="2" width="6" height="2" fill="#000" />
+                    <rect x="8" y="16" width="48" height="36" fill="#000" />
+                    <rect x="12" y="20" width="40" height="28" fill="#fff" />
+                    <rect x="16" y="24" width="16" height="16" fill="#000" />
+                    <rect x="20" y="28" width="8" height="8" fill="#fff" />
+                    <rect x="36" y="24" width="12" height="4" fill="#000" />
+                    <rect x="36" y="32" width="12" height="4" fill="#000" />
+                    <rect x="28" y="4" width="4" height="16" fill="#000" />
+                    <rect x="24" y="4" width="12" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Dice: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="24" fill="#000" />
-                    <rect x="6" y="6" width="20" height="20" fill="#fff" />
-                    <rect x="10" y="10" width="4" height="4" fill="#000" />
-                    <rect x="18" y="10" width="4" height="4" fill="#000" />
-                    <rect x="14" y="14" width="4" height="4" fill="#000" />
-                    <rect x="10" y="18" width="4" height="4" fill="#000" />
-                    <rect x="18" y="18" width="4" height="4" fill="#000" />
+                    <rect x="8" y="8" width="48" height="48" fill="#000" />
+                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
+                    <rect x="20" y="20" width="8" height="8" fill="#000" />
+                    <rect x="36" y="20" width="8" height="8" fill="#000" />
+                    <rect x="28" y="28" width="8" height="8" fill="#000" />
+                    <rect x="20" y="36" width="8" height="8" fill="#000" />
+                    <rect x="36" y="36" width="8" height="8" fill="#000" />
                 </PixelIcon>
             ),
             Labyrinth: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="2" y="2" width="28" height="28" fill="#000" />
-                    <rect x="4" y="4" width="24" height="24" fill="#fff" />
-                    <rect x="4" y="8" width="16" height="2" fill="#000" />
-                    <rect x="12" y="12" width="16" height="2" fill="#000" />
-                    <rect x="4" y="16" width="12" height="2" fill="#000" />
-                    <rect x="20" y="16" width="8" height="2" fill="#000" />
-                    <rect x="8" y="20" width="16" height="2" fill="#000" />
-                    <rect x="14" y="14" width="4" height="4" fill="#f00" />
+                    <rect x="4" y="4" width="56" height="56" fill="#000" />
+                    <rect x="8" y="8" width="48" height="48" fill="#fff" />
+                    <rect x="8" y="16" width="32" height="4" fill="#000" />
+                    <rect x="24" y="24" width="32" height="4" fill="#000" />
+                    <rect x="8" y="32" width="24" height="4" fill="#000" />
+                    <rect x="40" y="32" width="16" height="4" fill="#000" />
+                    <rect x="16" y="40" width="32" height="4" fill="#000" />
+                    <rect x="28" y="28" width="8" height="8" fill="#f00" />
                 </PixelIcon>
             ),
             Synth: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="2" y="8" width="28" height="18" fill="#000" />
-                    <rect x="4" y="10" width="24" height="14" fill="#333" />
-                    <rect x="6" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="11" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="16" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="21" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="8" y="12" width="2" height="5" fill="#000" />
-                    <rect x="13" y="12" width="2" height="5" fill="#000" />
-                    <rect x="23" y="12" width="2" height="5" fill="#000" />
+                    <rect x="4" y="16" width="56" height="36" fill="#000" />
+                    <rect x="8" y="20" width="48" height="28" fill="#333" />
+                    <rect x="12" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="22" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="32" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="42" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="16" y="24" width="4" height="10" fill="#000" />
+                    <rect x="26" y="24" width="4" height="10" fill="#000" />
+                    <rect x="46" y="24" width="4" height="10" fill="#000" />
                 </PixelIcon>
             ),
             Destruction: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="8" y="4" width="16" height="4" fill="#000" />
-                    <rect x="6" y="8" width="20" height="4" fill="#000" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    <rect x="6" y="20" width="20" height="4" fill="#000" />
-                    <rect x="8" y="24" width="16" height="4" fill="#000" />
-                    <rect x="10" y="10" width="4" height="4" fill="#f00" />
-                    <rect x="18" y="10" width="4" height="4" fill="#f00" />
-                    <rect x="12" y="16" width="8" height="2" fill="#f00" />
+                    <rect x="16" y="8" width="32" height="8" fill="#000" />
+                    <rect x="12" y="16" width="40" height="8" fill="#000" />
+                    <rect x="8" y="24" width="48" height="16" fill="#000" />
+                    <rect x="12" y="40" width="40" height="8" fill="#000" />
+                    <rect x="16" y="48" width="32" height="8" fill="#000" />
+                    <rect x="20" y="20" width="8" height="8" fill="#f00" />
+                    <rect x="36" y="20" width="8" height="8" fill="#f00" />
+                    <rect x="24" y="32" width="16" height="4" fill="#f00" />
                 </PixelIcon>
             ),
             Tarot: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="8" y="2" width="16" height="28" fill="#000" />
-                    <rect x="10" y="4" width="12" height="24" fill="#fff" />
-                    <rect x="12" y="6" width="8" height="2" fill="#000" />
-                    <rect x="14" y="10" width="4" height="4" fill="#000" />
-                    <rect x="12" y="16" width="8" height="8" fill="#000" />
-                    <rect x="14" y="18" width="4" height="4" fill="#fff" />
+                    <rect x="16" y="4" width="32" height="56" fill="#000" />
+                    <rect x="20" y="8" width="24" height="48" fill="#fff" />
+                    <rect x="24" y="12" width="16" height="4" fill="#000" />
+                    <rect x="28" y="20" width="8" height="8" fill="#000" />
+                    <rect x="24" y="32" width="16" height="16" fill="#000" />
+                    <rect x="28" y="36" width="8" height="8" fill="#fff" />
                 </PixelIcon>
             ),
             Dog: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="8" width="6" height="6" fill="#000" />
-                    <rect x="6" y="6" width="4" height="4" fill="#000" />
-                    <rect x="8" y="10" width="16" height="10" fill="#000" />
-                    <rect x="10" y="12" width="12" height="6" fill="#8B4513" />
-                    <rect x="6" y="10" width="2" height="2" fill="#fff" />
-                    <rect x="22" y="8" width="4" height="4" fill="#000" />
-                    <rect x="8" y="20" width="4" height="6" fill="#000" />
-                    <rect x="18" y="20" width="4" height="6" fill="#000" />
-                    <rect x="24" y="12" width="6" height="2" fill="#000" />
+                    <rect x="8" y="16" width="12" height="12" fill="#8B4513" />
+                    <rect x="12" y="12" width="8" height="8" fill="#8B4513" />
+                    <rect x="8" y="8" width="4" height="8" fill="#8B4513" />
+                    <rect x="16" y="8" width="4" height="8" fill="#8B4513" />
+                    <rect x="16" y="20" width="32" height="20" fill="#8B4513" />
+                    <rect x="20" y="24" width="24" height="12" fill="#D2691E" />
+                    <rect x="10" y="20" width="4" height="4" fill="#000" />
+                    <rect x="44" y="16" width="8" height="8" fill="#8B4513" />
+                    <rect x="16" y="40" width="8" height="12" fill="#8B4513" />
+                    <rect x="36" y="40" width="8" height="12" fill="#8B4513" />
+                    <rect x="48" y="24" width="12" height="4" fill="#8B4513" />
                 </PixelIcon>
             )
         };
@@ -1706,21 +1708,128 @@
             );
         };
 
-        // --- DESTRUCTION.EXE - Screen destroyer ---
-        const DestructionApp = ({ triggerDestruction }) => {
+        // --- DESTRUCTION.EXE - Screen destroyer with confirmations ---
+        const DestructionApp = ({ triggerDestruction, onDogSteal }) => {
+            const [confirmStep, setConfirmStep] = useState(0);
+            const [buttonPos, setButtonPos] = useState({ x: 0, y: 0 });
+            const [dogStealing, setDogStealing] = useState(false);
+            const [dogPos, setDogPos] = useState({ x: -100, y: 200 });
+            const [buttonGone, setButtonGone] = useState(false);
+
+            const confirmMessages = [
+                { prompt: "EXECUTE", response: "You want to do it?" },
+                { prompt: "YES", response: "Are you sure?" },
+                { prompt: "I'M SURE", response: "Really though?" },
+                { prompt: "REALLY", response: "Really, really though?" },
+                { prompt: "YES REALLY", response: "Like... REALLY really?" },
+                { prompt: "DO IT", response: "You know this destroys EVERYTHING?" },
+                { prompt: "I KNOW", response: "There's no going back..." },
+                { prompt: "I DON'T CARE", response: "Final warning..." },
+                { prompt: "JUST DO IT", response: "Okay... last chance to back out..." },
+                { prompt: "DESTROY IT ALL", response: "..." }
+            ];
+
+            const handleClick = () => {
+                if (confirmStep < 9) {
+                    setConfirmStep(prev => prev + 1);
+                } else {
+                    // Final click - dog steals the button!
+                    setDogStealing(true);
+
+                    // Animate dog running in
+                    let dogX = -100;
+                    const dogRun = setInterval(() => {
+                        dogX += 15;
+                        setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 20) * 10 });
+
+                        if (dogX >= 120) {
+                            clearInterval(dogRun);
+                            setButtonGone(true);
+
+                            // Dog runs away with button
+                            const dogEscape = setInterval(() => {
+                                dogX += 20;
+                                setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 15) * 15 });
+
+                                if (dogX > window.innerWidth + 100) {
+                                    clearInterval(dogEscape);
+                                    if (onDogSteal) onDogSteal();
+                                }
+                            }, 30);
+                        }
+                    }, 30);
+                }
+            };
+
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-black text-white select-none">
-                    <div className="text-center">
+                <div className="h-full flex flex-col items-center justify-center bg-black text-white select-none relative overflow-hidden">
+                    <div className="text-center relative z-10">
                         <div className="text-6xl mb-4">💀</div>
                         <div className="font-mono text-xl mb-2">DESTRUCTION.EXE</div>
-                        <div className="font-mono text-xs text-gray-500 mb-8">WARNING: WILL DESTROY EVERYTHING</div>
-                        <button
-                            onClick={triggerDestruction}
-                            className="px-8 py-4 bg-red-600 text-white font-mono font-bold text-lg hover:bg-red-700 border-4 border-red-400 animate-pulse"
-                        >
-                            EXECUTE
-                        </button>
+                        <div className="font-mono text-xs text-gray-500 mb-4">
+                            {confirmStep === 0 ? "WARNING: WILL DESTROY EVERYTHING" : confirmMessages[confirmStep - 1]?.response || "..."}
+                        </div>
+                        <div className="font-mono text-[10px] text-gray-700 mb-4">
+                            STEP {confirmStep + 1}/10
+                        </div>
+                        {!buttonGone && (
+                            <button
+                                onClick={handleClick}
+                                className={`px-8 py-4 bg-red-600 text-white font-mono font-bold text-lg hover:bg-red-700 border-4 border-red-400 transition-all ${confirmStep > 5 ? 'animate-pulse' : ''}`}
+                                style={{
+                                    transform: `translate(${buttonPos.x}px, ${buttonPos.y}px)`,
+                                    boxShadow: confirmStep > 7 ? '0 0 20px rgba(255,0,0,0.5)' : 'none'
+                                }}
+                            >
+                                {confirmMessages[confirmStep].prompt}
+                            </button>
+                        )}
+                        {buttonGone && !dogStealing && (
+                            <div className="font-mono text-sm text-gray-500">
+                                The button is gone...
+                            </div>
+                        )}
                     </div>
+
+                    {/* Dog stealing animation */}
+                    {dogStealing && (
+                        <div
+                            className="absolute z-20"
+                            style={{ left: dogPos.x, top: dogPos.y }}
+                        >
+                            <svg width="60" height="40" viewBox="0 0 64 40" style={{ imageRendering: 'pixelated' }}>
+                                {/* Dog body */}
+                                <rect x="16" y="12" width="32" height="16" fill="#8B4513" />
+                                <rect x="20" y="16" width="24" height="8" fill="#D2691E" />
+                                {/* Head */}
+                                <rect x="4" y="8" width="16" height="16" fill="#8B4513" />
+                                <rect x="8" y="4" width="8" height="8" fill="#8B4513" />
+                                {/* Ears */}
+                                <rect x="4" y="0" width="4" height="8" fill="#8B4513" />
+                                <rect x="12" y="0" width="4" height="8" fill="#8B4513" />
+                                {/* Eye */}
+                                <rect x="8" y="12" width="4" height="4" fill="#000" />
+                                {/* Legs (animated) */}
+                                <rect x="16" y="28" width="6" height="10" fill="#8B4513" />
+                                <rect x="38" y="28" width="6" height="10" fill="#8B4513" />
+                                {/* Tail */}
+                                <rect x="48" y="8" width="12" height="4" fill="#8B4513" />
+                            </svg>
+                            {buttonGone && (
+                                <div className="absolute -top-6 left-8 px-2 py-1 bg-red-600 text-white font-mono text-[8px] border border-red-400">
+                                    DESTROY
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {dogStealing && buttonGone && (
+                        <div className="absolute bottom-4 w-full text-center">
+                            <div className="font-mono text-xs text-gray-600">
+                                *dog runs away with the button*
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -2029,94 +2138,122 @@
             const [topZ, setTopZ] = useState(100);
             const [destructionMode, setDestructionMode] = useState(false);
             const [dogReleased, setDogReleased] = useState(false);
-            const [dogPos, setDogPos] = useState({ x: 100, y: 100 });
-            const [dogVel, setDogVel] = useState({ x: 2, y: 2 });
+            const [dogPos, setDogPos] = useState({ x: 100, y: 300 });
+            const [dogVel, setDogVel] = useState({ x: 3, y: 0 });
+            const [dogOnGround, setDogOnGround] = useState(true);
+            const [dogFacingRight, setDogFacingRight] = useState(true);
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
             const [carriedIcon, setCarriedIcon] = useState(null);
             const [iconPositions, setIconPositions] = useState({});
-            const destructionRef = useRef(null);
+            const [destructionDogGone, setDestructionDogGone] = useState(false);
 
-            // Destruction effect
-            const triggerDestruction = () => {
-                setDestructionMode(true);
+            // Physics constants
+            const GRAVITY = 0.8;
+            const JUMP_FORCE = -12;
+            const GROUND_Y = window.innerHeight - 120;
+            const FRICTION = 0.95;
 
-                // Make windows fall with physics
-                setTimeout(() => {
-                    const interval = setInterval(() => {
-                        setWindows(prev => {
-                            const updated = { ...prev };
-                            Object.keys(updated).forEach(key => {
-                                if (updated[key].isOpen) {
-                                    updated[key] = {
-                                        ...updated[key],
-                                        y: updated[key].y + Math.random() * 20 + 10,
-                                        x: updated[key].x + (Math.random() - 0.5) * 20
-                                    };
-                                }
-                            });
-                            return updated;
-                        });
-                    }, 50);
-
-                    setTimeout(() => {
-                        clearInterval(interval);
-                        // Black screen and reboot
-                        setTimeout(() => {
-                            setDestructionMode('black');
-                            setTimeout(() => {
-                                setDestructionMode('reboot');
-                                setTimeout(() => {
-                                    setDestructionMode(false);
-                                    // Reset windows
-                                    window.location.reload();
-                                }, 3000);
-                            }, 2000);
-                        }, 1500);
-                    }, 2000);
-                }, 100);
+            // Handle dog stealing the destruction button
+            const handleDogSteal = () => {
+                setDestructionDogGone(true);
+                // Close the destruction window
+                setWindows(prev => ({
+                    ...prev,
+                    DESTRUCTION: { ...prev.DESTRUCTION, isOpen: false }
+                }));
             };
 
-            // Dog AI
+            // Dog AI with jumping physics
             useEffect(() => {
                 if (!dogReleased) return;
 
                 const dogInterval = setInterval(() => {
-                    setDogPos(prev => {
-                        // Run away from mouse
-                        const dx = prev.x - mousePos.x;
-                        const dy = prev.y - mousePos.y;
+                    setDogVel(prevVel => {
+                        let newVelX = prevVel.x;
+                        let newVelY = prevVel.y;
+
+                        // Apply gravity
+                        newVelY += GRAVITY;
+
+                        // Get distance from mouse
+                        const dx = dogPos.x - mousePos.x;
+                        const dy = dogPos.y - mousePos.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
 
-                        let newX = prev.x;
-                        let newY = prev.y;
+                        if (dist < 250) {
+                            // Flee from mouse with acceleration
+                            const fleeForce = (250 - dist) / 250 * 2;
+                            newVelX += (dx / dist) * fleeForce;
 
-                        if (dist < 200) {
-                            // Flee from mouse
-                            newX += (dx / dist) * 8;
-                            newY += (dy / dist) * 8;
+                            // Jump when mouse is close and dog is on ground
+                            if (dist < 150 && dogOnGround && Math.random() < 0.3) {
+                                newVelY = JUMP_FORCE;
+                                setDogOnGround(false);
+                            }
                         } else {
-                            // Random movement
-                            newX += (Math.random() - 0.5) * 10;
-                            newY += (Math.random() - 0.5) * 10;
+                            // Random wandering with occasional jumps
+                            if (Math.random() < 0.02) {
+                                newVelX += (Math.random() - 0.5) * 4;
+                            }
+                            if (dogOnGround && Math.random() < 0.02) {
+                                newVelY = JUMP_FORCE * 0.7;
+                                setDogOnGround(false);
+                            }
                         }
 
-                        // Bounds
-                        newX = Math.max(0, Math.min(window.innerWidth - 60, newX));
-                        newY = Math.max(0, Math.min(window.innerHeight - 100, newY));
+                        // Apply friction
+                        newVelX *= FRICTION;
+
+                        // Clamp velocities
+                        newVelX = Math.max(-15, Math.min(15, newVelX));
+                        newVelY = Math.max(-20, Math.min(20, newVelY));
+
+                        return { x: newVelX, y: newVelY };
+                    });
+
+                    setDogPos(prev => {
+                        let newX = prev.x + dogVel.x;
+                        let newY = prev.y + dogVel.y;
+
+                        // Ground collision
+                        if (newY >= GROUND_Y) {
+                            newY = GROUND_Y;
+                            setDogOnGround(true);
+                            setDogVel(v => ({ ...v, y: 0 }));
+                        }
+
+                        // Wall bouncing
+                        if (newX <= 0) {
+                            newX = 0;
+                            setDogVel(v => ({ ...v, x: Math.abs(v.x) * 0.8 }));
+                        }
+                        if (newX >= window.innerWidth - 80) {
+                            newX = window.innerWidth - 80;
+                            setDogVel(v => ({ ...v, x: -Math.abs(v.x) * 0.8 }));
+                        }
+
+                        // Update facing direction
+                        if (dogVel.x > 0.5) setDogFacingRight(true);
+                        if (dogVel.x < -0.5) setDogFacingRight(false);
 
                         return { x: newX, y: newY };
                     });
 
                     // Randomly grab icons
-                    if (!carriedIcon && Math.random() < 0.01) {
+                    if (!carriedIcon && Math.random() < 0.008) {
                         const iconKeys = Object.keys(windows);
                         const randomIcon = iconKeys[Math.floor(Math.random() * iconKeys.length)];
                         setCarriedIcon(randomIcon);
+
+                        // Drop icon after a while
+                        setTimeout(() => {
+                            setCarriedIcon(null);
+                        }, 3000 + Math.random() * 4000);
                     }
-                }, 50);
+                }, 30);
 
                 return () => clearInterval(dogInterval);
-            }, [dogReleased, mousePos, carriedIcon]);
+            }, [dogReleased, mousePos, dogVel, dogOnGround, carriedIcon, dogPos]);
 
             // Window State (Position x/y added for dragging)
             const [windows, setWindows] = useState({
@@ -2131,7 +2268,7 @@
                 "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 18, content: <DiceApp /> },
                 "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 19, content: <LabyrinthApp /> },
                 "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 20, content: <SynthApp /> },
-                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '350px', isOpen: false, isMin: false, z: 21, content: <DestructionApp triggerDestruction={triggerDestruction} /> },
+                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 21, content: <DestructionApp triggerDestruction={triggerDestruction} onDogSteal={handleDogSteal} /> },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 22, content: <TarotApp /> },
                 "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 23, content: <DogApp onClose={() => { setDogReleased(true); close("DOG"); }} /> }
             });
@@ -2304,25 +2441,61 @@
                         <div className="font-mono text-xs font-bold px-4 border-l-2 border-black">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
-                    {/* DOG */}
+                    {/* DOG - Pixel Art */}
                     {dogReleased && (
                         <div
-                            className="fixed z-[999999] cursor-pointer select-none transition-all duration-75"
-                            style={{ left: dogPos.x, top: dogPos.y }}
+                            className="fixed z-[999999] cursor-pointer select-none"
+                            style={{
+                                left: dogPos.x,
+                                top: dogPos.y,
+                                transform: `scaleX(${dogFacingRight ? 1 : -1})`,
+                                transition: 'transform 0.1s'
+                            }}
                             onClick={() => setDogReleased(false)}
                         >
-                            <pre className="font-mono text-[8px] leading-none">
-{`  ▄▄▄
- ╱◕ ◕╲
- │ ▽ │
- ╲___╱
-  ││`}
-                            </pre>
+                            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated' }}>
+                                {/* Body */}
+                                <rect x="16" y="16" width="32" height="16" fill="#8B4513" />
+                                <rect x="20" y="20" width="24" height="8" fill="#D2691E" />
+                                {/* Head */}
+                                <rect x="4" y="12" width="16" height="16" fill="#8B4513" />
+                                <rect x="8" y="8" width="8" height="8" fill="#8B4513" />
+                                {/* Ears */}
+                                <rect x="4" y="4" width="4" height="8" fill="#8B4513" />
+                                <rect x="12" y="4" width="4" height="8" fill="#8B4513" />
+                                {/* Eye */}
+                                <rect x="8" y="16" width="4" height="4" fill="#000" />
+                                <rect x="10" y="18" width="2" height="2" fill="#fff" />
+                                {/* Nose */}
+                                <rect x="4" y="20" width="4" height="4" fill="#000" />
+                                {/* Legs - animated based on velocity */}
+                                <rect x="16" y="32" width="6" height={dogOnGround ? 12 : 8} fill="#8B4513" />
+                                <rect x="26" y="32" width="6" height={dogOnGround ? 12 : 10} fill="#8B4513" />
+                                <rect x="34" y="32" width="6" height={dogOnGround ? 10 : 12} fill="#8B4513" />
+                                <rect x="42" y="32" width="6" height={dogOnGround ? 12 : 8} fill="#8B4513" />
+                                {/* Tail - wagging */}
+                                <rect x="48" y={dogOnGround ? 12 : 16} width="12" height="4" fill="#8B4513" />
+                                <rect x="56" y={dogOnGround ? 8 : 12} width="4" height="4" fill="#8B4513" />
+                            </svg>
                             {carriedIcon && (
-                                <div className="absolute -top-8 left-4 bg-white border border-black p-1">
-                                    {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 16 })}
+                                <div
+                                    className="absolute bg-white border-2 border-black p-1 icon-shadow"
+                                    style={{ top: -20, left: 8 }}
+                                >
+                                    {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 24 })}
                                 </div>
                             )}
+                            {/* Shadow */}
+                            <div
+                                className="absolute bg-black/20 rounded-full"
+                                style={{
+                                    bottom: dogOnGround ? -4 : -8 - Math.abs(dogVel.y) * 2,
+                                    left: 8,
+                                    width: 48,
+                                    height: 8,
+                                    transform: `scaleY(${dogOnGround ? 1 : 0.5})`
+                                }}
+                            />
                         </div>
                     )}
 
