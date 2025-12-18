@@ -980,58 +980,68 @@
             const [currentText, setCurrentText] = useState('');
             const inputRef = useRef(null);
 
-            const encryptChar = (char) => {
+            const encryptChar = () => {
                 const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
                 return chars[Math.floor(Math.random() * chars.length)];
             };
 
+            const submitLine = () => {
+                if (!currentText.trim()) return;
+
+                const lineId = Date.now();
+                const text = currentText;
+                const textLength = text.length;
+
+                // Add the line
+                setLines(prev => [...prev, {
+                    id: lineId,
+                    originalText: text,
+                    displayText: text,
+                    opacity: 1,
+                    phase: 'visible'
+                }]);
+                setCurrentText('');
+
+                // Start encrypting after 3 seconds
+                setTimeout(() => {
+                    let idx = 0;
+                    const encryptInterval = setInterval(() => {
+                        if (idx >= textLength) {
+                            clearInterval(encryptInterval);
+                            // Start fading
+                            setTimeout(() => {
+                                let fadeOp = 1;
+                                const fadeInterval = setInterval(() => {
+                                    fadeOp -= 0.1;
+                                    if (fadeOp <= 0) {
+                                        clearInterval(fadeInterval);
+                                        setLines(prev => prev.filter(l => l.id !== lineId));
+                                    } else {
+                                        setLines(prev => prev.map(l =>
+                                            l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
+                                        ));
+                                    }
+                                }, 80);
+                            }, 200);
+                            return;
+                        }
+
+                        setLines(prev => prev.map(l => {
+                            if (l.id !== lineId) return l;
+                            const encrypted = l.originalText.split('').map((c, i) =>
+                                i <= idx ? encryptChar() : c
+                            ).join('');
+                            return { ...l, displayText: encrypted, phase: 'encrypting' };
+                        }));
+                        idx++;
+                    }, 50);
+                }, 3000);
+            };
+
             const handleKeyDown = (e) => {
-                if (e.key === 'Enter' && currentText.trim()) {
-                    const newLine = {
-                        id: Date.now(),
-                        originalText: currentText,
-                        displayText: currentText,
-                        opacity: 1,
-                        encryptIndex: 0,
-                        phase: 'visible' // visible -> encrypting -> fading
-                    };
-                    setLines(prev => [...prev, newLine]);
-                    setCurrentText('');
-
-                    // Start encrypting after 3 seconds
-                    setTimeout(() => {
-                        // Encrypt phase - encrypt one character at a time
-                        let charIndex = 0;
-                        const encryptInterval = setInterval(() => {
-                            setLines(prev => prev.map(line => {
-                                if (line.id !== newLine.id) return line;
-                                if (charIndex >= line.originalText.length) return line;
-
-                                const encrypted = line.originalText.split('').map((c, i) =>
-                                    i <= charIndex ? encryptChar(c) : c
-                                ).join('');
-
-                                return { ...line, displayText: encrypted, phase: 'encrypting' };
-                            }));
-                            charIndex++;
-
-                            if (charIndex >= newLine.originalText.length) {
-                                clearInterval(encryptInterval);
-
-                                // Start fading after encryption complete
-                                setTimeout(() => {
-                                    const fadeInterval = setInterval(() => {
-                                        setLines(prev => prev.map(line =>
-                                            line.id === newLine.id
-                                                ? { ...line, opacity: Math.max(0, line.opacity - 0.1), phase: 'fading' }
-                                                : line
-                                        ).filter(line => line.opacity > 0));
-                                    }, 80);
-                                    setTimeout(() => clearInterval(fadeInterval), 900);
-                                }, 200);
-                            }
-                        }, 50);
-                    }, 3000);
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitLine();
                 }
             };
 
