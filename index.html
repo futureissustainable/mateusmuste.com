@@ -2896,9 +2896,16 @@
                 // Check localStorage for existing pull (simulating IP-based storage)
                 const savedCard = localStorage.getItem('tarot_card');
                 if (savedCard) {
-                    setCard(JSON.parse(savedCard));
-                    setRevealed(true);
-                    setAlreadyPulled(true);
+                    const parsed = JSON.parse(savedCard);
+                    // Check if it's the new format with pixels (not old ascii format)
+                    if (parsed.pixels) {
+                        setCard(parsed);
+                        setRevealed(true);
+                        setAlreadyPulled(true);
+                    } else {
+                        // Old format - clear it so user can pull again
+                        localStorage.removeItem('tarot_card');
+                    }
                 }
             }, []);
 
