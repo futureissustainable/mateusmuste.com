@@ -953,72 +953,108 @@
             );
         }
 
-        // --- VOID.TXT - Text disappears into the void ---
+        // --- VOID.TXT - Text encrypts then fades into the void ---
         const VoidApp = () => {
             const [lines, setLines] = useState([]);
             const [currentText, setCurrentText] = useState('');
             const inputRef = useRef(null);
 
+            const encryptChar = (char) => {
+                const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
+                return chars[Math.floor(Math.random() * chars.length)];
+            };
+
             const handleKeyDown = (e) => {
                 if (e.key === 'Enter' && currentText.trim()) {
-                    const newLine = { id: Date.now(), text: currentText, opacity: 1 };
+                    const newLine = {
+                        id: Date.now(),
+                        originalText: currentText,
+                        displayText: currentText,
+                        opacity: 1,
+                        encryptIndex: 0,
+                        phase: 'visible' // visible -> encrypting -> fading
+                    };
                     setLines(prev => [...prev, newLine]);
                     setCurrentText('');
 
-                    // Start fading after 3 seconds
+                    // Start encrypting after 3 seconds
                     setTimeout(() => {
-                        const fadeInterval = setInterval(() => {
-                            setLines(prev => prev.map(line =>
-                                line.id === newLine.id
-                                    ? { ...line, opacity: Math.max(0, line.opacity - 0.1) }
-                                    : line
-                            ).filter(line => line.opacity > 0));
-                        }, 100);
-                        setTimeout(() => clearInterval(fadeInterval), 1100);
+                        // Encrypt phase - encrypt one character at a time
+                        let charIndex = 0;
+                        const encryptInterval = setInterval(() => {
+                            setLines(prev => prev.map(line => {
+                                if (line.id !== newLine.id) return line;
+                                if (charIndex >= line.originalText.length) return line;
+
+                                const encrypted = line.originalText.split('').map((c, i) =>
+                                    i <= charIndex ? encryptChar(c) : c
+                                ).join('');
+
+                                return { ...line, displayText: encrypted, phase: 'encrypting' };
+                            }));
+                            charIndex++;
+
+                            if (charIndex >= newLine.originalText.length) {
+                                clearInterval(encryptInterval);
+
+                                // Start fading after encryption complete
+                                setTimeout(() => {
+                                    const fadeInterval = setInterval(() => {
+                                        setLines(prev => prev.map(line =>
+                                            line.id === newLine.id
+                                                ? { ...line, opacity: Math.max(0, line.opacity - 0.1), phase: 'fading' }
+                                                : line
+                                        ).filter(line => line.opacity > 0));
+                                    }, 80);
+                                    setTimeout(() => clearInterval(fadeInterval), 900);
+                                }, 200);
+                            }
+                        }, 50);
                     }, 3000);
                 }
             };
 
             return (
                 <div
-                    className="h-full flex flex-col bg-white select-none cursor-text"
+                    className="h-full flex flex-col bg-black select-none cursor-text"
                     onClick={() => inputRef.current?.focus()}
                     onCopy={(e) => e.preventDefault()}
                     onCut={(e) => e.preventDefault()}
                 >
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">VOID.TXT</span>
-                        <span className="font-mono text-[10px] text-gray-500">NO SAVE // NO COPY // JUST VOID</span>
+                    <div className="p-2 border-b border-gray-800 bg-black flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold text-white">VOID.TXT</span>
+                        <span className="font-mono text-[10px] text-gray-600">NO SAVE // NO COPY // JUST VOID</span>
                     </div>
-                    <div className="flex-grow p-4 overflow-auto font-mono text-sm bg-gray-50">
+                    <div className="flex-grow p-4 overflow-auto font-mono text-sm">
                         {lines.map(line => (
                             <div
                                 key={line.id}
-                                className="mb-1 transition-all duration-100"
+                                className="mb-1 transition-opacity duration-100"
                                 style={{
-                                    color: `rgba(0,0,0,${line.opacity})`,
+                                    color: line.phase === 'encrypting' ? '#0f0' : `rgba(255,255,255,${line.opacity})`,
+                                    textShadow: line.phase === 'encrypting' ? '0 0 5px #0f0' : 'none'
                                 }}
                             >
-                                {line.text}
+                                {line.displayText}
                             </div>
                         ))}
-                        <div className="flex items-center text-black">
-                            <span className="mr-2 text-gray-400">{'>'}</span>
+                        <div className="flex items-center text-white">
+                            <span className="mr-2 text-gray-600">{'>'}</span>
                             <input
                                 ref={inputRef}
                                 type="text"
                                 value={currentText}
                                 onChange={(e) => setCurrentText(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                className="bg-transparent outline-none flex-grow text-black caret-black"
+                                className="bg-transparent outline-none flex-grow text-white caret-white"
                                 autoFocus
                                 onPaste={(e) => e.preventDefault()}
                             />
-                            <span className="animate-pulse text-black">_</span>
+                            <span className="animate-pulse text-white">_</span>
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">WRITE INTO THE VOID. WATCH IT DISAPPEAR.</span>
+                    <div className="p-2 border-t border-gray-800 bg-black text-center">
+                        <span className="font-mono text-[10px] text-gray-600">WRITE INTO THE VOID. WATCH IT DISAPPEAR.</span>
                     </div>
                 </div>
             );
@@ -1297,16 +1333,17 @@
             }, [rotation, result]);
 
             return (
-                <div className="h-full flex flex-col bg-gray-100 text-black select-none">
-                    <div className="p-3 border-b-2 border-black bg-white">
-                        <span className="font-mono text-xs font-bold">DICE.EXE // D20 ROLLER</span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">DICE.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-500">D20 ROLLER</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-50">
-                        <div className="border-4 border-black bg-white p-2 mb-6" style={{ imageRendering: 'pixelated' }}>
+                    <div className="flex-grow flex flex-col items-center justify-center p-6 bg-gray-50">
+                        <div className="border-2 border-black bg-white p-1 mb-6">
                             <canvas ref={canvasRef} width={200} height={200} className="block" />
                         </div>
                         {result && !isRolling && (
-                            <div className={`text-4xl font-black mb-4 ${getResultColor()}`}>
+                            <div className={`text-3xl font-black mb-4 ${getResultColor()}`}>
                                 {result === 20 ? 'CRITICAL HIT!' : result === 1 ? 'CRITICAL FAIL!' : result}
                             </div>
                         )}
@@ -1317,6 +1354,9 @@
                         >
                             {isRolling ? 'ROLLING...' : 'ROLL D20'}
                         </button>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">CLICK TO ROLL • 20 = CRIT • 1 = FAIL</span>
                     </div>
                 </div>
             );
@@ -1409,12 +1449,12 @@
                     ghost.current.y += dy > 0 ? 1 : -1;
                 }
 
-                // Draw
-                ctx.fillStyle = '#1a1a1a';
+                // Draw - light theme
+                ctx.fillStyle = '#f5f5f5';
                 ctx.fillRect(0, 0, GRID_W * CELL, GRID_H * CELL);
 
                 // Grid lines (subtle)
-                ctx.strokeStyle = '#222';
+                ctx.strokeStyle = '#e0e0e0';
                 for (let i = 0; i <= GRID_W; i++) {
                     ctx.beginPath();
                     ctx.moveTo(i * CELL, 0);
@@ -1428,18 +1468,18 @@
                     ctx.stroke();
                 }
 
-                // Snake
+                // Snake - black
                 snake.current.forEach((s, i) => {
-                    ctx.fillStyle = i === 0 ? '#fff' : '#888';
+                    ctx.fillStyle = i === 0 ? '#000' : '#333';
                     ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
                 });
 
-                // Food
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(food.current.x * CELL + 4, food.current.y * CELL + 4, CELL - 8, CELL - 8);
+                // Food - black dot
+                ctx.fillStyle = '#000';
+                ctx.fillRect(food.current.x * CELL + 6, food.current.y * CELL + 6, CELL - 12, CELL - 12);
 
-                // Ghost (semi-transparent)
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                // Ghost - red circle
+                ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(ghost.current.x * CELL + CELL/2, ghost.current.y * CELL + CELL/2, CELL/2 - 2, 0, Math.PI * 2);
                 ctx.fill();
@@ -1470,15 +1510,15 @@
                 };
             }, [gameStarted]);
 
-            // Initial canvas draw
+            // Initial canvas draw - light theme
             useEffect(() => {
                 const ctx = canvasRef.current?.getContext('2d');
                 if (ctx) {
-                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillStyle = '#f5f5f5';
                     ctx.fillRect(0, 0, GRID_W * CELL, GRID_H * CELL);
 
                     // Draw grid lines
-                    ctx.strokeStyle = '#222';
+                    ctx.strokeStyle = '#e0e0e0';
                     for (let i = 0; i <= GRID_W; i++) {
                         ctx.beginPath();
                         ctx.moveTo(i * CELL, 0);
@@ -1495,36 +1535,37 @@
             }, []);
 
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-black p-4 select-none">
-                    <div className="flex justify-between w-[600px] font-mono text-xs mb-2 text-gray-400">
-                        <span>SCORE: <span className="text-white">{score}</span></span>
-                        <span>HIGH: <span className="text-white">{highScore}</span></span>
-                        <span className={gameOver ? 'text-red-500' : gameStarted ? 'text-green-500' : 'text-gray-500'}>
-                            {gameOver ? 'DEAD' : gameStarted ? 'ALIVE' : 'READY'}
-                        </span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">SNEK.EXE</span>
+                        <div className="flex gap-4 font-mono text-xs">
+                            <span>SCORE: <span className="font-bold">{score}</span></span>
+                            <span>HIGH: <span className="font-bold">{highScore}</span></span>
+                            <span className={gameOver ? 'text-red-600' : gameStarted ? 'text-green-600' : 'text-gray-500'}>
+                                {gameOver ? 'DEAD' : gameStarted ? 'ALIVE' : 'READY'}
+                            </span>
+                        </div>
                     </div>
-                    <div className="relative border-2 border-gray-800">
-                        <canvas ref={canvasRef} width={600} height={400} className="block" />
-                        {!gameStarted && (
-                            <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-white">
-                                <pre className="font-mono text-xs mb-4 text-gray-500">
-{`  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-  █ ████ ██ ██ █ ██ ██ █
-  █ ████ ██ ██ █ ██ ██ █
-  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀`}
-                                </pre>
-                                <h1 className="text-3xl font-black mb-2 tracking-widest">SNEK</h1>
-                                {gameOver && <p className="text-red-500 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
-                                <button
-                                    onClick={start}
-                                    className="border-2 border-white px-6 py-2 hover:bg-white hover:text-black font-mono font-bold text-sm"
-                                >
-                                    {gameOver ? 'RETRY' : 'START'}
-                                </button>
-                                <p className="mt-4 text-gray-600 font-mono text-xs">ARROW KEYS TO MOVE</p>
-                                <p className="text-gray-700 font-mono text-xs">AVOID THE GHOST</p>
-                            </div>
-                        )}
+                    <div className="flex-grow flex items-center justify-center p-4 bg-gray-50">
+                        <div className="relative border-2 border-black">
+                            <canvas ref={canvasRef} width={600} height={400} className="block" />
+                            {!gameStarted && (
+                                <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
+                                    <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
+                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
+                                    <button
+                                        onClick={start}
+                                        className="bg-black text-white px-6 py-3 font-mono font-bold text-sm hover:invert border-2 border-black"
+                                    >
+                                        {gameOver ? 'RETRY' : 'START'}
+                                    </button>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • AVOID THE GHOST</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">EAT FOOD • GROW LONGER • DON'T DIE</span>
                     </div>
                 </div>
             );
@@ -1682,33 +1723,33 @@
             }, []);
 
             return (
-                <div className="h-full flex flex-col bg-gray-100 select-none">
+                <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
                         <span className="font-mono text-xs font-bold">LABYRINTH.EXE</span>
                         <div className="flex gap-4 font-mono text-xs">
-                            <span>LVL: {level}</span>
-                            <span>SCORE: {score}</span>
-                            <span>HIGH: {highScore}</span>
+                            <span>LVL: <span className="font-bold">{level}</span></span>
+                            <span>SCORE: <span className="font-bold">{score}</span></span>
+                            <span>HIGH: <span className="font-bold">{highScore}</span></span>
                         </div>
                     </div>
-                    <div className="flex-grow flex items-center justify-center p-4 overflow-auto relative">
+                    <div className="flex-grow flex items-center justify-center p-4 overflow-auto relative bg-gray-50">
                         {won && !showingMaze && (
-                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
-                                <div className="text-white text-center">
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
                                     <div className="text-2xl font-black mb-2">YOU FOUND THE WAY OUT</div>
-                                    <div className="font-mono text-sm text-gray-400">+{level * 100} POINTS</div>
+                                    <div className="font-mono text-sm text-gray-500">+{level * 100} POINTS</div>
                                 </div>
                             </div>
                         )}
                         {showingMaze && (
-                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
-                                <div className="text-white text-center">
-                                    <div className="text-xl font-mono mb-2">MAZE {level} COMPLETE</div>
-                                    <div className="font-mono text-xs text-gray-400">GENERATING HARDER MAZE...</div>
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
+                                    <div className="text-xl font-mono font-bold mb-2">MAZE {level} COMPLETE</div>
+                                    <div className="font-mono text-xs text-gray-500">GENERATING HARDER MAZE...</div>
                                 </div>
                             </div>
                         )}
-                        <div className="border-4 border-black bg-white p-1">
+                        <div className="border-2 border-black bg-white p-1">
                             <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
                         </div>
                     </div>
@@ -1989,32 +2030,37 @@
                         </div>
                     </div>
 
-                    {/* Dog stealing animation */}
+                    {/* Dog stealing animation - cute dog matching the main sprite */}
                     {dogStealing && (
                         <div
                             className="absolute z-20"
                             style={{ left: dogPos.x, top: dogPos.y }}
                         >
-                            <svg width="60" height="40" viewBox="0 0 64 40" style={{ imageRendering: 'pixelated' }}>
-                                {/* Dog body */}
-                                <rect x="16" y="12" width="32" height="16" fill="#000" />
-                                <rect x="20" y="16" width="24" height="8" fill="#fff" />
-                                {/* Head */}
-                                <rect x="4" y="8" width="16" height="16" fill="#000" />
-                                <rect x="8" y="12" width="8" height="8" fill="#fff" />
-                                {/* Ears */}
-                                <rect x="4" y="0" width="4" height="12" fill="#000" />
-                                <rect x="12" y="0" width="4" height="12" fill="#000" />
-                                {/* Eye */}
-                                <rect x="10" y="14" width="4" height="4" fill="#000" />
-                                {/* Legs */}
-                                <rect x="16" y="28" width="6" height="10" fill="#000" />
-                                <rect x="38" y="28" width="6" height="10" fill="#000" />
-                                {/* Tail */}
-                                <rect x="48" y="8" width="12" height="4" fill="#000" />
+                            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated' }}>
+                                {/* Cute dog - full black, same as released dog */}
+                                {/* Body */}
+                                <rect x="16" y="16" width="32" height="16" fill="#000" />
+                                {/* Head - rounder, cuter */}
+                                <rect x="4" y="12" width="16" height="16" fill="#000" />
+                                {/* Floppy ears */}
+                                <rect x="2" y="4" width="6" height="14" fill="#000" />
+                                <rect x="14" y="4" width="6" height="14" fill="#000" />
+                                {/* Eye - big cute eye */}
+                                <rect x="8" y="16" width="6" height="6" fill="#fff" />
+                                <rect x="10" y="18" width="3" height="3" fill="#000" />
+                                {/* Nose */}
+                                <rect x="4" y="22" width="4" height="4" fill="#000" />
+                                {/* Running legs */}
+                                <rect x="16" y="32" width="6" height="12" fill="#000" />
+                                <rect x="26" y="32" width="6" height="10" fill="#000" />
+                                <rect x="34" y="32" width="6" height="12" fill="#000" />
+                                <rect x="42" y="32" width="6" height="10" fill="#000" />
+                                {/* Tail - wagging */}
+                                <rect x="48" y="12" width="12" height="4" fill="#000" />
+                                <rect x="58" y="8" width="4" height="6" fill="#000" />
                             </svg>
                             {buttonGone && (
-                                <div className="absolute -top-6 left-8 px-2 py-1 bg-red-600 text-white font-mono text-[8px] border border-red-400">
+                                <div className="absolute -top-4 left-10 px-2 py-1 bg-black text-white font-mono text-[8px] border-2 border-black">
                                     DESTROY
                                 </div>
                             )}
