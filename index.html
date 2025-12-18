@@ -1263,11 +1263,11 @@
                 }, 60);
             };
 
-            const getResultColor = () => {
-                if (!result) return 'text-black';
-                if (result === 20) return 'text-green-600';
-                if (result === 1) return 'text-red-600';
-                return 'text-black';
+            const getResultStyle = () => {
+                if (!result) return '';
+                if (result === 20) return 'bg-black text-white';
+                if (result === 1) return 'border-2 border-black';
+                return '';
             };
 
             // Draw 3D D20 on canvas
@@ -1279,7 +1279,7 @@
                 const cx = size / 2;
                 const cy = size / 2;
 
-                ctx.fillStyle = '#f5f5f5';
+                ctx.fillStyle = '#fff';
                 ctx.fillRect(0, 0, size, size);
 
                 // Simple 3D icosahedron projection
@@ -1334,12 +1334,12 @@
                     pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
                     ctx.closePath();
 
-                    // Shade based on depth
-                    const shade = Math.floor(220 + avgZ * 30);
+                    // Shade based on depth - minimal grayscale
+                    const shade = Math.floor(240 + avgZ * 15);
                     ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
                     ctx.fill();
                     ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
+                    ctx.lineWidth = 1;
                     ctx.stroke();
                 });
 
@@ -1355,29 +1355,32 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">DICE.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-500">D20 ROLLER</span>
+                    <div className="p-2 border-b border-gray-200 bg-white flex justify-between items-center">
+                        <span className="font-mono text-[10px] font-bold tracking-wider">DICE.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-400">D20</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-6 bg-gray-50">
-                        <div className="border-2 border-black bg-white p-1 mb-6">
+                    <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white">
+                        <div className="border border-gray-200 mb-8">
                             <canvas ref={canvasRef} width={200} height={200} className="block" />
                         </div>
                         {result && !isRolling && (
-                            <div className={`text-3xl font-black mb-4 ${getResultColor()}`}>
-                                {result === 20 ? 'CRITICAL HIT!' : result === 1 ? 'CRITICAL FAIL!' : result}
+                            <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
+                                {result === 20 ? 'CRITICAL' : result === 1 ? 'FAIL' : `RESULT: ${result}`}
                             </div>
                         )}
                         <button
                             onClick={rollDice}
                             disabled={isRolling}
-                            className="bg-black text-white px-8 py-3 font-mono font-bold text-sm hover:invert disabled:opacity-50 border-2 border-black"
+                            className="bg-black text-white px-6 py-2 font-mono text-[10px] tracking-widest hover:bg-gray-800 disabled:bg-gray-300 transition-colors"
                         >
-                            {isRolling ? 'ROLLING...' : 'ROLL D20'}
+                            {isRolling ? 'ROLLING' : 'ROLL'}
                         </button>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">CLICK TO ROLL • 20 = CRIT • 1 = FAIL</span>
+                    <div className="p-2 border-t border-gray-200 bg-white">
+                        <div className="flex justify-between font-mono text-[10px] text-gray-400">
+                            <span>20 = CRIT</span>
+                            <span>1 = FAIL</span>
+                        </div>
                     </div>
                 </div>
             );
