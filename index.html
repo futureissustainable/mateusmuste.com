@@ -2963,9 +2963,9 @@
                 setIsShuffling(true);
                 let frame = 0;
                 const shuffleInterval = setInterval(() => {
-                    setShuffleFrame(f => (f + 1) % 2);
+                    setShuffleFrame(f => f + 1);
                     frame++;
-                    if (frame >= 12) {
+                    if (frame >= 20) {
                         clearInterval(shuffleInterval);
                         setIsShuffling(false);
                         const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
@@ -2974,7 +2974,7 @@
                         setTimeout(() => setRevealed(true), 500);
                         setAlreadyPulled(true);
                     }
-                }, 150);
+                }, 80);
             };
 
             const questionPixels = [
@@ -3020,10 +3020,27 @@
                     <div className="flex-grow flex flex-col items-center justify-center p-4">
                         {isShuffling ? (
                             <div className="text-center">
-                                <div className="mb-4 animate-pulse" style={{ transform: `rotate(${shuffleFrame * 4 - 2}deg)` }}>
-                                    <PixelTarotCard pixels={shufflePixels[shuffleFrame]} />
+                                <div className="relative w-24 h-32 mb-4">
+                                    {/* Deck shuffle animation - multiple cards moving */}
+                                    {[0, 1, 2, 3, 4].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="absolute inset-0 border border-gray-700 bg-black"
+                                            style={{
+                                                transform: `
+                                                    translateX(${Math.sin((shuffleFrame + i) * 1.5) * (15 + i * 3)}px)
+                                                    translateY(${i * 2}px)
+                                                    rotate(${Math.sin((shuffleFrame + i) * 0.8) * 8}deg)
+                                                `,
+                                                transition: 'transform 0.1s ease-out',
+                                                zIndex: 5 - i
+                                            }}
+                                        >
+                                            <PixelTarotCard pixels={shufflePixels[shuffleFrame % 2]} />
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="font-mono text-[10px] text-gray-500">SHUFFLING...</div>
+                                <div className="font-mono text-[10px] text-gray-500 animate-pulse">SHUFFLING...</div>
                             </div>
                         ) : !card ? (
                             <div className="text-center">
