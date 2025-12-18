@@ -94,9 +94,9 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
-        // --- PIXEL ART ICONS (32x32) ---
-        const PixelIcon = ({ children, size = 32, ...props }) => (
-            <svg {...props} width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ imageRendering: 'pixelated' }}>
+        // --- PIXEL ART ICONS (64x64) ---
+        const PixelIcon = ({ children, size = 64, ...props }) => (
+            <svg {...props} width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ imageRendering: 'pixelated' }}>
                 {children}
             </svg>
         );
@@ -105,94 +105,100 @@
             // System Info - Monitor with info screen
             Terminal: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="18" fill="#000" />
-                    <rect x="6" y="6" width="20" height="14" fill="#fff" />
-                    <rect x="8" y="8" width="16" height="2" fill="#000" />
-                    <rect x="8" y="12" width="12" height="2" fill="#000" />
-                    <rect x="8" y="16" width="8" height="2" fill="#000" />
-                    <rect x="12" y="22" width="8" height="2" fill="#000" />
-                    <rect x="10" y="24" width="12" height="4" fill="#000" />
+                    <rect x="8" y="8" width="48" height="36" fill="#000" />
+                    <rect x="12" y="12" width="40" height="28" fill="#fff" />
+                    <rect x="16" y="16" width="32" height="4" fill="#000" />
+                    <rect x="16" y="24" width="24" height="4" fill="#000" />
+                    <rect x="16" y="32" width="16" height="4" fill="#000" />
+                    <rect x="24" y="44" width="16" height="4" fill="#000" />
+                    <rect x="20" y="48" width="24" height="8" fill="#000" />
                 </PixelIcon>
             ),
             // Media Library - Stack of folders
             Folder: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="10" width="24" height="18" fill="#000" />
-                    <rect x="6" y="12" width="20" height="14" fill="#fff" />
-                    <rect x="4" y="8" width="10" height="4" fill="#000" />
-                    <rect x="6" y="6" width="6" height="4" fill="#000" />
-                    <rect x="8" y="16" width="14" height="2" fill="#000" />
-                    <rect x="8" y="20" width="10" height="2" fill="#000" />
+                    <rect x="8" y="20" width="48" height="36" fill="#000" />
+                    <rect x="12" y="24" width="40" height="28" fill="#fff" />
+                    <rect x="8" y="16" width="20" height="8" fill="#000" />
+                    <rect x="12" y="12" width="12" height="8" fill="#000" />
+                    <rect x="16" y="32" width="28" height="4" fill="#000" />
+                    <rect x="16" y="40" width="20" height="4" fill="#000" />
                 </PixelIcon>
             ),
-            // Paint - Brush icon
+            // Paint - Paint bucket icon
             Palette: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="22" y="2" width="6" height="6" fill="#000" />
-                    <rect x="18" y="6" width="6" height="6" fill="#000" />
-                    <rect x="14" y="10" width="6" height="6" fill="#000" />
-                    <rect x="10" y="14" width="6" height="6" fill="#000" />
-                    <rect x="6" y="18" width="6" height="6" fill="#000" />
-                    <rect x="2" y="22" width="8" height="8" fill="#000" />
-                    <rect x="4" y="24" width="4" height="4" fill="#fff" />
+                    {/* Bucket body */}
+                    <rect x="12" y="20" width="40" height="32" fill="#000" />
+                    <rect x="16" y="24" width="32" height="24" fill="#fff" />
+                    {/* Handle */}
+                    <rect x="8" y="8" width="4" height="16" fill="#000" />
+                    <rect x="8" y="4" width="24" height="4" fill="#000" />
+                    <rect x="28" y="8" width="4" height="8" fill="#000" />
+                    {/* Paint drip */}
+                    <rect x="44" y="28" width="8" height="12" fill="#000" />
+                    <rect x="48" y="40" width="8" height="8" fill="#000" />
+                    <rect x="52" y="48" width="8" height="8" fill="#000" />
+                    {/* Rim */}
+                    <rect x="8" y="16" width="48" height="4" fill="#000" />
                 </PixelIcon>
             ),
             // Snake Game - Pixel snake
             Snek: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="12" width="4" height="4" fill="#000" />
-                    <rect x="8" y="12" width="4" height="4" fill="#000" />
-                    <rect x="12" y="12" width="4" height="4" fill="#000" />
-                    <rect x="16" y="12" width="4" height="4" fill="#000" />
-                    <rect x="16" y="16" width="4" height="4" fill="#000" />
-                    <rect x="16" y="20" width="4" height="4" fill="#000" />
-                    <rect x="20" y="20" width="4" height="4" fill="#000" />
-                    <rect x="24" y="20" width="4" height="4" fill="#000" />
-                    <rect x="2" y="10" width="2" height="2" fill="#000" />
-                    <rect x="2" y="14" width="2" height="2" fill="#000" />
-                    <rect x="26" y="24" width="4" height="4" fill="#fff" stroke="#000" strokeWidth="1" />
+                    <rect x="8" y="24" width="8" height="8" fill="#000" />
+                    <rect x="16" y="24" width="8" height="8" fill="#000" />
+                    <rect x="24" y="24" width="8" height="8" fill="#000" />
+                    <rect x="32" y="24" width="8" height="8" fill="#000" />
+                    <rect x="32" y="32" width="8" height="8" fill="#000" />
+                    <rect x="32" y="40" width="8" height="8" fill="#000" />
+                    <rect x="40" y="40" width="8" height="8" fill="#000" />
+                    <rect x="48" y="40" width="8" height="8" fill="#000" />
+                    <rect x="4" y="20" width="4" height="4" fill="#000" />
+                    <rect x="4" y="28" width="4" height="4" fill="#000" />
+                    <rect x="52" y="48" width="8" height="8" fill="#fff" stroke="#000" strokeWidth="2" />
                 </PixelIcon>
             ),
             // Trash Can - Desktop trash
             TrashCan: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="6" y="4" width="20" height="4" fill="#000" />
-                    <rect x="10" y="2" width="12" height="4" fill="#000" />
-                    <rect x="8" y="8" width="16" height="20" fill="#000" />
-                    <rect x="10" y="10" width="12" height="16" fill="#fff" />
-                    <rect x="12" y="12" width="2" height="12" fill="#000" />
-                    <rect x="15" y="12" width="2" height="12" fill="#000" />
-                    <rect x="18" y="12" width="2" height="12" fill="#000" />
+                    <rect x="12" y="8" width="40" height="8" fill="#000" />
+                    <rect x="20" y="4" width="24" height="8" fill="#000" />
+                    <rect x="16" y="16" width="32" height="40" fill="#000" />
+                    <rect x="20" y="20" width="24" height="32" fill="#fff" />
+                    <rect x="24" y="24" width="4" height="24" fill="#000" />
+                    <rect x="30" y="24" width="4" height="24" fill="#000" />
+                    <rect x="36" y="24" width="4" height="24" fill="#000" />
                 </PixelIcon>
             ),
             // Undo arrow
             Undo: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="12" width="4" height="4" fill="#000" />
-                    <rect x="8" y="8" width="4" height="4" fill="#000" />
-                    <rect x="12" y="4" width="4" height="4" fill="#000" />
-                    <rect x="8" y="16" width="16" height="4" fill="#000" />
-                    <rect x="20" y="20" width="4" height="8" fill="#000" />
+                    <rect x="8" y="24" width="8" height="8" fill="#000" />
+                    <rect x="16" y="16" width="8" height="8" fill="#000" />
+                    <rect x="24" y="8" width="8" height="8" fill="#000" />
+                    <rect x="16" y="32" width="32" height="8" fill="#000" />
+                    <rect x="40" y="40" width="8" height="16" fill="#000" />
                 </PixelIcon>
             ),
             // Redo arrow
             Redo: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="24" y="12" width="4" height="4" fill="#000" />
-                    <rect x="20" y="8" width="4" height="4" fill="#000" />
-                    <rect x="16" y="4" width="4" height="4" fill="#000" />
-                    <rect x="8" y="16" width="16" height="4" fill="#000" />
-                    <rect x="8" y="20" width="4" height="8" fill="#000" />
+                    <rect x="48" y="24" width="8" height="8" fill="#000" />
+                    <rect x="40" y="16" width="8" height="8" fill="#000" />
+                    <rect x="32" y="8" width="8" height="8" fill="#000" />
+                    <rect x="16" y="32" width="32" height="8" fill="#000" />
+                    <rect x="16" y="40" width="8" height="16" fill="#000" />
                 </PixelIcon>
             ),
             // File icon for trash items
             FileDoc: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="6" y="2" width="16" height="28" fill="#000" />
-                    <rect x="8" y="4" width="12" height="24" fill="#fff" />
-                    <rect x="10" y="8" width="8" height="2" fill="#000" />
-                    <rect x="10" y="12" width="8" height="2" fill="#000" />
-                    <rect x="10" y="16" width="6" height="2" fill="#000" />
+                    <rect x="12" y="4" width="32" height="56" fill="#000" />
+                    <rect x="16" y="8" width="24" height="48" fill="#fff" />
+                    <rect x="20" y="16" width="16" height="4" fill="#000" />
+                    <rect x="20" y="24" width="16" height="4" fill="#000" />
+                    <rect x="20" y="32" width="12" height="4" fill="#000" />
                 </PixelIcon>
             ),
             X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
@@ -203,147 +209,211 @@
             // Media folder icons
             Movies: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <polygon points="12,12 12,20 20,16" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <polygon points="24,24 24,40 40,32" fill="#000" />
                 </PixelIcon>
             ),
             Books: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="10" y="11" width="12" height="2" fill="#000" />
-                    <rect x="10" y="15" width="8" height="2" fill="#000" />
-                    <rect x="10" y="19" width="10" height="2" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="20" y="22" width="24" height="4" fill="#000" />
+                    <rect x="20" y="30" width="16" height="4" fill="#000" />
+                    <rect x="20" y="38" width="20" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Games: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="10" y="12" width="4" height="4" fill="#000" />
-                    <rect x="18" y="12" width="4" height="4" fill="#000" />
-                    <rect x="12" y="18" width="8" height="2" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="20" y="24" width="8" height="8" fill="#000" />
+                    <rect x="36" y="24" width="8" height="8" fill="#000" />
+                    <rect x="24" y="36" width="16" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Music: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="6" width="24" height="20" fill="#000" />
-                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
-                    <rect x="4" y="4" width="6" height="4" fill="#000" />
-                    <rect x="18" y="10" width="2" height="10" fill="#000" />
-                    <rect x="14" y="18" width="6" height="4" fill="#000" />
-                    <rect x="18" y="10" width="6" height="4" fill="#000" />
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    <rect x="8" y="8" width="12" height="8" fill="#000" />
+                    <rect x="36" y="20" width="4" height="20" fill="#000" />
+                    <rect x="28" y="36" width="12" height="8" fill="#000" />
+                    <rect x="36" y="20" width="12" height="8" fill="#000" />
                 </PixelIcon>
             ),
             Back: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>,
             // New App Icons
             Void: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="24" fill="#000" />
-                    <rect x="6" y="6" width="20" height="20" fill="#fff" />
-                    <rect x="8" y="8" width="16" height="2" fill="#000" />
-                    <rect x="8" y="12" width="12" height="2" fill="#333" />
-                    <rect x="8" y="16" width="14" height="2" fill="#666" />
-                    <rect x="8" y="20" width="8" height="2" fill="#999" />
+                    <rect x="8" y="8" width="48" height="48" fill="#000" />
+                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
+                    <rect x="16" y="16" width="32" height="4" fill="#000" />
+                    <rect x="16" y="24" width="24" height="4" fill="#333" />
+                    <rect x="16" y="32" width="28" height="4" fill="#666" />
+                    <rect x="16" y="40" width="16" height="4" fill="#999" />
                 </PixelIcon>
             ),
             Oracle: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="10" y="2" width="12" height="4" fill="#000" />
-                    <rect x="8" y="6" width="16" height="4" fill="#000" />
-                    <rect x="6" y="10" width="20" height="12" fill="#000" />
-                    <rect x="8" y="12" width="16" height="8" fill="#fff" />
-                    <rect x="12" y="14" width="3" height="3" fill="#000" />
-                    <rect x="17" y="14" width="3" height="3" fill="#000" />
-                    <rect x="6" y="22" width="6" height="6" fill="#000" />
-                    <rect x="20" y="22" width="6" height="6" fill="#000" />
+                    <rect x="20" y="4" width="24" height="8" fill="#000" />
+                    <rect x="16" y="12" width="32" height="8" fill="#000" />
+                    <rect x="12" y="20" width="40" height="24" fill="#000" />
+                    <rect x="16" y="24" width="32" height="16" fill="#fff" />
+                    <rect x="24" y="28" width="6" height="6" fill="#000" />
+                    <rect x="34" y="28" width="6" height="6" fill="#000" />
+                    <rect x="12" y="44" width="12" height="12" fill="#000" />
+                    <rect x="40" y="44" width="12" height="12" fill="#000" />
                 </PixelIcon>
             ),
             Radio: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="8" width="24" height="18" fill="#000" />
-                    <rect x="6" y="10" width="20" height="14" fill="#fff" />
-                    <rect x="8" y="12" width="8" height="8" fill="#000" />
-                    <rect x="10" y="14" width="4" height="4" fill="#fff" />
-                    <rect x="18" y="12" width="6" height="2" fill="#000" />
-                    <rect x="18" y="16" width="6" height="2" fill="#000" />
-                    <rect x="14" y="2" width="2" height="8" fill="#000" />
-                    <rect x="12" y="2" width="6" height="2" fill="#000" />
+                    <rect x="8" y="16" width="48" height="36" fill="#000" />
+                    <rect x="12" y="20" width="40" height="28" fill="#fff" />
+                    <rect x="16" y="24" width="16" height="16" fill="#000" />
+                    <rect x="20" y="28" width="8" height="8" fill="#fff" />
+                    <rect x="36" y="24" width="12" height="4" fill="#000" />
+                    <rect x="36" y="32" width="12" height="4" fill="#000" />
+                    <rect x="28" y="4" width="4" height="16" fill="#000" />
+                    <rect x="24" y="4" width="12" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Dice: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="4" width="24" height="24" fill="#000" />
-                    <rect x="6" y="6" width="20" height="20" fill="#fff" />
-                    <rect x="10" y="10" width="4" height="4" fill="#000" />
-                    <rect x="18" y="10" width="4" height="4" fill="#000" />
-                    <rect x="14" y="14" width="4" height="4" fill="#000" />
-                    <rect x="10" y="18" width="4" height="4" fill="#000" />
-                    <rect x="18" y="18" width="4" height="4" fill="#000" />
+                    <rect x="8" y="8" width="48" height="48" fill="#000" />
+                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
+                    <rect x="20" y="20" width="8" height="8" fill="#000" />
+                    <rect x="36" y="20" width="8" height="8" fill="#000" />
+                    <rect x="28" y="28" width="8" height="8" fill="#000" />
+                    <rect x="20" y="36" width="8" height="8" fill="#000" />
+                    <rect x="36" y="36" width="8" height="8" fill="#000" />
                 </PixelIcon>
             ),
             Labyrinth: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="2" y="2" width="28" height="28" fill="#000" />
-                    <rect x="4" y="4" width="24" height="24" fill="#fff" />
-                    <rect x="4" y="8" width="16" height="2" fill="#000" />
-                    <rect x="12" y="12" width="16" height="2" fill="#000" />
-                    <rect x="4" y="16" width="12" height="2" fill="#000" />
-                    <rect x="20" y="16" width="8" height="2" fill="#000" />
-                    <rect x="8" y="20" width="16" height="2" fill="#000" />
-                    <rect x="14" y="14" width="4" height="4" fill="#f00" />
+                    {/* Outer border */}
+                    <rect x="4" y="4" width="56" height="56" fill="#000" />
+                    <rect x="8" y="8" width="48" height="48" fill="#fff" />
+                    {/* Maze walls - more complex pattern */}
+                    <rect x="8" y="8" width="4" height="32" fill="#000" />
+                    <rect x="8" y="8" width="24" height="4" fill="#000" />
+                    <rect x="16" y="16" width="4" height="24" fill="#000" />
+                    <rect x="24" y="16" width="20" height="4" fill="#000" />
+                    <rect x="24" y="24" width="4" height="20" fill="#000" />
+                    <rect x="32" y="28" width="16" height="4" fill="#000" />
+                    <rect x="40" y="8" width="4" height="24" fill="#000" />
+                    <rect x="48" y="16" width="4" height="28" fill="#000" />
+                    <rect x="32" y="40" width="20" height="4" fill="#000" />
+                    <rect x="8" y="48" width="28" height="4" fill="#000" />
+                    {/* Player marker */}
+                    <rect x="10" y="10" width="4" height="4" fill="#000" />
+                    {/* Exit marker */}
+                    <rect x="50" y="50" width="4" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Synth: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="2" y="8" width="28" height="18" fill="#000" />
-                    <rect x="4" y="10" width="24" height="14" fill="#333" />
-                    <rect x="6" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="11" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="16" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="21" y="12" width="4" height="8" fill="#fff" />
-                    <rect x="8" y="12" width="2" height="5" fill="#000" />
-                    <rect x="13" y="12" width="2" height="5" fill="#000" />
-                    <rect x="23" y="12" width="2" height="5" fill="#000" />
+                    <rect x="4" y="16" width="56" height="36" fill="#000" />
+                    <rect x="8" y="20" width="48" height="28" fill="#333" />
+                    <rect x="12" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="22" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="32" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="42" y="24" width="8" height="16" fill="#fff" />
+                    <rect x="16" y="24" width="4" height="10" fill="#000" />
+                    <rect x="26" y="24" width="4" height="10" fill="#000" />
+                    <rect x="46" y="24" width="4" height="10" fill="#000" />
                 </PixelIcon>
             ),
             Destruction: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="8" y="4" width="16" height="4" fill="#000" />
-                    <rect x="6" y="8" width="20" height="4" fill="#000" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    <rect x="6" y="20" width="20" height="4" fill="#000" />
-                    <rect x="8" y="24" width="16" height="4" fill="#000" />
-                    <rect x="10" y="10" width="4" height="4" fill="#f00" />
-                    <rect x="18" y="10" width="4" height="4" fill="#f00" />
-                    <rect x="12" y="16" width="8" height="2" fill="#f00" />
+                    {/* Skull top */}
+                    <rect x="16" y="4" width="32" height="8" fill="#fff" />
+                    <rect x="12" y="12" width="40" height="8" fill="#fff" />
+                    <rect x="8" y="20" width="48" height="16" fill="#fff" />
+                    {/* Eye sockets */}
+                    <rect x="14" y="22" width="12" height="10" fill="#000" />
+                    <rect x="38" y="22" width="12" height="10" fill="#000" />
+                    {/* Nose */}
+                    <rect x="28" y="34" width="8" height="6" fill="#000" />
+                    {/* Teeth */}
+                    <rect x="12" y="40" width="40" height="8" fill="#fff" />
+                    <rect x="16" y="42" width="4" height="6" fill="#000" />
+                    <rect x="24" y="42" width="4" height="6" fill="#000" />
+                    <rect x="36" y="42" width="4" height="6" fill="#000" />
+                    <rect x="44" y="42" width="4" height="6" fill="#000" />
+                    {/* Jaw */}
+                    <rect x="16" y="48" width="32" height="8" fill="#fff" />
+                    {/* Border */}
+                    <rect x="8" y="4" width="4" height="48" fill="#000" />
+                    <rect x="52" y="4" width="4" height="48" fill="#000" />
+                    <rect x="12" y="0" width="40" height="4" fill="#000" />
+                    <rect x="12" y="52" width="40" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Tarot: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="8" y="2" width="16" height="28" fill="#000" />
-                    <rect x="10" y="4" width="12" height="24" fill="#fff" />
-                    <rect x="12" y="6" width="8" height="2" fill="#000" />
-                    <rect x="14" y="10" width="4" height="4" fill="#000" />
-                    <rect x="12" y="16" width="8" height="8" fill="#000" />
-                    <rect x="14" y="18" width="4" height="4" fill="#fff" />
+                    <rect x="16" y="4" width="32" height="56" fill="#000" />
+                    <rect x="20" y="8" width="24" height="48" fill="#fff" />
+                    <rect x="24" y="12" width="16" height="4" fill="#000" />
+                    <rect x="28" y="20" width="8" height="8" fill="#000" />
+                    <rect x="24" y="32" width="16" height="16" fill="#000" />
+                    <rect x="28" y="36" width="8" height="8" fill="#fff" />
                 </PixelIcon>
             ),
             Dog: (p) => (
                 <PixelIcon {...p}>
-                    <rect x="4" y="8" width="6" height="6" fill="#000" />
-                    <rect x="6" y="6" width="4" height="4" fill="#000" />
-                    <rect x="8" y="10" width="16" height="10" fill="#000" />
-                    <rect x="10" y="12" width="12" height="6" fill="#8B4513" />
-                    <rect x="6" y="10" width="2" height="2" fill="#fff" />
-                    <rect x="22" y="8" width="4" height="4" fill="#000" />
-                    <rect x="8" y="20" width="4" height="6" fill="#000" />
-                    <rect x="18" y="20" width="4" height="6" fill="#000" />
-                    <rect x="24" y="12" width="6" height="2" fill="#000" />
+                    {/* Cute dog - full black */}
+                    {/* Body */}
+                    <rect x="16" y="20" width="32" height="16" fill="#000" />
+                    {/* Head - rounder, cuter */}
+                    <rect x="4" y="16" width="16" height="16" fill="#000" />
+                    {/* Floppy ears */}
+                    <rect x="2" y="8" width="6" height="14" fill="#000" />
+                    <rect x="14" y="8" width="6" height="14" fill="#000" />
+                    {/* Eye - big cute eye */}
+                    <rect x="8" y="20" width="6" height="6" fill="#fff" />
+                    <rect x="10" y="22" width="3" height="3" fill="#000" />
+                    {/* Nose */}
+                    <rect x="4" y="26" width="4" height="4" fill="#000" />
+                    {/* Tail - wagging up */}
+                    <rect x="48" y="16" width="12" height="4" fill="#000" />
+                    <rect x="56" y="12" width="4" height="8" fill="#000" />
+                    {/* Legs */}
+                    <rect x="16" y="36" width="8" height="16" fill="#000" />
+                    <rect x="38" y="36" width="8" height="16" fill="#000" />
+                </PixelIcon>
+            ),
+            // Email icon
+            Email: (p) => (
+                <PixelIcon {...p}>
+                    {/* Envelope */}
+                    <rect x="4" y="12" width="56" height="40" fill="#000" />
+                    <rect x="8" y="16" width="48" height="32" fill="#fff" />
+                    {/* Flap */}
+                    <polygon points="8,16 32,36 56,16" fill="#000" />
+                    <polygon points="12,20 32,32 52,20" fill="#fff" />
+                    {/* Bottom fold */}
+                    <polygon points="8,48 32,32 56,48" fill="#000" stroke="#fff" strokeWidth="2" />
+                </PixelIcon>
+            ),
+            // Apps folder icon
+            Apps: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    {/* Folder tab */}
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Grid of apps inside */}
+                    <rect x="12" y="24" width="8" height="8" fill="#000" />
+                    <rect x="24" y="24" width="8" height="8" fill="#000" />
+                    <rect x="36" y="24" width="8" height="8" fill="#000" />
+                    <rect x="12" y="36" width="8" height="8" fill="#000" />
+                    <rect x="24" y="36" width="8" height="8" fill="#000" />
+                    <rect x="36" y="36" width="8" height="8" fill="#000" />
                 </PixelIcon>
             )
         };
@@ -718,13 +788,13 @@
                 const FolderIcon = Icons[folders.find(f => f.key === selectedFolder)?.icon || 'Folder'];
                 return (
                     <div className="h-full flex flex-col bg-white select-none">
-                        <div className="p-3 border-b-2 border-black bg-gray-50 flex items-center gap-3">
-                            <button onClick={() => setSelectedFolder(null)} className="p-1 border border-black hover:bg-black hover:text-white">
+                        <div className="p-2 border-b-2 border-black bg-white flex items-center gap-3">
+                            <button onClick={() => setSelectedFolder(null)} className="p-1 border-2 border-black hover:bg-black hover:text-white">
                                 <Icons.Back size={16} />
                             </button>
                             <FolderIcon size={24} />
-                            <span className="font-mono text-sm font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
-                            <span className="font-mono text-xs text-gray-400">({MEDIA_DB[selectedFolder].length} items)</span>
+                            <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
+                            <span className="font-mono text-[10px] text-gray-500">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
                         </div>
                         <div className="flex-grow overflow-auto">
                             <table className="w-full text-left border-collapse">
@@ -741,16 +811,21 @@
                                 </tbody>
                             </table>
                         </div>
+                        <div className="p-2 border-t-2 border-black bg-white text-center">
+                            <span className="font-mono text-[10px] text-gray-500">CLICK TO VIEW • HOVER TO PREVIEW</span>
+                        </div>
                     </div>
                 );
             }
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-3 border-b-2 border-black bg-gray-50">
-                        <span className="font-mono text-xs font-bold text-gray-400">/ROOT/MEDIA</span>
+                    <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
+                        <Icons.Folder size={24} />
+                        <span className="font-mono text-xs font-bold">MEDIA_LIB</span>
+                        <span className="font-mono text-[10px] text-gray-500">/ROOT/MEDIA</span>
                     </div>
-                    <div className="flex-grow p-6 flex items-start justify-center">
+                    <div className="flex-grow p-6 flex items-start justify-center bg-gray-50">
                         <div className="grid grid-cols-4 gap-8">
                             {folders.map(folder => {
                                 const FolderIcon = Icons[folder.icon];
@@ -758,17 +833,20 @@
                                     <button
                                         key={folder.key}
                                         onClick={() => setSelectedFolder(folder.key)}
-                                        className="group flex flex-col items-center gap-2 p-4 hover:bg-gray-100 border-2 border-transparent hover:border-black transition-all"
+                                        className="group flex flex-col items-center gap-2 p-4 hover:bg-white border-2 border-transparent hover:border-black transition-all"
                                     >
                                         <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
                                             <FolderIcon size={48} />
                                         </div>
                                         <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
-                                        <span className="font-mono text-[10px] text-gray-400">{MEDIA_DB[folder.key].length} items</span>
+                                        <span className="font-mono text-[10px] text-gray-500">{MEDIA_DB[folder.key].length} ITEMS</span>
                                     </button>
                                 );
                             })}
                         </div>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">MOVIES • BOOKS • GAMES • MUSIC</span>
                     </div>
                 </div>
             );
@@ -779,14 +857,44 @@
                 <header className="mb-12 border-b-4 border-black pb-8">
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">Mateus<br />Muste</h1>
                     <div className="mt-4 flex flex-wrap gap-4 font-mono text-sm">
-                        <span className="bg-black text-white px-2 py-1">FULL STACK ENGINEER</span>
+                        <span className="bg-black text-white px-2 py-1">DIGITAL DESIGNER</span>
+                        <span className="bg-black text-white px-2 py-1">RADICAL OPTIMIST</span>
                         <span className="border border-black px-2 py-1">ROMANIA</span>
                     </div>
                 </header>
                 <div className="grid md:grid-cols-2 gap-12">
                     <div className="space-y-8">
-                        <section><h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Stack</h3>
-                            <div className="flex flex-wrap gap-2">{['TS', 'React', 'Next', 'Rust', 'Go', 'AWS', 'Node', 'K8S', 'SQL', 'AI'].map(t => (<span key={t} className="px-2 py-1 border-2 border-black font-mono text-xs font-bold hover:bg-black hover:text-white cursor-crosshair">{t}</span>))}</div>
+                        <section>
+                            <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">App Stack</h3>
+                            <div className="grid grid-cols-4 gap-1">
+                                {[
+                                    { name: 'PS', full: 'Photoshop', yrs: 8 },
+                                    { name: 'PR', full: 'Premiere', yrs: 7 },
+                                    { name: 'AE', full: 'After Effects', yrs: 5 },
+                                    { name: 'XL', full: 'Excel', yrs: 4 },
+                                    { name: 'MA', full: 'Meta Ads', yrs: 4 },
+                                    { name: 'DV', full: 'DaVinci', yrs: 3 },
+                                    { name: 'AC', full: 'ArchiCAD', yrs: 2 },
+                                    { name: 'SQ', full: 'Squarespace', yrs: 2 },
+                                    { name: 'UE', full: 'Unreal', yrs: 2 },
+                                    { name: 'WF', full: 'Webflow', yrs: 2 },
+                                    { name: 'MJ', full: 'Midjourney', yrs: 2 },
+                                    { name: 'GA', full: 'Google Ads', yrs: 2 },
+                                    { name: 'BL', full: 'Blender', yrs: 1 },
+                                    { name: 'CR', full: 'Cursor', yrs: 1 },
+                                    { name: 'CF', full: 'ComfyUI', yrs: 1 },
+                                    { name: 'N8', full: 'n8n', yrs: 1 }
+                                ].map((app, i) => (
+                                    <div key={i} className="group relative border-2 border-black aspect-square flex flex-col items-center justify-center hover:bg-black hover:text-white transition-all cursor-default">
+                                        <span className="font-black text-lg">{app.name}</span>
+                                        <span className="font-mono text-[10px]">{app.yrs}Y</span>
+                                        <div className="absolute inset-0 bg-black text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">
+                                            <span className="font-mono text-[9px] text-center px-1">{app.full}</span>
+                                            <span className="font-black">{app.yrs} YRS</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
                         </section>
                         <section><h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Metrics</h3>
                             <div className="flex gap-4">
@@ -797,9 +905,13 @@
                     </div>
                     <div className="space-y-4">
                         <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Projects</h3>
-                        {[{ t: "AlgoTrade Bot", s: "Python/NLP", d: "Automated sentiment trading." }, { t: "NeuralSynth", s: "Rust/WASM", d: "Generative audio RNN." }, { t: "GraphVault", s: "WebGL", d: "3D knowledge graph." }].map((p, i) => (
+                        {[
+                            { t: "BIOBUILDS", num: "01", s: "Web / Video / Marketing", d: "Sustainable construction across Europe. Entered 3 markets." },
+                            { t: "ROMANIA OLYMPICS 2024", num: "02", s: "Premiere / After Effects", d: "National contest winner. Cluj-Napoca." },
+                            { t: "ULT", num: "03", s: "Documentary / Editing", d: "Self-directed channel. Skill laboratory." }
+                        ].map((p, i) => (
                             <div key={i} className="group border-2 border-black p-4 hover:bg-black hover:text-white cursor-pointer">
-                                <div className="flex justify-between mb-1"><h4 className="font-bold uppercase">{p.t}</h4><span className="font-mono text-xs">0{i + 1}</span></div>
+                                <div className="flex justify-between mb-1"><h4 className="font-bold uppercase">{p.t}</h4><span className="font-mono text-xs">{p.num}</span></div>
                                 <p className="font-mono text-xs opacity-70 mb-1">{p.s}</p><p className="text-sm italic">{p.d}</p>
                             </div>
                         ))}
@@ -862,28 +974,63 @@
             );
         }
 
-        // --- VOID.TXT - Text disappears into the void ---
+        // --- VOID.TXT - Text encrypts then fades into the void ---
         const VoidApp = () => {
             const [lines, setLines] = useState([]);
             const [currentText, setCurrentText] = useState('');
             const inputRef = useRef(null);
 
+            const encryptChar = (char) => {
+                const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
+                return chars[Math.floor(Math.random() * chars.length)];
+            };
+
             const handleKeyDown = (e) => {
                 if (e.key === 'Enter' && currentText.trim()) {
-                    const newLine = { id: Date.now(), text: currentText, opacity: 1 };
+                    const newLine = {
+                        id: Date.now(),
+                        originalText: currentText,
+                        displayText: currentText,
+                        opacity: 1,
+                        encryptIndex: 0,
+                        phase: 'visible' // visible -> encrypting -> fading
+                    };
                     setLines(prev => [...prev, newLine]);
                     setCurrentText('');
 
-                    // Start fading after 3 seconds
+                    // Start encrypting after 3 seconds
                     setTimeout(() => {
-                        const fadeInterval = setInterval(() => {
-                            setLines(prev => prev.map(line =>
-                                line.id === newLine.id
-                                    ? { ...line, opacity: Math.max(0, line.opacity - 0.1) }
-                                    : line
-                            ).filter(line => line.opacity > 0));
-                        }, 100);
-                        setTimeout(() => clearInterval(fadeInterval), 1100);
+                        // Encrypt phase - encrypt one character at a time
+                        let charIndex = 0;
+                        const encryptInterval = setInterval(() => {
+                            setLines(prev => prev.map(line => {
+                                if (line.id !== newLine.id) return line;
+                                if (charIndex >= line.originalText.length) return line;
+
+                                const encrypted = line.originalText.split('').map((c, i) =>
+                                    i <= charIndex ? encryptChar(c) : c
+                                ).join('');
+
+                                return { ...line, displayText: encrypted, phase: 'encrypting' };
+                            }));
+                            charIndex++;
+
+                            if (charIndex >= newLine.originalText.length) {
+                                clearInterval(encryptInterval);
+
+                                // Start fading after encryption complete
+                                setTimeout(() => {
+                                    const fadeInterval = setInterval(() => {
+                                        setLines(prev => prev.map(line =>
+                                            line.id === newLine.id
+                                                ? { ...line, opacity: Math.max(0, line.opacity - 0.1), phase: 'fading' }
+                                                : line
+                                        ).filter(line => line.opacity > 0));
+                                    }, 80);
+                                    setTimeout(() => clearInterval(fadeInterval), 900);
+                                }, 200);
+                            }
+                        }, 50);
                     }, 3000);
                 }
             };
@@ -895,25 +1042,25 @@
                     onCopy={(e) => e.preventDefault()}
                     onCut={(e) => e.preventDefault()}
                 >
-                    <div className="p-2 border-b border-gray-800 flex justify-between items-center">
-                        <span className="font-mono text-xs text-gray-500">VOID.TXT</span>
-                        <span className="font-mono text-[10px] text-gray-700">NO SAVE // NO COPY // JUST VOID</span>
+                    <div className="p-2 border-b border-gray-800 bg-black flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold text-white">VOID.TXT</span>
+                        <span className="font-mono text-[10px] text-gray-600">NO SAVE // NO COPY // JUST VOID</span>
                     </div>
                     <div className="flex-grow p-4 overflow-auto font-mono text-sm">
                         {lines.map(line => (
                             <div
                                 key={line.id}
-                                className="mb-1 transition-all duration-100"
+                                className="mb-1 transition-opacity duration-100"
                                 style={{
-                                    color: `rgba(255,255,255,${line.opacity})`,
-                                    textShadow: line.opacity > 0.5 ? '0 0 10px rgba(255,255,255,0.3)' : 'none'
+                                    color: line.phase === 'encrypting' ? '#0f0' : `rgba(255,255,255,${line.opacity})`,
+                                    textShadow: line.phase === 'encrypting' ? '0 0 5px #0f0' : 'none'
                                 }}
                             >
-                                {line.text}
+                                {line.displayText}
                             </div>
                         ))}
                         <div className="flex items-center text-white">
-                            <span className="mr-2 text-gray-500">{'>'}</span>
+                            <span className="mr-2 text-gray-600">{'>'}</span>
                             <input
                                 ref={inputRef}
                                 type="text"
@@ -927,7 +1074,7 @@
                             <span className="animate-pulse text-white">_</span>
                         </div>
                     </div>
-                    <div className="p-2 border-t border-gray-800 text-center">
+                    <div className="p-2 border-t border-gray-800 bg-black text-center">
                         <span className="font-mono text-[10px] text-gray-600">WRITE INTO THE VOID. WATCH IT DISAPPEAR.</span>
                     </div>
                 </div>
@@ -987,20 +1134,21 @@
             };
 
             return (
-                <div className="h-full flex flex-col bg-gray-900 text-white select-none">
-                    <div className="p-3 border-b border-gray-700 bg-black">
-                        <span className="font-mono text-xs text-gray-400">ORACLE.EXE // ASK THE DEAD</span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">ORACLE.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-500">ASK THE DEAD</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-8">
+                    <div className="flex-grow flex flex-col items-center justify-center p-8 bg-gray-50">
                         {answer && (
                             <div className="mb-8 text-center max-w-lg">
-                                <div className="text-2xl font-serif italic leading-relaxed mb-4">"{answer}"</div>
+                                <div className="text-xl font-serif italic leading-relaxed mb-4 text-black">"{answer}"</div>
                                 <div className="text-xs text-gray-500 font-mono">— THE ORACLE HAS SPOKEN</div>
                             </div>
                         )}
                         {isThinking && (
                             <div className="mb-8 text-center">
-                                <div className="font-mono text-sm text-gray-400 animate-pulse">
+                                <div className="font-mono text-sm text-gray-500 animate-pulse">
                                     CONSULTING THE VOID...
                                 </div>
                             </div>
@@ -1012,20 +1160,20 @@
                                 onChange={(e) => setQuestion(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && askOracle()}
                                 placeholder="ASK YOUR QUESTION..."
-                                className="w-full bg-black border-2 border-gray-600 px-4 py-3 font-mono text-sm text-white placeholder-gray-600 focus:border-white outline-none"
+                                className="w-full bg-white border-2 border-black px-4 py-3 font-mono text-sm text-black placeholder-gray-400 focus:ring-2 focus:ring-black outline-none"
                                 disabled={isThinking}
                             />
                             <button
                                 onClick={askOracle}
                                 disabled={isThinking}
-                                className="w-full mt-2 bg-white text-black py-2 font-mono font-bold text-sm hover:bg-gray-200 disabled:opacity-50"
+                                className="w-full mt-2 bg-black text-white py-3 font-mono font-bold text-sm hover:invert border-2 border-black disabled:opacity-50"
                             >
                                 SEEK TRUTH
                             </button>
                         </div>
                     </div>
-                    <div className="p-2 border-t border-gray-800 text-center">
-                        <span className="font-mono text-[10px] text-gray-600">DOSTOEVSKY • NIETZSCHE • RAND • CAMUS</span>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">DOSTOEVSKY • NIETZSCHE • RAND • CAMUS</span>
                     </div>
                 </div>
             );
@@ -1051,23 +1199,24 @@
             };
 
             return (
-                <div className="h-full flex flex-col bg-black text-white select-none">
-                    <div className="p-3 border-b border-gray-800">
-                        <span className="font-mono text-xs text-gray-500">RADIO.WAV // MATEUS_PLAYLIST</span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">RADIO.WAV</span>
+                        <span className="font-mono text-[10px] text-gray-500">MATEUS_PLAYLIST</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-8">
-                        <div className="flex items-end justify-center gap-1 h-32 mb-8">
+                    <div className="flex-grow flex flex-col items-center justify-center p-8 bg-gray-50">
+                        <div className="flex items-end justify-center gap-1 h-32 mb-8 p-4 border-2 border-black bg-white">
                             {(isPlaying ? visualizer : Array(16).fill(10)).map((h, i) => (
                                 <div
                                     key={i}
-                                    className="w-3 bg-white transition-all duration-100"
+                                    className="w-3 bg-black transition-all duration-100"
                                     style={{ height: `${h}%`, minHeight: '4px' }}
                                 />
                             ))}
                         </div>
                         <button
                             onClick={openPlaylist}
-                            className="bg-white text-black px-8 py-4 font-mono font-bold text-lg hover:bg-gray-200 border-4 border-white hover:border-gray-400 transition-all"
+                            className="bg-black text-white px-8 py-4 font-mono font-bold text-lg hover:invert border-2 border-black transition-all"
                         >
                             {isPlaying ? '► NOW PLAYING' : '► TUNE IN'}
                         </button>
@@ -1075,8 +1224,8 @@
                             OPENS YOUTUBE MUSIC
                         </div>
                     </div>
-                    <div className="p-4 border-t border-gray-800">
-                        <div className="font-mono text-[10px] text-gray-600 text-center">
+                    <div className="p-2 border-t-2 border-black bg-white">
+                        <div className="font-mono text-[10px] text-gray-500 text-center">
                             BROADCASTING FROM THE VOID
                         </div>
                     </div>
@@ -1088,19 +1237,8 @@
         const DiceApp = () => {
             const [result, setResult] = useState(null);
             const [isRolling, setIsRolling] = useState(false);
-            const [rotation, setRotation] = useState(0);
-
-            const d20Faces = [
-                '    ╱▔▔▔▔▔╲    ',
-                '   ╱   {n}   ╲   ',
-                '  ╱ ╲     ╱ ╲  ',
-                ' ╱   ╲   ╱   ╲ ',
-                '╱─────╲─╱─────╲',
-                '╲     ╱ ╲     ╱',
-                ' ╲   ╱   ╲   ╱ ',
-                '  ╲ ╱     ╲ ╱  ',
-                '   ╲───────╱   '
-            ];
+            const [rotation, setRotation] = useState({ x: 0, y: 0 });
+            const canvasRef = useRef(null);
 
             const rollDice = () => {
                 if (isRolling) return;
@@ -1108,10 +1246,13 @@
                 setResult(null);
 
                 let rolls = 0;
-                const maxRolls = 15;
+                const maxRolls = 20;
                 const rollInterval = setInterval(() => {
                     setResult(Math.floor(Math.random() * 20) + 1);
-                    setRotation(r => r + 30);
+                    setRotation(r => ({
+                        x: r.x + 15 + Math.random() * 10,
+                        y: r.y + 20 + Math.random() * 15
+                    }));
                     rolls++;
 
                     if (rolls >= maxRolls) {
@@ -1119,53 +1260,124 @@
                         setResult(Math.floor(Math.random() * 20) + 1);
                         setIsRolling(false);
                     }
-                }, 80);
+                }, 60);
             };
 
             const getResultColor = () => {
-                if (!result) return 'text-white';
-                if (result === 20) return 'text-green-400';
-                if (result === 1) return 'text-red-400';
-                return 'text-white';
+                if (!result) return 'text-black';
+                if (result === 20) return 'text-green-600';
+                if (result === 1) return 'text-red-600';
+                return 'text-black';
             };
 
+            // Draw 3D D20 on canvas
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                const size = 200;
+                const cx = size / 2;
+                const cy = size / 2;
+
+                ctx.fillStyle = '#f5f5f5';
+                ctx.fillRect(0, 0, size, size);
+
+                // Simple 3D icosahedron projection
+                const scale = 70;
+                const rotX = (rotation.x * Math.PI) / 180;
+                const rotY = (rotation.y * Math.PI) / 180;
+
+                // Icosahedron vertices (simplified)
+                const phi = (1 + Math.sqrt(5)) / 2;
+                const vertices = [
+                    [0, 1, phi], [0, -1, phi], [0, 1, -phi], [0, -1, -phi],
+                    [1, phi, 0], [-1, phi, 0], [1, -phi, 0], [-1, -phi, 0],
+                    [phi, 0, 1], [-phi, 0, 1], [phi, 0, -1], [-phi, 0, -1]
+                ].map(v => {
+                    const len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
+                    return v.map(c => c / len);
+                });
+
+                // Rotate and project
+                const project = (v) => {
+                    let [x, y, z] = v;
+                    // Rotate Y
+                    const x1 = x * Math.cos(rotY) - z * Math.sin(rotY);
+                    const z1 = x * Math.sin(rotY) + z * Math.cos(rotY);
+                    // Rotate X
+                    const y2 = y * Math.cos(rotX) - z1 * Math.sin(rotX);
+                    const z2 = y * Math.sin(rotX) + z1 * Math.cos(rotX);
+                    return { x: cx + x1 * scale, y: cy + y2 * scale, z: z2 };
+                };
+
+                const projected = vertices.map(project);
+
+                // D20 faces (triangles)
+                const faces = [
+                    [0,1,8], [0,8,4], [0,4,5], [0,5,9], [0,9,1],
+                    [2,3,11], [2,11,5], [2,5,4], [2,4,10], [2,10,3],
+                    [1,6,8], [3,6,7], [7,9,1], [6,10,8], [7,11,9],
+                    [3,7,6], [1,9,7], [4,8,10], [5,11,9], [3,10,6]
+                ];
+
+                // Sort faces by depth
+                const sortedFaces = faces.map((face, idx) => {
+                    const avgZ = face.reduce((sum, vi) => sum + projected[vi].z, 0) / 3;
+                    return { face, avgZ, idx };
+                }).sort((a, b) => a.avgZ - b.avgZ);
+
+                // Draw faces
+                sortedFaces.forEach(({ face, avgZ, idx }) => {
+                    const pts = face.map(vi => projected[vi]);
+                    ctx.beginPath();
+                    ctx.moveTo(pts[0].x, pts[0].y);
+                    pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
+                    ctx.closePath();
+
+                    // Shade based on depth
+                    const shade = Math.floor(220 + avgZ * 30);
+                    ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
+                    ctx.fill();
+                    ctx.strokeStyle = '#000';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                });
+
+                // Draw result number in center
+                if (result) {
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 36px Geist Mono, monospace';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(result, cx, cy);
+                }
+            }, [rotation, result]);
+
             return (
-                <div className="h-full flex flex-col bg-gray-900 text-white select-none">
-                    <div className="p-3 border-b border-gray-700 bg-black">
-                        <span className="font-mono text-xs text-gray-400">DICE.EXE // D20 ROLLER</span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">DICE.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-500">D20 ROLLER</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-4">
-                        <pre
-                            className={`font-mono text-xs md:text-sm leading-tight mb-6 transition-transform duration-100 ${getResultColor()}`}
-                            style={{ transform: `rotate(${isRolling ? rotation % 360 : 0}deg)` }}
-                        >
-{`        ▲
-       ╱ ╲
-      ╱   ╲
-     ╱  ${result ? String(result).padStart(2, ' ') : '??'}  ╲
-    ╱ ╲   ╱ ╲
-   ╱   ╲ ╱   ╲
-  ╱─────◆─────╲
-  ╲     ╱╲     ╱
-   ╲   ╱  ╲   ╱
-    ╲ ╱    ╲ ╱
-     ◆──────◆
-      ╲    ╱
-       ╲  ╱
-        ╲╱`}
-                        </pre>
+                    <div className="flex-grow flex flex-col items-center justify-center p-6 bg-gray-50">
+                        <div className="border-2 border-black bg-white p-1 mb-6">
+                            <canvas ref={canvasRef} width={200} height={200} className="block" />
+                        </div>
                         {result && !isRolling && (
-                            <div className={`text-4xl font-black mb-4 ${getResultColor()}`}>
+                            <div className={`text-3xl font-black mb-4 ${getResultColor()}`}>
                                 {result === 20 ? 'CRITICAL HIT!' : result === 1 ? 'CRITICAL FAIL!' : result}
                             </div>
                         )}
                         <button
                             onClick={rollDice}
                             disabled={isRolling}
-                            className="bg-white text-black px-8 py-3 font-mono font-bold text-sm hover:bg-gray-200 disabled:opacity-50 border-2 border-white"
+                            className="bg-black text-white px-8 py-3 font-mono font-bold text-sm hover:invert disabled:opacity-50 border-2 border-black"
                         >
                             {isRolling ? 'ROLLING...' : 'ROLL D20'}
                         </button>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">CLICK TO ROLL • 20 = CRIT • 1 = FAIL</span>
                     </div>
                 </div>
             );
@@ -1199,7 +1411,9 @@
                 setGameOver(false);
                 setGameStarted(true);
                 if (loopRef.current) clearInterval(loopRef.current);
-                loopRef.current = setInterval(update, 100);
+                loopRef.current = setInterval(() => {
+                    update();
+                }, 100);
             };
 
             const update = () => {
@@ -1256,12 +1470,12 @@
                     ghost.current.y += dy > 0 ? 1 : -1;
                 }
 
-                // Draw
-                ctx.fillStyle = '#1a1a1a';
+                // Draw - light theme
+                ctx.fillStyle = '#f5f5f5';
                 ctx.fillRect(0, 0, GRID_W * CELL, GRID_H * CELL);
 
                 // Grid lines (subtle)
-                ctx.strokeStyle = '#222';
+                ctx.strokeStyle = '#e0e0e0';
                 for (let i = 0; i <= GRID_W; i++) {
                     ctx.beginPath();
                     ctx.moveTo(i * CELL, 0);
@@ -1275,18 +1489,18 @@
                     ctx.stroke();
                 }
 
-                // Snake
+                // Snake - black
                 snake.current.forEach((s, i) => {
-                    ctx.fillStyle = i === 0 ? '#fff' : '#888';
+                    ctx.fillStyle = i === 0 ? '#000' : '#333';
                     ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
                 });
 
-                // Food
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(food.current.x * CELL + 4, food.current.y * CELL + 4, CELL - 8, CELL - 8);
+                // Food - black dot
+                ctx.fillStyle = '#000';
+                ctx.fillRect(food.current.x * CELL + 6, food.current.y * CELL + 6, CELL - 12, CELL - 12);
 
-                // Ghost (semi-transparent)
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                // Ghost - red circle
+                ctx.fillStyle = '#000';
                 ctx.beginPath();
                 ctx.arc(ghost.current.x * CELL + CELL/2, ghost.current.y * CELL + CELL/2, CELL/2 - 2, 0, Math.PI * 2);
                 ctx.fill();
@@ -1317,46 +1531,62 @@
                 };
             }, [gameStarted]);
 
-            // Initial canvas draw
+            // Initial canvas draw - light theme
             useEffect(() => {
                 const ctx = canvasRef.current?.getContext('2d');
                 if (ctx) {
-                    ctx.fillStyle = '#1a1a1a';
+                    ctx.fillStyle = '#f5f5f5';
                     ctx.fillRect(0, 0, GRID_W * CELL, GRID_H * CELL);
+
+                    // Draw grid lines
+                    ctx.strokeStyle = '#e0e0e0';
+                    for (let i = 0; i <= GRID_W; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(i * CELL, 0);
+                        ctx.lineTo(i * CELL, GRID_H * CELL);
+                        ctx.stroke();
+                    }
+                    for (let i = 0; i <= GRID_H; i++) {
+                        ctx.beginPath();
+                        ctx.moveTo(0, i * CELL);
+                        ctx.lineTo(GRID_W * CELL, i * CELL);
+                        ctx.stroke();
+                    }
                 }
             }, []);
 
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-black p-4 select-none">
-                    <div className="flex justify-between w-[600px] font-mono text-xs mb-2 text-gray-400">
-                        <span>SCORE: <span className="text-white">{score}</span></span>
-                        <span>HIGH: <span className="text-white">{highScore}</span></span>
-                        <span className={gameOver ? 'text-red-500' : gameStarted ? 'text-green-500' : 'text-gray-500'}>
-                            {gameOver ? 'DEAD' : gameStarted ? 'ALIVE' : 'READY'}
-                        </span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">SNEK.EXE</span>
+                        <div className="flex gap-4 font-mono text-xs">
+                            <span>SCORE: <span className="font-bold">{score}</span></span>
+                            <span>HIGH: <span className="font-bold">{highScore}</span></span>
+                            <span className={gameOver ? 'text-red-600' : gameStarted ? 'text-green-600' : 'text-gray-500'}>
+                                {gameOver ? 'DEAD' : gameStarted ? 'ALIVE' : 'READY'}
+                            </span>
+                        </div>
                     </div>
-                    <div className="relative border-2 border-gray-800">
-                        <canvas ref={canvasRef} width={600} height={400} className="block" />
-                        {!gameStarted && (
-                            <div className="absolute inset-0 bg-black/90 flex flex-col items-center justify-center text-white">
-                                <pre className="font-mono text-xs mb-4 text-gray-500">
-{`  ▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
-  █ ████ ██ ██ █ ██ ██ █
-  █ ████ ██ ██ █ ██ ██ █
-  ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀`}
-                                </pre>
-                                <h1 className="text-3xl font-black mb-2 tracking-widest">SNEK</h1>
-                                {gameOver && <p className="text-red-500 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
-                                <button
-                                    onClick={start}
-                                    className="border-2 border-white px-6 py-2 hover:bg-white hover:text-black font-mono font-bold text-sm"
-                                >
-                                    {gameOver ? 'RETRY' : 'START'}
-                                </button>
-                                <p className="mt-4 text-gray-600 font-mono text-xs">ARROW KEYS TO MOVE</p>
-                                <p className="text-gray-700 font-mono text-xs">AVOID THE GHOST</p>
-                            </div>
-                        )}
+                    <div className="flex-grow flex items-center justify-center p-4 bg-gray-50">
+                        <div className="relative border-2 border-black">
+                            <canvas ref={canvasRef} width={600} height={400} className="block" />
+                            {!gameStarted && (
+                                <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
+                                    <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
+                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
+                                    <button
+                                        onClick={start}
+                                        className="bg-black text-white px-6 py-3 font-mono font-bold text-sm hover:invert border-2 border-black"
+                                    >
+                                        {gameOver ? 'RETRY' : 'START'}
+                                    </button>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • AVOID THE GHOST</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">EAT FOOD • GROW LONGER • DON'T DIE</span>
                     </div>
                 </div>
             );
@@ -1374,7 +1604,7 @@
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
 
-            const CELL_SIZE = 15;
+            const CELL_SIZE = 8; // Thinner walls
 
             const generateMaze = (width, height) => {
                 const maze = Array(height).fill(null).map(() => Array(width).fill(1));
@@ -1398,8 +1628,10 @@
             };
 
             const startLevel = (lvl) => {
-                const size = 15 + lvl * 4;
-                const maze = generateMaze(size | 1, size | 1);
+                // Start big and get MUCH harder - exponential growth
+                const size = 31 + Math.floor(lvl * lvl * 4);
+                const cappedSize = Math.min(size, 151); // Cap at 151 for performance
+                const maze = generateMaze(cappedSize | 1, cappedSize | 1);
                 mazeRef.current = maze;
                 playerRef.current = { x: 1, y: 1 };
 
@@ -1436,13 +1668,28 @@
                     }
                 }
 
-                // Draw exit
+                // Draw exit (flag icon)
+                const ex = exitRef.current.x * CELL_SIZE;
+                const ey = exitRef.current.y * CELL_SIZE;
                 ctx.fillStyle = '#0f0';
-                ctx.fillRect(exitRef.current.x * CELL_SIZE + 2, exitRef.current.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                ctx.fillRect(ex + 1, ey + 1, CELL_SIZE - 2, CELL_SIZE - 2);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(ex + 2, ey + 2, 2, CELL_SIZE - 4); // Pole
+                ctx.fillRect(ex + 4, ey + 2, 3, 3); // Flag
 
-                // Draw player
+                // Draw player (person icon)
+                const px = playerRef.current.x * CELL_SIZE;
+                const py = playerRef.current.y * CELL_SIZE;
                 ctx.fillStyle = '#f00';
-                ctx.fillRect(playerRef.current.x * CELL_SIZE + 2, playerRef.current.y * CELL_SIZE + 2, CELL_SIZE - 4, CELL_SIZE - 4);
+                // Head
+                ctx.beginPath();
+                ctx.arc(px + CELL_SIZE/2, py + 2, 2, 0, Math.PI * 2);
+                ctx.fill();
+                // Body
+                ctx.fillRect(px + CELL_SIZE/2 - 1, py + 4, 2, 3);
+                // Legs
+                ctx.fillRect(px + CELL_SIZE/2 - 2, py + 6, 1, 2);
+                ctx.fillRect(px + CELL_SIZE/2 + 1, py + 6, 1, 2);
             };
 
             const move = (dx, dy) => {
@@ -1497,33 +1744,33 @@
             }, []);
 
             return (
-                <div className="h-full flex flex-col bg-gray-100 select-none">
+                <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
                         <span className="font-mono text-xs font-bold">LABYRINTH.EXE</span>
                         <div className="flex gap-4 font-mono text-xs">
-                            <span>LVL: {level}</span>
-                            <span>SCORE: {score}</span>
-                            <span>HIGH: {highScore}</span>
+                            <span>LVL: <span className="font-bold">{level}</span></span>
+                            <span>SCORE: <span className="font-bold">{score}</span></span>
+                            <span>HIGH: <span className="font-bold">{highScore}</span></span>
                         </div>
                     </div>
-                    <div className="flex-grow flex items-center justify-center p-4 overflow-auto relative">
+                    <div className="flex-grow flex items-center justify-center p-4 overflow-auto relative bg-gray-50">
                         {won && !showingMaze && (
-                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
-                                <div className="text-white text-center">
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
                                     <div className="text-2xl font-black mb-2">YOU FOUND THE WAY OUT</div>
-                                    <div className="font-mono text-sm text-gray-400">+{level * 100} POINTS</div>
+                                    <div className="font-mono text-sm text-gray-500">+{level * 100} POINTS</div>
                                 </div>
                             </div>
                         )}
                         {showingMaze && (
-                            <div className="absolute inset-0 bg-black/80 flex items-center justify-center z-10">
-                                <div className="text-white text-center">
-                                    <div className="text-xl font-mono mb-2">MAZE {level} COMPLETE</div>
-                                    <div className="font-mono text-xs text-gray-400">GENERATING HARDER MAZE...</div>
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
+                                    <div className="text-xl font-mono font-bold mb-2">MAZE {level} COMPLETE</div>
+                                    <div className="font-mono text-xs text-gray-500">GENERATING HARDER MAZE...</div>
                                 </div>
                             </div>
                         )}
-                        <div className="border-4 border-black bg-white p-1">
+                        <div className="border-2 border-black bg-white p-1">
                             <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
                         </div>
                     </div>
@@ -1531,9 +1778,9 @@
                         <span className="font-mono text-[10px] text-gray-500">ARROW KEYS TO MOVE</span>
                         <button
                             onClick={giveUp}
-                            className="font-mono text-[10px] text-gray-500 hover:text-black"
+                            className="font-mono text-[10px] text-gray-500 hover:text-black italic"
                         >
-                            GIVE UP? "How will we ever get out of this labyrinth?"
+                            "How will we ever get out of this labyrinth?"
                         </button>
                     </div>
                 </div>
@@ -1644,17 +1891,17 @@
             }, [tempo, filter, grid]);
 
             return (
-                <div className="h-full flex flex-col bg-black text-white select-none">
-                    <div className="p-2 border-b border-gray-800 flex justify-between items-center">
-                        <span className="font-mono text-xs text-gray-500">SYNTH_001.WAV</span>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">SYNTH_001.WAV</span>
                         <button
                             onClick={togglePlay}
-                            className={`px-4 py-1 font-mono text-xs font-bold border ${isPlaying ? 'bg-white text-black' : 'border-white'}`}
+                            className={`px-4 py-1 font-mono text-xs font-bold border-2 border-black ${isPlaying ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'}`}
                         >
                             {isPlaying ? '■ STOP' : '► PLAY'}
                         </button>
                     </div>
-                    <div className="flex-grow p-4 overflow-auto">
+                    <div className="flex-grow p-4 overflow-auto bg-gray-50">
                         <div className="space-y-2">
                             {oscillators.map(osc => (
                                 <div key={osc} className="flex items-center gap-2">
@@ -1664,11 +1911,11 @@
                                             <button
                                                 key={i}
                                                 onClick={() => toggleNote(osc, i)}
-                                                className={`w-6 h-8 border transition-all ${
+                                                className={`w-6 h-8 border-2 transition-all ${
                                                     active
-                                                        ? 'bg-white border-white'
-                                                        : 'bg-gray-900 border-gray-700 hover:border-gray-500'
-                                                } ${currentStep === i && isPlaying ? 'ring-2 ring-red-500' : ''}`}
+                                                        ? 'bg-black border-black'
+                                                        : 'bg-white border-gray-300 hover:border-black'
+                                                } ${currentStep === i && isPlaying ? 'ring-2 ring-black ring-offset-1' : ''}`}
                                             />
                                         ))}
                                     </div>
@@ -1676,7 +1923,7 @@
                             ))}
                         </div>
                     </div>
-                    <div className="p-4 border-t border-gray-800 flex gap-8">
+                    <div className="p-4 border-t-2 border-black bg-white flex gap-8">
                         <div className="flex items-center gap-2">
                             <span className="font-mono text-[10px] text-gray-500">TEMPO</span>
                             <input
@@ -1685,9 +1932,9 @@
                                 max="200"
                                 value={tempo}
                                 onChange={(e) => setTempo(Number(e.target.value))}
-                                className="w-24 accent-white"
+                                className="w-24 accent-black"
                             />
-                            <span className="font-mono text-xs w-8">{tempo}</span>
+                            <span className="font-mono text-xs w-8 text-black">{tempo}</span>
                         </div>
                         <div className="flex items-center gap-2">
                             <span className="font-mono text-[10px] text-gray-500">FILTER</span>
@@ -1697,30 +1944,157 @@
                                 max="5000"
                                 value={filter}
                                 onChange={(e) => setFilter(Number(e.target.value))}
-                                className="w-24 accent-white"
+                                className="w-24 accent-black"
                             />
-                            <span className="font-mono text-xs w-12">{filter}Hz</span>
+                            <span className="font-mono text-xs w-12 text-black">{filter}Hz</span>
                         </div>
                     </div>
                 </div>
             );
         };
 
-        // --- DESTRUCTION.EXE - Screen destroyer ---
-        const DestructionApp = ({ triggerDestruction }) => {
+        // --- DESTRUCTION.EXE - Screen destroyer with confirmations ---
+        const DestructionApp = ({ onDogSteal }) => {
+            const [confirmStep, setConfirmStep] = useState(0);
+            const [buttonPos, setButtonPos] = useState({ x: 0, y: 0 });
+            const [dogStealing, setDogStealing] = useState(false);
+            const [dogPos, setDogPos] = useState({ x: -100, y: 200 });
+            const [buttonGone, setButtonGone] = useState(false);
+
+            const confirmMessages = [
+                { prompt: "EXECUTE", response: "You want to do it?" },
+                { prompt: "YES", response: "Are you sure?" },
+                { prompt: "I'M SURE", response: "Really though?" },
+                { prompt: "REALLY", response: "Really, really though?" },
+                { prompt: "YES REALLY", response: "Like... REALLY really?" },
+                { prompt: "DO IT", response: "You know this destroys EVERYTHING?" },
+                { prompt: "I KNOW", response: "There's no going back..." },
+                { prompt: "I DON'T CARE", response: "Final warning..." },
+                { prompt: "JUST DO IT", response: "Okay... last chance to back out..." },
+                { prompt: "DESTROY IT ALL", response: "..." }
+            ];
+
+            const handleClick = () => {
+                if (confirmStep < 9) {
+                    setConfirmStep(prev => prev + 1);
+                } else {
+                    // Final click - dog steals the button!
+                    setDogStealing(true);
+
+                    // Animate dog running in
+                    let dogX = -100;
+                    const dogRun = setInterval(() => {
+                        dogX += 15;
+                        setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 20) * 10 });
+
+                        if (dogX >= 120) {
+                            clearInterval(dogRun);
+                            setButtonGone(true);
+
+                            // Dog runs away with button
+                            const dogEscape = setInterval(() => {
+                                dogX += 20;
+                                setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 15) * 15 });
+
+                                if (dogX > window.innerWidth + 100) {
+                                    clearInterval(dogEscape);
+                                    if (onDogSteal) onDogSteal();
+                                }
+                            }, 30);
+                        }
+                    }, 30);
+                }
+            };
+
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-black text-white select-none">
-                    <div className="text-center">
-                        <div className="text-6xl mb-4">💀</div>
-                        <div className="font-mono text-xl mb-2">DESTRUCTION.EXE</div>
-                        <div className="font-mono text-xs text-gray-500 mb-8">WARNING: WILL DESTROY EVERYTHING</div>
-                        <button
-                            onClick={triggerDestruction}
-                            className="px-8 py-4 bg-red-600 text-white font-mono font-bold text-lg hover:bg-red-700 border-4 border-red-400 animate-pulse"
-                        >
-                            EXECUTE
-                        </button>
+                <div className="h-full flex flex-col bg-white select-none relative overflow-hidden">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">DESTRUCTION.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-500">DANGER ZONE</span>
                     </div>
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 relative z-10">
+                        <div className="text-center">
+                            <svg width="64" height="64" viewBox="0 0 64 64" className="mx-auto mb-4" style={{ imageRendering: 'pixelated' }}>
+                                <rect x="16" y="4" width="32" height="8" fill="#000" />
+                                <rect x="12" y="12" width="40" height="8" fill="#000" />
+                                <rect x="8" y="20" width="48" height="16" fill="#000" />
+                                <rect x="14" y="22" width="12" height="10" fill="#fff" />
+                                <rect x="38" y="22" width="12" height="10" fill="#fff" />
+                                <rect x="28" y="34" width="8" height="6" fill="#fff" />
+                                <rect x="12" y="40" width="40" height="8" fill="#000" />
+                                <rect x="16" y="42" width="4" height="6" fill="#fff" />
+                                <rect x="24" y="42" width="4" height="6" fill="#fff" />
+                                <rect x="36" y="42" width="4" height="6" fill="#fff" />
+                                <rect x="44" y="42" width="4" height="6" fill="#fff" />
+                                <rect x="16" y="48" width="32" height="8" fill="#000" />
+                            </svg>
+                            <div className="font-mono text-sm mb-2 text-black">DESTRUCTION.EXE</div>
+                            <div className="font-mono text-xs text-gray-500 mb-6">
+                                {confirmStep === 0 ? "WARNING: WILL DESTROY EVERYTHING" : confirmMessages[confirmStep - 1]?.response || "..."}
+                            </div>
+                            {!buttonGone && (
+                                <button
+                                    onClick={handleClick}
+                                    className={`px-8 py-4 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black transition-all ${confirmStep > 5 ? 'animate-pulse' : ''}`}
+                                    style={{
+                                        transform: `translate(${buttonPos.x}px, ${buttonPos.y}px)`,
+                                    }}
+                                >
+                                    {confirmMessages[confirmStep].prompt}
+                                </button>
+                            )}
+                            {buttonGone && !dogStealing && (
+                                <div className="font-mono text-sm text-gray-500">
+                                    The button is gone...
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Dog stealing animation - cute dog matching the main sprite */}
+                    {dogStealing && (
+                        <div
+                            className="absolute z-20"
+                            style={{ left: dogPos.x, top: dogPos.y }}
+                        >
+                            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated' }}>
+                                {/* Cute dog - full black, same as released dog */}
+                                {/* Body */}
+                                <rect x="16" y="16" width="32" height="16" fill="#000" />
+                                {/* Head - rounder, cuter */}
+                                <rect x="4" y="12" width="16" height="16" fill="#000" />
+                                {/* Floppy ears */}
+                                <rect x="2" y="4" width="6" height="14" fill="#000" />
+                                <rect x="14" y="4" width="6" height="14" fill="#000" />
+                                {/* Eye - big cute eye */}
+                                <rect x="8" y="16" width="6" height="6" fill="#fff" />
+                                <rect x="10" y="18" width="3" height="3" fill="#000" />
+                                {/* Nose */}
+                                <rect x="4" y="22" width="4" height="4" fill="#000" />
+                                {/* Running legs */}
+                                <rect x="16" y="32" width="6" height="12" fill="#000" />
+                                <rect x="26" y="32" width="6" height="10" fill="#000" />
+                                <rect x="34" y="32" width="6" height="12" fill="#000" />
+                                <rect x="42" y="32" width="6" height="10" fill="#000" />
+                                {/* Tail - wagging */}
+                                <rect x="48" y="12" width="12" height="4" fill="#000" />
+                                <rect x="58" y="8" width="4" height="6" fill="#000" />
+                            </svg>
+                            {buttonGone && (
+                                <div className="absolute -top-4 left-10 px-2 py-1 bg-black text-white font-mono text-[8px] border-2 border-black">
+                                    DESTROY
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {dogStealing && buttonGone && (
+                        <div className="absolute bottom-4 w-full text-center">
+                            <div className="font-mono text-xs text-gray-600">
+                                *dog runs away with the button*
+                            </div>
+                        </div>
+                    )}
                 </div>
             );
         };
@@ -1730,6 +2104,8 @@
             const [card, setCard] = useState(null);
             const [revealed, setRevealed] = useState(false);
             const [alreadyPulled, setAlreadyPulled] = useState(false);
+            const [isShuffling, setIsShuffling] = useState(false);
+            const [shuffleFrame, setShuffleFrame] = useState(0);
 
             const tarotCards = [
                 { name: 'THE FOOL', meaning: 'New beginnings, innocence, spontaneity', ascii: `
@@ -1943,15 +2319,51 @@
                 }
             }, []);
 
+            const shuffleCards = [
+                `   ┌─────────┐
+   │ ╲ ╱ ╲ ╱ │
+   │  ╳   ╳  │
+   │ ╱ ╲ ╱ ╲ │
+   │  ╳   ╳  │
+   │ ╲ ╱ ╲ ╱ │
+   │ SHUFFLE │
+   └─────────┘`,
+                `  ┌─────────┐
+   │ ╱ ╲ ╱ ╲ │
+   │  ╳   ╳  │
+   │ ╲ ╱ ╲ ╱ │
+   │  ╳   ╳  │
+   │ ╱ ╲ ╱ ╲ │
+   │ SHUFFLE │
+   └─────────┘`,
+                `    ┌─────────┐
+   │ ╲ ╱ ╲ ╱ │
+   │ ╱ ╲ ╱ ╲ │
+   │  ╳   ╳  │
+   │ ╲ ╱ ╲ ╱ │
+   │ ╱ ╲ ╱ ╲ │
+   │ SHUFFLE │
+   └─────────┘`
+            ];
+
             const pullCard = () => {
-                if (alreadyPulled) return;
+                if (alreadyPulled || isShuffling) return;
 
-                const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
-                setCard(randomCard);
-                localStorage.setItem('tarot_card', JSON.stringify(randomCard));
-
-                setTimeout(() => setRevealed(true), 500);
-                setAlreadyPulled(true);
+                setIsShuffling(true);
+                let frame = 0;
+                const shuffleInterval = setInterval(() => {
+                    setShuffleFrame(f => (f + 1) % 3);
+                    frame++;
+                    if (frame >= 12) {
+                        clearInterval(shuffleInterval);
+                        setIsShuffling(false);
+                        const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
+                        setCard(randomCard);
+                        localStorage.setItem('tarot_card', JSON.stringify(randomCard));
+                        setTimeout(() => setRevealed(true), 500);
+                        setAlreadyPulled(true);
+                    }
+                }, 150);
             };
 
             return (
@@ -1960,7 +2372,14 @@
                         <span className="font-mono text-xs text-purple-400">TAROT.DAT // YOUR FATE AWAITS</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4">
-                        {!card ? (
+                        {isShuffling ? (
+                            <div className="text-center">
+                                <pre className="font-mono text-xs text-purple-300 mb-4 animate-pulse" style={{ transform: `rotate(${shuffleFrame * 2 - 2}deg)` }}>
+                                    {shuffleCards[shuffleFrame]}
+                                </pre>
+                                <div className="font-mono text-xs text-purple-400">SHUFFLING THE DECK...</div>
+                            </div>
+                        ) : !card ? (
                             <div className="text-center">
                                 <pre className="font-mono text-xs text-purple-300 mb-4">
 {`   ┌─────────┐
@@ -1995,28 +2414,112 @@
             );
         };
 
+        // --- APPS Folder - Grid of all apps ---
+        const AppsFolder = ({ onOpenApp }) => {
+            const apps = [
+                { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
+                { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
+                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
+                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
+                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
+                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
+                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
+                { id: 'DOG', title: 'DOG.EXE', icon: 'Dog' },
+                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
+                { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+            ];
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
+                        <Icons.Apps size={24} />
+                        <span className="font-mono text-xs font-bold">APPS</span>
+                        <span className="font-mono text-xs text-gray-400">({apps.length} items)</span>
+                    </div>
+                    <div className="flex-grow p-6 overflow-auto bg-gray-50">
+                        <div className="grid grid-cols-4 gap-6">
+                            {apps.map(app => {
+                                const AppIcon = Icons[app.icon];
+                                return (
+                                    <button
+                                        key={app.id}
+                                        onClick={() => onOpenApp(app.id)}
+                                        className="group flex flex-col items-center gap-2 p-4 hover:bg-white border-2 border-transparent hover:border-black transition-all"
+                                    >
+                                        <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
+                                            <AppIcon size={32} />
+                                        </div>
+                                        <span className="font-mono text-[10px] font-bold uppercase text-center">{app.title}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- CONTACT - Email via Paint ---
+        const ContactApp = ({ onOpenPaint }) => {
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
+                        <Icons.Email size={24} />
+                        <span className="font-mono text-xs font-bold">CONTACT</span>
+                    </div>
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-8">
+                        <Icons.Email size={64} />
+                        <div className="font-mono text-lg font-bold mt-4 mb-2">GET IN TOUCH</div>
+                        <div className="font-mono text-sm text-gray-500 mb-6">mateusmuste9@gmail.com</div>
+                        <button
+                            onClick={onOpenPaint}
+                            className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                        >
+                            DRAW YOUR MESSAGE
+                        </button>
+                        <div className="font-mono text-[10px] text-gray-400 mt-4">
+                            Opens PAINT.EXE
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- DOG.EXE - Pixel dog pet ---
         const DogApp = ({ onClose }) => {
             return (
-                <div className="h-full flex flex-col items-center justify-center bg-yellow-50 select-none">
-                    <div className="text-center p-4">
-                        <pre className="font-mono text-xs mb-4">
-{`    ╱▔▔▔╲
-   ╱     ╲╱╲
-  │ ◕   ◕ │
-  │   ▽   │
-   ╲_____╱
-    │   │
-   ╱│   │╲`}
-                        </pre>
-                        <div className="font-mono text-lg font-bold mb-2">DOG.EXE</div>
-                        <div className="font-mono text-xs text-gray-500 mb-4">CLICK TO RELEASE THE DOG</div>
-                        <button
-                            onClick={onClose}
-                            className="px-6 py-2 bg-yellow-500 text-black font-mono font-bold hover:bg-yellow-400 border-2 border-black"
-                        >
-                            RELEASE
-                        </button>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <span className="font-mono text-xs font-bold">DOG.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-500">GOOD BOY</span>
+                    </div>
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50">
+                        <div className="text-center p-4">
+                            <svg width="96" height="72" viewBox="0 0 64 48" className="mx-auto mb-4" style={{ imageRendering: 'pixelated' }}>
+                                {/* Cute dog - full black */}
+                                <rect x="16" y="16" width="32" height="16" fill="#000" />
+                                <rect x="4" y="12" width="16" height="16" fill="#000" />
+                                <rect x="4" y="4" width="6" height="12" fill="#000" />
+                                <rect x="14" y="4" width="6" height="12" fill="#000" />
+                                <rect x="8" y="18" width="4" height="4" fill="#fff" />
+                                <rect x="9" y="19" width="2" height="2" fill="#000" />
+                                <rect x="6" y="24" width="4" height="2" fill="#000" />
+                                <rect x="16" y="32" width="6" height="12" fill="#000" />
+                                <rect x="38" y="32" width="6" height="12" fill="#000" />
+                                <rect x="48" y="12" width="12" height="4" fill="#000" />
+                                <rect x="56" y="8" width="4" height="8" fill="#000" />
+                            </svg>
+                            <div className="font-mono text-sm font-bold mb-2">DOG.EXE</div>
+                            <div className="font-mono text-xs text-gray-500 mb-4">CLICK TO RELEASE THE DOG</div>
+                            <button
+                                onClick={onClose}
+                                className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                            >
+                                RELEASE
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
@@ -2029,112 +2532,137 @@
             const [topZ, setTopZ] = useState(100);
             const [destructionMode, setDestructionMode] = useState(false);
             const [dogReleased, setDogReleased] = useState(false);
-            const [dogPos, setDogPos] = useState({ x: 100, y: 100 });
-            const [dogVel, setDogVel] = useState({ x: 2, y: 2 });
+            const [dogPos, setDogPos] = useState({ x: 100, y: 300 });
+            const [dogVel, setDogVel] = useState({ x: 4, y: 3 });
+            const [dogOnGround, setDogOnGround] = useState(true);
+            const [dogFacingRight, setDogFacingRight] = useState(true);
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
             const [carriedIcon, setCarriedIcon] = useState(null);
             const [iconPositions, setIconPositions] = useState({});
-            const destructionRef = useRef(null);
+            const [destructionDogGone, setDestructionDogGone] = useState(false);
 
-            // Destruction effect
-            const triggerDestruction = () => {
-                setDestructionMode(true);
+            // Physics constants
+            const GRAVITY = 0.8;
+            const JUMP_FORCE = -12;
+            const GROUND_Y = window.innerHeight - 120;
+            const FRICTION = 0.95;
 
-                // Make windows fall with physics
-                setTimeout(() => {
-                    const interval = setInterval(() => {
-                        setWindows(prev => {
-                            const updated = { ...prev };
-                            Object.keys(updated).forEach(key => {
-                                if (updated[key].isOpen) {
-                                    updated[key] = {
-                                        ...updated[key],
-                                        y: updated[key].y + Math.random() * 20 + 10,
-                                        x: updated[key].x + (Math.random() - 0.5) * 20
-                                    };
-                                }
-                            });
-                            return updated;
-                        });
-                    }, 50);
-
-                    setTimeout(() => {
-                        clearInterval(interval);
-                        // Black screen and reboot
-                        setTimeout(() => {
-                            setDestructionMode('black');
-                            setTimeout(() => {
-                                setDestructionMode('reboot');
-                                setTimeout(() => {
-                                    setDestructionMode(false);
-                                    // Reset windows
-                                    window.location.reload();
-                                }, 3000);
-                            }, 2000);
-                        }, 1500);
-                    }, 2000);
-                }, 100);
+            // Handle dog stealing the destruction button
+            const handleDogSteal = () => {
+                setDestructionDogGone(true);
+                // Close the destruction window
+                setWindows(prev => ({
+                    ...prev,
+                    DESTRUCTION: { ...prev.DESTRUCTION, isOpen: false }
+                }));
             };
 
-            // Dog AI
+            // Dog AI - DVD logo style bouncing
             useEffect(() => {
                 if (!dogReleased) return;
 
+                const DOG_SPEED_X = 4;
+                const DOG_SPEED_Y = 3;
+
                 const dogInterval = setInterval(() => {
+                    setDogVel(prevVel => {
+                        let newVelX = prevVel.x;
+                        let newVelY = prevVel.y;
+
+                        // Initialize velocity if zero
+                        if (newVelX === 0) newVelX = DOG_SPEED_X;
+                        if (newVelY === 0) newVelY = DOG_SPEED_Y;
+
+                        return { x: newVelX, y: newVelY };
+                    });
+
                     setDogPos(prev => {
-                        // Run away from mouse
-                        const dx = prev.x - mousePos.x;
-                        const dy = prev.y - mousePos.y;
-                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        let newX = prev.x + dogVel.x;
+                        let newY = prev.y + dogVel.y;
 
-                        let newX = prev.x;
-                        let newY = prev.y;
-
-                        if (dist < 200) {
-                            // Flee from mouse
-                            newX += (dx / dist) * 8;
-                            newY += (dy / dist) * 8;
-                        } else {
-                            // Random movement
-                            newX += (Math.random() - 0.5) * 10;
-                            newY += (Math.random() - 0.5) * 10;
+                        // Bounce off walls - DVD style
+                        if (newX >= window.innerWidth - 80) {
+                            newX = window.innerWidth - 80;
+                            setDogVel(v => ({ ...v, x: -Math.abs(v.x) }));
+                            setDogFacingRight(false);
                         }
-
-                        // Bounds
-                        newX = Math.max(0, Math.min(window.innerWidth - 60, newX));
-                        newY = Math.max(0, Math.min(window.innerHeight - 100, newY));
+                        if (newX <= 0) {
+                            newX = 0;
+                            setDogVel(v => ({ ...v, x: Math.abs(v.x) }));
+                            setDogFacingRight(true);
+                        }
+                        if (newY >= window.innerHeight - 100) {
+                            newY = window.innerHeight - 100;
+                            setDogVel(v => ({ ...v, y: -Math.abs(v.y) }));
+                        }
+                        if (newY <= 60) {
+                            newY = 60;
+                            setDogVel(v => ({ ...v, y: Math.abs(v.y) }));
+                        }
 
                         return { x: newX, y: newY };
                     });
 
                     // Randomly grab icons
-                    if (!carriedIcon && Math.random() < 0.01) {
+                    if (!carriedIcon && Math.random() < 0.003) {
                         const iconKeys = Object.keys(windows);
                         const randomIcon = iconKeys[Math.floor(Math.random() * iconKeys.length)];
                         setCarriedIcon(randomIcon);
+
+                        setTimeout(() => {
+                            setCarriedIcon(null);
+                        }, 3000 + Math.random() * 4000);
                     }
-                }, 50);
+                }, 30);
 
                 return () => clearInterval(dogInterval);
-            }, [dogReleased, mousePos, carriedIcon]);
+            }, [dogReleased, dogVel, carriedIcon]);
 
-            // Window State (Position x/y added for dragging)
+            // Desktop icons - only show main folders
+            const desktopIcons = ["SYSTEM", "FILES", "APPS", "CONTACT"];
+
+            // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
-                "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 50, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, content: <SystemInfo /> },
-                "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, content: <FileExplorer /> },
-                "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: '700px', h: '600px', isOpen: false, isMin: false, z: 12, content: <PaintApp /> },
-                "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 13, content: <SnakeAppNew /> },
-                "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 14, content: <TrashApp /> },
-                "VOID": { id: "VOID", title: "VOID.TXT", icon: "Void", x: 300, y: 50, w: '500px', h: '400px', isOpen: false, isMin: false, z: 15, content: <VoidApp /> },
-                "ORACLE": { id: "ORACLE", title: "ORACLE.EXE", icon: "Oracle", x: 350, y: 80, w: '500px', h: '450px', isOpen: false, isMin: false, z: 16, content: <OracleApp /> },
-                "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 17, content: <RadioApp /> },
-                "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 18, content: <DiceApp /> },
-                "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 19, content: <LabyrinthApp /> },
-                "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 20, content: <SynthApp /> },
-                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '350px', isOpen: false, isMin: false, z: 21, content: <DestructionApp triggerDestruction={triggerDestruction} /> },
-                "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 22, content: <TarotApp /> },
-                "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 23, content: <DogApp onClose={() => { setDogReleased(true); close("DOG"); }} /> }
+                "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 50, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
+                "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
+                "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
+                "CONTACT": { id: "CONTACT", title: "CONTACT", icon: "Email", x: 200, y: 140, w: '400px', h: '350px', isOpen: false, isMin: false, z: 13, isDesktop: true },
+                "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: '700px', h: '600px', isOpen: false, isMin: false, z: 14 },
+                "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 15 },
+                "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 16 },
+                "VOID": { id: "VOID", title: "VOID.TXT", icon: "Void", x: 300, y: 50, w: '500px', h: '400px', isOpen: false, isMin: false, z: 17 },
+                "ORACLE": { id: "ORACLE", title: "ORACLE.EXE", icon: "Oracle", x: 350, y: 80, w: '500px', h: '450px', isOpen: false, isMin: false, z: 18 },
+                "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 19 },
+                "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 20 },
+                "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 21 },
+                "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 22 },
+                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
+                "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 24 },
+                "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 25 }
             });
+
+            // Render window content based on ID
+            const getWindowContent = (id) => {
+                switch(id) {
+                    case "SYSTEM": return <SystemInfo />;
+                    case "FILES": return <FileExplorer />;
+                    case "APPS": return <AppsFolder onOpenApp={open} />;
+                    case "CONTACT": return <ContactApp onOpenPaint={() => open("PAINT")} />;
+                    case "PAINT": return <PaintApp />;
+                    case "SNAKE": return <SnakeAppNew />;
+                    case "TRASH": return <TrashApp />;
+                    case "VOID": return <VoidApp />;
+                    case "ORACLE": return <OracleApp />;
+                    case "RADIO": return <RadioApp />;
+                    case "DICE": return <DiceApp />;
+                    case "LABYRINTH": return <LabyrinthApp />;
+                    case "SYNTH": return <SynthApp />;
+                    case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
+                    case "TAROT": return <TarotApp />;
+                    case "DOG": return <DogApp onClose={() => { setDogReleased(true); close("DOG"); }} />;
+                    default: return null;
+                }
+            };
 
             // Dragging State
             const [drag, setDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
@@ -2219,11 +2747,12 @@
                     onMouseUp={handleMouseUp}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
-                    {/* DESKTOP ICONS */}
-                    <div className="absolute top-4 left-4 flex flex-col gap-4 z-0 max-h-[calc(100vh-80px)] overflow-y-auto">
-                        {Object.values(windows).map(app => {
+                    {/* DESKTOP ICONS - Only show main folders */}
+                    <div className="absolute top-4 left-4 z-0 flex flex-col gap-6">
+                        {desktopIcons.map(appId => {
+                            const app = windows[appId];
+                            if (!app) return null;
                             const IconCmp = Icons[app.icon];
-                            const isDestruction = app.id === 'DESTRUCTION';
                             const iconOffset = iconPositions[app.id] || { x: 0, y: 0 };
 
                             // Skip icon if dog is carrying it
@@ -2233,13 +2762,13 @@
                                 <button
                                     key={app.id}
                                     onClick={() => open(app.id)}
-                                    className={`group flex flex-col items-center gap-2 w-20 ${isDestruction ? 'destruction-icon' : ''}`}
+                                    className="group flex flex-col items-center gap-2 w-24"
                                     style={{
                                         transform: `translate(${iconOffset.x}px, ${iconOffset.y}px)`,
                                         transition: 'transform 0.3s ease'
                                     }}
                                 >
-                                    <div className={`bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isDestruction ? 'group-hover:animate-glitch' : ''}`}>
+                                    <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
                                         <IconCmp size={32} />
                                     </div>
                                     <span className="bg-white border border-black px-1 text-[10px] font-mono font-bold shadow-sm">{app.title}</span>
@@ -2279,7 +2808,7 @@
                                 </div>
                                 {/* CONTENT */}
                                 <div className="flex-grow overflow-auto relative bg-white" onMouseDown={e => e.stopPropagation()}>
-                                    {win.content}
+                                    {getWindowContent(win.id)}
                                 </div>
                             </div>
                         )
@@ -2304,23 +2833,48 @@
                         <div className="font-mono text-xs font-bold px-4 border-l-2 border-black">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
-                    {/* DOG */}
+                    {/* DOG - Cute pixel dog with running animation */}
                     {dogReleased && (
                         <div
-                            className="fixed z-[999999] cursor-pointer select-none transition-all duration-75"
-                            style={{ left: dogPos.x, top: dogPos.y }}
+                            className="fixed z-[999999] cursor-pointer select-none"
+                            style={{
+                                left: dogPos.x,
+                                top: dogPos.y,
+                                transform: `scaleX(${dogFacingRight ? 1 : -1})`,
+                            }}
                             onClick={() => setDogReleased(false)}
                         >
-                            <pre className="font-mono text-[8px] leading-none">
-{`  ▄▄▄
- ╱◕ ◕╲
- │ ▽ │
- ╲___╱
-  ││`}
-                            </pre>
+                            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated' }}>
+                                {/* Cute dog - full black, running animation */}
+                                {/* Body */}
+                                <rect x="16" y="16" width="32" height="16" fill="#000" />
+                                {/* Head - rounder, cuter */}
+                                <rect x="4" y="12" width="16" height="16" fill="#000" />
+                                {/* Floppy ears */}
+                                <rect x="2" y="4" width="6" height="14" fill="#000" />
+                                <rect x="14" y="4" width="6" height="14" fill="#000" />
+                                {/* Eye - big cute eye */}
+                                <rect x="8" y="16" width="6" height="6" fill="#fff" />
+                                <rect x="10" y="18" width="3" height="3" fill="#000" />
+                                {/* Nose */}
+                                <rect x="4" y="22" width="4" height="4" fill="#000" />
+                                {/* Tongue when running */}
+                                <rect x="2" y="26" width="4" height="2" fill="#000" />
+                                {/* Running legs animation using frame counter */}
+                                <rect x="16" y="32" width="6" height={Math.sin(Date.now() / 100) > 0 ? 10 : 14} fill="#000" />
+                                <rect x="26" y="32" width="6" height={Math.sin(Date.now() / 100) > 0 ? 14 : 10} fill="#000" />
+                                <rect x="34" y="32" width="6" height={Math.sin(Date.now() / 100) > 0 ? 10 : 14} fill="#000" />
+                                <rect x="42" y="32" width="6" height={Math.sin(Date.now() / 100) > 0 ? 14 : 10} fill="#000" />
+                                {/* Tail - wagging */}
+                                <rect x="48" y={12 + Math.sin(Date.now() / 150) * 4} width="12" height="4" fill="#000" />
+                                <rect x="58" y={8 + Math.sin(Date.now() / 150) * 4} width="4" height="6" fill="#000" />
+                            </svg>
                             {carriedIcon && (
-                                <div className="absolute -top-8 left-4 bg-white border border-black p-1">
-                                    {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 16 })}
+                                <div
+                                    className="absolute bg-white border-2 border-black p-1"
+                                    style={{ top: -20, left: 8 }}
+                                >
+                                    {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 24 })}
                                 </div>
                             )}
                         </div>
