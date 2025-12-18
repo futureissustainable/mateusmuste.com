@@ -1388,7 +1388,7 @@
                         <span className="font-mono text-[10px] text-gray-400">D20</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white">
-                        <div className="border border-gray-200 mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
+                        <div className="mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
                         {result && !isRolling && (
                             <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
                                 {result === 20 ? 'CRITICAL' : result === 1 ? 'FAIL' : `RESULT: ${result}`}
