@@ -1396,7 +1396,7 @@
             );
         };
 
-        // --- Updated SNEK.EXE with Ghost ---
+        // --- SNEK.EXE ---
         const SnakeAppNew = () => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
@@ -1405,7 +1405,6 @@
             const [gameStarted, setGameStarted] = useState(false);
             const snake = useRef([{ x: 15, y: 10 }]);
             const food = useRef({ x: 20, y: 10 });
-            const ghost = useRef({ x: 5, y: 10 });
             const dir = useRef({ x: 1, y: 0 });
             const nextDir = useRef({ x: 1, y: 0 });
             const runningRef = useRef(false);
@@ -1421,7 +1420,6 @@
                 dir.current = { x: 1, y: 0 };
                 nextDir.current = { x: 1, y: 0 };
                 food.current = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
-                ghost.current = { x: 2, y: 2 };
                 setScore(0);
                 setGameOver(false);
                 setGameStarted(true);
@@ -1451,12 +1449,6 @@
                     return;
                 }
 
-                // Ghost collision
-                if (ghost.current.x === head.x && ghost.current.y === head.y) {
-                    endGame();
-                    return;
-                }
-
                 snake.current.unshift(head);
 
                 // Eat food
@@ -1472,15 +1464,6 @@
                     };
                 } else {
                     snake.current.pop();
-                }
-
-                // Move ghost towards snake head
-                const dx = head.x - ghost.current.x;
-                const dy = head.y - ghost.current.y;
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    ghost.current.x += dx > 0 ? 1 : -1;
-                } else if (dy !== 0) {
-                    ghost.current.y += dy > 0 ? 1 : -1;
                 }
 
                 // Draw - light theme
@@ -1511,16 +1494,6 @@
                 // Food - black dot
                 ctx.fillStyle = '#000';
                 ctx.fillRect(food.current.x * CELL + 6, food.current.y * CELL + 6, CELL - 12, CELL - 12);
-
-                // Ghost - red circle
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(ghost.current.x * CELL + CELL/2, ghost.current.y * CELL + CELL/2, CELL/2 - 2, 0, Math.PI * 2);
-                ctx.fill();
-                // Ghost eyes
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(ghost.current.x * CELL + 5, ghost.current.y * CELL + 6, 4, 4);
-                ctx.fillRect(ghost.current.x * CELL + 11, ghost.current.y * CELL + 6, 4, 4);
             };
 
             const endGame = () => {
@@ -1606,14 +1579,14 @@
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
                                     <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
-                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
+                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">GAME OVER</p>}
                                     <button
                                         onClick={start}
                                         className="bg-black text-white px-6 py-3 font-mono font-bold text-sm hover:invert border-2 border-black"
                                     >
                                         {gameOver ? 'RETRY' : 'START'}
                                     </button>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • AVOID THE GHOST</p>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • EAT FOOD • DON'T HIT WALLS</p>
                                 </div>
                             )}
                         </div>
