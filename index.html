@@ -1398,7 +1398,9 @@
             const ghost = useRef({ x: 5, y: 10 });
             const dir = useRef({ x: 1, y: 0 });
             const nextDir = useRef({ x: 1, y: 0 });
-            const loopRef = useRef(null);
+            const runningRef = useRef(false);
+            const lastTimeRef = useRef(0);
+            const frameRef = useRef(null);
 
             const GRID_W = 30;
             const GRID_H = 20;
@@ -1413,10 +1415,8 @@
                 setScore(0);
                 setGameOver(false);
                 setGameStarted(true);
-                if (loopRef.current) clearInterval(loopRef.current);
-                loopRef.current = setInterval(() => {
-                    update();
-                }, 100);
+                runningRef.current = true;
+                lastTimeRef.current = 0;
             };
 
             const update = () => {
@@ -1514,25 +1514,45 @@
             };
 
             const endGame = () => {
+                runningRef.current = false;
                 setGameOver(true);
                 setGameStarted(false);
-                clearInterval(loopRef.current);
             };
+
+            // Game loop using requestAnimationFrame
+            useEffect(() => {
+                const gameLoop = (timestamp) => {
+                    if (!runningRef.current) {
+                        frameRef.current = requestAnimationFrame(gameLoop);
+                        return;
+                    }
+
+                    if (timestamp - lastTimeRef.current >= 100) {
+                        lastTimeRef.current = timestamp;
+                        update();
+                    }
+
+                    frameRef.current = requestAnimationFrame(gameLoop);
+                };
+
+                frameRef.current = requestAnimationFrame(gameLoop);
+
+                return () => {
+                    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+                };
+            }, []);
 
             useEffect(() => {
                 const handle = (e) => {
-                    if (!gameStarted) return;
+                    if (!runningRef.current) return;
                     if (e.key === 'ArrowUp' && dir.current.y === 0) nextDir.current = { x: 0, y: -1 };
                     if (e.key === 'ArrowDown' && dir.current.y === 0) nextDir.current = { x: 0, y: 1 };
                     if (e.key === 'ArrowLeft' && dir.current.x === 0) nextDir.current = { x: -1, y: 0 };
                     if (e.key === 'ArrowRight' && dir.current.x === 0) nextDir.current = { x: 1, y: 0 };
                 };
                 window.addEventListener('keydown', handle);
-                return () => {
-                    window.removeEventListener('keydown', handle);
-                    clearInterval(loopRef.current);
-                };
-            }, [gameStarted]);
+                return () => window.removeEventListener('keydown', handle);
+            }, []);
 
             // Initial canvas draw - light theme
             useEffect(() => {
