@@ -2122,17 +2122,54 @@
         };
 
         // --- TAROT.DAT - Tarot card pull ---
-        // Pixel art tarot card component
-        const PixelTarotCard = ({ pixels, width = 24, height = 32 }) => (
-            <svg width={width * 4} height={height * 4} viewBox={`0 0 ${width} ${height}`} style={{ imageRendering: 'pixelated' }}>
-                <rect width={width} height={height} fill="#000" />
-                {pixels.map((row, y) =>
-                    row.split('').map((pixel, x) =>
-                        pixel === '#' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#fff" /> : null
-                    )
-                )}
-            </svg>
-        );
+        // Pixel art tarot card component with card frame
+        const PixelTarotCard = ({ pixels, width = 24, height = 32, showFrame = true }) => {
+            const cardWidth = width + 8;
+            const cardHeight = height + 12;
+            const scale = 4;
+
+            return (
+                <div className="relative" style={{ width: cardWidth * scale, height: cardHeight * scale }}>
+                    {/* Card frame */}
+                    <div
+                        className="absolute inset-0 bg-white border-2 border-gray-300"
+                        style={{
+                            borderRadius: '4px',
+                            boxShadow: '2px 2px 0 rgba(0,0,0,0.2)'
+                        }}
+                    />
+                    {/* Inner border */}
+                    <div
+                        className="absolute bg-gray-100 border border-gray-400"
+                        style={{
+                            top: scale * 2,
+                            left: scale * 2,
+                            right: scale * 2,
+                            bottom: scale * 2,
+                        }}
+                    />
+                    {/* Pixel art area */}
+                    <div
+                        className="absolute flex items-center justify-center"
+                        style={{
+                            top: scale * 3,
+                            left: scale * 3,
+                            right: scale * 3,
+                            bottom: scale * 3,
+                        }}
+                    >
+                        <svg width={width * scale} height={height * scale} viewBox={`0 0 ${width} ${height}`} style={{ imageRendering: 'pixelated' }}>
+                            <rect width={width} height={height} fill="#000" />
+                            {pixels.map((row, y) =>
+                                row.split('').map((pixel, x) =>
+                                    pixel === '#' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#fff" /> : null
+                                )
+                            )}
+                        </svg>
+                    </div>
+                </div>
+            );
+        };
 
         const TarotApp = () => {
             const [card, setCard] = useState(null);
