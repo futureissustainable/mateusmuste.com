@@ -1,0 +1,974 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATEUSMUSTE // OS</title>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@400;700;900&family=Geist+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <style>
+        :root {
+            --bg: #e5e5e5;
+            --fg: #000000;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--fg);
+            font-family: 'Geist', sans-serif;
+            overflow: hidden;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .font-mono {
+            font-family: 'Geist Mono', monospace;
+        }
+
+        /* Brutalist Styles */
+        .window-shadow {
+            box-shadow: 10px 10px 0px 0px #000000;
+        }
+
+        .icon-shadow {
+            box-shadow: 4px 4px 0px 0px #000000;
+        }
+
+        .btn-shadow {
+            box-shadow: 2px 2px 0px 0px #000000;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 12px;
+            height: 12px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #fff;
+            border-left: 2px solid #000;
+            border-top: 2px solid #000;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #000;
+            border: 2px solid #fff;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #333;
+        }
+
+        /* Background Pattern */
+        .desktop-bg {
+            background-color: #f0f0f0;
+            background-image: radial-gradient(#aaa 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        canvas {
+            touch-action: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- PIXEL ART ICONS (32x32) ---
+        const PixelIcon = ({ children, size = 32, ...props }) => (
+            <svg {...props} width={size} height={size} viewBox="0 0 32 32" fill="none" style={{ imageRendering: 'pixelated' }}>
+                {children}
+            </svg>
+        );
+
+        const Icons = {
+            // System Info - Monitor with info screen
+            Terminal: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="4" width="24" height="18" fill="#000" />
+                    <rect x="6" y="6" width="20" height="14" fill="#fff" />
+                    <rect x="8" y="8" width="16" height="2" fill="#000" />
+                    <rect x="8" y="12" width="12" height="2" fill="#000" />
+                    <rect x="8" y="16" width="8" height="2" fill="#000" />
+                    <rect x="12" y="22" width="8" height="2" fill="#000" />
+                    <rect x="10" y="24" width="12" height="4" fill="#000" />
+                </PixelIcon>
+            ),
+            // Media Library - Stack of folders
+            Folder: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="10" width="24" height="18" fill="#000" />
+                    <rect x="6" y="12" width="20" height="14" fill="#fff" />
+                    <rect x="4" y="8" width="10" height="4" fill="#000" />
+                    <rect x="6" y="6" width="6" height="4" fill="#000" />
+                    <rect x="8" y="16" width="14" height="2" fill="#000" />
+                    <rect x="8" y="20" width="10" height="2" fill="#000" />
+                </PixelIcon>
+            ),
+            // Paint - Brush icon
+            Palette: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="22" y="2" width="6" height="6" fill="#000" />
+                    <rect x="18" y="6" width="6" height="6" fill="#000" />
+                    <rect x="14" y="10" width="6" height="6" fill="#000" />
+                    <rect x="10" y="14" width="6" height="6" fill="#000" />
+                    <rect x="6" y="18" width="6" height="6" fill="#000" />
+                    <rect x="2" y="22" width="8" height="8" fill="#000" />
+                    <rect x="4" y="24" width="4" height="4" fill="#fff" />
+                </PixelIcon>
+            ),
+            // Snake Game - Pixel snake
+            Snek: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="12" width="4" height="4" fill="#000" />
+                    <rect x="8" y="12" width="4" height="4" fill="#000" />
+                    <rect x="12" y="12" width="4" height="4" fill="#000" />
+                    <rect x="16" y="12" width="4" height="4" fill="#000" />
+                    <rect x="16" y="16" width="4" height="4" fill="#000" />
+                    <rect x="16" y="20" width="4" height="4" fill="#000" />
+                    <rect x="20" y="20" width="4" height="4" fill="#000" />
+                    <rect x="24" y="20" width="4" height="4" fill="#000" />
+                    <rect x="2" y="10" width="2" height="2" fill="#000" />
+                    <rect x="2" y="14" width="2" height="2" fill="#000" />
+                    <rect x="26" y="24" width="4" height="4" fill="#fff" stroke="#000" strokeWidth="1" />
+                </PixelIcon>
+            ),
+            // Trash Can - Desktop trash
+            TrashCan: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="6" y="4" width="20" height="4" fill="#000" />
+                    <rect x="10" y="2" width="12" height="4" fill="#000" />
+                    <rect x="8" y="8" width="16" height="20" fill="#000" />
+                    <rect x="10" y="10" width="12" height="16" fill="#fff" />
+                    <rect x="12" y="12" width="2" height="12" fill="#000" />
+                    <rect x="15" y="12" width="2" height="12" fill="#000" />
+                    <rect x="18" y="12" width="2" height="12" fill="#000" />
+                </PixelIcon>
+            ),
+            // Undo arrow
+            Undo: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="12" width="4" height="4" fill="#000" />
+                    <rect x="8" y="8" width="4" height="4" fill="#000" />
+                    <rect x="12" y="4" width="4" height="4" fill="#000" />
+                    <rect x="8" y="16" width="16" height="4" fill="#000" />
+                    <rect x="20" y="20" width="4" height="8" fill="#000" />
+                </PixelIcon>
+            ),
+            // Redo arrow
+            Redo: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="24" y="12" width="4" height="4" fill="#000" />
+                    <rect x="20" y="8" width="4" height="4" fill="#000" />
+                    <rect x="16" y="4" width="4" height="4" fill="#000" />
+                    <rect x="8" y="16" width="16" height="4" fill="#000" />
+                    <rect x="8" y="20" width="4" height="8" fill="#000" />
+                </PixelIcon>
+            ),
+            // File icon for trash items
+            FileDoc: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="6" y="2" width="16" height="28" fill="#000" />
+                    <rect x="8" y="4" width="12" height="24" fill="#fff" />
+                    <rect x="10" y="8" width="8" height="2" fill="#000" />
+                    <rect x="10" y="12" width="8" height="2" fill="#000" />
+                    <rect x="10" y="16" width="6" height="2" fill="#000" />
+                </PixelIcon>
+            ),
+            X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+            Minus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
+            Square: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>,
+            Trash: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
+            Send: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
+            // Media folder icons
+            Movies: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="6" width="24" height="20" fill="#000" />
+                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
+                    <rect x="4" y="4" width="6" height="4" fill="#000" />
+                    <polygon points="12,12 12,20 20,16" fill="#000" />
+                </PixelIcon>
+            ),
+            Books: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="6" width="24" height="20" fill="#000" />
+                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
+                    <rect x="4" y="4" width="6" height="4" fill="#000" />
+                    <rect x="10" y="11" width="12" height="2" fill="#000" />
+                    <rect x="10" y="15" width="8" height="2" fill="#000" />
+                    <rect x="10" y="19" width="10" height="2" fill="#000" />
+                </PixelIcon>
+            ),
+            Games: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="6" width="24" height="20" fill="#000" />
+                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
+                    <rect x="4" y="4" width="6" height="4" fill="#000" />
+                    <rect x="10" y="12" width="4" height="4" fill="#000" />
+                    <rect x="18" y="12" width="4" height="4" fill="#000" />
+                    <rect x="12" y="18" width="8" height="2" fill="#000" />
+                </PixelIcon>
+            ),
+            Music: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="6" width="24" height="20" fill="#000" />
+                    <rect x="6" y="8" width="20" height="16" fill="#fff" />
+                    <rect x="4" y="4" width="6" height="4" fill="#000" />
+                    <rect x="18" y="10" width="2" height="10" fill="#000" />
+                    <rect x="14" y="18" width="6" height="4" fill="#000" />
+                    <rect x="18" y="10" width="6" height="4" fill="#000" />
+                </PixelIcon>
+            ),
+            Back: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+        };
+
+        // --- DATA ---
+        const MEDIA_DB = {
+            "CINEMA_TV": [
+                { title: "Blade Runner 2049", rating: "MASTERPIECE" },
+                { title: "Mr. Robot", rating: "SYS_ADMIN_FAV" },
+                { title: "True Detective S1", rating: "10/10" },
+                { title: "Succession", rating: "CORP_DRAMA" },
+                { title: "The Bear", rating: "HIGH_STRESS" },
+                { title: "Ex Machina", rating: "AI_ETHICS" },
+                { title: "Fight Club", rating: "CULT_CLASSIC" },
+                { title: "Arcane", rating: "VISUAL_PEAK" },
+                { title: "Interstellar", rating: "SPACE_TIME" },
+                { title: "Chernobyl", rating: "SYSTEM_FAILURE" },
+                { title: "Better Call Saul", rating: "LEGAL_DRAMA" },
+                { title: "Blue Eye Samurai", rating: "AESTHETIC" },
+                { title: "Atlanta", rating: "SURREAL" },
+                { title: "Whiplash", rating: "TEMPO" },
+                { title: "There Will Be Blood", rating: "OIL" },
+                { title: "Sicario", rating: "TENSION" },
+                { title: "Black Mirror", rating: "DYSTOPIA" },
+                { title: "Rick and Morty", rating: "SCI_FI" }
+            ],
+            "LITERATURE": [
+                { title: "Brothers Karamazov", rating: "10/10" },
+                { title: "Looking for Alaska", rating: "10/10" },
+                { title: "Atlas Shrugged", rating: "10/10" },
+                { title: "Pale Blue Dot", rating: "10/10" },
+                { title: "Crime & Punishment", rating: "8/10" },
+                { title: "The Fountainhead", rating: "9/10" },
+                { title: "1984", rating: "8/10" },
+                { title: "Master & Margarita", rating: "8/10" },
+                { title: "American Psycho", rating: "8/10" },
+                { title: "Elon Musk", rating: "9/10" }
+            ],
+            "GAMES": [
+                { title: "Dark Souls III", rating: "10/10" },
+                { title: "The Last of Us Pt II", rating: "10/10" },
+                { title: "Outer Wilds", rating: "10/10" },
+                { title: "God of War Ragnarok", rating: "10/10" },
+                { title: "Blue Prince", rating: "10/10" },
+                { title: "Cyberpunk 2077", rating: "9.5/10" },
+                { title: "Night in the Woods", rating: "9.5/10" },
+                { title: "Silent Hill 2", rating: "8/10" },
+                { title: "Returnal", rating: "8/10" },
+                { title: "Hollow Knight (Silksong)", rating: "8/10" },
+                { title: "Deltarune", rating: "9/10" }
+            ],
+            "AUDIO": [
+                { title: "The Life of Pablo", artist: "Kanye West" },
+                { title: "Yeezus", artist: "Kanye West" },
+                { title: "Mr. Morale...", artist: "Kendrick Lamar" },
+                { title: "Miss Anthropocene", artist: "Grimes" },
+                { title: "The Eminem Show", artist: "Eminem" }
+            ]
+        };
+
+        // --- APP COMPONENTS ---
+
+        const PaintApp = () => {
+            const canvasRef = useRef(null);
+            const containerRef = useRef(null);
+            const [tool, setTool] = useState('brush');
+            const [color, setColor] = useState('#000000');
+            const [size, setSize] = useState(4);
+            const [isDrawing, setIsDrawing] = useState(false);
+            const [status, setStatus] = useState("READY");
+            const [startPos, setStartPos] = useState({ x: 0, y: 0 });
+            const [textInput, setTextInput] = useState('');
+            const [showTextInput, setShowTextInput] = useState(false);
+            const [textPos, setTextPos] = useState({ x: 0, y: 0 });
+            const snapshotRef = useRef(null);
+            const historyRef = useRef([]);
+            const historyIndexRef = useRef(-1);
+
+            // Get accurate mouse position relative to canvas
+            const getMousePos = (e) => {
+                const canvas = canvasRef.current;
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                return {
+                    x: (e.clientX - rect.left) * scaleX,
+                    y: (e.clientY - rect.top) * scaleY
+                };
+            };
+
+            const saveToHistory = () => {
+                const canvas = canvasRef.current;
+                const data = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+                historyRef.current = historyRef.current.slice(0, historyIndexRef.current + 1);
+                historyRef.current.push(data);
+                if (historyRef.current.length > 50) historyRef.current.shift();
+                historyIndexRef.current = historyRef.current.length - 1;
+            };
+
+            const undo = () => {
+                if (historyIndexRef.current > 0) {
+                    historyIndexRef.current--;
+                    canvasRef.current.getContext('2d').putImageData(historyRef.current[historyIndexRef.current], 0, 0);
+                    setStatus("UNDO");
+                }
+            };
+
+            const redo = () => {
+                if (historyIndexRef.current < historyRef.current.length - 1) {
+                    historyIndexRef.current++;
+                    canvasRef.current.getContext('2d').putImageData(historyRef.current[historyIndexRef.current], 0, 0);
+                    setStatus("REDO");
+                }
+            };
+
+            useEffect(() => {
+                const initCanvas = () => {
+                    if (!containerRef.current) return;
+                    const canvas = canvasRef.current;
+                    const container = containerRef.current;
+                    // Set fixed canvas size for proper pixel drawing
+                    canvas.width = container.clientWidth - 4;
+                    canvas.height = container.clientHeight - 4;
+                    const ctx = canvas.getContext("2d");
+                    ctx.fillStyle = "#ffffff";
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    saveToHistory();
+                };
+                initCanvas();
+                window.addEventListener('resize', initCanvas);
+                return () => window.removeEventListener('resize', initCanvas);
+            }, []);
+
+            const floodFill = (x, y, fillColor) => {
+                const ctx = canvasRef.current.getContext('2d');
+                const w = ctx.canvas.width;
+                const h = ctx.canvas.height;
+                const imgData = ctx.getImageData(0, 0, w, h);
+                const data = imgData.data;
+                const r = parseInt(fillColor.slice(1, 3), 16);
+                const g = parseInt(fillColor.slice(3, 5), 16);
+                const b = parseInt(fillColor.slice(5, 7), 16);
+                const startIdx = (y * w + x) * 4;
+                const sr = data[startIdx], sg = data[startIdx + 1], sb = data[startIdx + 2];
+                if (sr === r && sg === g && sb === b) return;
+                const stack = [[x, y]];
+                while (stack.length) {
+                    const [cx, cy] = stack.pop();
+                    const idx = (cy * w + cx) * 4;
+                    if (cx < 0 || cx >= w || cy < 0 || cy >= h) continue;
+                    if (data[idx] === sr && data[idx + 1] === sg && data[idx + 2] === sb) {
+                        data[idx] = r; data[idx + 1] = g; data[idx + 2] = b; data[idx + 3] = 255;
+                        stack.push([cx + 1, cy], [cx - 1, cy], [cx, cy + 1], [cx, cy - 1]);
+                    }
+                }
+                ctx.putImageData(imgData, 0, 0);
+                saveToHistory();
+            };
+
+            const saveSnapshot = () => {
+                const canvas = canvasRef.current;
+                snapshotRef.current = canvas.getContext('2d').getImageData(0, 0, canvas.width, canvas.height);
+            };
+
+            const restoreSnapshot = () => {
+                if (snapshotRef.current) {
+                    canvasRef.current.getContext('2d').putImageData(snapshotRef.current, 0, 0);
+                }
+            };
+
+            const startDraw = (e) => {
+                const pos = getMousePos(e);
+                if (tool === 'bucket') {
+                    floodFill(Math.floor(pos.x), Math.floor(pos.y), color);
+                    setStatus("FILLED");
+                } else if (tool === 'text') {
+                    setTextPos(pos);
+                    setShowTextInput(true);
+                    setStatus("TYPE TEXT");
+                } else if (['rect', 'circle', 'line'].includes(tool)) {
+                    setIsDrawing(true);
+                    setStartPos(pos);
+                    saveSnapshot();
+                } else {
+                    setIsDrawing(true);
+                    setStartPos(pos);
+                    const ctx = canvasRef.current.getContext('2d');
+                    ctx.beginPath();
+                    ctx.moveTo(pos.x, pos.y);
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.lineWidth = size;
+                    ctx.strokeStyle = tool === 'eraser' ? '#ffffff' : color;
+                }
+            };
+
+            const draw = (e) => {
+                if (!isDrawing) return;
+                const ctx = canvasRef.current.getContext('2d');
+                const pos = getMousePos(e);
+
+                if (tool === 'brush' || tool === 'eraser') {
+                    ctx.lineTo(pos.x, pos.y);
+                    ctx.stroke();
+                } else if (['rect', 'circle', 'line'].includes(tool)) {
+                    restoreSnapshot();
+                    ctx.strokeStyle = color;
+                    ctx.fillStyle = color;
+                    ctx.lineWidth = size;
+
+                    if (tool === 'rect') {
+                        ctx.strokeRect(startPos.x, startPos.y, pos.x - startPos.x, pos.y - startPos.y);
+                    } else if (tool === 'circle') {
+                        const rx = Math.abs(pos.x - startPos.x) / 2;
+                        const ry = Math.abs(pos.y - startPos.y) / 2;
+                        const cx = startPos.x + (pos.x - startPos.x) / 2;
+                        const cy = startPos.y + (pos.y - startPos.y) / 2;
+                        ctx.beginPath();
+                        ctx.ellipse(cx, cy, rx, ry, 0, 0, 2 * Math.PI);
+                        ctx.stroke();
+                    } else if (tool === 'line') {
+                        ctx.beginPath();
+                        ctx.moveTo(startPos.x, startPos.y);
+                        ctx.lineTo(pos.x, pos.y);
+                        ctx.stroke();
+                    }
+                }
+            };
+
+            const endDraw = () => {
+                if (isDrawing) {
+                    setIsDrawing(false);
+                    if (tool === 'brush' || tool === 'eraser') {
+                        canvasRef.current.getContext('2d').closePath();
+                    }
+                    saveToHistory();
+                }
+            };
+
+            const placeText = () => {
+                if (textInput.trim()) {
+                    const ctx = canvasRef.current.getContext('2d');
+                    ctx.fillStyle = color;
+                    ctx.font = `${size * 4}px 'Geist Mono', monospace`;
+                    ctx.fillText(textInput, textPos.x, textPos.y);
+                    setStatus("TEXT PLACED");
+                    saveToHistory();
+                }
+                setShowTextInput(false);
+                setTextInput('');
+            };
+
+            const send = () => {
+                setStatus("ENCRYPTING...");
+                setTimeout(() => setStatus("UPLOADING..."), 500);
+                setTimeout(() => setStatus("SENT TO MATEUS"), 1200);
+            };
+
+            const clear = () => {
+                const ctx = canvasRef.current.getContext('2d');
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
+                setStatus("CLEARED");
+                saveToHistory();
+            };
+
+            // Pixel knob component
+            const PixelKnob = ({ value, onChange, min, max }) => {
+                const knobSize = 24;
+                const rotation = ((value - min) / (max - min)) * 270 - 135;
+                return (
+                    <div
+                        className="relative cursor-pointer select-none"
+                        style={{ width: knobSize, height: knobSize }}
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            const startY = e.clientY;
+                            const startVal = value;
+                            const onMove = (ev) => {
+                                const diff = startY - ev.clientY;
+                                const newVal = Math.min(max, Math.max(min, startVal + Math.floor(diff / 5)));
+                                onChange(newVal);
+                            };
+                            const onUp = () => {
+                                window.removeEventListener('mousemove', onMove);
+                                window.removeEventListener('mouseup', onUp);
+                            };
+                            window.addEventListener('mousemove', onMove);
+                            window.addEventListener('mouseup', onUp);
+                        }}
+                    >
+                        <svg width={knobSize} height={knobSize} viewBox="0 0 24 24" style={{ imageRendering: 'pixelated' }}>
+                            <rect x="4" y="4" width="16" height="16" fill="#000" />
+                            <rect x="6" y="6" width="12" height="12" fill="#fff" />
+                            <rect x="10" y="6" width="4" height="6" fill="#000" transform={`rotate(${rotation}, 12, 12)`} />
+                        </svg>
+                    </div>
+                );
+            };
+
+            const tools = ['brush', 'eraser', 'bucket', 'line', 'rect', 'circle', 'text'];
+            const colors = ['#000000', '#ffffff', '#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff', '#ff8800', '#8800ff'];
+
+            return (
+                <div className="h-full flex flex-col bg-gray-100 select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex flex-wrap gap-2 items-center">
+                        <div className="flex gap-1">
+                            <button onClick={undo} className="p-1 border border-black hover:bg-gray-100" title="Undo"><Icons.Undo size={16} /></button>
+                            <button onClick={redo} className="p-1 border border-black hover:bg-gray-100" title="Redo"><Icons.Redo size={16} /></button>
+                        </div>
+                        <div className="w-px h-4 bg-black"></div>
+                        <div className="flex gap-1 flex-wrap">
+                            {tools.map(t => (
+                                <button key={t} onClick={() => setTool(t)} className={`px-2 py-1 text-[10px] font-bold border border-black uppercase ${tool === t ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}>{t}</button>
+                            ))}
+                        </div>
+                        <div className="w-px h-4 bg-black"></div>
+                        <div className="flex gap-1 flex-wrap">
+                            {colors.map(c => (
+                                <button key={c} onClick={() => setColor(c)} className={`w-5 h-5 border border-black ${color === c ? 'ring-2 ring-offset-1 ring-black' : ''}`} style={{ backgroundColor: c }} />
+                            ))}
+                        </div>
+                        <div className="w-px h-4 bg-black"></div>
+                        <div className="flex items-center gap-1">
+                            <PixelKnob value={size} onChange={setSize} min={1} max={20} />
+                            <span className="text-[10px] font-mono w-4">{size}</span>
+                        </div>
+                        <div className="flex-grow"></div>
+                        <button onClick={send} className="px-2 py-1 border border-black bg-black text-white text-xs font-bold hover:invert flex items-center gap-1"><Icons.Send size={12} /> SEND</button>
+                    </div>
+                    <div className="flex-grow relative cursor-crosshair bg-gray-300 p-[2px] overflow-hidden" ref={containerRef}>
+                        <canvas
+                            ref={canvasRef}
+                            onMouseDown={startDraw}
+                            onMouseMove={draw}
+                            onMouseUp={endDraw}
+                            onMouseLeave={endDraw}
+                            className="block bg-white border border-gray-400"
+                            style={{ width: '100%', height: '100%' }}
+                        />
+                        {showTextInput && (
+                            <div className="absolute top-2 left-2 bg-white border-2 border-black p-2 flex gap-2">
+                                <input
+                                    type="text"
+                                    value={textInput}
+                                    onChange={(e) => setTextInput(e.target.value)}
+                                    onKeyDown={(e) => e.key === 'Enter' && placeText()}
+                                    placeholder="Type text..."
+                                    className="border border-black px-2 py-1 text-xs font-mono"
+                                    autoFocus
+                                />
+                                <button onClick={placeText} className="bg-black text-white px-2 text-xs font-bold">OK</button>
+                            </div>
+                        )}
+                        <div className="absolute bottom-1 left-1 bg-black text-white text-[10px] px-2 font-mono">{status}</div>
+                    </div>
+                </div>
+            )
+        }
+
+        const FileExplorer = () => {
+            const [selectedFolder, setSelectedFolder] = useState(null);
+
+            const folders = [
+                { key: 'CINEMA_TV', name: 'MOVIES', icon: 'Movies' },
+                { key: 'LITERATURE', name: 'BOOKS', icon: 'Books' },
+                { key: 'GAMES', name: 'GAMES', icon: 'Games' },
+                { key: 'AUDIO', name: 'MUSIC', icon: 'Music' }
+            ];
+
+            if (selectedFolder) {
+                const FolderIcon = Icons[folders.find(f => f.key === selectedFolder)?.icon || 'Folder'];
+                return (
+                    <div className="h-full flex flex-col bg-white select-none">
+                        <div className="p-3 border-b-2 border-black bg-gray-50 flex items-center gap-3">
+                            <button onClick={() => setSelectedFolder(null)} className="p-1 border border-black hover:bg-black hover:text-white">
+                                <Icons.Back size={16} />
+                            </button>
+                            <FolderIcon size={24} />
+                            <span className="font-mono text-sm font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
+                            <span className="font-mono text-xs text-gray-400">({MEDIA_DB[selectedFolder].length} items)</span>
+                        </div>
+                        <div className="flex-grow overflow-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-black text-white text-xs font-mono sticky top-0">
+                                    <tr><th className="p-2">TITLE</th><th className="p-2 border-l border-gray-600">NOTE</th></tr>
+                                </thead>
+                                <tbody className="font-mono text-xs">
+                                    {MEDIA_DB[selectedFolder].map((i, idx) => (
+                                        <tr key={idx} className="border-b border-gray-200 hover:bg-yellow-100">
+                                            <td className="p-2 font-bold">{i.title}</td>
+                                            <td className="p-2 border-l border-gray-200">{i.rating || i.artist}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-3 border-b-2 border-black bg-gray-50">
+                        <span className="font-mono text-xs font-bold text-gray-400">/ROOT/MEDIA</span>
+                    </div>
+                    <div className="flex-grow p-6 flex items-start justify-center">
+                        <div className="grid grid-cols-4 gap-8">
+                            {folders.map(folder => {
+                                const FolderIcon = Icons[folder.icon];
+                                return (
+                                    <button
+                                        key={folder.key}
+                                        onClick={() => setSelectedFolder(folder.key)}
+                                        className="group flex flex-col items-center gap-2 p-4 hover:bg-gray-100 border-2 border-transparent hover:border-black transition-all"
+                                    >
+                                        <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
+                                            <FolderIcon size={48} />
+                                        </div>
+                                        <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
+                                        <span className="font-mono text-[10px] text-gray-400">{MEDIA_DB[folder.key].length} items</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const SnakeApp = () => {
+            const canvasRef = useRef(null);
+            const [score, setScore] = useState(0);
+            const [gameOver, setGameOver] = useState(false);
+            const snake = useRef([{ x: 10, y: 10 }]);
+            const food = useRef({ x: 15, y: 15 });
+            const dir = useRef({ x: 1, y: 0 });
+            const nextDir = useRef({ x: 1, y: 0 });
+            const loopRef = useRef(null);
+
+            const start = () => {
+                snake.current = [{ x: 10, y: 10 }, { x: 9, y: 10 }];
+                dir.current = { x: 1, y: 0 };
+                nextDir.current = { x: 1, y: 0 };
+                setScore(0);
+                setGameOver(false);
+                if (loopRef.current) clearInterval(loopRef.current);
+                loopRef.current = setInterval(update, 100);
+            }
+            const update = () => {
+                const ctx = canvasRef.current?.getContext('2d');
+                if (!ctx) return;
+                const w = 30, h = 20, scale = 20;
+                dir.current = nextDir.current;
+                const head = { x: snake.current[0].x + dir.current.x, y: snake.current[0].y + dir.current.y };
+                if (head.x < 0 || head.x >= w || head.y < 0 || head.y >= h || snake.current.some(s => s.x === head.x && s.y === head.y)) {
+                    setGameOver(true); clearInterval(loopRef.current); return;
+                }
+                snake.current.unshift(head);
+                if (head.x === food.current.x && head.y === food.current.y) {
+                    setScore(s => s + 10); food.current = { x: Math.floor(Math.random() * w), y: Math.floor(Math.random() * h) };
+                } else { snake.current.pop(); }
+
+                ctx.fillStyle = "#a3a3a3"; ctx.fillRect(0, 0, 600, 400);
+                ctx.fillStyle = "#000"; snake.current.forEach(s => ctx.fillRect(s.x * scale, s.y * scale, scale - 1, scale - 1));
+                ctx.fillStyle = "#fff"; ctx.fillRect(food.current.x * scale, food.current.y * scale, scale, scale);
+                ctx.strokeRect(food.current.x * scale, food.current.y * scale, scale, scale);
+            }
+            useEffect(() => {
+                const handle = (e) => {
+                    if (e.key === 'ArrowUp' && dir.current.y === 0) nextDir.current = { x: 0, y: -1 };
+                    if (e.key === 'ArrowDown' && dir.current.y === 0) nextDir.current = { x: 0, y: 1 };
+                    if (e.key === 'ArrowLeft' && dir.current.x === 0) nextDir.current = { x: -1, y: 0 };
+                    if (e.key === 'ArrowRight' && dir.current.x === 0) nextDir.current = { x: 1, y: 0 };
+                };
+                window.addEventListener('keydown', handle); start();
+                return () => { window.removeEventListener('keydown', handle); clearInterval(loopRef.current); }
+            }, []);
+            return (
+                <div className="h-full flex flex-col items-center justify-center bg-gray-200 p-4 select-none">
+                    <div className="w-[600px] flex justify-between font-mono font-bold mb-2"><span>SCORE: {score}</span><span>{gameOver ? "DEAD" : "ALIVE"}</span></div>
+                    <div className="relative border-4 border-black shadow-lg">
+                        <canvas ref={canvasRef} width={600} height={400} className="block bg-gray-400" />
+                        {gameOver && (
+                            <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center text-white">
+                                <h1 className="text-4xl font-black mb-4">GAME OVER</h1>
+                                <button onClick={start} className="border-2 border-white px-6 py-2 hover:bg-white hover:text-black font-mono font-bold">RETRY</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )
+        }
+
+        const SystemInfo = () => (
+            <div className="p-6 md:p-12 font-sans select-text">
+                <header className="mb-12 border-b-4 border-black pb-8">
+                    <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">Mateus<br />Muste</h1>
+                    <div className="mt-4 flex flex-wrap gap-4 font-mono text-sm">
+                        <span className="bg-black text-white px-2 py-1">FULL STACK ENGINEER</span>
+                        <span className="border border-black px-2 py-1">ROMANIA</span>
+                    </div>
+                </header>
+                <div className="grid md:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                        <section><h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Stack</h3>
+                            <div className="flex flex-wrap gap-2">{['TS', 'React', 'Next', 'Rust', 'Go', 'AWS', 'Node', 'K8S', 'SQL', 'AI'].map(t => (<span key={t} className="px-2 py-1 border-2 border-black font-mono text-xs font-bold hover:bg-black hover:text-white cursor-crosshair">{t}</span>))}</div>
+                        </section>
+                        <section><h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Metrics</h3>
+                            <div className="flex gap-4">
+                                <div className="p-4 border-2 border-black text-center"><div className="text-3xl font-black">C2</div><div className="font-mono text-[10px]">CAMBRIDGE</div></div>
+                                <div className="p-4 border-2 border-black text-center"><div className="text-3xl font-black">1570</div><div className="font-mono text-[10px]">SAT</div></div>
+                            </div>
+                        </section>
+                    </div>
+                    <div className="space-y-4">
+                        <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">Projects</h3>
+                        {[{ t: "AlgoTrade Bot", s: "Python/NLP", d: "Automated sentiment trading." }, { t: "NeuralSynth", s: "Rust/WASM", d: "Generative audio RNN." }, { t: "GraphVault", s: "WebGL", d: "3D knowledge graph." }].map((p, i) => (
+                            <div key={i} className="group border-2 border-black p-4 hover:bg-black hover:text-white cursor-pointer">
+                                <div className="flex justify-between mb-1"><h4 className="font-bold uppercase">{p.t}</h4><span className="font-mono text-xs">0{i + 1}</span></div>
+                                <p className="font-mono text-xs opacity-70 mb-1">{p.s}</p><p className="text-sm italic">{p.d}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+        )
+
+        const TrashApp = () => {
+            const [shakingFile, setShakingFile] = useState(null);
+
+            const trashFiles = [
+                { name: 'MY_BITCOIN_WALLET.txt', icon: 'FileDoc' },
+                { name: 'sleep_schedule.ics', icon: 'FileDoc' },
+                { name: 'NYU_acceptance_letter.pdf', icon: 'FileDoc' }
+            ];
+
+            const handleFileClick = (fileName) => {
+                setShakingFile(fileName);
+                setTimeout(() => setShakingFile(null), 500);
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-3 border-b-2 border-black bg-gray-50 flex items-center gap-2">
+                        <Icons.TrashCan size={24} />
+                        <span className="font-mono text-sm font-bold uppercase">RECYCLE BIN</span>
+                        <span className="font-mono text-xs text-gray-400">({trashFiles.length} items)</span>
+                    </div>
+                    <div className="flex-grow p-6">
+                        <div className="grid grid-cols-3 gap-6">
+                            {trashFiles.map(file => (
+                                <button
+                                    key={file.name}
+                                    onClick={() => handleFileClick(file.name)}
+                                    className="group flex flex-col items-center gap-2 p-4 cursor-not-allowed"
+                                    style={{
+                                        animation: shakingFile === file.name ? 'shake 0.5s ease-in-out' : 'none'
+                                    }}
+                                >
+                                    <div className="bg-white border-2 border-black p-3 icon-shadow opacity-50">
+                                        <Icons.FileDoc size={32} />
+                                    </div>
+                                    <span className="font-mono text-[10px] font-bold text-center break-all opacity-70">{file.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <div className="mt-8 p-4 border-2 border-dashed border-gray-300 text-center">
+                            <span className="font-mono text-xs text-gray-400">ITEMS CANNOT BE RECOVERED</span>
+                        </div>
+                    </div>
+                    <style>{`
+                        @keyframes shake {
+                            0%, 100% { transform: translateX(0); }
+                            10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
+                            20%, 40%, 60%, 80% { transform: translateX(4px); }
+                        }
+                    `}</style>
+                </div>
+            );
+        }
+
+        // --- OS SHELL ---
+
+        const OS = () => {
+            const [booted, setBooted] = useState(false);
+            const [topZ, setTopZ] = useState(100);
+
+            // Window State (Position x/y added for dragging)
+            const [windows, setWindows] = useState({
+                "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 50, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, content: <SystemInfo /> },
+                "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, content: <FileExplorer /> },
+                "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: '700px', h: '600px', isOpen: false, isMin: false, z: 12, content: <PaintApp /> },
+                "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 13, content: <SnakeApp /> },
+                "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 14, content: <TrashApp /> }
+            });
+
+            // Dragging State
+            const [drag, setDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
+
+            useEffect(() => { setTimeout(() => setBooted(true), 600); }, []);
+
+            // Window Ops
+            const focus = (id) => {
+                setWindows(p => ({ ...p, [id]: { ...p[id], z: topZ + 1 } }));
+                setTopZ(z => z + 1);
+            }
+            const open = (id) => {
+                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: topZ + 1 } }));
+                setTopZ(z => z + 1);
+            }
+            const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+            const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
+
+            // Drag Handlers
+            const handleMouseDown = (e, id) => {
+                e.preventDefault();
+                focus(id); // bring to front
+                const win = windows[id];
+                const rect = e.currentTarget.getBoundingClientRect(); // click target is header
+                // Calculate offset from the window's top-left corner
+                // However, we track window X/Y which is top/left style. 
+                // Simple math: MouseX - WindowX
+                setDrag({
+                    id: id,
+                    offsetX: e.clientX - win.x,
+                    offsetY: e.clientY - win.y
+                });
+            };
+
+            const handleMouseMove = (e) => {
+                if (drag.id) {
+                    setWindows(prev => ({
+                        ...prev,
+                        [drag.id]: {
+                            ...prev[drag.id],
+                            x: e.clientX - drag.offsetX,
+                            y: e.clientY - drag.offsetY
+                        }
+                    }));
+                }
+            };
+
+            const handleMouseUp = () => setDrag({ id: null, offsetX: 0, offsetY: 0 });
+
+            if (!booted) return <div className="h-screen w-screen bg-black text-white font-mono flex items-center justify-center">BOOTING_KERNEL...</div>;
+
+            return (
+                <div
+                    className="h-screen w-screen relative overflow-hidden desktop-bg"
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                >
+                    {/* DESKTOP ICONS */}
+                    <div className="absolute top-4 left-4 flex flex-col gap-6 z-0">
+                        {Object.values(windows).map(app => {
+                            const IconCmp = Icons[app.icon];
+                            return (
+                                <button key={app.id} onClick={() => open(app.id)} className="group flex flex-col items-center gap-2 w-20">
+                                    <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
+                                        <IconCmp size={32} />
+                                    </div>
+                                    <span className="bg-white border border-black px-1 text-[10px] font-mono font-bold shadow-sm">{app.title}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+
+                    {/* WINDOWS */}
+                    {Object.values(windows).map(win => (
+                        win.isOpen && !win.isMin && (
+                            <div
+                                key={win.id}
+                                onMouseDown={() => focus(win.id)}
+                                className="absolute flex flex-col bg-white border-2 border-black window-shadow"
+                                style={{
+                                    left: win.x,
+                                    top: win.y,
+                                    width: win.w,
+                                    height: win.h,
+                                    zIndex: win.z
+                                }}
+                            >
+                                {/* HEADER (DRAG HANDLE) */}
+                                <div
+                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                                    onMouseDown={(e) => handleMouseDown(e, win.id)}
+                                >
+                                    <div className="flex items-center gap-2 pl-2 pointer-events-none">
+                                        <Icons.Square size={10} className="fill-current" />
+                                        <span className="font-mono text-xs font-bold tracking-widest uppercase">{win.title}</span>
+                                    </div>
+                                    <div className="flex gap-1" onMouseDown={e => e.stopPropagation()}>
+                                        <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>
+                                        <button onClick={() => close(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-red-500 hover:text-white"><Icons.X size={14} /></button>
+                                    </div>
+                                </div>
+                                {/* CONTENT */}
+                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={e => e.stopPropagation()}>
+                                    {win.content}
+                                </div>
+                            </div>
+                        )
+                    ))}
+
+                    {/* TASKBAR */}
+                    <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
+                        <div className="bg-black text-white px-2 py-1 font-black mr-2 select-none">MM</div>
+                        {Object.values(windows).map(win => {
+                            const IconCmp = Icons[win.icon];
+                            return win.isOpen && (
+                                <button key={win.id}
+                                    onClick={() => { if (win.isMin) toggleMin(win.id); focus(win.id) }}
+                                    className={`flex items-center gap-2 px-3 py-1 border-2 border-black font-mono text-xs font-bold transition-all ${win.z === topZ && !win.isMin ? 'bg-black text-white btn-shadow' : 'bg-white hover:translate-y-[-2px]'}`}
+                                >
+                                    <IconCmp size={14} />
+                                    <span className="uppercase hidden md:inline">{win.title}</span>
+                                </button>
+                            );
+                        })}
+                        <div className="flex-grow"></div>
+                        <div className="font-mono text-xs font-bold px-4 border-l-2 border-black">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                    </div>
+
+                </div>
+            )
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<OS />);
+    </script>
+</body>
+
+</html>
