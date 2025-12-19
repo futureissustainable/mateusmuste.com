@@ -456,28 +456,22 @@
             ),
             Destruction: (p) => (
                 <PixelIcon {...p}>
-                    {/* Skull top */}
-                    <rect x="16" y="4" width="32" height="8" fill="#fff" />
-                    <rect x="12" y="12" width="40" height="8" fill="#fff" />
-                    <rect x="8" y="20" width="48" height="16" fill="#fff" />
-                    {/* Eye sockets */}
-                    <rect x="14" y="22" width="12" height="10" fill="#000" />
-                    <rect x="38" y="22" width="12" height="10" fill="#000" />
-                    {/* Nose */}
-                    <rect x="28" y="34" width="8" height="6" fill="#000" />
-                    {/* Teeth */}
-                    <rect x="12" y="40" width="40" height="8" fill="#fff" />
-                    <rect x="16" y="42" width="4" height="6" fill="#000" />
-                    <rect x="24" y="42" width="4" height="6" fill="#000" />
-                    <rect x="36" y="42" width="4" height="6" fill="#000" />
-                    <rect x="44" y="42" width="4" height="6" fill="#000" />
-                    {/* Jaw */}
-                    <rect x="16" y="48" width="32" height="8" fill="#fff" />
-                    {/* Border */}
-                    <rect x="8" y="4" width="4" height="48" fill="#000" />
-                    <rect x="52" y="4" width="4" height="48" fill="#000" />
-                    <rect x="12" y="0" width="40" height="4" fill="#000" />
-                    <rect x="12" y="52" width="40" height="4" fill="#000" />
+                    {/* Power button icon */}
+                    {/* Outer circle - pixelated */}
+                    <rect x="20" y="12" width="24" height="4" fill="#000" />
+                    <rect x="16" y="16" width="8" height="4" fill="#000" />
+                    <rect x="40" y="16" width="8" height="4" fill="#000" />
+                    <rect x="12" y="20" width="8" height="4" fill="#000" />
+                    <rect x="44" y="20" width="8" height="4" fill="#000" />
+                    <rect x="8" y="24" width="8" height="12" fill="#000" />
+                    <rect x="48" y="24" width="8" height="12" fill="#000" />
+                    <rect x="12" y="36" width="8" height="4" fill="#000" />
+                    <rect x="44" y="36" width="8" height="4" fill="#000" />
+                    <rect x="16" y="40" width="8" height="4" fill="#000" />
+                    <rect x="40" y="40" width="8" height="4" fill="#000" />
+                    <rect x="20" y="44" width="24" height="4" fill="#000" />
+                    {/* Power line on top */}
+                    <rect x="28" y="4" width="8" height="24" fill="#000" />
                 </PixelIcon>
             ),
             Tarot: (p) => (
@@ -656,6 +650,53 @@
                     <rect x="4" y="12" width="24" height="8" fill="#000" />
                     <rect x="8" y="8" width="16" height="8" fill="#000" />
                 </PixelIcon>
+            ),
+            // Games folder - folder with controller
+            GamesFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Controller icon inside */}
+                    <rect x="18" y="30" width="28" height="14" fill="#000" />
+                    <rect x="20" y="32" width="24" height="10" fill="#fff" />
+                    <rect x="22" y="34" width="4" height="6" fill="#000" />
+                    <rect x="24" y="36" width="6" height="2" fill="#000" />
+                    <rect x="36" y="35" width="3" height="3" fill="#000" />
+                    <rect x="40" y="35" width="3" height="3" fill="#000" />
+                </PixelIcon>
+            ),
+            // Productivity folder - folder with gear
+            ProductivityFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Gear icon inside */}
+                    <rect x="28" y="28" width="8" height="8" fill="#000" />
+                    <rect x="30" y="26" width="4" height="12" fill="#000" />
+                    <rect x="26" y="30" width="12" height="4" fill="#000" />
+                    <rect x="27" y="27" width="2" height="2" fill="#000" />
+                    <rect x="35" y="27" width="2" height="2" fill="#000" />
+                    <rect x="27" y="35" width="2" height="2" fill="#000" />
+                    <rect x="35" y="35" width="2" height="2" fill="#000" />
+                    <rect x="30" y="30" width="4" height="4" fill="#fff" />
+                </PixelIcon>
+            ),
+            // About folder - folder with person
+            AboutFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Person icon inside */}
+                    <rect x="29" y="26" width="6" height="6" fill="#000" />
+                    <rect x="26" y="34" width="12" height="10" fill="#000" />
+                    <rect x="28" y="36" width="8" height="6" fill="#fff" />
+                </PixelIcon>
             )
         };
 
@@ -673,25 +714,33 @@
                 { title: "Interstellar" },
                 { title: "Chernobyl" },
                 { title: "Better Call Saul" },
-                { title: "Blue Eye Samurai" },
                 { title: "Atlanta" },
                 { title: "Whiplash" },
                 { title: "There Will Be Blood" },
                 { title: "Sicario" },
-                { title: "Black Mirror" },
-                { title: "Rick and Morty" }
+                { title: "Black Mirror" }
             ],
             "LITERATURE": [
                 { title: "Brothers Karamazov", rating: "10/10" },
                 { title: "Looking for Alaska", rating: "10/10" },
                 { title: "Atlas Shrugged", rating: "10/10" },
                 { title: "Pale Blue Dot", rating: "10/10" },
-                { title: "Crime & Punishment", rating: "8/10" },
+                { title: "Lean Startup", rating: "9/10" },
+                { title: "Fight Club", rating: "9/10" },
+                { title: "Principles by Ray Dalio", rating: "9/10" },
                 { title: "The Fountainhead", rating: "9/10" },
+                { title: "Crime & Punishment", rating: "8/10" },
                 { title: "1984", rating: "8/10" },
                 { title: "Master & Margarita", rating: "8/10" },
                 { title: "American Psycho", rating: "8/10" },
-                { title: "Elon Musk", rating: "9/10" }
+                { title: "Elon Musk Biography", rating: "8/10" },
+                { title: "How to Get Filthy Rich in Rising Asia", rating: "8/10" },
+                { title: "Fathers and Sons", rating: "8/10" },
+                { title: "The Long Walk", rating: "8/10" },
+                { title: "What's Our Problem?", rating: "7/10" },
+                { title: "The Alchemist", rating: "7/10" },
+                { title: "Kafka on the Shore", rating: "6/10" },
+                { title: "Geometry for Ocelots", rating: "READING" }
             ],
             "GAMES": [
                 { title: "Dark Souls III", rating: "10/10" },
@@ -707,16 +756,16 @@
                 { title: "Deltarune", rating: "9/10" }
             ],
             "AUDIO": [
-                { title: "The Life of Pablo", artist: "Kanye West" },
-                { title: "Yeezus", artist: "Kanye West" },
+                { title: "Ison", artist: "Sevdaliza" },
                 { title: "Mr. Morale...", artist: "Kendrick Lamar" },
+                { title: "LP!", artist: "JPEGMAFIA" },
+                { title: "Take Care", artist: "Drake" },
+                { title: "The Life of Pablo", artist: "Kanye West" },
                 { title: "Miss Anthropocene", artist: "Grimes" },
                 { title: "The Eminem Show", artist: "Eminem" },
-                { title: "LP!", artist: "JPEGMAFIA" },
-                { title: "This story is dedicated...", artist: "Grimes" },
-                { title: "Ison", artist: "Sevdaliza" },
                 { title: "4 Your Eyez Only", artist: "J. Cole" },
-                { title: "Take Care", artist: "Drake" }
+                { title: "Yeezus", artist: "Kanye West" },
+                { title: "This story is dedicated...", artist: "Grimes" }
             ]
         };
 
@@ -1057,7 +1106,7 @@
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
-                { key: 'CINEMA_TV', name: 'MOVIES', icon: 'Movies' },
+                { key: 'CINEMA_TV', name: 'TV', icon: 'Movies' },
                 { key: 'LITERATURE', name: 'BOOKS', icon: 'Books' },
                 { key: 'GAMES', name: 'GAMES', icon: 'Games' },
                 { key: 'AUDIO', name: 'MUSIC', icon: 'Music' }
@@ -3088,39 +3137,29 @@
 
         // --- TAROT.DAT - Tarot card pull ---
         // Pixel art tarot card component with card frame
-        const PixelTarotCard = ({ pixels, width = 24, height = 32, showFrame = true }) => {
-            const cardWidth = width + 8;
-            const cardHeight = height + 12;
-            const scale = 4;
+        const PixelTarotCard = ({ pixels, width = 24, height = 32, scale = 3 }) => {
+            const cardWidth = width + 4;
+            const cardHeight = height + 6;
 
             return (
                 <div className="relative" style={{ width: cardWidth * scale, height: cardHeight * scale }}>
-                    {/* Card frame */}
+                    {/* Card frame - thin border */}
                     <div
-                        className="absolute inset-0 bg-white border-2 border-gray-300"
+                        className="absolute inset-0 bg-white"
                         style={{
-                            borderRadius: '4px',
-                            boxShadow: '2px 2px 0 rgba(0,0,0,0.2)'
-                        }}
-                    />
-                    {/* Inner border */}
-                    <div
-                        className="absolute bg-gray-100 border border-gray-400"
-                        style={{
-                            top: scale * 2,
-                            left: scale * 2,
-                            right: scale * 2,
-                            bottom: scale * 2,
+                            borderRadius: '2px',
+                            border: '1px solid #666',
+                            boxShadow: '1px 1px 0 rgba(0,0,0,0.15)'
                         }}
                     />
                     {/* Pixel art area */}
                     <div
                         className="absolute flex items-center justify-center"
                         style={{
-                            top: scale * 3,
-                            left: scale * 3,
-                            right: scale * 3,
-                            bottom: scale * 3,
+                            top: scale,
+                            left: scale,
+                            right: scale,
+                            bottom: scale * 2,
                         }}
                     >
                         <svg width={width * scale} height={height * scale} viewBox={`0 0 ${width} ${height}`} style={{ imageRendering: 'pixelated' }}>
@@ -3137,7 +3176,7 @@
         };
 
         const TarotApp = () => {
-            const [card, setCard] = useState(null);
+            const [cards, setCards] = useState([]);
             const [revealed, setRevealed] = useState(false);
             const [alreadyPulled, setAlreadyPulled] = useState(false);
             const [isShuffling, setIsShuffling] = useState(false);
@@ -3940,17 +3979,15 @@
 
             useEffect(() => {
                 // Check localStorage for existing pull (simulating IP-based storage)
-                const savedCard = localStorage.getItem('tarot_card');
-                if (savedCard) {
-                    const parsed = JSON.parse(savedCard);
-                    // Check if it's the new format with pixels (not old ascii format)
-                    if (parsed.pixels) {
-                        setCard(parsed);
+                const savedCards = localStorage.getItem('tarot_cards_3');
+                if (savedCards) {
+                    const parsed = JSON.parse(savedCards);
+                    if (Array.isArray(parsed) && parsed.length === 3 && parsed[0].pixels) {
+                        setCards(parsed);
                         setRevealed(true);
                         setAlreadyPulled(true);
                     } else {
-                        // Old format - clear it so user can pull again
-                        localStorage.removeItem('tarot_card');
+                        localStorage.removeItem('tarot_cards_3');
                     }
                 }
             }, []);
@@ -4026,7 +4063,7 @@
                 ]
             ];
 
-            const pullCard = () => {
+            const pullCards = () => {
                 if (alreadyPulled || isShuffling) return;
 
                 setIsShuffling(true);
@@ -4037,9 +4074,11 @@
                     if (frame >= 20) {
                         clearInterval(shuffleInterval);
                         setIsShuffling(false);
-                        const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
-                        setCard(randomCard);
-                        localStorage.setItem('tarot_card', JSON.stringify(randomCard));
+                        // Pick 3 unique random cards
+                        const shuffled = [...tarotCards].sort(() => Math.random() - 0.5);
+                        const selectedCards = shuffled.slice(0, 3);
+                        setCards(selectedCards);
+                        localStorage.setItem('tarot_cards_3', JSON.stringify(selectedCards));
                         setTimeout(() => setRevealed(true), 500);
                         setAlreadyPulled(true);
                     }
@@ -4111,29 +4150,38 @@
                                 </div>
                                 <div className="font-mono text-[10px] text-gray-500 animate-pulse">SHUFFLING...</div>
                             </div>
-                        ) : !card ? (
+                        ) : cards.length === 0 ? (
                             <div className="text-center">
-                                <div className="mb-6">
-                                    <PixelTarotCard pixels={questionPixels} />
+                                <div className="mb-6 flex gap-2 justify-center">
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
                                 </div>
                                 <button
-                                    onClick={pullCard}
+                                    onClick={pullCards}
                                     className="px-6 py-2 bg-white text-black font-mono text-[10px] font-bold hover:invert transition-all"
                                 >
-                                    PULL CARD
+                                    DRAW 3 CARDS
                                 </button>
-                                <p className="mt-4 font-mono text-[10px] text-gray-600">ONE PULL PER VISITOR</p>
+                                <p className="mt-4 font-mono text-[10px] text-gray-600">ONE READING PER VISITOR</p>
                             </div>
                         ) : (
                             <div className={`text-center transition-all duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-                                <div className="mb-4">
-                                    <PixelTarotCard pixels={card.pixels} />
+                                <div className="flex gap-3 justify-center mb-4">
+                                    {cards.map((card, idx) => (
+                                        <div key={idx} className="flex flex-col items-center">
+                                            <div className="text-[8px] text-gray-600 mb-1">{['PAST', 'PRESENT', 'FUTURE'][idx]}</div>
+                                            <PixelTarotCard pixels={card.pixels} scale={2} />
+                                            <div className="font-mono text-[8px] text-gray-500 mt-1">{card.num}</div>
+                                            <div className="text-[9px] font-bold mt-1 max-w-[80px]">{card.name}</div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="font-mono text-[10px] text-gray-500 mb-1">{card.num}</div>
-                                <div className="text-sm font-black mb-2 tracking-wider">{card.name}</div>
-                                <div className="font-mono text-[10px] text-gray-400 max-w-xs">{card.meaning}</div>
+                                <div className="font-mono text-[9px] text-gray-400 max-w-md mx-auto">
+                                    {cards.map((c, i) => <span key={i}>{c.meaning}{i < 2 ? ' • ' : ''}</span>)}
+                                </div>
                                 {alreadyPulled && (
-                                    <p className="mt-4 font-mono text-[10px] text-gray-700">FATE SEALED</p>
+                                    <p className="mt-3 font-mono text-[10px] text-gray-700">FATE SEALED</p>
                                 )}
                             </div>
                         )}
@@ -5485,19 +5533,87 @@
             const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
             const [isRunning, setIsRunning] = useState(false);
             const [sessions, setSessions] = useState(0);
+            const [view, setView] = useState('timer'); // 'timer' or 'room'
+            const [totalTime, setTotalTime] = useState(0); // total seconds spent
+            const [flowers, setFlowers] = useState([]); // collected flowers
+            const [currentFlower, setCurrentFlower] = useState(null); // flower for current session
 
             const WORK_TIME = 25 * 60;
             const BREAK_TIME = 5 * 60;
+
+            // 5 pot styles, 5 stem/leaf types, 5 flower types = 125 combinations
+            const POT_STYLES = [
+                { color: '#8B4513', rimColor: '#654321', shape: 'classic' },
+                { color: '#4a4a4a', rimColor: '#2a2a2a', shape: 'modern' },
+                { color: '#CD853F', rimColor: '#8B4513', shape: 'terracotta' },
+                { color: '#1a1a1a', rimColor: '#000000', shape: 'sleek' },
+                { color: '#708090', rimColor: '#4a4a4a', shape: 'stone' }
+            ];
+            const STEM_TYPES = [
+                { leafStyle: 'round', stemColor: '#228B22' },
+                { leafStyle: 'pointed', stemColor: '#006400' },
+                { leafStyle: 'droopy', stemColor: '#32CD32' },
+                { leafStyle: 'spiral', stemColor: '#2E8B57' },
+                { leafStyle: 'minimal', stemColor: '#3CB371' }
+            ];
+            const FLOWER_TYPES = [
+                { petalColor: '#FF69B4', centerColor: '#FFD700', shape: 'tulip' },
+                { petalColor: '#FF4500', centerColor: '#FFA500', shape: 'rose' },
+                { petalColor: '#9370DB', centerColor: '#FFD700', shape: 'daisy' },
+                { petalColor: '#00CED1', centerColor: '#FFFFFF', shape: 'lotus' },
+                { petalColor: '#FFD700', centerColor: '#8B4513', shape: 'sunflower' }
+            ];
+
+            // Load saved data on mount
+            useEffect(() => {
+                const saved = localStorage.getItem('pomodoro_data');
+                if (saved) {
+                    try {
+                        const data = JSON.parse(saved);
+                        setTotalTime(data.totalTime || 0);
+                        setFlowers(data.flowers || []);
+                        setSessions(data.sessions || 0);
+                    } catch (e) {}
+                }
+                // Generate flower for this session
+                setCurrentFlower({
+                    pot: Math.floor(Math.random() * 5),
+                    stem: Math.floor(Math.random() * 5),
+                    flower: Math.floor(Math.random() * 5),
+                    id: Date.now()
+                });
+            }, []);
+
+            // Save data whenever it changes
+            useEffect(() => {
+                localStorage.setItem('pomodoro_data', JSON.stringify({
+                    totalTime, flowers, sessions
+                }));
+            }, [totalTime, flowers, sessions]);
 
             useEffect(() => {
                 if (!isRunning) return;
 
                 const interval = setInterval(() => {
+                    if (mode === 'work') {
+                        setTotalTime(t => t + 1); // Track total time
+                    }
                     setTimeLeft(prev => {
                         if (prev <= 1) {
                             if (mode === 'work') {
                                 setMode('break');
                                 setSessions(s => s + 1);
+                                // Add completed flower to collection
+                                if (currentFlower) {
+                                    setFlowers(f => [...f, { ...currentFlower, completedAt: Date.now() }]);
+                                    // Generate new flower for next session
+                                    setCurrentFlower({
+                                        pot: Math.floor(Math.random() * 5),
+                                        stem: Math.floor(Math.random() * 5),
+                                        flower: Math.floor(Math.random() * 5),
+                                        id: Date.now()
+                                    });
+                                }
                                 return BREAK_TIME;
                             } else {
                                 setMode('work');
@@ -5509,7 +5625,7 @@
                 }, 1000);
 
                 return () => clearInterval(interval);
-            }, [isRunning, mode]);
+            }, [isRunning, mode, currentFlower]);
 
             const progress = mode === 'work'
                 ? 1 - (timeLeft / WORK_TIME)
@@ -5521,77 +5637,146 @@
                 return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
             };
 
+            const formatTotalTime = (seconds) => {
+                const h = Math.floor(seconds / 3600);
+                const m = Math.floor((seconds % 3600) / 60);
+                return `${h}h ${m}m`;
+            };
+
             const reset = () => {
                 setIsRunning(false);
                 setMode('work');
                 setTimeLeft(WORK_TIME);
             };
 
-            // Plant growth stages based on progress (0-1)
-            const renderPlant = () => {
-                const isSleeping = mode === 'break';
-                const growth = mode === 'work' ? progress : 1;
+            // Render a flower with specific style indices
+            const renderFlower = (potIdx, stemIdx, flowerIdx, growth = 1, size = 1, isSleeping = false) => {
+                const pot = POT_STYLES[potIdx];
+                const stem = STEM_TYPES[stemIdx];
+                const flowerType = FLOWER_TYPES[flowerIdx];
+                const w = 24 * size;
+                const h = 32 * size;
 
                 return (
-                    <svg width="120" height="160" viewBox="0 0 24 32" style={{ imageRendering: 'pixelated' }}>
-                        {/* Pot */}
+                    <svg width={w * 5} height={h * 5} viewBox="0 0 24 32" style={{ imageRendering: 'pixelated' }}>
+                        {/* Pot based on style */}
                         <rect x="6" y="26" width="12" height="6" fill="#000" />
-                        <rect x="7" y="27" width="10" height="4" fill="#666" />
+                        <rect x="7" y="27" width="10" height="4" fill={pot.color} />
+                        <rect x="6" y="26" width="12" height="1" fill={pot.rimColor} />
 
                         {/* Soil */}
                         <rect x="7" y="25" width="10" height="2" fill="#333" />
 
-                        {/* Stem - grows with progress */}
-                        {growth > 0 && <rect x="11" y={25 - Math.floor(growth * 12)} width="2" height={Math.floor(growth * 12)} fill="#000" />}
+                        {/* Stem */}
+                        {growth > 0 && <rect x="11" y={25 - Math.floor(growth * 12)} width="2" height={Math.floor(growth * 12)} fill={stem.stemColor} />}
 
-                        {/* Leaves at different growth stages */}
-                        {growth > 0.2 && (
-                            <>
-                                <rect x="9" y="21" width="2" height="2" fill="#000" />
-                                <rect x="8" y="20" width="2" height="2" fill="#000" />
-                            </>
+                        {/* Leaves based on stem type */}
+                        {growth > 0.2 && stem.leafStyle === 'round' && (
+                            <><rect x="9" y="21" width="2" height="2" fill={stem.stemColor} /><rect x="8" y="20" width="2" height="2" fill={stem.stemColor} /></>
                         )}
+                        {growth > 0.2 && stem.leafStyle === 'pointed' && (
+                            <><rect x="9" y="21" width="2" height="1" fill={stem.stemColor} /><rect x="8" y="20" width="2" height="1" fill={stem.stemColor} /></>
+                        )}
+                        {growth > 0.2 && stem.leafStyle === 'droopy' && (
+                            <><rect x="9" y="22" width="2" height="2" fill={stem.stemColor} /><rect x="7" y="23" width="2" height="1" fill={stem.stemColor} /></>
+                        )}
+                        {growth > 0.2 && stem.leafStyle === 'spiral' && (
+                            <><rect x="9" y="21" width="1" height="2" fill={stem.stemColor} /><rect x="8" y="22" width="1" height="1" fill={stem.stemColor} /></>
+                        )}
+                        {growth > 0.2 && stem.leafStyle === 'minimal' && (
+                            <rect x="9" y="21" width="2" height="1" fill={stem.stemColor} />
+                        )}
+
                         {growth > 0.4 && (
-                            <>
-                                <rect x="13" y="18" width="2" height="2" fill="#000" />
-                                <rect x="14" y="17" width="2" height="2" fill="#000" />
-                            </>
+                            <><rect x="13" y="18" width="2" height="2" fill={stem.stemColor} /><rect x="14" y="17" width="2" height="2" fill={stem.stemColor} /></>
                         )}
                         {growth > 0.6 && (
-                            <>
-                                <rect x="8" y="15" width="2" height="2" fill="#000" />
-                                <rect x="7" y="14" width="2" height="2" fill="#000" />
-                            </>
+                            <><rect x="8" y="15" width="2" height="2" fill={stem.stemColor} /><rect x="7" y="14" width="2" height="2" fill={stem.stemColor} /></>
                         )}
                         {growth > 0.8 && (
-                            <>
-                                <rect x="13" y="12" width="2" height="2" fill="#000" />
-                                <rect x="14" y="11" width="2" height="2" fill="#000" />
-                            </>
+                            <><rect x="13" y="12" width="2" height="2" fill={stem.stemColor} /><rect x="14" y="11" width="2" height="2" fill={stem.stemColor} /></>
                         )}
 
-                        {/* Flower at full growth or during break */}
-                        {(growth >= 1 || isSleeping) && (
-                            <>
-                                <rect x="10" y="9" width="4" height="4" fill="#000" />
-                                <rect x="9" y="10" width="6" height="2" fill="#000" />
-                                <rect x="11" y="8" width="2" height="1" fill="#000" />
-                            </>
+                        {/* Flower head based on type */}
+                        {growth >= 1 && flowerType.shape === 'tulip' && (
+                            <><rect x="10" y="9" width="4" height="4" fill={flowerType.petalColor} /><rect x="11" y="8" width="2" height="1" fill={flowerType.petalColor} /><rect x="11" y="10" width="2" height="2" fill={flowerType.centerColor} /></>
+                        )}
+                        {growth >= 1 && flowerType.shape === 'rose' && (
+                            <><rect x="9" y="9" width="6" height="4" fill={flowerType.petalColor} /><rect x="10" y="8" width="4" height="1" fill={flowerType.petalColor} /><rect x="11" y="10" width="2" height="2" fill={flowerType.centerColor} /></>
+                        )}
+                        {growth >= 1 && flowerType.shape === 'daisy' && (
+                            <><rect x="11" y="7" width="2" height="6" fill={flowerType.petalColor} /><rect x="9" y="9" width="6" height="2" fill={flowerType.petalColor} /><rect x="11" y="9" width="2" height="2" fill={flowerType.centerColor} /></>
+                        )}
+                        {growth >= 1 && flowerType.shape === 'lotus' && (
+                            <><rect x="10" y="8" width="4" height="5" fill={flowerType.petalColor} /><rect x="9" y="10" width="6" height="2" fill={flowerType.petalColor} /><rect x="11" y="10" width="2" height="2" fill={flowerType.centerColor} /></>
+                        )}
+                        {growth >= 1 && flowerType.shape === 'sunflower' && (
+                            <><rect x="9" y="8" width="6" height="5" fill={flowerType.petalColor} /><rect x="10" y="9" width="4" height="3" fill={flowerType.centerColor} /></>
                         )}
 
-                        {/* Sleeping ZZZ during break */}
+                        {/* Sleeping ZZZ */}
                         {isSleeping && (
-                            <>
-                                <rect x="16" y="6" width="4" height="1" fill="#000" />
-                                <rect x="19" y="5" width="1" height="2" fill="#000" />
-                                <rect x="17" y="4" width="3" height="1" fill="#000" />
-
-                                <rect x="18" y="2" width="3" height="1" fill="#666" />
-                                <rect x="20" y="1" width="1" height="2" fill="#666" />
-                                <rect x="18" y="0" width="3" height="1" fill="#666" />
-                            </>
+                            <><rect x="16" y="6" width="4" height="1" fill="#000" /><rect x="19" y="5" width="1" height="2" fill="#000" /><rect x="17" y="4" width="3" height="1" fill="#000" /></>
                         )}
                     </svg>
+                );
+            };
+
+            // Render current growing plant
+            const renderPlant = () => {
+                const isSleeping = mode === 'break';
+                const growth = mode === 'work' ? progress : 1;
+                if (!currentFlower) return null;
+                return renderFlower(currentFlower.pot, currentFlower.stem, currentFlower.flower, growth, 1, isSleeping);
+            };
+
+            // Flower Room view
+            const renderFlowerRoom = () => {
+                const shelves = [];
+                const flowersPerShelf = 5;
+                for (let i = 0; i < Math.ceil(flowers.length / flowersPerShelf) || 1; i++) {
+                    shelves.push(flowers.slice(i * flowersPerShelf, (i + 1) * flowersPerShelf));
+                }
+
+                return (
+                    <div className="flex-grow overflow-auto bg-gray-100 p-4">
+                        <div className="text-center mb-4">
+                            <div className="font-mono text-xs text-gray-500">TOTAL FOCUS TIME</div>
+                            <div className="font-mono text-2xl font-bold">{formatTotalTime(totalTime)}</div>
+                        </div>
+                        {flowers.length === 0 ? (
+                            <div className="text-center py-12">
+                                <div className="font-mono text-gray-400 text-sm">NO FLOWERS YET</div>
+                                <div className="font-mono text-gray-400 text-xs mt-2">COMPLETE A FOCUS SESSION TO GROW A FLOWER</div>
+                            </div>
+                        ) : (
+                            shelves.map((shelf, shelfIdx) => (
+                                <div key={shelfIdx} className="mb-2">
+                                    <div className="flex justify-center gap-1 pb-1">
+                                        {shelf.map((f, idx) => (
+                                            <div key={f.id} className="w-16 h-20 flex items-end justify-center">
+                                                <svg width="48" height="64" viewBox="0 0 24 32" style={{ imageRendering: 'pixelated' }}>
+                                                    {/* Mini flower */}
+                                                    <rect x="6" y="26" width="12" height="6" fill="#000" />
+                                                    <rect x="7" y="27" width="10" height="4" fill={POT_STYLES[f.pot].color} />
+                                                    <rect x="7" y="25" width="10" height="2" fill="#333" />
+                                                    <rect x="11" y="13" width="2" height="12" fill={STEM_TYPES[f.stem].stemColor} />
+                                                    <rect x="9" y="17" width="2" height="2" fill={STEM_TYPES[f.stem].stemColor} />
+                                                    <rect x="13" y="20" width="2" height="2" fill={STEM_TYPES[f.stem].stemColor} />
+                                                    <rect x="9" y="9" width="6" height="5" fill={FLOWER_TYPES[f.flower].petalColor} />
+                                                    <rect x="10" y="10" width="4" height="3" fill={FLOWER_TYPES[f.flower].centerColor} />
+                                                </svg>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="h-2 bg-gradient-to-b from-amber-800 to-amber-900 border-t-2 border-amber-700 mx-4" />
+                                </div>
+                            ))
+                        )}
+                        <div className="text-center mt-4 font-mono text-[10px] text-gray-400">
+                            {flowers.length} FLOWER{flowers.length !== 1 ? 'S' : ''} COLLECTED • 125 POSSIBLE VARIETIES
+                        </div>
+                    </div>
                 );
             };
 
@@ -5602,53 +5787,63 @@
                             <Icons.Pomodoro size={24} />
                             <span className="font-mono text-xs font-bold">POMODORO.EXE</span>
                         </div>
-                        <span className="font-mono text-[10px] text-gray-500">SESSIONS: {sessions}</span>
-                    </div>
-
-                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
-                        {/* Mode indicator */}
-                        <div className={`px-4 py-1 mb-4 font-mono text-xs font-bold ${mode === 'work' ? 'bg-black text-white' : 'bg-gray-300 text-black'}`}>
-                            {mode === 'work' ? 'FOCUS TIME' : 'BREAK TIME'}
-                        </div>
-
-                        {/* Plant */}
-                        <div className="mb-6">
-                            {renderPlant()}
-                        </div>
-
-                        {/* Timer */}
-                        <div className="font-mono text-5xl font-black mb-6 tracking-wider">
-                            {formatTime(timeLeft)}
-                        </div>
-
-                        {/* Progress bar */}
-                        <div className="w-48 h-2 bg-gray-200 border-2 border-black mb-6">
-                            <div
-                                className="h-full bg-black transition-all duration-1000"
-                                style={{ width: `${progress * 100}%` }}
-                            />
-                        </div>
-
-                        {/* Controls */}
-                        <div className="flex gap-4">
+                        <div className="flex items-center gap-2">
+                            <span className="font-mono text-[10px] text-gray-500">SESSIONS: {sessions}</span>
                             <button
-                                onClick={() => setIsRunning(!isRunning)}
-                                className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                                onClick={() => setView(view === 'timer' ? 'room' : 'timer')}
+                                className={`px-2 py-1 font-mono text-[10px] border-2 border-black ${view === 'room' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
                             >
-                                {isRunning ? 'PAUSE' : 'START'}
-                            </button>
-                            <button
-                                onClick={reset}
-                                className="px-6 py-3 bg-white text-black font-mono font-bold text-sm hover:bg-black hover:text-white border-2 border-black"
-                            >
-                                RESET
+                                {view === 'timer' ? '🌸 ROOM' : '⏱ TIMER'}
                             </button>
                         </div>
                     </div>
+
+                    {view === 'room' ? renderFlowerRoom() : (
+                        <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
+                            {/* Mode indicator */}
+                            <div className={`px-4 py-1 mb-4 font-mono text-xs font-bold ${mode === 'work' ? 'bg-black text-white' : 'bg-gray-300 text-black'}`}>
+                                {mode === 'work' ? 'FOCUS TIME' : 'BREAK TIME'}
+                            </div>
+
+                            {/* Plant */}
+                            <div className="mb-6">
+                                {renderPlant()}
+                            </div>
+
+                            {/* Timer */}
+                            <div className="font-mono text-5xl font-black mb-6 tracking-wider">
+                                {formatTime(timeLeft)}
+                            </div>
+
+                            {/* Progress bar */}
+                            <div className="w-48 h-2 bg-gray-200 border-2 border-black mb-6">
+                                <div
+                                    className="h-full bg-black transition-all duration-1000"
+                                    style={{ width: `${progress * 100}%` }}
+                                />
+                            </div>
+
+                            {/* Controls */}
+                            <div className="flex gap-4">
+                                <button
+                                    onClick={() => setIsRunning(!isRunning)}
+                                    className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                                >
+                                    {isRunning ? 'PAUSE' : 'START'}
+                                </button>
+                                <button
+                                    onClick={reset}
+                                    className="px-6 py-3 bg-white text-black font-mono font-bold text-sm hover:bg-black hover:text-white border-2 border-black"
+                                >
+                                    RESET
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="p-2 border-t-2 border-black bg-white text-center">
                         <span className="font-mono text-[10px] text-gray-500">
-                            {mode === 'work' ? 'GROW YOUR FOCUS' : 'PLANT IS RESTING'}
+                            {view === 'room' ? `TOTAL: ${formatTotalTime(totalTime)}` : (mode === 'work' ? 'GROW YOUR FOCUS' : 'PLANT IS RESTING')}
                         </span>
                     </div>
                 </div>
@@ -5822,9 +6017,9 @@
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
-                { key: 'GAMES', name: 'GAMES', icon: 'Games' },
-                { key: 'PRODUCTIVITY', name: 'PRODUCTIVITY', icon: 'Apps' },
-                { key: 'ABOUT', name: 'ABOUT', icon: 'Terminal' }
+                { key: 'GAMES', name: 'GAMES', icon: 'GamesFolder' },
+                { key: 'PRODUCTIVITY', name: 'PRODUCTIVITY', icon: 'ProductivityFolder' },
+                { key: 'ABOUT', name: 'ABOUT', icon: 'AboutFolder' }
             ];
 
             const APP_CATEGORIES = {
@@ -5850,7 +6045,6 @@
                     { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
                     { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
                     { id: 'PERSONAL', title: 'PERSONAL.EXE', icon: 'Lock' },
-                    { id: 'DOG', title: 'DOG.EXE', icon: 'Dog' },
                     { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                     { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
                 ]
@@ -5963,44 +6157,6 @@
             );
         };
 
-        // --- DOG.EXE - Pixel dog pet ---
-        const DogApp = ({ onClose }) => {
-            return (
-                <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">DOG.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-500">GOOD BOY</span>
-                    </div>
-                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50">
-                        <div className="text-center p-4">
-                            <svg width="96" height="72" viewBox="0 0 64 48" className="mx-auto mb-4" style={{ imageRendering: 'pixelated' }}>
-                                {/* Cute dog - full black */}
-                                <rect x="16" y="16" width="32" height="16" fill="#000" />
-                                <rect x="4" y="12" width="16" height="16" fill="#000" />
-                                <rect x="4" y="4" width="6" height="12" fill="#000" />
-                                <rect x="14" y="4" width="6" height="12" fill="#000" />
-                                <rect x="8" y="18" width="4" height="4" fill="#fff" />
-                                <rect x="9" y="19" width="2" height="2" fill="#000" />
-                                <rect x="6" y="24" width="4" height="2" fill="#000" />
-                                <rect x="16" y="32" width="6" height="12" fill="#000" />
-                                <rect x="38" y="32" width="6" height="12" fill="#000" />
-                                <rect x="48" y="12" width="12" height="4" fill="#000" />
-                                <rect x="56" y="8" width="4" height="8" fill="#000" />
-                            </svg>
-                            <div className="font-mono text-sm font-bold mb-2">DOG.EXE</div>
-                            <div className="font-mono text-xs text-gray-500 mb-4">CLICK TO RELEASE THE DOG</div>
-                            <button
-                                onClick={onClose}
-                                className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
-                            >
-                                RELEASE
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
         // --- OS SHELL ---
 
         const OS = () => {
@@ -6008,6 +6164,7 @@
             const [bootPhase, setBootPhase] = useState(0); // 0: kernel, 1: mobile warning, 2: ready
             const [isMobile, setIsMobile] = useState(false);
             const [topZ, setTopZ] = useState(100);
+            const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
             const [dogReleased, setDogReleased] = useState(false);
             const [dogPos, setDogPos] = useState({ x: 100, y: 300 });
@@ -6025,9 +6182,10 @@
             const GROUND_Y = window.innerHeight - 120;
             const FRICTION = 0.95;
 
-            // Handle dog stealing the destruction button
+            // Handle dog stealing the destruction button - dog starts running around!
             const handleDogSteal = () => {
                 setDestructionDogGone(true);
+                setDogReleased(true); // Dog starts running around the screen
                 // Close the destruction window
                 setWindows(prev => ({
                     ...prev,
@@ -6113,12 +6271,11 @@
                 "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 19 },
                 "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 20 },
                 "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 21 },
-                "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 60, w: '450px', h: '420px', isOpen: false, isMin: false, z: 26 },
+                "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 40, w: '500px', h: '560px', isOpen: false, isMin: false, z: 26 },
                 "STARSHIP": { id: "STARSHIP", title: "STARSHIP.EXE", icon: "Starship", x: 80, y: 40, w: '540px', h: '480px', isOpen: false, isMin: false, z: 27 },
                 "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 22 },
                 "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 24 },
-                "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 25 },
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
@@ -6146,7 +6303,6 @@
                     case "SYNTH": return <SynthApp />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
                     case "TAROT": return <TarotApp />;
-                    case "DOG": return <DogApp onClose={() => { setDogReleased(true); close("DOG"); }} />;
                     case "GALLERY": return <GalleryApp />;
                     case "MAP": return <MapApp />;
                     case "POMODORO": return <PomodoroApp />;
@@ -6197,12 +6353,16 @@
 
             // Window Ops
             const focus = (id) => {
-                setWindows(p => ({ ...p, [id]: { ...p[id], z: topZ + 1 } }));
-                setTopZ(z => z + 1);
+                topZRef.current += 1;
+                const newZ = topZRef.current;
+                setWindows(p => ({ ...p, [id]: { ...p[id], z: newZ } }));
+                setTopZ(newZ);
             }
             const open = (id) => {
-                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: topZ + 1 } }));
-                setTopZ(z => z + 1);
+                topZRef.current += 1;
+                const newZ = topZRef.current;
+                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
+                setTopZ(newZ);
             }
             const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
@@ -6330,7 +6490,7 @@
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-0 bottom-12' : 'absolute window-shadow'}`}
+                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'}`}
                                 style={isMobile ? {
                                     zIndex: win.z
                                 } : {
@@ -6356,7 +6516,7 @@
                                     </div>
                                 </div>
                                 {/* CONTENT */}
-                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={e => e.stopPropagation()}>
+                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={() => focus(win.id)}>
                                     {getWindowContent(win.id)}
                                 </div>
                             </div>
@@ -6364,7 +6524,7 @@
                     ))}
 
                     {/* TASKBAR */}
-                    <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
+                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
                         <div className={`bg-black text-white py-1 font-black select-none tracking-wider ${isMobile ? 'px-1 text-[8px]' : 'px-2 text-xs mr-2'}`}>{isMobile ? 'MM.COM' : 'MATEUSMUSTE.COM'}</div>
                         <div className={`flex gap-1 ${isMobile ? 'overflow-x-auto flex-nowrap' : ''}`}>
                             {Object.values(windows).map(win => {
