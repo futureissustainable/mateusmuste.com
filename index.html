@@ -13,6 +13,8 @@
 
     <script src="https://cdn.tailwindcss.com"></script>
 
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -312,6 +314,53 @@
                     <rect x="10" y="10" width="4" height="4" fill="#000" />
                     {/* Exit marker */}
                     <rect x="50" y="50" width="4" height="4" fill="#000" />
+                </PixelIcon>
+            ),
+            Minesweeper: (p) => (
+                <PixelIcon {...p}>
+                    {/* Grid background */}
+                    <rect x="4" y="4" width="56" height="56" fill="#000" />
+                    <rect x="8" y="8" width="48" height="48" fill="#fff" />
+                    {/* Grid lines */}
+                    <rect x="8" y="20" width="48" height="2" fill="#ccc" />
+                    <rect x="8" y="32" width="48" height="2" fill="#ccc" />
+                    <rect x="8" y="44" width="48" height="2" fill="#ccc" />
+                    <rect x="20" y="8" width="2" height="48" fill="#ccc" />
+                    <rect x="32" y="8" width="2" height="48" fill="#ccc" />
+                    <rect x="44" y="8" width="2" height="48" fill="#ccc" />
+                    {/* Mine symbol */}
+                    <circle cx="26" cy="38" r="6" fill="#000" />
+                    <rect x="25" y="30" width="2" height="4" fill="#000" />
+                    <rect x="25" y="42" width="2" height="4" fill="#000" />
+                    <rect x="18" y="37" width="4" height="2" fill="#000" />
+                    <rect x="30" y="37" width="4" height="2" fill="#000" />
+                    {/* Numbers */}
+                    <text x="14" y="18" fontSize="10" fontWeight="bold" fill="#000">1</text>
+                    <text x="38" y="18" fontSize="10" fontWeight="bold" fill="#000">2</text>
+                    {/* Flag */}
+                    <rect x="48" y="46" width="2" height="8" fill="#000" />
+                    <polygon points="50,46 50,50 54,48" fill="#000" />
+                </PixelIcon>
+            ),
+            Starship: (p) => (
+                <PixelIcon {...p}>
+                    {/* Space background */}
+                    <rect x="4" y="4" width="56" height="56" fill="#000" />
+                    {/* Stars */}
+                    <rect x="10" y="10" width="2" height="2" fill="#fff" />
+                    <rect x="50" y="15" width="2" height="2" fill="#fff" />
+                    <rect x="25" y="8" width="2" height="2" fill="#fff" />
+                    <rect x="45" y="45" width="2" height="2" fill="#fff" />
+                    <rect x="12" y="50" width="2" height="2" fill="#fff" />
+                    {/* Ship body - arrow shape */}
+                    <polygon points="32,16 24,40 32,36 40,40" fill="#fff" />
+                    {/* Ship wings */}
+                    <polygon points="24,40 16,48 24,44" fill="#fff" />
+                    <polygon points="40,40 48,48 40,44" fill="#fff" />
+                    {/* Cockpit */}
+                    <rect x="30" y="24" width="4" height="6" fill="#000" />
+                    {/* Engine glow */}
+                    <rect x="30" y="40" width="4" height="4" fill="#888" />
                 </PixelIcon>
             ),
             Synth: (p) => (
@@ -868,16 +917,16 @@
                             <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">App Stack</h3>
                             <div className="grid grid-cols-4 gap-1">
                                 {[
-                                    { name: 'PS', full: 'Photoshop', yrs: 8 },
-                                    { name: 'PR', full: 'Premiere', yrs: 7 },
-                                    { name: 'AE', full: 'After Effects', yrs: 5 },
-                                    { name: 'XL', full: 'Excel', yrs: 4 },
-                                    { name: 'MA', full: 'Meta Ads', yrs: 4 },
-                                    { name: 'DV', full: 'DaVinci', yrs: 3 },
-                                    { name: 'AC', full: 'ArchiCAD', yrs: 2 },
-                                    { name: 'SQ', full: 'Squarespace', yrs: 2 },
-                                    { name: 'UE', full: 'Unreal', yrs: 2 },
-                                    { name: 'WF', full: 'Webflow', yrs: 2 },
+                                    { name: 'PS', full: 'Photoshop', yrs: 9 },
+                                    { name: 'PR', full: 'Premiere', yrs: 8 },
+                                    { name: 'AE', full: 'After Effects', yrs: 6 },
+                                    { name: 'XL', full: 'Excel', yrs: 5 },
+                                    { name: 'MA', full: 'Meta Ads', yrs: 5 },
+                                    { name: 'DV', full: 'DaVinci', yrs: 4 },
+                                    { name: 'AC', full: 'ArchiCAD', yrs: 3 },
+                                    { name: 'SQ', full: 'Squarespace', yrs: 3 },
+                                    { name: 'UE', full: 'Unreal', yrs: 3 },
+                                    { name: 'WF', full: 'Webflow', yrs: 3 },
                                     { name: 'MJ', full: 'Midjourney', yrs: 2 },
                                     { name: 'GA', full: 'Google Ads', yrs: 2 },
                                     { name: 'BL', full: 'Blender', yrs: 1 },
@@ -980,58 +1029,68 @@
             const [currentText, setCurrentText] = useState('');
             const inputRef = useRef(null);
 
-            const encryptChar = (char) => {
+            const encryptChar = () => {
                 const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
                 return chars[Math.floor(Math.random() * chars.length)];
             };
 
+            const submitLine = () => {
+                if (!currentText.trim()) return;
+
+                const lineId = Date.now();
+                const text = currentText;
+                const textLength = text.length;
+
+                // Add the line
+                setLines(prev => [...prev, {
+                    id: lineId,
+                    originalText: text,
+                    displayText: text,
+                    opacity: 1,
+                    phase: 'visible'
+                }]);
+                setCurrentText('');
+
+                // Start encrypting after 3 seconds
+                setTimeout(() => {
+                    let idx = 0;
+                    const encryptInterval = setInterval(() => {
+                        if (idx >= textLength) {
+                            clearInterval(encryptInterval);
+                            // Start fading
+                            setTimeout(() => {
+                                let fadeOp = 1;
+                                const fadeInterval = setInterval(() => {
+                                    fadeOp -= 0.1;
+                                    if (fadeOp <= 0) {
+                                        clearInterval(fadeInterval);
+                                        setLines(prev => prev.filter(l => l.id !== lineId));
+                                    } else {
+                                        setLines(prev => prev.map(l =>
+                                            l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
+                                        ));
+                                    }
+                                }, 80);
+                            }, 200);
+                            return;
+                        }
+
+                        setLines(prev => prev.map(l => {
+                            if (l.id !== lineId) return l;
+                            const encrypted = l.originalText.split('').map((c, i) =>
+                                i <= idx ? encryptChar() : c
+                            ).join('');
+                            return { ...l, displayText: encrypted, phase: 'encrypting' };
+                        }));
+                        idx++;
+                    }, 50);
+                }, 3000);
+            };
+
             const handleKeyDown = (e) => {
-                if (e.key === 'Enter' && currentText.trim()) {
-                    const newLine = {
-                        id: Date.now(),
-                        originalText: currentText,
-                        displayText: currentText,
-                        opacity: 1,
-                        encryptIndex: 0,
-                        phase: 'visible' // visible -> encrypting -> fading
-                    };
-                    setLines(prev => [...prev, newLine]);
-                    setCurrentText('');
-
-                    // Start encrypting after 3 seconds
-                    setTimeout(() => {
-                        // Encrypt phase - encrypt one character at a time
-                        let charIndex = 0;
-                        const encryptInterval = setInterval(() => {
-                            setLines(prev => prev.map(line => {
-                                if (line.id !== newLine.id) return line;
-                                if (charIndex >= line.originalText.length) return line;
-
-                                const encrypted = line.originalText.split('').map((c, i) =>
-                                    i <= charIndex ? encryptChar(c) : c
-                                ).join('');
-
-                                return { ...line, displayText: encrypted, phase: 'encrypting' };
-                            }));
-                            charIndex++;
-
-                            if (charIndex >= newLine.originalText.length) {
-                                clearInterval(encryptInterval);
-
-                                // Start fading after encryption complete
-                                setTimeout(() => {
-                                    const fadeInterval = setInterval(() => {
-                                        setLines(prev => prev.map(line =>
-                                            line.id === newLine.id
-                                                ? { ...line, opacity: Math.max(0, line.opacity - 0.1), phase: 'fading' }
-                                                : line
-                                        ).filter(line => line.opacity > 0));
-                                    }, 80);
-                                    setTimeout(() => clearInterval(fadeInterval), 900);
-                                }, 200);
-                            }
-                        }, 50);
-                    }, 3000);
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    submitLine();
                 }
             };
 
@@ -1233,157 +1292,174 @@
             );
         };
 
-        // --- DICE.EXE - D20 Roller with ASCII art ---
+        // --- DICE.EXE - D20 Roller with Three.js ---
         const DiceApp = () => {
             const [result, setResult] = useState(null);
             const [isRolling, setIsRolling] = useState(false);
-            const [rotation, setRotation] = useState({ x: 0, y: 0 });
-            const canvasRef = useRef(null);
+            const containerRef = useRef(null);
+            const sceneRef = useRef(null);
+            const diceRef = useRef(null);
+            const animationRef = useRef(null);
+
+            const getResultStyle = () => {
+                if (!result) return '';
+                if (result === 20) return 'bg-black text-white';
+                if (result === 1) return 'border-2 border-black';
+                return '';
+            };
+
+            // Initialize Three.js scene
+            useEffect(() => {
+                if (!containerRef.current || sceneRef.current) return;
+
+                const width = 200;
+                const height = 200;
+
+                // Scene
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xffffff);
+
+                // Camera
+                const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
+                camera.position.z = 4;
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(window.devicePixelRatio);
+                containerRef.current.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(2, 2, 2);
+                scene.add(directionalLight);
+
+                const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
+                backLight.position.set(-2, -2, -2);
+                scene.add(backLight);
+
+                // D20 (Icosahedron)
+                const geometry = new THREE.IcosahedronGeometry(1.2, 0);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x111111,
+                    metalness: 0.1,
+                    roughness: 0.4,
+                    flatShading: true
+                });
+                const dice = new THREE.Mesh(geometry, material);
+                scene.add(dice);
+
+                // Edge lines
+                const edges = new THREE.EdgesGeometry(geometry);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x444444 });
+                const wireframe = new THREE.LineSegments(edges, lineMaterial);
+                dice.add(wireframe);
+
+                diceRef.current = dice;
+                sceneRef.current = { scene, camera, renderer };
+
+                // Initial render
+                renderer.render(scene, camera);
+
+                // Idle animation
+                const idleAnimate = () => {
+                    if (!isRolling) {
+                        dice.rotation.x += 0.003;
+                        dice.rotation.y += 0.005;
+                    }
+                    renderer.render(scene, camera);
+                    animationRef.current = requestAnimationFrame(idleAnimate);
+                };
+                idleAnimate();
+
+                return () => {
+                    cancelAnimationFrame(animationRef.current);
+                    renderer.dispose();
+                    if (containerRef.current && renderer.domElement) {
+                        containerRef.current.removeChild(renderer.domElement);
+                    }
+                };
+            }, []);
 
             const rollDice = () => {
-                if (isRolling) return;
+                if (isRolling || !diceRef.current || !sceneRef.current) return;
                 setIsRolling(true);
                 setResult(null);
 
-                let rolls = 0;
-                const maxRolls = 20;
-                const rollInterval = setInterval(() => {
-                    setResult(Math.floor(Math.random() * 20) + 1);
-                    setRotation(r => ({
-                        x: r.x + 15 + Math.random() * 10,
-                        y: r.y + 20 + Math.random() * 15
-                    }));
-                    rolls++;
+                const dice = diceRef.current;
+                const { renderer, scene, camera } = sceneRef.current;
 
-                    if (rolls >= maxRolls) {
-                        clearInterval(rollInterval);
+                // Random target rotation
+                const targetRotX = dice.rotation.x + Math.PI * (4 + Math.random() * 4);
+                const targetRotY = dice.rotation.y + Math.PI * (4 + Math.random() * 4);
+                const targetRotZ = dice.rotation.z + Math.PI * (2 + Math.random() * 2);
+
+                const startRotX = dice.rotation.x;
+                const startRotY = dice.rotation.y;
+                const startRotZ = dice.rotation.z;
+
+                const duration = 1500;
+                const startTime = Date.now();
+
+                const animate = () => {
+                    const elapsed = Date.now() - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+
+                    // Easing - decelerate
+                    const eased = 1 - Math.pow(1 - progress, 3);
+
+                    dice.rotation.x = startRotX + (targetRotX - startRotX) * eased;
+                    dice.rotation.y = startRotY + (targetRotY - startRotY) * eased;
+                    dice.rotation.z = startRotZ + (targetRotZ - startRotZ) * eased;
+
+                    renderer.render(scene, camera);
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
                         setResult(Math.floor(Math.random() * 20) + 1);
                         setIsRolling(false);
                     }
-                }, 60);
-            };
-
-            const getResultColor = () => {
-                if (!result) return 'text-black';
-                if (result === 20) return 'text-green-600';
-                if (result === 1) return 'text-red-600';
-                return 'text-black';
-            };
-
-            // Draw 3D D20 on canvas
-            useEffect(() => {
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                const ctx = canvas.getContext('2d');
-                const size = 200;
-                const cx = size / 2;
-                const cy = size / 2;
-
-                ctx.fillStyle = '#f5f5f5';
-                ctx.fillRect(0, 0, size, size);
-
-                // Simple 3D icosahedron projection
-                const scale = 70;
-                const rotX = (rotation.x * Math.PI) / 180;
-                const rotY = (rotation.y * Math.PI) / 180;
-
-                // Icosahedron vertices (simplified)
-                const phi = (1 + Math.sqrt(5)) / 2;
-                const vertices = [
-                    [0, 1, phi], [0, -1, phi], [0, 1, -phi], [0, -1, -phi],
-                    [1, phi, 0], [-1, phi, 0], [1, -phi, 0], [-1, -phi, 0],
-                    [phi, 0, 1], [-phi, 0, 1], [phi, 0, -1], [-phi, 0, -1]
-                ].map(v => {
-                    const len = Math.sqrt(v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-                    return v.map(c => c / len);
-                });
-
-                // Rotate and project
-                const project = (v) => {
-                    let [x, y, z] = v;
-                    // Rotate Y
-                    const x1 = x * Math.cos(rotY) - z * Math.sin(rotY);
-                    const z1 = x * Math.sin(rotY) + z * Math.cos(rotY);
-                    // Rotate X
-                    const y2 = y * Math.cos(rotX) - z1 * Math.sin(rotX);
-                    const z2 = y * Math.sin(rotX) + z1 * Math.cos(rotX);
-                    return { x: cx + x1 * scale, y: cy + y2 * scale, z: z2 };
                 };
 
-                const projected = vertices.map(project);
-
-                // D20 faces (triangles)
-                const faces = [
-                    [0,1,8], [0,8,4], [0,4,5], [0,5,9], [0,9,1],
-                    [2,3,11], [2,11,5], [2,5,4], [2,4,10], [2,10,3],
-                    [1,6,8], [3,6,7], [7,9,1], [6,10,8], [7,11,9],
-                    [3,7,6], [1,9,7], [4,8,10], [5,11,9], [3,10,6]
-                ];
-
-                // Sort faces by depth
-                const sortedFaces = faces.map((face, idx) => {
-                    const avgZ = face.reduce((sum, vi) => sum + projected[vi].z, 0) / 3;
-                    return { face, avgZ, idx };
-                }).sort((a, b) => a.avgZ - b.avgZ);
-
-                // Draw faces
-                sortedFaces.forEach(({ face, avgZ, idx }) => {
-                    const pts = face.map(vi => projected[vi]);
-                    ctx.beginPath();
-                    ctx.moveTo(pts[0].x, pts[0].y);
-                    pts.slice(1).forEach(p => ctx.lineTo(p.x, p.y));
-                    ctx.closePath();
-
-                    // Shade based on depth
-                    const shade = Math.floor(220 + avgZ * 30);
-                    ctx.fillStyle = `rgb(${shade}, ${shade}, ${shade})`;
-                    ctx.fill();
-                    ctx.strokeStyle = '#000';
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                });
-
-                // Draw result number in center
-                if (result) {
-                    ctx.fillStyle = '#000';
-                    ctx.font = 'bold 36px Geist Mono, monospace';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(result, cx, cy);
-                }
-            }, [rotation, result]);
+                animate();
+            };
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">DICE.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-500">D20 ROLLER</span>
+                    <div className="p-2 border-b border-gray-200 bg-white flex justify-between items-center">
+                        <span className="font-mono text-[10px] font-bold tracking-wider">DICE.EXE</span>
+                        <span className="font-mono text-[10px] text-gray-400">D20</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-6 bg-gray-50">
-                        <div className="border-2 border-black bg-white p-1 mb-6">
-                            <canvas ref={canvasRef} width={200} height={200} className="block" />
-                        </div>
+                    <div className="flex-grow flex flex-col items-center justify-center p-8 bg-white">
+                        <div className="mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
                         {result && !isRolling && (
-                            <div className={`text-3xl font-black mb-4 ${getResultColor()}`}>
-                                {result === 20 ? 'CRITICAL HIT!' : result === 1 ? 'CRITICAL FAIL!' : result}
+                            <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
+                                {result === 20 ? 'CRITICAL' : result === 1 ? 'FAIL' : `RESULT: ${result}`}
                             </div>
                         )}
                         <button
                             onClick={rollDice}
                             disabled={isRolling}
-                            className="bg-black text-white px-8 py-3 font-mono font-bold text-sm hover:invert disabled:opacity-50 border-2 border-black"
+                            className="bg-black text-white px-6 py-2 font-mono text-[10px] tracking-widest hover:bg-gray-800 disabled:bg-gray-300 transition-colors"
                         >
-                            {isRolling ? 'ROLLING...' : 'ROLL D20'}
+                            {isRolling ? 'ROLLING' : 'ROLL'}
                         </button>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">CLICK TO ROLL • 20 = CRIT • 1 = FAIL</span>
+                    <div className="p-2 border-t border-gray-200 bg-white">
+                        <div className="flex justify-between font-mono text-[10px] text-gray-400">
+                            <span>20 = CRIT</span>
+                            <span>1 = FAIL</span>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        // --- Updated SNEK.EXE with Ghost ---
+        // --- SNEK.EXE ---
         const SnakeAppNew = () => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
@@ -1392,10 +1468,11 @@
             const [gameStarted, setGameStarted] = useState(false);
             const snake = useRef([{ x: 15, y: 10 }]);
             const food = useRef({ x: 20, y: 10 });
-            const ghost = useRef({ x: 5, y: 10 });
             const dir = useRef({ x: 1, y: 0 });
             const nextDir = useRef({ x: 1, y: 0 });
-            const loopRef = useRef(null);
+            const runningRef = useRef(false);
+            const lastTimeRef = useRef(0);
+            const frameRef = useRef(null);
 
             const GRID_W = 30;
             const GRID_H = 20;
@@ -1406,14 +1483,11 @@
                 dir.current = { x: 1, y: 0 };
                 nextDir.current = { x: 1, y: 0 };
                 food.current = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
-                ghost.current = { x: 2, y: 2 };
                 setScore(0);
                 setGameOver(false);
                 setGameStarted(true);
-                if (loopRef.current) clearInterval(loopRef.current);
-                loopRef.current = setInterval(() => {
-                    update();
-                }, 100);
+                runningRef.current = true;
+                lastTimeRef.current = 0;
             };
 
             const update = () => {
@@ -1438,12 +1512,6 @@
                     return;
                 }
 
-                // Ghost collision
-                if (ghost.current.x === head.x && ghost.current.y === head.y) {
-                    endGame();
-                    return;
-                }
-
                 snake.current.unshift(head);
 
                 // Eat food
@@ -1459,15 +1527,6 @@
                     };
                 } else {
                     snake.current.pop();
-                }
-
-                // Move ghost towards snake head
-                const dx = head.x - ghost.current.x;
-                const dy = head.y - ghost.current.y;
-                if (Math.abs(dx) > Math.abs(dy)) {
-                    ghost.current.x += dx > 0 ? 1 : -1;
-                } else if (dy !== 0) {
-                    ghost.current.y += dy > 0 ? 1 : -1;
                 }
 
                 // Draw - light theme
@@ -1498,38 +1557,48 @@
                 // Food - black dot
                 ctx.fillStyle = '#000';
                 ctx.fillRect(food.current.x * CELL + 6, food.current.y * CELL + 6, CELL - 12, CELL - 12);
-
-                // Ghost - red circle
-                ctx.fillStyle = '#000';
-                ctx.beginPath();
-                ctx.arc(ghost.current.x * CELL + CELL/2, ghost.current.y * CELL + CELL/2, CELL/2 - 2, 0, Math.PI * 2);
-                ctx.fill();
-                // Ghost eyes
-                ctx.fillStyle = '#fff';
-                ctx.fillRect(ghost.current.x * CELL + 5, ghost.current.y * CELL + 6, 4, 4);
-                ctx.fillRect(ghost.current.x * CELL + 11, ghost.current.y * CELL + 6, 4, 4);
             };
 
             const endGame = () => {
+                runningRef.current = false;
                 setGameOver(true);
                 setGameStarted(false);
-                clearInterval(loopRef.current);
             };
+
+            // Game loop using requestAnimationFrame
+            useEffect(() => {
+                const gameLoop = (timestamp) => {
+                    if (!runningRef.current) {
+                        frameRef.current = requestAnimationFrame(gameLoop);
+                        return;
+                    }
+
+                    if (timestamp - lastTimeRef.current >= 100) {
+                        lastTimeRef.current = timestamp;
+                        update();
+                    }
+
+                    frameRef.current = requestAnimationFrame(gameLoop);
+                };
+
+                frameRef.current = requestAnimationFrame(gameLoop);
+
+                return () => {
+                    if (frameRef.current) cancelAnimationFrame(frameRef.current);
+                };
+            }, []);
 
             useEffect(() => {
                 const handle = (e) => {
-                    if (!gameStarted) return;
+                    if (!runningRef.current) return;
                     if (e.key === 'ArrowUp' && dir.current.y === 0) nextDir.current = { x: 0, y: -1 };
                     if (e.key === 'ArrowDown' && dir.current.y === 0) nextDir.current = { x: 0, y: 1 };
                     if (e.key === 'ArrowLeft' && dir.current.x === 0) nextDir.current = { x: -1, y: 0 };
                     if (e.key === 'ArrowRight' && dir.current.x === 0) nextDir.current = { x: 1, y: 0 };
                 };
                 window.addEventListener('keydown', handle);
-                return () => {
-                    window.removeEventListener('keydown', handle);
-                    clearInterval(loopRef.current);
-                };
-            }, [gameStarted]);
+                return () => window.removeEventListener('keydown', handle);
+            }, []);
 
             // Initial canvas draw - light theme
             useEffect(() => {
@@ -1573,14 +1642,14 @@
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
                                     <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
-                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">THE GHOST GOT YOU</p>}
+                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">GAME OVER</p>}
                                     <button
                                         onClick={start}
                                         className="bg-black text-white px-6 py-3 font-mono font-bold text-sm hover:invert border-2 border-black"
                                     >
                                         {gameOver ? 'RETRY' : 'START'}
                                     </button>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • AVOID THE GHOST</p>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • EAT FOOD • DON'T HIT WALLS</p>
                                 </div>
                             )}
                         </div>
@@ -1660,36 +1729,28 @@
                 canvas.width = maze[0].length * CELL_SIZE;
                 canvas.height = maze.length * CELL_SIZE;
 
-                // Draw maze
+                // Draw maze - clean minimal style
                 for (let y = 0; y < maze.length; y++) {
                     for (let x = 0; x < maze[0].length; x++) {
-                        ctx.fillStyle = maze[y][x] === 1 ? '#000' : '#fff';
+                        ctx.fillStyle = maze[y][x] === 1 ? '#111' : '#fafafa';
                         ctx.fillRect(x * CELL_SIZE, y * CELL_SIZE, CELL_SIZE, CELL_SIZE);
                     }
                 }
 
-                // Draw exit (flag icon)
+                // Draw exit - simple square
                 const ex = exitRef.current.x * CELL_SIZE;
                 const ey = exitRef.current.y * CELL_SIZE;
-                ctx.fillStyle = '#0f0';
-                ctx.fillRect(ex + 1, ey + 1, CELL_SIZE - 2, CELL_SIZE - 2);
-                ctx.fillStyle = '#000';
-                ctx.fillRect(ex + 2, ey + 2, 2, CELL_SIZE - 4); // Pole
-                ctx.fillRect(ex + 4, ey + 2, 3, 3); // Flag
+                ctx.fillStyle = '#fafafa';
+                ctx.fillRect(ex, ey, CELL_SIZE, CELL_SIZE);
+                ctx.strokeStyle = '#000';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(ex + 2, ey + 2, CELL_SIZE - 4, CELL_SIZE - 4);
 
-                // Draw player (person icon)
+                // Draw player - simple filled square
                 const px = playerRef.current.x * CELL_SIZE;
                 const py = playerRef.current.y * CELL_SIZE;
-                ctx.fillStyle = '#f00';
-                // Head
-                ctx.beginPath();
-                ctx.arc(px + CELL_SIZE/2, py + 2, 2, 0, Math.PI * 2);
-                ctx.fill();
-                // Body
-                ctx.fillRect(px + CELL_SIZE/2 - 1, py + 4, 2, 3);
-                // Legs
-                ctx.fillRect(px + CELL_SIZE/2 - 2, py + 6, 1, 2);
-                ctx.fillRect(px + CELL_SIZE/2 + 1, py + 6, 1, 2);
+                ctx.fillStyle = '#000';
+                ctx.fillRect(px + 2, py + 2, CELL_SIZE - 4, CELL_SIZE - 4);
             };
 
             const move = (dx, dy) => {
@@ -1745,42 +1806,565 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">LABYRINTH.EXE</span>
-                        <div className="flex gap-4 font-mono text-xs">
-                            <span>LVL: <span className="font-bold">{level}</span></span>
-                            <span>SCORE: <span className="font-bold">{score}</span></span>
-                            <span>HIGH: <span className="font-bold">{highScore}</span></span>
+                    <div className="h-8 px-3 flex justify-between items-center">
+                        <span className="font-mono text-[10px] font-bold tracking-widest text-black">LABYRINTH</span>
+                        <div className="flex gap-6 font-mono text-[10px]">
+                            <span className="text-gray-400">LVL <span className="text-black font-bold">{level}</span></span>
+                            <span className="text-gray-400">PTS <span className="text-black font-bold">{score}</span></span>
                         </div>
                     </div>
-                    <div className="flex-grow flex items-center justify-center p-4 overflow-auto relative bg-gray-50">
+                    <div className="flex-grow flex items-center justify-center relative bg-white">
                         {won && !showingMaze && (
                             <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
                                 <div className="text-center">
-                                    <div className="text-2xl font-black mb-2">YOU FOUND THE WAY OUT</div>
-                                    <div className="font-mono text-sm text-gray-500">+{level * 100} POINTS</div>
+                                    <div className="text-2xl font-black tracking-widest">CLEAR</div>
+                                    <div className="font-mono text-[10px] text-gray-400 mt-1">+{level * 100}</div>
                                 </div>
                             </div>
                         )}
                         {showingMaze && (
-                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
-                                <div className="text-center">
-                                    <div className="text-xl font-mono font-bold mb-2">MAZE {level} COMPLETE</div>
-                                    <div className="font-mono text-xs text-gray-500">GENERATING HARDER MAZE...</div>
+                            <div className="absolute inset-0 bg-white flex items-center justify-center z-10">
+                                <div className="font-mono text-[10px] text-gray-400 tracking-widest animate-pulse">
+                                    GENERATING LEVEL {level}
                                 </div>
                             </div>
                         )}
-                        <div className="border-2 border-black bg-white p-1">
-                            <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
-                        </div>
+                        <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-[10px] text-gray-500">ARROW KEYS TO MOVE</span>
+                    <div className="h-8 px-3 flex justify-between items-center">
+                        <span className="font-mono text-[10px] text-gray-300">↑↓←→</span>
                         <button
                             onClick={giveUp}
-                            className="font-mono text-[10px] text-gray-500 hover:text-black italic"
+                            className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
                         >
-                            "How will we ever get out of this labyrinth?"
+                            RESTART
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- MINESWEEPER.EXE - Ultra Clean Minesweeper ---
+        const MinesweeperApp = () => {
+            const [grid, setGrid] = useState([]);
+            const [revealed, setRevealed] = useState([]);
+            const [flagged, setFlagged] = useState([]);
+            const [gameOver, setGameOver] = useState(false);
+            const [won, setWon] = useState(false);
+            const [mineCount, setMineCount] = useState(0);
+            const [time, setTime] = useState(0);
+            const [started, setStarted] = useState(false);
+            const timerRef = useRef(null);
+
+            const ROWS = 12;
+            const COLS = 16;
+            const MINES = 30;
+
+            const initGame = () => {
+                // Create empty grid
+                const newGrid = Array(ROWS).fill(null).map(() => Array(COLS).fill(0));
+                const newRevealed = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+                const newFlagged = Array(ROWS).fill(null).map(() => Array(COLS).fill(false));
+
+                // Place mines
+                let placed = 0;
+                while (placed < MINES) {
+                    const r = Math.floor(Math.random() * ROWS);
+                    const c = Math.floor(Math.random() * COLS);
+                    if (newGrid[r][c] !== -1) {
+                        newGrid[r][c] = -1;
+                        placed++;
+                    }
+                }
+
+                // Calculate numbers
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        if (newGrid[r][c] === -1) continue;
+                        let count = 0;
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                const nr = r + dr, nc = c + dc;
+                                if (nr >= 0 && nr < ROWS && nc >= 0 && nc < COLS && newGrid[nr][nc] === -1) {
+                                    count++;
+                                }
+                            }
+                        }
+                        newGrid[r][c] = count;
+                    }
+                }
+
+                setGrid(newGrid);
+                setRevealed(newRevealed);
+                setFlagged(newFlagged);
+                setGameOver(false);
+                setWon(false);
+                setMineCount(MINES);
+                setTime(0);
+                setStarted(false);
+                if (timerRef.current) clearInterval(timerRef.current);
+            };
+
+            useEffect(() => {
+                initGame();
+                return () => { if (timerRef.current) clearInterval(timerRef.current); };
+            }, []);
+
+            useEffect(() => {
+                if (started && !gameOver && !won) {
+                    timerRef.current = setInterval(() => setTime(t => t + 1), 1000);
+                }
+                return () => { if (timerRef.current) clearInterval(timerRef.current); };
+            }, [started, gameOver, won]);
+
+            const reveal = (r, c) => {
+                if (gameOver || won || revealed[r][c] || flagged[r][c]) return;
+
+                if (!started) setStarted(true);
+
+                const newRevealed = revealed.map(row => [...row]);
+
+                if (grid[r][c] === -1) {
+                    // Hit mine - reveal all mines
+                    for (let i = 0; i < ROWS; i++) {
+                        for (let j = 0; j < COLS; j++) {
+                            if (grid[i][j] === -1) newRevealed[i][j] = true;
+                        }
+                    }
+                    setRevealed(newRevealed);
+                    setGameOver(true);
+                    return;
+                }
+
+                // Flood fill for empty cells
+                const flood = (row, col) => {
+                    if (row < 0 || row >= ROWS || col < 0 || col >= COLS) return;
+                    if (newRevealed[row][col] || flagged[row][col]) return;
+                    newRevealed[row][col] = true;
+                    if (grid[row][col] === 0) {
+                        for (let dr = -1; dr <= 1; dr++) {
+                            for (let dc = -1; dc <= 1; dc++) {
+                                flood(row + dr, col + dc);
+                            }
+                        }
+                    }
+                };
+
+                flood(r, c);
+                setRevealed(newRevealed);
+
+                // Check win
+                let unrevealed = 0;
+                for (let i = 0; i < ROWS; i++) {
+                    for (let j = 0; j < COLS; j++) {
+                        if (!newRevealed[i][j]) unrevealed++;
+                    }
+                }
+                if (unrevealed === MINES) setWon(true);
+            };
+
+            const flag = (e, r, c) => {
+                e.preventDefault();
+                if (gameOver || won || revealed[r][c]) return;
+                if (!started) setStarted(true);
+
+                const newFlagged = flagged.map(row => [...row]);
+                newFlagged[r][c] = !newFlagged[r][c];
+                setFlagged(newFlagged);
+                setMineCount(m => newFlagged[r][c] ? m - 1 : m + 1);
+            };
+
+            const getCellContent = (r, c) => {
+                if (flagged[r][c]) return '⚑';
+                if (!revealed[r][c]) return '';
+                if (grid[r][c] === -1) return '●';
+                if (grid[r][c] === 0) return '';
+                return grid[r][c];
+            };
+
+            const getCellStyle = (r, c) => {
+                if (flagged[r][c]) return 'bg-gray-100 text-black';
+                if (!revealed[r][c]) return 'bg-gray-200 hover:bg-gray-300';
+                if (grid[r][c] === -1) return 'bg-black text-white';
+                return 'bg-white text-black';
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="h-10 px-4 flex justify-between items-center border-b border-gray-100">
+                        <span className="font-mono text-[10px] font-bold tracking-widest text-black">MINESWEEPER</span>
+                        <div className="flex gap-8 font-mono text-[10px]">
+                            <span className="text-gray-400">MINES <span className="text-black font-bold">{mineCount.toString().padStart(3, '0')}</span></span>
+                            <span className="text-gray-400">TIME <span className="text-black font-bold">{time.toString().padStart(3, '0')}</span></span>
+                        </div>
+                    </div>
+
+                    <div className="flex-grow flex items-center justify-center relative bg-gray-50 p-4">
+                        {(gameOver || won) && (
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
+                                    <div className="text-2xl font-black tracking-widest">{won ? 'CLEARED' : 'DETONATED'}</div>
+                                    <div className="font-mono text-[10px] text-gray-400 mt-2">{time}s</div>
+                                    <button
+                                        onClick={initGame}
+                                        className="mt-4 px-4 py-2 bg-black text-white font-mono text-[10px] tracking-widest hover:bg-gray-800"
+                                    >
+                                        RETRY
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        <div className="border border-gray-200">
+                            {grid.map((row, r) => (
+                                <div key={r} className="flex">
+                                    {row.map((cell, c) => (
+                                        <button
+                                            key={c}
+                                            onClick={() => reveal(r, c)}
+                                            onContextMenu={(e) => flag(e, r, c)}
+                                            className={`w-6 h-6 border border-gray-100 font-mono text-[10px] font-bold flex items-center justify-center transition-colors ${getCellStyle(r, c)}`}
+                                        >
+                                            {getCellContent(r, c)}
+                                        </button>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="h-8 px-4 flex justify-between items-center border-t border-gray-100">
+                        <span className="font-mono text-[10px] text-gray-300">LEFT CLICK REVEAL · RIGHT CLICK FLAG</span>
+                        <button
+                            onClick={initGame}
+                            className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
+                        >
+                            NEW GAME
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- STARSHIP.EXE - Low Poly Star Fox Style Game ---
+        const StarshipApp = () => {
+            const containerRef = useRef(null);
+            const gameRef = useRef(null);
+            const [score, setScore] = useState(0);
+            const [gameOver, setGameOver] = useState(false);
+            const [started, setStarted] = useState(false);
+
+            useEffect(() => {
+                if (!containerRef.current || gameRef.current) return;
+
+                const width = 500;
+                const height = 350;
+
+                // Scene
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xffffff);
+                scene.fog = new THREE.Fog(0xffffff, 20, 80);
+
+                // Camera
+                const camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 1000);
+                camera.position.set(0, 2, 0);
+                camera.lookAt(0, 0, -20);
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                containerRef.current.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
+                scene.add(ambientLight);
+                const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                dirLight.position.set(5, 10, 5);
+                scene.add(dirLight);
+
+                // Create low-poly ship
+                const createShip = () => {
+                    const group = new THREE.Group();
+
+                    // Main body - elongated pyramid
+                    const bodyGeo = new THREE.ConeGeometry(0.3, 1.2, 4);
+                    bodyGeo.rotateX(Math.PI / 2);
+                    const bodyMat = new THREE.MeshStandardMaterial({ color: 0x000000, flatShading: true });
+                    const body = new THREE.Mesh(bodyGeo, bodyMat);
+                    group.add(body);
+
+                    // Wings
+                    const wingGeo = new THREE.BoxGeometry(1.8, 0.05, 0.4);
+                    const wingMat = new THREE.MeshStandardMaterial({ color: 0x111111, flatShading: true });
+                    const wings = new THREE.Mesh(wingGeo, wingMat);
+                    wings.position.z = 0.2;
+                    group.add(wings);
+
+                    // Tail fins
+                    const tailGeo = new THREE.BoxGeometry(0.05, 0.4, 0.3);
+                    const tail1 = new THREE.Mesh(tailGeo, wingMat);
+                    tail1.position.set(0, 0.15, 0.4);
+                    group.add(tail1);
+
+                    // Edges
+                    const edges = new THREE.EdgesGeometry(bodyGeo);
+                    const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x444444 }));
+                    group.add(line);
+
+                    return group;
+                };
+
+                const ship = createShip();
+                ship.position.set(0, 0, -5);
+                scene.add(ship);
+
+                // Ground grid
+                const gridSize = 100;
+                const gridGeo = new THREE.PlaneGeometry(gridSize, gridSize, 20, 20);
+                gridGeo.rotateX(-Math.PI / 2);
+                const gridMat = new THREE.MeshBasicMaterial({ color: 0xeeeeee, wireframe: true });
+                const grid = new THREE.Mesh(gridGeo, gridMat);
+                grid.position.y = -3;
+                scene.add(grid);
+
+                // Obstacles array
+                const obstacles = [];
+                const lasers = [];
+
+                const createObstacle = () => {
+                    const types = ['asteroid', 'enemy'];
+                    const type = types[Math.floor(Math.random() * types.length)];
+                    let mesh;
+
+                    if (type === 'asteroid') {
+                        const geo = new THREE.IcosahedronGeometry(0.5 + Math.random() * 0.5, 0);
+                        const mat = new THREE.MeshStandardMaterial({ color: 0x222222, flatShading: true });
+                        mesh = new THREE.Mesh(geo, mat);
+                        const edges = new THREE.EdgesGeometry(geo);
+                        mesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 })));
+                    } else {
+                        const geo = new THREE.OctahedronGeometry(0.4, 0);
+                        const mat = new THREE.MeshStandardMaterial({ color: 0x000000, flatShading: true });
+                        mesh = new THREE.Mesh(geo, mat);
+                        const edges = new THREE.EdgesGeometry(geo);
+                        mesh.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x666666 })));
+                    }
+
+                    mesh.position.set(
+                        (Math.random() - 0.5) * 8,
+                        (Math.random() - 0.5) * 4,
+                        -60 - Math.random() * 20
+                    );
+                    mesh.userData = { type, speed: 0.3 + Math.random() * 0.2 };
+                    scene.add(mesh);
+                    obstacles.push(mesh);
+                };
+
+                const createLaser = () => {
+                    const geo = new THREE.BoxGeometry(0.05, 0.05, 0.8);
+                    const mat = new THREE.MeshBasicMaterial({ color: 0x000000 });
+                    const laser = new THREE.Mesh(geo, mat);
+                    laser.position.copy(ship.position);
+                    laser.position.z -= 0.8;
+                    scene.add(laser);
+                    lasers.push(laser);
+                };
+
+                // Controls
+                const keys = { left: false, right: false, up: false, down: false, shoot: false };
+                let canShoot = true;
+                let scoreVal = 0;
+                let isGameOver = false;
+                let isStarted = false;
+
+                const onKeyDown = (e) => {
+                    if (!isStarted && e.code === 'Space') {
+                        isStarted = true;
+                        setStarted(true);
+                        return;
+                    }
+                    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
+                    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
+                    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
+                    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
+                    if (e.code === 'Space' && canShoot && isStarted && !isGameOver) {
+                        createLaser();
+                        canShoot = false;
+                        setTimeout(() => canShoot = true, 150);
+                    }
+                };
+                const onKeyUp = (e) => {
+                    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
+                    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
+                    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
+                    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
+                };
+
+                window.addEventListener('keydown', onKeyDown);
+                window.addEventListener('keyup', onKeyUp);
+
+                // Spawn obstacles
+                let spawnTimer = 0;
+
+                // Animation loop
+                let animationId;
+                const animate = () => {
+                    animationId = requestAnimationFrame(animate);
+
+                    if (!isStarted || isGameOver) {
+                        ship.rotation.z = Math.sin(Date.now() * 0.002) * 0.1;
+                        renderer.render(scene, camera);
+                        return;
+                    }
+
+                    // Move ship
+                    const moveSpeed = 0.12;
+                    if (keys.left) ship.position.x -= moveSpeed;
+                    if (keys.right) ship.position.x += moveSpeed;
+                    if (keys.up) ship.position.y += moveSpeed;
+                    if (keys.down) ship.position.y -= moveSpeed;
+
+                    // Clamp ship position
+                    ship.position.x = Math.max(-4, Math.min(4, ship.position.x));
+                    ship.position.y = Math.max(-2, Math.min(2, ship.position.y));
+
+                    // Tilt ship based on movement
+                    ship.rotation.z = -keys.left * 0.3 + keys.right * 0.3;
+                    ship.rotation.x = keys.down * 0.2 - keys.up * 0.2;
+
+                    // Move grid for speed effect
+                    grid.position.z = (grid.position.z + 0.5) % 5;
+
+                    // Spawn obstacles
+                    spawnTimer++;
+                    if (spawnTimer > 30) {
+                        createObstacle();
+                        spawnTimer = 0;
+                    }
+
+                    // Update obstacles
+                    for (let i = obstacles.length - 1; i >= 0; i--) {
+                        const obs = obstacles[i];
+                        obs.position.z += obs.userData.speed;
+                        obs.rotation.x += 0.02;
+                        obs.rotation.y += 0.01;
+
+                        // Remove if passed
+                        if (obs.position.z > 5) {
+                            scene.remove(obs);
+                            obstacles.splice(i, 1);
+                            scoreVal += 10;
+                            setScore(scoreVal);
+                        }
+
+                        // Collision with ship
+                        const dist = ship.position.distanceTo(obs.position);
+                        if (dist < 1) {
+                            isGameOver = true;
+                            setGameOver(true);
+                        }
+                    }
+
+                    // Update lasers
+                    for (let i = lasers.length - 1; i >= 0; i--) {
+                        const laser = lasers[i];
+                        laser.position.z -= 1.5;
+
+                        // Remove if too far
+                        if (laser.position.z < -80) {
+                            scene.remove(laser);
+                            lasers.splice(i, 1);
+                            continue;
+                        }
+
+                        // Check collision with obstacles
+                        for (let j = obstacles.length - 1; j >= 0; j--) {
+                            const obs = obstacles[j];
+                            if (laser.position.distanceTo(obs.position) < 0.8) {
+                                scene.remove(laser);
+                                scene.remove(obs);
+                                lasers.splice(i, 1);
+                                obstacles.splice(j, 1);
+                                scoreVal += 50;
+                                setScore(scoreVal);
+                                break;
+                            }
+                        }
+                    }
+
+                    renderer.render(scene, camera);
+                };
+                animate();
+
+                gameRef.current = {
+                    restart: () => {
+                        obstacles.forEach(o => scene.remove(o));
+                        lasers.forEach(l => scene.remove(l));
+                        obstacles.length = 0;
+                        lasers.length = 0;
+                        ship.position.set(0, 0, -5);
+                        scoreVal = 0;
+                        isGameOver = false;
+                        isStarted = true;
+                        setScore(0);
+                        setGameOver(false);
+                        setStarted(true);
+                    }
+                };
+
+                return () => {
+                    cancelAnimationFrame(animationId);
+                    window.removeEventListener('keydown', onKeyDown);
+                    window.removeEventListener('keyup', onKeyUp);
+                    renderer.dispose();
+                    if (containerRef.current && renderer.domElement) {
+                        containerRef.current.removeChild(renderer.domElement);
+                    }
+                };
+            }, []);
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="h-10 px-4 flex justify-between items-center border-b border-gray-100">
+                        <span className="font-mono text-[10px] font-bold tracking-widest text-black">STARSHIP</span>
+                        <span className="font-mono text-[10px] text-gray-400">SCORE <span className="text-black font-bold">{score.toString().padStart(6, '0')}</span></span>
+                    </div>
+
+                    <div className="flex-grow flex items-center justify-center relative bg-gray-50">
+                        {!started && !gameOver && (
+                            <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
+                                <div className="text-center">
+                                    <div className="text-2xl font-black tracking-widest mb-2">STARSHIP</div>
+                                    <div className="font-mono text-[10px] text-gray-400 mb-4">LOW POLY COMBAT</div>
+                                    <div className="font-mono text-[10px] text-gray-500">PRESS SPACE TO START</div>
+                                </div>
+                            </div>
+                        )}
+                        {gameOver && (
+                            <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
+                                <div className="text-center">
+                                    <div className="text-2xl font-black tracking-widest">DESTROYED</div>
+                                    <div className="font-mono text-[10px] text-gray-400 mt-2">SCORE: {score}</div>
+                                    <button
+                                        onClick={() => gameRef.current?.restart()}
+                                        className="mt-4 px-4 py-2 bg-black text-white font-mono text-[10px] tracking-widest hover:bg-gray-800"
+                                    >
+                                        RETRY
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={containerRef} />
+                    </div>
+
+                    <div className="h-8 px-4 flex justify-between items-center border-t border-gray-100">
+                        <span className="font-mono text-[10px] text-gray-300">WASD/ARROWS MOVE · SPACE SHOOT</span>
+                        <button
+                            onClick={() => gameRef.current?.restart()}
+                            className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
+                        >
+                            RESTART
                         </button>
                     </div>
                 </div>
@@ -2100,6 +2684,55 @@
         };
 
         // --- TAROT.DAT - Tarot card pull ---
+        // Pixel art tarot card component with card frame
+        const PixelTarotCard = ({ pixels, width = 24, height = 32, showFrame = true }) => {
+            const cardWidth = width + 8;
+            const cardHeight = height + 12;
+            const scale = 4;
+
+            return (
+                <div className="relative" style={{ width: cardWidth * scale, height: cardHeight * scale }}>
+                    {/* Card frame */}
+                    <div
+                        className="absolute inset-0 bg-white border-2 border-gray-300"
+                        style={{
+                            borderRadius: '4px',
+                            boxShadow: '2px 2px 0 rgba(0,0,0,0.2)'
+                        }}
+                    />
+                    {/* Inner border */}
+                    <div
+                        className="absolute bg-gray-100 border border-gray-400"
+                        style={{
+                            top: scale * 2,
+                            left: scale * 2,
+                            right: scale * 2,
+                            bottom: scale * 2,
+                        }}
+                    />
+                    {/* Pixel art area */}
+                    <div
+                        className="absolute flex items-center justify-center"
+                        style={{
+                            top: scale * 3,
+                            left: scale * 3,
+                            right: scale * 3,
+                            bottom: scale * 3,
+                        }}
+                    >
+                        <svg width={width * scale} height={height * scale} viewBox={`0 0 ${width} ${height}`} style={{ imageRendering: 'pixelated' }}>
+                            <rect width={width} height={height} fill="#000" />
+                            {pixels.map((row, y) =>
+                                row.split('').map((pixel, x) =>
+                                    pixel === '#' ? <rect key={`${x}-${y}`} x={x} y={y} width={1} height={1} fill="#fff" /> : null
+                                )
+                            )}
+                        </svg>
+                    </div>
+                </div>
+            );
+        };
+
         const TarotApp = () => {
             const [card, setCard] = useState(null);
             const [revealed, setRevealed] = useState(false);
@@ -2108,242 +2741,842 @@
             const [shuffleFrame, setShuffleFrame] = useState(0);
 
             const tarotCards = [
-                { name: 'THE FOOL', meaning: 'New beginnings, innocence, spontaneity', ascii: `
-   ┌─────────┐
-   │    ☀    │
-   │   ╱│╲   │
-   │    │    │
-   │   ╱ ╲   │
-   │  🐕     │
-   │ ~~~~~~~~│
-   │    0    │
-   └─────────┘` },
-                { name: 'THE MAGICIAN', meaning: 'Manifestation, resourcefulness, power', ascii: `
-   ┌─────────┐
-   │    ∞    │
-   │   ╱│╲   │
-   │  ☆ │ ☆  │
-   │ ⚗ ⚔ 🏆 💰│
-   │   ╱ ╲   │
-   │    I    │
-   └─────────┘` },
-                { name: 'THE HIGH PRIESTESS', meaning: 'Intuition, mystery, inner knowledge', ascii: `
-   ┌─────────┐
-   │  ☽   ☾  │
-   │    👑   │
-   │   ╱│╲   │
-   │  B │ J  │
-   │ ═══════ │
-   │   II    │
-   └─────────┘` },
-                { name: 'THE EMPRESS', meaning: 'Abundance, nurturing, fertility', ascii: `
-   ┌─────────┐
-   │   ♀     │
-   │    👑   │
-   │   ╱█╲   │
-   │  🌾🌾🌾  │
-   │ ~~~~~~~~│
-   │   III   │
-   └─────────┘` },
-                { name: 'THE EMPEROR', meaning: 'Authority, structure, control', ascii: `
-   ┌─────────┐
-   │   ♂     │
-   │    👑   │
-   │  ╔███╗  │
-   │  ║ █ ║  │
-   │  ╚═══╝  │
-   │   IV    │
-   └─────────┘` },
-                { name: 'THE HIEROPHANT', meaning: 'Tradition, conformity, spirituality', ascii: `
-   ┌─────────┐
-   │   ╬╬╬   │
-   │    👑   │
-   │   ╱█╲   │
-   │  ♰ █ ♰  │
-   │ ⛪⛪⛪  │
-   │    V    │
-   └─────────┘` },
-                { name: 'THE LOVERS', meaning: 'Love, harmony, relationships', ascii: `
-   ┌─────────┐
-   │    ☀    │
-   │   ╱█╲   │
-   │  ♀   ♂  │
-   │  │ ♥ │  │
-   │ 🌳   🌳 │
-   │   VI    │
-   └─────────┘` },
-                { name: 'THE CHARIOT', meaning: 'Willpower, determination, success', ascii: `
-   ┌─────────┐
-   │   ☆☆☆   │
-   │    👑   │
-   │  ╔███╗  │
-   │  ╚═╦═╝  │
-   │ ◀■■■■▶  │
-   │   VII   │
-   └─────────┘` },
-                { name: 'STRENGTH', meaning: 'Courage, persuasion, inner strength', ascii: `
-   ┌─────────┐
-   │    ∞    │
-   │   ╱│╲   │
-   │    │ 🦁 │
-   │   ╱ ╲   │
-   │ ~~~~~~~~│
-   │  VIII   │
-   └─────────┘` },
-                { name: 'THE HERMIT', meaning: 'Soul-searching, introspection, solitude', ascii: `
-   ┌─────────┐
-   │    ☆    │
-   │  ╱ │    │
-   │ 🏮 │    │
-   │   ╱│╲   │
-   │  ▲▲▲▲▲  │
-   │   IX    │
-   └─────────┘` },
-                { name: 'WHEEL OF FORTUNE', meaning: 'Change, cycles, destiny', ascii: `
-   ┌─────────┐
-   │  T   ☽  │
-   │ ╱─────╲ │
-   │ │  ◎  │ │
-   │ ╲─────╱ │
-   │  ☾   A  │
-   │    X    │
-   └─────────┘` },
-                { name: 'JUSTICE', meaning: 'Fairness, truth, law', ascii: `
-   ┌─────────┐
-   │    👑   │
-   │   ╱│╲   │
-   │ ⚖    ⚔ │
-   │   ╱ ╲   │
-   │ ═══════ │
-   │   XI    │
-   └─────────┘` },
-                { name: 'THE HANGED MAN', meaning: 'Surrender, letting go, new perspective', ascii: `
-   ┌─────────┐
-   │ ═══════ │
-   │    │    │
-   │   ╱│╲   │
-   │    │    │
-   │   ╲ ╱   │
-   │   XII   │
-   └─────────┘` },
-                { name: 'DEATH', meaning: 'Endings, change, transformation', ascii: `
-   ┌─────────┐
-   │   ☠☠☠   │
-   │    │    │
-   │   ╱█╲   │
-   │  🏴│🏴  │
-   │ ~~~~~~~~│
-   │  XIII   │
-   └─────────┘` },
-                { name: 'TEMPERANCE', meaning: 'Balance, moderation, patience', ascii: `
-   ┌─────────┐
-   │    ☀    │
-   │   ╱│╲   │
-   │  🏺→🏺  │
-   │   ╱ ╲   │
-   │ ~~~~~~~~│
-   │  XIV    │
-   └─────────┘` },
-                { name: 'THE DEVIL', meaning: 'Shadow self, attachment, addiction', ascii: `
-   ┌─────────┐
-   │   ⛧⛧⛧   │
-   │    👿   │
-   │   ╱█╲   │
-   │  ⛓   ⛓  │
-   │ 🔥🔥🔥  │
-   │   XV    │
-   └─────────┘` },
-                { name: 'THE TOWER', meaning: 'Sudden change, upheaval, revelation', ascii: `
-   ┌─────────┐
-   │  ⚡👑⚡  │
-   │   ╔█╗   │
-   │   ║█║   │
-   │  🔥█🔥  │
-   │ ▓▓▓▓▓▓▓ │
-   │  XVI    │
-   └─────────┘` },
-                { name: 'THE STAR', meaning: 'Hope, faith, renewal', ascii: `
-   ┌─────────┐
-   │  ★ ☆ ★  │
-   │ ☆  ★  ☆ │
-   │   ╱│╲   │
-   │  🏺 🏺  │
-   │ ~~~~~~~~│
-   │  XVII   │
-   └─────────┘` },
-                { name: 'THE MOON', meaning: 'Illusion, fear, subconscious', ascii: `
-   ┌─────────┐
-   │   ☽☾    │
-   │ ╱─────╲ │
-   │ 🐺   🐺 │
-   │   🦞    │
-   │ ~~~~~~~~│
-   │ XVIII   │
-   └─────────┘` },
-                { name: 'THE SUN', meaning: 'Joy, success, celebration', ascii: `
-   ┌─────────┐
-   │ ╲ │ │ ╱ │
-   │ ──☀☀──  │
-   │ ╱ │ │ ╲ │
-   │   ╱│╲   │
-   │  🌻🌻🌻 │
-   │  XIX    │
-   └─────────┘` },
-                { name: 'JUDGEMENT', meaning: 'Reflection, reckoning, awakening', ascii: `
-   ┌─────────┐
-   │  📯📯📯 │
-   │   ╱│╲   │
-   │ ┌─┴─┐   │
-   │ │☠☠☠│   │
-   │ └───┘   │
-   │   XX    │
-   └─────────┘` },
-                { name: 'THE WORLD', meaning: 'Completion, accomplishment, travel', ascii: `
-   ┌─────────┐
-   │ ◇     ◇ │
-   │ ╱─────╲ │
-   │ │  ♀  │ │
-   │ ╲─────╱ │
-   │ ◇     ◇ │
-   │  XXI    │
-   └─────────┘` }
+                { name: 'THE FOOL', num: '0', meaning: 'New beginnings, innocence, spontaneity', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '........#######.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........#.....#.........',
+                    '........................',
+                    '....##..................',
+                    '...####.................',
+                    '...#..#.................',
+                    '....##..................',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE MAGICIAN', num: 'I', meaning: 'Manifestation, resourcefulness, power', pixels: [
+                    '........................',
+                    '.........#...#..........',
+                    '..........#.#...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '........................',
+                    '..##..##..##..##........',
+                    '..##..##..##..##........',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE HIGH PRIESTESS', num: 'II', meaning: 'Intuition, mystery, inner knowledge', pixels: [
+                    '........................',
+                    '....##..........##......',
+                    '...#..#........#..#.....',
+                    '....##..........##......',
+                    '..........##............',
+                    '.........####...........',
+                    '..........##............',
+                    '..........##............',
+                    '.........####...........',
+                    '........##..##..........',
+                    '.........####...........',
+                    '..........##............',
+                    '..........##............',
+                    '.........####...........',
+                    '........######..........',
+                    '........................',
+                    '...##..........##.......',
+                    '...##..........##.......',
+                    '...##..........##.......',
+                    '........................',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE EMPRESS', num: 'III', meaning: 'Abundance, nurturing, fertility', pixels: [
+                    '........................',
+                    '.........#####..........',
+                    '........#######.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........#####..........',
+                    '........#######.........',
+                    '.......#########........',
+                    '........#######.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........................',
+                    '...#..#..#..#..#..#.....',
+                    '...#..#..#..#..#..#.....',
+                    '...#..#..#..#..#..#.....',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE EMPEROR', num: 'IV', meaning: 'Authority, structure, control', pixels: [
+                    '........................',
+                    '.........#####..........',
+                    '........#.#.#.#.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '........#######.........',
+                    '........#.###.#.........',
+                    '........#.###.#.........',
+                    '........#######.........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........##.##..........',
+                    '........##...##.........',
+                    '........................',
+                    '.......########.........',
+                    '.......#......#.........',
+                    '.......#......#.........',
+                    '.......########.........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE HIEROPHANT', num: 'V', meaning: 'Tradition, conformity, spirituality', pixels: [
+                    '........................',
+                    '...........##...........',
+                    '..........####..........',
+                    '...........##...........',
+                    '.........######.........',
+                    '..........####..........',
+                    '..........####..........',
+                    '.........######.........',
+                    '........########........',
+                    '.........######.........',
+                    '..........####..........',
+                    '..........####..........',
+                    '.........##..##.........',
+                    '........##....##........',
+                    '........................',
+                    '....##....##....##......',
+                    '...####..####..####.....',
+                    '....##....##....##......',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE LOVERS', num: 'VI', meaning: 'Love, harmony, relationships', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '........#######.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '........................',
+                    '....###........###......',
+                    '...#####......#####.....',
+                    '....###........###......',
+                    '....###........###......',
+                    '.....#..........#.......',
+                    '....#.#........#.#......',
+                    '...#...#......#...#.....',
+                    '........................',
+                    '.........####...........',
+                    '........##..##..........',
+                    '.........####...........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE CHARIOT', num: 'VII', meaning: 'Willpower, determination, success', pixels: [
+                    '........................',
+                    '........#.#.#.#.........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........#####..........',
+                    '........#######.........',
+                    '.......#########........',
+                    '.......#.#####.#........',
+                    '.......#########........',
+                    '........#######.........',
+                    '..........###...........',
+                    '......###.###.###.......',
+                    '.....##.........##......',
+                    '....##...........##.....',
+                    '...####.........####....',
+                    '...#..#.........#..#....',
+                    '...####.........####....',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'STRENGTH', num: 'VIII', meaning: 'Courage, persuasion, inner strength', pixels: [
+                    '........................',
+                    '.........#...#..........',
+                    '..........#.#...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###....###....',
+                    '...........#....#####...',
+                    '..........#.#...#.#.#...',
+                    '.........#...#..#####...',
+                    '................#...#...',
+                    '...............##...##..',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE HERMIT', num: 'IX', meaning: 'Soul-searching, introspection, solitude', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '...###...#####..........',
+                    '..#####...###...........',
+                    '...###...#.#.#..........',
+                    '....#.....###...........',
+                    '....#......#............',
+                    '....#.....#.#...........',
+                    '....#....#...#..........',
+                    '....#...#.....#.........',
+                    '....#...................',
+                    '........................',
+                    '..######................',
+                    '.########...............',
+                    '##########..............',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'WHEEL OF FORTUNE', num: 'X', meaning: 'Change, cycles, destiny', pixels: [
+                    '........................',
+                    '........................',
+                    '.......########.........',
+                    '......#........#........',
+                    '.....#..........#.......',
+                    '....#....####....#......',
+                    '....#...#....#...#......',
+                    '...#....#....#....#.....',
+                    '...#....#....#....#.....',
+                    '....#...#....#...#......',
+                    '....#....####....#......',
+                    '.....#..........#.......',
+                    '......#........#........',
+                    '.......########.........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'JUSTICE', num: 'XI', meaning: 'Fairness, truth, law', pixels: [
+                    '........................',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...####....#....####....',
+                    '...#..#....#....#..#....',
+                    '...####....#....####....',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........#.....#.........',
+                    '........................',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE HANGED MAN', num: 'XII', meaning: 'Surrender, letting go, new perspective', pixels: [
+                    '........................',
+                    '########################',
+                    '...........#............',
+                    '...........#............',
+                    '...........#............',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'DEATH', num: 'XIII', meaning: 'Endings, change, transformation', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#...#..........',
+                    '........#.....#.........',
+                    '........#.#.#.#.........',
+                    '........#.....#.........',
+                    '.........#...#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '.........#####..........',
+                    '........#..#..#.........',
+                    '.........#####..........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........#.....#.........',
+                    '........................',
+                    '...##..........##.......',
+                    '..####........####......',
+                    '...##..........##.......',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'TEMPERANCE', num: 'XIV', meaning: 'Balance, moderation, patience', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '....###....#....###.....',
+                    '....#.#....#....#.#.....',
+                    '....###..#####..###.....',
+                    '...........#............',
+                    '..........#.#...........',
+                    '.........#...#..........',
+                    '........#.....#.........',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE DEVIL', num: 'XV', meaning: 'Shadow self, attachment, addiction', pixels: [
+                    '........................',
+                    '........#......#........',
+                    '.......##......##.......',
+                    '........########........',
+                    '.........#....#.........',
+                    '.........#.##.#.........',
+                    '.........######.........',
+                    '..........####..........',
+                    '..........####..........',
+                    '.........######.........',
+                    '........#.####.#........',
+                    '........#.#..#.#........',
+                    '.........#....#.........',
+                    '..........#..#..........',
+                    '........................',
+                    '...###..........###.....',
+                    '...#.#..........#.#.....',
+                    '...###..........###.....',
+                    '........................',
+                    '...####........####.....',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE TOWER', num: 'XVI', meaning: 'Sudden change, upheaval, revelation', pixels: [
+                    '........................',
+                    '....##..........##......',
+                    '.....##........##.......',
+                    '......##..##..##........',
+                    '.........####...........',
+                    '.........#..#...........',
+                    '.........#..#...........',
+                    '........######..........',
+                    '........#....#..........',
+                    '........#....#..........',
+                    '........######..........',
+                    '........#....#..........',
+                    '........#....#..........',
+                    '.......########.........',
+                    '......##########........',
+                    '........................',
+                    '...##....##....##.......',
+                    '...##....##....##.......',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE STAR', num: 'XVII', meaning: 'Hope, faith, renewal', pixels: [
+                    '........................',
+                    '...........#............',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '...........#............',
+                    '....#.....#.#.....#.....',
+                    '...###...#...#...###....',
+                    '....#.............#.....',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...###.....#.....###....',
+                    '...#.#....#.#....#.#....',
+                    '...###...#...#...###....',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE MOON', num: 'XVIII', meaning: 'Illusion, fear, subconscious', pixels: [
+                    '........................',
+                    '.........#####..........',
+                    '........##...##.........',
+                    '.......##.....##........',
+                    '.......#.......#........',
+                    '.......##.....##........',
+                    '........##...##.........',
+                    '.........#####..........',
+                    '........................',
+                    '....###........###......',
+                    '...#.#.#......#.#.#.....',
+                    '...#####......#####.....',
+                    '...#...#......#...#.....',
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '........................',
+                    '########################',
+                    '########################',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE SUN', num: 'XIX', meaning: 'Joy, success, celebration', pixels: [
+                    '........................',
+                    '....#......#......#.....',
+                    '.....#.....#.....#......',
+                    '......#...###...#.......',
+                    '.......#.#####.#........',
+                    '...#####.#####.#####....',
+                    '.......#.#####.#........',
+                    '......#...###...#.......',
+                    '.....#.....#.....#......',
+                    '....#......#......#.....',
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........#.#...........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'JUDGEMENT', num: 'XX', meaning: 'Reflection, reckoning, awakening', pixels: [
+                    '........................',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '.........#.#.#..........',
+                    '..........###...........',
+                    '...........#............',
+                    '..........###...........',
+                    '.........#####..........',
+                    '..........###...........',
+                    '........................',
+                    '....###..###..###.......',
+                    '....#.#..#.#..#.#.......',
+                    '....###..###..###.......',
+                    '....#.#..#.#..#.#.......',
+                    '....###..###..###.......',
+                    '........................',
+                    '.......########.........',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]},
+                { name: 'THE WORLD', num: 'XXI', meaning: 'Completion, accomplishment, travel', pixels: [
+                    '........................',
+                    '....##..........##......',
+                    '........................',
+                    '.......########.........',
+                    '......#........#........',
+                    '.....#..........#.......',
+                    '....#....####....#......',
+                    '....#...#....#...#......',
+                    '...#....#....#....#.....',
+                    '...#....#....#....#.....',
+                    '....#...#....#...#......',
+                    '....#....####....#......',
+                    '.....#..........#.......',
+                    '......#........#........',
+                    '.......########.........',
+                    '........................',
+                    '....##..........##......',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................',
+                    '........................'
+                ]}
             ];
 
             useEffect(() => {
                 // Check localStorage for existing pull (simulating IP-based storage)
                 const savedCard = localStorage.getItem('tarot_card');
                 if (savedCard) {
-                    setCard(JSON.parse(savedCard));
-                    setRevealed(true);
-                    setAlreadyPulled(true);
+                    const parsed = JSON.parse(savedCard);
+                    // Check if it's the new format with pixels (not old ascii format)
+                    if (parsed.pixels) {
+                        setCard(parsed);
+                        setRevealed(true);
+                        setAlreadyPulled(true);
+                    } else {
+                        // Old format - clear it so user can pull again
+                        localStorage.removeItem('tarot_card');
+                    }
                 }
             }, []);
 
-            const shuffleCards = [
-                `   ┌─────────┐
-   │ ╲ ╱ ╲ ╱ │
-   │  ╳   ╳  │
-   │ ╱ ╲ ╱ ╲ │
-   │  ╳   ╳  │
-   │ ╲ ╱ ╲ ╱ │
-   │ SHUFFLE │
-   └─────────┘`,
-                `  ┌─────────┐
-   │ ╱ ╲ ╱ ╲ │
-   │  ╳   ╳  │
-   │ ╲ ╱ ╲ ╱ │
-   │  ╳   ╳  │
-   │ ╱ ╲ ╱ ╲ │
-   │ SHUFFLE │
-   └─────────┘`,
-                `    ┌─────────┐
-   │ ╲ ╱ ╲ ╱ │
-   │ ╱ ╲ ╱ ╲ │
-   │  ╳   ╳  │
-   │ ╲ ╱ ╲ ╱ │
-   │ ╱ ╲ ╱ ╲ │
-   │ SHUFFLE │
-   └─────────┘`
+            const shufflePixels = [
+                [
+                    '........................',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#'
+                ],
+                [
+                    '........................',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.',
+                    '.#.#.#.#.#.#.#.#.#.#.#.#',
+                    '#.#.#.#.#.#.#.#.#.#.#.#.'
+                ]
             ];
 
             const pullCard = () => {
@@ -2352,9 +3585,9 @@
                 setIsShuffling(true);
                 let frame = 0;
                 const shuffleInterval = setInterval(() => {
-                    setShuffleFrame(f => (f + 1) % 3);
+                    setShuffleFrame(f => f + 1);
                     frame++;
-                    if (frame >= 12) {
+                    if (frame >= 20) {
                         clearInterval(shuffleInterval);
                         setIsShuffling(false);
                         const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
@@ -2363,49 +3596,97 @@
                         setTimeout(() => setRevealed(true), 500);
                         setAlreadyPulled(true);
                     }
-                }, 150);
+                }, 80);
             };
 
+            const questionPixels = [
+                '........................',
+                '........########........',
+                '.......##......##.......',
+                '......##........##......',
+                '......##........##......',
+                '..............##........',
+                '............##..........',
+                '..........##............',
+                '.........##.............',
+                '.........##.............',
+                '.........##.............',
+                '........................',
+                '.........##.............',
+                '.........##.............',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................',
+                '........................'
+            ];
+
             return (
-                <div className="h-full flex flex-col bg-purple-950 text-white select-none">
-                    <div className="p-3 border-b border-purple-800">
-                        <span className="font-mono text-xs text-purple-400">TAROT.DAT // YOUR FATE AWAITS</span>
+                <div className="h-full flex flex-col bg-black text-white select-none">
+                    <div className="p-2 border-b border-gray-800">
+                        <span className="font-mono text-[10px] text-gray-500">TAROT.DAT</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4">
                         {isShuffling ? (
                             <div className="text-center">
-                                <pre className="font-mono text-xs text-purple-300 mb-4 animate-pulse" style={{ transform: `rotate(${shuffleFrame * 2 - 2}deg)` }}>
-                                    {shuffleCards[shuffleFrame]}
-                                </pre>
-                                <div className="font-mono text-xs text-purple-400">SHUFFLING THE DECK...</div>
+                                <div className="relative w-24 h-32 mb-4">
+                                    {/* Deck shuffle animation - multiple cards moving */}
+                                    {[0, 1, 2, 3, 4].map((i) => (
+                                        <div
+                                            key={i}
+                                            className="absolute inset-0 border border-gray-700 bg-black"
+                                            style={{
+                                                transform: `
+                                                    translateX(${Math.sin((shuffleFrame + i) * 1.5) * (15 + i * 3)}px)
+                                                    translateY(${i * 2}px)
+                                                    rotate(${Math.sin((shuffleFrame + i) * 0.8) * 8}deg)
+                                                `,
+                                                transition: 'transform 0.1s ease-out',
+                                                zIndex: 5 - i
+                                            }}
+                                        >
+                                            <PixelTarotCard pixels={shufflePixels[shuffleFrame % 2]} />
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="font-mono text-[10px] text-gray-500 animate-pulse">SHUFFLING...</div>
                             </div>
                         ) : !card ? (
                             <div className="text-center">
-                                <pre className="font-mono text-xs text-purple-300 mb-4">
-{`   ┌─────────┐
-   │ ╲     ╱ │
-   │  ╲ ? ╱  │
-   │   ╲ ╱   │
-   │   ╱ ╲   │
-   │  ╱   ╲  │
-   │ ╱     ╲ │
-   └─────────┘`}
-                                </pre>
+                                <div className="mb-6">
+                                    <PixelTarotCard pixels={questionPixels} />
+                                </div>
                                 <button
                                     onClick={pullCard}
-                                    className="px-6 py-3 bg-purple-800 text-white font-mono font-bold hover:bg-purple-700 border-2 border-purple-500"
+                                    className="px-6 py-2 bg-white text-black font-mono text-[10px] font-bold hover:invert transition-all"
                                 >
-                                    PULL YOUR CARD
+                                    PULL CARD
                                 </button>
-                                <p className="mt-4 font-mono text-xs text-purple-500">ONE PULL PER VISITOR</p>
+                                <p className="mt-4 font-mono text-[10px] text-gray-600">ONE PULL PER VISITOR</p>
                             </div>
                         ) : (
                             <div className={`text-center transition-all duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-                                <pre className="font-mono text-xs text-yellow-200 mb-4">{card.ascii}</pre>
-                                <div className="text-xl font-black mb-2">{card.name}</div>
-                                <div className="font-mono text-sm text-purple-300 max-w-xs">{card.meaning}</div>
+                                <div className="mb-4">
+                                    <PixelTarotCard pixels={card.pixels} />
+                                </div>
+                                <div className="font-mono text-[10px] text-gray-500 mb-1">{card.num}</div>
+                                <div className="text-sm font-black mb-2 tracking-wider">{card.name}</div>
+                                <div className="font-mono text-[10px] text-gray-400 max-w-xs">{card.meaning}</div>
                                 {alreadyPulled && (
-                                    <p className="mt-4 font-mono text-xs text-purple-600">YOUR FATE HAS BEEN SEALED</p>
+                                    <p className="mt-4 font-mono text-[10px] text-gray-700">FATE SEALED</p>
                                 )}
                             </div>
                         )}
@@ -2423,6 +3704,8 @@
                 { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
                 { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
                 { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
+                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
+                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
                 { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                 { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
@@ -2635,6 +3918,8 @@
                 "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 19 },
                 "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 20 },
                 "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 21 },
+                "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 60, w: '450px', h: '420px', isOpen: false, isMin: false, z: 26 },
+                "STARSHIP": { id: "STARSHIP", title: "STARSHIP.EXE", icon: "Starship", x: 80, y: 40, w: '540px', h: '480px', isOpen: false, isMin: false, z: 27 },
                 "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 22 },
                 "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 24 },
@@ -2656,6 +3941,8 @@
                     case "RADIO": return <RadioApp />;
                     case "DICE": return <DiceApp />;
                     case "LABYRINTH": return <LabyrinthApp />;
+                    case "MINESWEEPER": return <MinesweeperApp />;
+                    case "STARSHIP": return <StarshipApp />;
                     case "SYNTH": return <SynthApp />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
                     case "TAROT": return <TarotApp />;
@@ -2816,7 +4103,7 @@
 
                     {/* TASKBAR */}
                     <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
-                        <div className="bg-black text-white px-2 py-1 font-black mr-2 select-none">MM</div>
+                        <div className="bg-black text-white px-2 py-1 font-black mr-2 select-none text-xs tracking-wider">MATEUSMUSTE.COM</div>
                         {Object.values(windows).map(win => {
                             const IconCmp = Icons[win.icon];
                             return win.isOpen && (
