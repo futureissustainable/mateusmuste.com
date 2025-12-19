@@ -6055,6 +6055,7 @@
             const [bootPhase, setBootPhase] = useState(0); // 0: kernel, 1: mobile warning, 2: ready
             const [isMobile, setIsMobile] = useState(false);
             const [topZ, setTopZ] = useState(100);
+            const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
             const [dogReleased, setDogReleased] = useState(false);
             const [dogPos, setDogPos] = useState({ x: 100, y: 300 });
@@ -6244,12 +6245,16 @@
 
             // Window Ops
             const focus = (id) => {
-                setWindows(p => ({ ...p, [id]: { ...p[id], z: topZ + 1 } }));
-                setTopZ(z => z + 1);
+                topZRef.current += 1;
+                const newZ = topZRef.current;
+                setWindows(p => ({ ...p, [id]: { ...p[id], z: newZ } }));
+                setTopZ(newZ);
             }
             const open = (id) => {
-                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: topZ + 1 } }));
-                setTopZ(z => z + 1);
+                topZRef.current += 1;
+                const newZ = topZRef.current;
+                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
+                setTopZ(newZ);
             }
             const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
