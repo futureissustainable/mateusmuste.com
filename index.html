@@ -86,6 +86,15 @@
         canvas {
             touch-action: none;
         }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        .animate-shake {
+            animation: shake 0.5s ease-in-out;
+        }
     </style>
 </head>
 
@@ -95,6 +104,47 @@
 
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
+
+        // --- IP-BASED HIGH SCORE SYSTEM ---
+        const HighScoreManager = {
+            userIP: null,
+
+            async fetchIP() {
+                if (this.userIP) return this.userIP;
+                try {
+                    const res = await fetch('https://api.ipify.org?format=json');
+                    const data = await res.json();
+                    this.userIP = data.ip;
+                    return this.userIP;
+                } catch (e) {
+                    // Fallback to anonymous if IP fetch fails
+                    this.userIP = 'anonymous';
+                    return this.userIP;
+                }
+            },
+
+            getStorageKey(game) {
+                return `highscore_${game}_${this.userIP || 'anonymous'}`;
+            },
+
+            saveHighScore(game, score) {
+                const key = this.getStorageKey(game);
+                const current = localStorage.getItem(key);
+                if (!current || score > parseInt(current, 10)) {
+                    localStorage.setItem(key, score.toString());
+                    return true;
+                }
+                return false;
+            },
+
+            getHighScore(game) {
+                const key = this.getStorageKey(game);
+                return parseInt(localStorage.getItem(key) || '0', 10);
+            }
+        };
+
+        // Initialize IP on load
+        HighScoreManager.fetchIP();
 
         // --- PIXEL ART ICONS (64x64) ---
         const PixelIcon = ({ children, size = 64, ...props }) => (
@@ -563,6 +613,30 @@
                     {/* Stand */}
                     <rect x="24" y="48" width="16" height="4" fill="#000" />
                     <rect x="20" y="52" width="24" height="4" fill="#000" />
+                </PixelIcon>
+            ),
+            // Lock icon for Personal.exe
+            Lock: (p) => (
+                <PixelIcon {...p}>
+                    {/* Shackle */}
+                    <rect x="20" y="8" width="4" height="20" fill="#f00" />
+                    <rect x="40" y="8" width="4" height="20" fill="#f00" />
+                    <rect x="20" y="4" width="24" height="4" fill="#f00" />
+                    {/* Lock body */}
+                    <rect x="12" y="28" width="40" height="28" fill="#f00" />
+                    <rect x="16" y="32" width="32" height="20" fill="#300" />
+                    {/* Keyhole */}
+                    <rect x="28" y="38" width="8" height="8" fill="#f00" />
+                    <rect x="30" y="46" width="4" height="6" fill="#f00" />
+                </PixelIcon>
+            ),
+            // Folder icon for app categories
+            FolderClosed: (p) => (
+                <PixelIcon {...p}>
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    <rect x="8" y="8" width="16" height="8" fill="#000" />
                 </PixelIcon>
             )
         };
@@ -1607,7 +1681,7 @@
         const SnakeAppNew = () => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
-            const [highScore, setHighScore] = useState(0);
+            const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
             const snake = useRef([{ x: 15, y: 10 }]);
@@ -1621,6 +1695,15 @@
             const GRID_W = 30;
             const GRID_H = 20;
             const CELL = 20;
+
+            // Load high score from storage when IP is ready
+            useEffect(() => {
+                const loadHighScore = async () => {
+                    await HighScoreManager.fetchIP();
+                    setHighScore(HighScoreManager.getHighScore('snake'));
+                };
+                loadHighScore();
+            }, []);
 
             const start = () => {
                 snake.current = [{ x: 15, y: 10 }, { x: 14, y: 10 }, { x: 13, y: 10 }];
@@ -1662,7 +1745,11 @@
                 if (head.x === food.current.x && head.y === food.current.y) {
                     setScore(s => {
                         const newScore = s + 10;
-                        setHighScore(h => Math.max(h, newScore));
+                        setHighScore(h => {
+                            const newHigh = Math.max(h, newScore);
+                            HighScoreManager.saveHighScore('snake', newHigh);
+                            return newHigh;
+                        });
                         return newScore;
                     });
                     food.current = {
@@ -1838,7 +1925,7 @@
             const canvasRef = useRef(null);
             const [level, setLevel] = useState(1);
             const [score, setScore] = useState(0);
-            const [highScore, setHighScore] = useState(0);
+            const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('labyrinth'));
             const [won, setWon] = useState(false);
             const [showingMaze, setShowingMaze] = useState(false);
             const mazeRef = useRef(null);
@@ -1846,6 +1933,15 @@
             const exitRef = useRef({ x: 0, y: 0 });
 
             const CELL_SIZE = 8; // Thinner walls
+
+            // Load high score from storage when IP is ready
+            useEffect(() => {
+                const loadHighScore = async () => {
+                    await HighScoreManager.fetchIP();
+                    setHighScore(HighScoreManager.getHighScore('labyrinth'));
+                };
+                loadHighScore();
+            }, []);
 
             const generateMaze = (width, height) => {
                 const maze = Array(height).fill(null).map(() => Array(width).fill(1));
@@ -1941,7 +2037,11 @@
                         const points = level * 100;
                         setScore(s => {
                             const newScore = s + points;
-                            setHighScore(h => Math.max(h, newScore));
+                            setHighScore(h => {
+                                const newHigh = Math.max(h, newScore);
+                                HighScoreManager.saveHighScore('labyrinth', newHigh);
+                                return newHigh;
+                            });
                             return newScore;
                         });
                         setWon(true);
@@ -2244,8 +2344,18 @@
             const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
             const touchRef = useRef({ startX: 0, startY: 0, startTime: 0, isDragging: false });
             const [score, setScore] = useState(0);
+            const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('starship'));
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
+
+            // Load high score from storage when IP is ready
+            useEffect(() => {
+                const loadHighScore = async () => {
+                    await HighScoreManager.fetchIP();
+                    setHighScore(HighScoreManager.getHighScore('starship'));
+                };
+                loadHighScore();
+            }, []);
 
             // Mobile control handlers
             const handleStart = () => {
@@ -2513,6 +2623,12 @@
                         if (dist < 1) {
                             isGameOver = true;
                             setGameOver(true);
+                            // Save high score on game over
+                            setHighScore(h => {
+                                const newHigh = Math.max(h, scoreVal);
+                                HighScoreManager.saveHighScore('starship', newHigh);
+                                return newHigh;
+                            });
                         }
                     }
 
@@ -2585,7 +2701,10 @@
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="h-10 px-4 flex justify-between items-center border-b border-gray-100">
                         <span className="font-mono text-[10px] font-bold tracking-widest text-black">STARSHIP</span>
-                        <span className="font-mono text-[10px] text-gray-400">SCORE <span className="text-black font-bold">{score.toString().padStart(6, '0')}</span></span>
+                        <div className="flex gap-4">
+                            <span className="font-mono text-[10px] text-gray-400">HI <span className="text-gray-600 font-bold">{highScore.toString().padStart(6, '0')}</span></span>
+                            <span className="font-mono text-[10px] text-gray-400">SCORE <span className="text-black font-bold">{score.toString().padStart(6, '0')}</span></span>
+                        </div>
                     </div>
 
                     <div className="flex-grow flex items-center justify-center relative bg-gray-50 overflow-hidden">
@@ -2605,6 +2724,7 @@
                                 <div className="text-center">
                                     <div className="text-2xl font-black tracking-widest">DESTROYED</div>
                                     <div className="font-mono text-[10px] text-gray-400 mt-2">SCORE: {score}</div>
+                                    <div className="font-mono text-[10px] text-gray-500 mt-1">HIGH: {highScore}</div>
                                     <button
                                         onClick={() => gameRef.current?.restart()}
                                         className="mt-4 px-4 py-2 bg-black text-white font-mono text-[10px] tracking-widest hover:bg-gray-800"
@@ -4075,7 +4195,183 @@
             const rendererRef = useRef(null);
             const globeRef = useRef(null);
             const cloudsRef = useRef(null);
+            const ringsRef = useRef([]);
+            const particlesRef = useRef(null);
             const [loading, setLoading] = useState(true);
+            const [showShop, setShowShop] = useState(false);
+            const [clickEffect, setClickEffect] = useState(null);
+
+            // Game state with defaults
+            const defaultGameState = {
+                clicks: 0,
+                totalClicks: 0,
+                clickPower: 1,
+                autoClickers: 0,
+                clickMultiplier: 1,
+                // Upgrades purchased
+                upgrades: {
+                    clickPower1: false,    // +1 click power - 50
+                    clickPower2: false,    // +5 click power - 500
+                    clickPower3: false,    // +25 click power - 5000
+                    clickPower4: false,    // +100 click power - 50000
+                    autoClick1: false,     // 1 auto click/sec - 100
+                    autoClick2: false,     // 5 auto clicks/sec - 1000
+                    autoClick3: false,     // 25 auto clicks/sec - 10000
+                    autoClick4: false,     // 100 auto clicks/sec - 100000
+                    multiplier1: false,    // 2x multiplier - 2500
+                    multiplier2: false,    // 2x multiplier (4x total) - 25000
+                    multiplier3: false,    // 2x multiplier (8x total) - 250000
+                    // Visual upgrades
+                    goldPlanet: false,     // Golden planet - 1000
+                    neonPlanet: false,     // Neon glow - 5000
+                    rainbowPlanet: false,  // Rainbow colors - 25000
+                    fireRings: false,      // Fire rings - 10000
+                    starField: false,      // Dense star field - 2000
+                    particles: false,      // Particle effects - 15000
+                    pulse: false,          // Pulse animation - 7500
+                    moon: false,           // Orbiting moon - 20000
+                    doubleGlobe: false,    // Second small globe - 50000
+                    blackHole: false,      // Background black hole - 100000
+                    matrix: false,         // Matrix rain effect - 75000
+                    godMode: false         // Ultimate visual - 1000000
+                }
+            };
+
+            const [gameState, setGameState] = useState(() => {
+                // Try to load from localStorage
+                const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
+                if (saved) {
+                    try {
+                        return { ...defaultGameState, ...JSON.parse(saved) };
+                    } catch (e) {
+                        return defaultGameState;
+                    }
+                }
+                return defaultGameState;
+            });
+
+            // Load game state when IP is ready
+            useEffect(() => {
+                const loadGame = async () => {
+                    await HighScoreManager.fetchIP();
+                    const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
+                    if (saved) {
+                        try {
+                            setGameState(prev => ({ ...defaultGameState, ...JSON.parse(saved) }));
+                        } catch (e) {}
+                    }
+                };
+                loadGame();
+            }, []);
+
+            // Save game state whenever it changes
+            useEffect(() => {
+                localStorage.setItem(HighScoreManager.getStorageKey('mapclicker'), JSON.stringify(gameState));
+            }, [gameState]);
+
+            // Auto-clicker interval
+            useEffect(() => {
+                if (gameState.autoClickers > 0) {
+                    const interval = setInterval(() => {
+                        setGameState(prev => ({
+                            ...prev,
+                            clicks: prev.clicks + prev.autoClickers * prev.clickMultiplier,
+                            totalClicks: prev.totalClicks + prev.autoClickers * prev.clickMultiplier
+                        }));
+                    }, 1000);
+                    return () => clearInterval(interval);
+                }
+            }, [gameState.autoClickers, gameState.clickMultiplier]);
+
+            // Shop items
+            const shopItems = [
+                { category: 'CLICK POWER', items: [
+                    { id: 'clickPower1', name: '+1 CLICK', desc: 'Each tap gives +1 more', cost: 50, effect: () => ({ clickPower: gameState.clickPower + 1 }) },
+                    { id: 'clickPower2', name: '+5 CLICKS', desc: 'Each tap gives +5 more', cost: 500, effect: () => ({ clickPower: gameState.clickPower + 5 }), requires: 'clickPower1' },
+                    { id: 'clickPower3', name: '+25 CLICKS', desc: 'Each tap gives +25 more', cost: 5000, effect: () => ({ clickPower: gameState.clickPower + 25 }), requires: 'clickPower2' },
+                    { id: 'clickPower4', name: '+100 CLICKS', desc: 'Each tap gives +100 more', cost: 50000, effect: () => ({ clickPower: gameState.clickPower + 100 }), requires: 'clickPower3' },
+                ]},
+                { category: 'AUTO-CLICKERS', items: [
+                    { id: 'autoClick1', name: 'DRONE x1', desc: '1 click per second', cost: 100, effect: () => ({ autoClickers: gameState.autoClickers + 1 }) },
+                    { id: 'autoClick2', name: 'DRONE x5', desc: '+5 clicks per second', cost: 1000, effect: () => ({ autoClickers: gameState.autoClickers + 5 }), requires: 'autoClick1' },
+                    { id: 'autoClick3', name: 'DRONE x25', desc: '+25 clicks per second', cost: 10000, effect: () => ({ autoClickers: gameState.autoClickers + 25 }), requires: 'autoClick2' },
+                    { id: 'autoClick4', name: 'DRONE x100', desc: '+100 clicks per second', cost: 100000, effect: () => ({ autoClickers: gameState.autoClickers + 100 }), requires: 'autoClick3' },
+                ]},
+                { category: 'MULTIPLIERS', items: [
+                    { id: 'multiplier1', name: '2X MULTI', desc: 'Double all clicks', cost: 2500, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }) },
+                    { id: 'multiplier2', name: '4X MULTI', desc: 'Double again (4x total)', cost: 25000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier1' },
+                    { id: 'multiplier3', name: '8X MULTI', desc: 'Double again (8x total)', cost: 250000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier2' },
+                ]},
+                { category: 'PLANET SKINS', items: [
+                    { id: 'goldPlanet', name: 'GOLD PLANET', desc: 'Shiny golden Earth', cost: 1000 },
+                    { id: 'neonPlanet', name: 'NEON GLOW', desc: 'Cyberpunk neon colors', cost: 5000 },
+                    { id: 'rainbowPlanet', name: 'RAINBOW', desc: 'Colorful rainbow planet', cost: 25000, requires: 'neonPlanet' },
+                ]},
+                { category: 'VISUAL FX', items: [
+                    { id: 'starField', name: 'STAR FIELD', desc: 'Dense beautiful stars', cost: 2000 },
+                    { id: 'pulse', name: 'PULSE FX', desc: 'Planet pulses on click', cost: 7500 },
+                    { id: 'fireRings', name: 'FIRE RINGS', desc: 'Saturn-like fire rings', cost: 10000 },
+                    { id: 'particles', name: 'PARTICLES', desc: 'Floating particles', cost: 15000 },
+                    { id: 'moon', name: 'MOON', desc: 'Orbiting moon', cost: 20000 },
+                    { id: 'doubleGlobe', name: 'TWIN WORLD', desc: 'Second mini planet', cost: 50000, requires: 'moon' },
+                    { id: 'matrix', name: 'MATRIX', desc: 'Digital rain effect', cost: 75000 },
+                    { id: 'blackHole', name: 'BLACK HOLE', desc: 'Cosmic background', cost: 100000 },
+                    { id: 'godMode', name: 'GOD MODE', desc: 'ULTIMATE VISUALS', cost: 1000000, requires: 'blackHole' },
+                ]},
+            ];
+
+            const buyUpgrade = (item) => {
+                if (gameState.clicks >= item.cost && !gameState.upgrades[item.id]) {
+                    if (item.requires && !gameState.upgrades[item.requires]) return;
+
+                    const effectResult = item.effect ? item.effect() : {};
+                    setGameState(prev => ({
+                        ...prev,
+                        clicks: prev.clicks - item.cost,
+                        ...effectResult,
+                        upgrades: { ...prev.upgrades, [item.id]: true }
+                    }));
+                }
+            };
+
+            const canBuy = (item) => {
+                if (gameState.upgrades[item.id]) return false;
+                if (gameState.clicks < item.cost) return false;
+                if (item.requires && !gameState.upgrades[item.requires]) return false;
+                return true;
+            };
+
+            const isLocked = (item) => {
+                return item.requires && !gameState.upgrades[item.requires];
+            };
+
+            // Handle click on globe
+            const handleGlobeClick = () => {
+                const clickValue = gameState.clickPower * gameState.clickMultiplier;
+                setGameState(prev => ({
+                    ...prev,
+                    clicks: prev.clicks + clickValue,
+                    totalClicks: prev.totalClicks + clickValue
+                }));
+                setClickEffect({ value: clickValue, id: Date.now() });
+                setTimeout(() => setClickEffect(null), 500);
+
+                // Pulse effect
+                if (globeRef.current && gameState.upgrades.pulse) {
+                    globeRef.current.scale.set(1.1, 1.1, 1.1);
+                    setTimeout(() => {
+                        if (globeRef.current) globeRef.current.scale.set(1, 1, 1);
+                    }, 100);
+                }
+            };
+
+            const formatNumber = (num) => {
+                if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+                if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+                if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+                if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+                return Math.floor(num).toString();
+            };
 
             useEffect(() => {
                 if (!containerRef.current) return;
@@ -4083,7 +4379,6 @@
                 const width = containerRef.current.clientWidth;
                 const height = containerRef.current.clientHeight;
 
-                // Scene setup
                 const scene = new THREE.Scene();
                 scene.background = new THREE.Color(0x000000);
                 sceneRef.current = scene;
@@ -4097,88 +4392,191 @@
                 containerRef.current.appendChild(renderer.domElement);
                 rendererRef.current = renderer;
 
-                // Create globe geometry (higher detail for accuracy)
-                const globeGeometry = new THREE.IcosahedronGeometry(1, 5);
+                // Higher resolution globe (subdivision 7 for much more detail)
+                const globeGeometry = new THREE.IcosahedronGeometry(1, 7);
 
-                // Accurate land detection function
+                // Highly detailed land detection with accurate continent shapes
                 const isLandAt = (lat, lon) => {
-                    // North America mainland
-                    if (lat > 48 && lat < 72 && lon > -170 && lon < -55) return true; // Canada/Alaska
-                    if (lat > 25 && lat < 50 && lon > -130 && lon < -65) {
-                        // Continental US shape
-                        if (lat > 45 && lon < -90) return true; // Upper midwest/northeast
-                        if (lat > 30 && lon > -105 && lon < -75) return true; // Eastern US
-                        if (lat > 32 && lat < 42 && lon > -125 && lon < -115) return true; // California
-                        if (lat > 35 && lon > -115 && lon < -95) return true; // Southwest/midwest
-                        return lat > 28 && lon > -100 && lon < -80; // Southeast/Texas
+                    // NORTH AMERICA
+                    // Alaska
+                    if (lat > 54 && lat < 72 && lon > -170 && lon < -130) return true;
+                    if (lat > 60 && lat < 72 && lon > -170 && lon < -140) return true;
+                    // Canada - detailed regions
+                    if (lat > 60 && lat < 75 && lon > -140 && lon < -60) return true;
+                    if (lat > 49 && lat < 60 && lon > -140 && lon < -52) return true;
+                    // US West Coast - California shape
+                    if (lat > 32 && lat < 42 && lon > -125 && lon < -114) {
+                        if (lon > -125 && lon < -119) return true;
+                        if (lat > 37 && lon > -123 && lon < -117) return true;
                     }
-                    if (lat > 15 && lat < 32 && lon > -118 && lon < -85) return true; // Mexico
-
+                    // US Pacific Northwest
+                    if (lat > 42 && lat < 49 && lon > -125 && lon < -116) return true;
+                    // US Mountain/Southwest
+                    if (lat > 31 && lat < 49 && lon > -117 && lon < -102) return true;
+                    // US Great Plains
+                    if (lat > 36 && lat < 49 && lon > -105 && lon < -90) return true;
+                    // US Midwest
+                    if (lat > 37 && lat < 49 && lon > -97 && lon < -82) return true;
+                    // US Northeast
+                    if (lat > 39 && lat < 47 && lon > -80 && lon < -67) return true;
+                    // US Southeast
+                    if (lat > 25 && lat < 39 && lon > -92 && lon < -75) return true;
+                    // Florida
+                    if (lat > 24 && lat < 31 && lon > -88 && lon < -79) return true;
+                    // Texas
+                    if (lat > 26 && lat < 37 && lon > -107 && lon < -93) return true;
+                    // Mexico - detailed
+                    if (lat > 14 && lat < 33 && lon > -118 && lon < -86) {
+                        if (lat > 28 && lon > -118 && lon < -104) return true;
+                        if (lat > 22 && lat < 30 && lon > -111 && lon < -97) return true;
+                        if (lat > 14 && lat < 24 && lon > -106 && lon < -92) return true;
+                        if (lat > 17 && lat < 22 && lon > -92 && lon < -86) return true;
+                    }
                     // Central America
-                    if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
-
-                    // Caribbean (simplified)
+                    if (lat > 7 && lat < 18 && lon > -92 && lon < -77) return true;
+                    // Caribbean Islands
                     if (lat > 18 && lat < 24 && lon > -85 && lon < -74) return true; // Cuba
+                    if (lat > 17 && lat < 20 && lon > -73 && lon < -68) return true; // Hispaniola
+                    if (lat > 17 && lat < 19 && lon > -67 && lon < -65) return true; // Puerto Rico
+                    if (lat > 21 && lat < 27 && lon > -80 && lon < -76) return true; // Bahamas
 
-                    // South America
-                    if (lat > -5 && lat < 12 && lon > -82 && lon < -60) return true; // Colombia/Venezuela
-                    if (lat > -20 && lat < 5 && lon > -80 && lon < -50) return true; // Brazil north/Peru
-                    if (lat > -35 && lat < -15 && lon > -70 && lon < -35) return true; // Brazil south/Paraguay
-                    if (lat > -55 && lat < -20 && lon > -75 && lon < -62) return true; // Argentina/Chile
-                    if (lat > -42 && lat < -30 && lon > -62 && lon < -48) return true; // Uruguay/south Brazil
+                    // SOUTH AMERICA - detailed
+                    // Colombia/Venezuela
+                    if (lat > 0 && lat < 12 && lon > -79 && lon < -60) return true;
+                    // Ecuador/Peru coast
+                    if (lat > -18 && lat < 2 && lon > -82 && lon < -69) return true;
+                    // Brazil - detailed regions
+                    if (lat > -5 && lat < 5 && lon > -74 && lon < -35) return true; // Amazon
+                    if (lat > -23 && lat < -5 && lon > -65 && lon < -35) return true; // Central
+                    if (lat > -33 && lat < -20 && lon > -58 && lon < -40) return true; // South
+                    // Bolivia/Paraguay
+                    if (lat > -27 && lat < -10 && lon > -69 && lon < -54) return true;
+                    // Argentina - detailed
+                    if (lat > -55 && lat < -22 && lon > -73 && lon < -53) return true;
+                    // Chile - narrow strip
+                    if (lat > -56 && lat < -18 && lon > -76 && lon < -67) return true;
+                    // Uruguay
+                    if (lat > -35 && lat < -30 && lon > -58 && lon < -53) return true;
 
-                    // Europe
-                    if (lat > 36 && lat < 45 && lon > -10 && lon < 3) return true; // Iberia
-                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true; // France
-                    if (lat > 50 && lat < 59 && lon > -11 && lon < 2) return true; // UK/Ireland
-                    if (lat > 47 && lat < 55 && lon > 5 && lon < 15) return true; // Germany/Benelux
-                    if (lat > 36 && lat < 47 && lon > 6 && lon < 19) return true; // Italy/Alps
-                    if (lat > 55 && lat < 71 && lon > 4 && lon < 32) return true; // Scandinavia
-                    if (lat > 46 && lat < 55 && lon > 14 && lon < 24) return true; // Poland/Czech
-                    if (lat > 35 && lat < 42 && lon > 19 && lon < 30) return true; // Greece/Balkans
-                    if (lat > 44 && lat < 70 && lon > 20 && lon < 60) return true; // Eastern Europe/Russia west
+                    // EUROPE - detailed
+                    // Iberian Peninsula
+                    if (lat > 36 && lat < 44 && lon > -10 && lon < -1) return true; // Spain/Portugal
+                    // France
+                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true;
+                    // UK
+                    if (lat > 50 && lat < 59 && lon > -8 && lon < 2) return true;
+                    // Ireland
+                    if (lat > 51 && lat < 56 && lon > -11 && lon < -5) return true;
+                    // Benelux/Germany
+                    if (lat > 47 && lat < 55 && lon > 3 && lon < 15) return true;
+                    // Switzerland/Austria
+                    if (lat > 45 && lat < 48 && lon > 6 && lon < 17) return true;
+                    // Italy
+                    if (lat > 36 && lat < 47 && lon > 7 && lon < 19) {
+                        if (lat > 43 && lon > 7 && lon < 14) return true;
+                        if (lat > 36 && lat < 44 && lon > 12 && lon < 19) return true;
+                    }
+                    // Scandinavia - Norway
+                    if (lat > 58 && lat < 71 && lon > 4 && lon < 32) return true;
+                    // Sweden/Finland
+                    if (lat > 55 && lat < 70 && lon > 11 && lon < 32) return true;
+                    // Denmark
+                    if (lat > 54 && lat < 58 && lon > 8 && lon < 15) return true;
+                    // Poland
+                    if (lat > 49 && lat < 55 && lon > 14 && lon < 24) return true;
+                    // Balkans
+                    if (lat > 35 && lat < 47 && lon > 13 && lon < 30) return true;
+                    // Eastern Europe/Ukraine
+                    if (lat > 44 && lat < 56 && lon > 22 && lon < 40) return true;
+                    // Russia West
+                    if (lat > 45 && lat < 70 && lon > 28 && lon < 60) return true;
 
-                    // Africa
-                    if (lat > 20 && lat < 37 && lon > -18 && lon < 35) return true; // North Africa
-                    if (lat > -5 && lat < 25 && lon > -18 && lon < 15) return true; // West Africa
-                    if (lat > -5 && lat < 15 && lon > 10 && lon < 42) return true; // Central Africa
-                    if (lat > -12 && lat < 12 && lon > 28 && lon < 52) return true; // East Africa
-                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true; // Southern Africa
-                    if (lat > -27 && lat < -12 && lon > 42 && lon < 51) return true; // Madagascar
+                    // AFRICA - detailed
+                    // Morocco/Algeria/Tunisia
+                    if (lat > 27 && lat < 38 && lon > -13 && lon < 12) return true;
+                    // Libya/Egypt
+                    if (lat > 20 && lat < 32 && lon > 10 && lon < 35) return true;
+                    // West Africa coastal
+                    if (lat > 4 && lat < 15 && lon > -18 && lon < 0) return true;
+                    // West Africa interior
+                    if (lat > 10 && lat < 25 && lon > -18 && lon < 25) return true;
+                    // Central Africa
+                    if (lat > -5 && lat < 15 && lon > 8 && lon < 32) return true;
+                    // Congo basin
+                    if (lat > -12 && lat < 5 && lon > 12 && lon < 32) return true;
+                    // East Africa - Horn
+                    if (lat > 0 && lat < 15 && lon > 32 && lon < 52) return true;
+                    // East Africa - Tanzania/Kenya
+                    if (lat > -12 && lat < 5 && lon > 29 && lon < 42) return true;
+                    // Southern Africa
+                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true;
+                    // Madagascar
+                    if (lat > -26 && lat < -12 && lon > 43 && lon < 51) return true;
 
-                    // Middle East
-                    if (lat > 12 && lat < 38 && lon > 34 && lon < 60) return true;
-                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true; // Turkey
+                    // MIDDLE EAST - detailed
+                    // Turkey
+                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true;
+                    // Arabian Peninsula
+                    if (lat > 12 && lat < 32 && lon > 34 && lon < 60) return true;
+                    // Iran
+                    if (lat > 25 && lat < 40 && lon > 44 && lon < 64) return true;
 
-                    // Asia
-                    if (lat > 50 && lat < 75 && lon > 55 && lon < 180) return true; // Siberia
-                    if (lat > 35 && lat < 55 && lon > 45 && lon < 90) return true; // Central Asia
-                    if (lat > 20 && lat < 45 && lon > 70 && lon < 135) return true; // China/Mongolia
-                    if (lat > 30 && lat < 46 && lon > 128 && lon < 146) return true; // Japan
-                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true; // Korea
-                    if (lat > 8 && lat < 30 && lon > 68 && lon < 98) return true; // India/SE Asia
-                    if (lat > -10 && lat < 20 && lon > 95 && lon < 120) return true; // SE Asia mainland
-                    if (lat > -8 && lat < 6 && lon > 95 && lon < 141) return true; // Indonesia
-                    if (lat > 4 && lat < 21 && lon > 100 && lon < 122) return true; // Philippines area
+                    // ASIA - detailed
+                    // Russia/Siberia
+                    if (lat > 50 && lat < 78 && lon > 60 && lon < 180) return true;
+                    if (lat > 65 && lat < 78 && lon > -180 && lon < -168) return true; // Eastern tip
+                    // Central Asia (Kazakhstan, etc)
+                    if (lat > 35 && lat < 55 && lon > 46 && lon < 88) return true;
+                    // China
+                    if (lat > 18 && lat < 54 && lon > 73 && lon < 135) {
+                        if (lat > 35 && lon > 73 && lon < 135) return true;
+                        if (lat > 20 && lat < 45 && lon > 97 && lon < 123) return true;
+                        if (lat > 18 && lat < 26 && lon > 108 && lon < 120) return true;
+                    }
+                    // Mongolia
+                    if (lat > 42 && lat < 52 && lon > 87 && lon < 120) return true;
+                    // Japan
+                    if (lat > 30 && lat < 46 && lon > 129 && lon < 146) return true;
+                    // Korea
+                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true;
+                    // India subcontinent
+                    if (lat > 8 && lat < 35 && lon > 68 && lon < 98) return true;
+                    // Sri Lanka
+                    if (lat > 5 && lat < 10 && lon > 79 && lon < 82) return true;
+                    // Southeast Asia mainland
+                    if (lat > 5 && lat < 29 && lon > 92 && lon < 109) return true;
+                    // Malaysia/Indonesia
+                    if (lat > -8 && lat < 8 && lon > 95 && lon < 141) return true;
+                    // Philippines
+                    if (lat > 5 && lat < 21 && lon > 116 && lon < 127) return true;
+                    // Taiwan
+                    if (lat > 22 && lat < 26 && lon > 120 && lon < 122) return true;
 
-                    // Australia/Oceania
-                    if (lat > -45 && lat < -10 && lon > 112 && lon < 154) return true; // Australia
-                    if (lat > -48 && lat < -34 && lon > 166 && lon < 179) return true; // New Zealand
-                    if (lat > -22 && lat < -12 && lon > 142 && lon < 155) return true; // Papua New Guinea
+                    // OCEANIA
+                    // Australia - detailed
+                    if (lat > -44 && lat < -10 && lon > 112 && lon < 154) {
+                        if (lat > -44 && lat < -32 && lon > 115 && lon < 150) return true;
+                        if (lat > -32 && lat < -20 && lon > 113 && lon < 154) return true;
+                        if (lat > -20 && lat < -10 && lon > 120 && lon < 150) return true;
+                    }
+                    // New Zealand
+                    if (lat > -47 && lat < -34 && lon > 166 && lon < 179) return true;
+                    // Papua New Guinea
+                    if (lat > -12 && lat < -1 && lon > 140 && lon < 156) return true;
 
+                    // OTHER
                     // Greenland
-                    if (lat > 60 && lat < 84 && lon > -73 && lon < -12) return true;
-
-                    // Antarctica
-                    if (lat < -62) return true;
-
+                    if (lat > 59 && lat < 84 && lon > -74 && lon < -10) return true;
                     // Iceland
                     if (lat > 63 && lat < 67 && lon > -25 && lon < -13) return true;
+                    // Antarctica
+                    if (lat < -62) return true;
+                    // Svalbard
+                    if (lat > 76 && lat < 81 && lon > 10 && lon < 35) return true;
 
                     return false;
                 };
 
-                // Create land masses using vertex colors
                 const positions = globeGeometry.attributes.position;
                 const colors = new Float32Array(positions.count * 3);
 
@@ -4186,20 +4584,14 @@
                     const x = positions.getX(i);
                     const y = positions.getY(i);
                     const z = positions.getZ(i);
-
-                    // Convert to lat/lon
                     const lat = Math.asin(y) * (180 / Math.PI);
                     const lon = Math.atan2(x, z) * (180 / Math.PI);
-
                     const isLand = isLandAt(lat, lon);
-
                     if (isLand) {
-                        // Land - dark gray/black
                         colors[i * 3] = 0.15;
                         colors[i * 3 + 1] = 0.15;
                         colors[i * 3 + 2] = 0.15;
                     } else {
-                        // Ocean - lighter gray
                         colors[i * 3] = 0.5;
                         colors[i * 3 + 1] = 0.5;
                         colors[i * 3 + 2] = 0.5;
@@ -4207,31 +4599,25 @@
                 }
 
                 globeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-                const globeMaterial = new THREE.MeshBasicMaterial({
-                    vertexColors: true
-                });
-
+                const globeMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
                 const globe = new THREE.Mesh(globeGeometry, globeMaterial);
                 scene.add(globe);
                 globeRef.current = globe;
 
-                // Create pixelated clouds
-                const cloudGeometry = new THREE.IcosahedronGeometry(1.05, 1);
+                const cloudGeometry = new THREE.IcosahedronGeometry(1.05, 2);
                 const cloudMaterial = new THREE.MeshBasicMaterial({
                     color: 0xffffff,
                     transparent: true,
-                    opacity: 0.3,
+                    opacity: 0.25,
                     wireframe: true
                 });
                 const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
                 scene.add(clouds);
                 cloudsRef.current = clouds;
 
-                // Add stars
                 const starGeometry = new THREE.BufferGeometry();
                 const starPositions = [];
-                for (let i = 0; i < 200; i++) {
+                for (let i = 0; i < 300; i++) {
                     const x = (Math.random() - 0.5) * 20;
                     const y = (Math.random() - 0.5) * 20;
                     const z = (Math.random() - 0.5) * 20;
@@ -4244,105 +4630,110 @@
                 const stars = new THREE.Points(starGeometry, starMaterial);
                 scene.add(stars);
 
-                // Mouse and touch interaction
-                let isDragging = false;
-                let prevMouseX = 0;
-                let prevMouseY = 0;
-                let rotationX = 0;
+                // Plane system - rare flying planes
+                const planes = [];
+                const createPlane = () => {
+                    const planeGroup = new THREE.Group();
+                    // Fuselage
+                    const bodyGeo = new THREE.ConeGeometry(0.015, 0.08, 4);
+                    bodyGeo.rotateX(Math.PI / 2);
+                    const bodyMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const body = new THREE.Mesh(bodyGeo, bodyMat);
+                    planeGroup.add(body);
+                    // Wings
+                    const wingGeo = new THREE.BoxGeometry(0.1, 0.005, 0.02);
+                    const wing = new THREE.Mesh(wingGeo, bodyMat);
+                    wing.position.z = 0.01;
+                    planeGroup.add(wing);
+                    // Tail
+                    const tailGeo = new THREE.BoxGeometry(0.03, 0.005, 0.015);
+                    const tail = new THREE.Mesh(tailGeo, bodyMat);
+                    tail.position.z = 0.035;
+                    tail.position.y = 0.01;
+                    planeGroup.add(tail);
+                    // Contrail (white line behind plane)
+                    const trailGeo = new THREE.BufferGeometry();
+                    const trailPositions = new Float32Array(60);
+                    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
+                    const trailMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 });
+                    const trail = new THREE.Line(trailGeo, trailMat);
+                    trail.frustumCulled = false;
+                    planeGroup.add(trail);
+
+                    // Random orbit parameters
+                    const startAngle = Math.random() * Math.PI * 2;
+                    const orbitTilt = (Math.random() - 0.5) * Math.PI * 0.6;
+                    const orbitRadius = 1.15 + Math.random() * 0.1;
+                    const speed = 0.003 + Math.random() * 0.002;
+                    const direction = Math.random() > 0.5 ? 1 : -1;
+
+                    scene.add(planeGroup);
+                    return {
+                        mesh: planeGroup,
+                        trail: trail,
+                        trailPositions: [],
+                        angle: startAngle,
+                        tilt: orbitTilt,
+                        radius: orbitRadius,
+                        speed: speed * direction,
+                        life: 0,
+                        maxLife: 600 + Math.random() * 400
+                    };
+                };
+
                 let rotationY = 0;
-                let lastPinchDist = 0;
-
-                const onMouseDown = (e) => {
-                    isDragging = true;
-                    prevMouseX = e.clientX;
-                    prevMouseY = e.clientY;
-                };
-
-                const onMouseMove = (e) => {
-                    if (!isDragging) return;
-                    const deltaX = e.clientX - prevMouseX;
-                    const deltaY = e.clientY - prevMouseY;
-                    rotationY += deltaX * 0.005;
-                    rotationX += deltaY * 0.005;
-                    rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
-                    prevMouseX = e.clientX;
-                    prevMouseY = e.clientY;
-                };
-
-                const onMouseUp = () => {
-                    isDragging = false;
-                };
-
-                const onWheel = (e) => {
-                    e.preventDefault();
-                    camera.position.z += e.deltaY * 0.002;
-                    camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
-                };
-
-                // Touch events
-                const onTouchStart = (e) => {
-                    if (e.touches.length === 1) {
-                        isDragging = true;
-                        prevMouseX = e.touches[0].clientX;
-                        prevMouseY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        lastPinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                    }
-                };
-
-                const onTouchMove = (e) => {
-                    e.preventDefault();
-                    if (e.touches.length === 1 && isDragging) {
-                        const deltaX = e.touches[0].clientX - prevMouseX;
-                        const deltaY = e.touches[0].clientY - prevMouseY;
-                        rotationY += deltaX * 0.005;
-                        rotationX += deltaY * 0.005;
-                        rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
-                        prevMouseX = e.touches[0].clientX;
-                        prevMouseY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        const pinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                        const delta = lastPinchDist - pinchDist;
-                        camera.position.z += delta * 0.01;
-                        camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
-                        lastPinchDist = pinchDist;
-                    }
-                };
-
-                const onTouchEnd = () => {
-                    isDragging = false;
-                };
-
-                renderer.domElement.addEventListener('mousedown', onMouseDown);
-                renderer.domElement.addEventListener('mousemove', onMouseMove);
-                renderer.domElement.addEventListener('mouseup', onMouseUp);
-                renderer.domElement.addEventListener('mouseleave', onMouseUp);
-                renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
-                renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-                renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
-                renderer.domElement.addEventListener('touchend', onTouchEnd);
-
+                let lastPlaneSpawn = 0;
                 setLoading(false);
 
-                // Animation
                 let animationId;
                 const animate = () => {
                     animationId = requestAnimationFrame(animate);
+                    rotationY += 0.005;
+                    globe.rotation.y = rotationY;
+                    clouds.rotation.y = rotationY + 0.1;
 
-                    if (!isDragging) {
-                        rotationY += 0.002;
+                    // Rare plane spawning (average every 15-30 seconds, max 2 planes)
+                    if (planes.length < 2 && Math.random() < 0.001) {
+                        planes.push(createPlane());
                     }
 
-                    globe.rotation.x = rotationX;
-                    globe.rotation.y = rotationY;
-                    clouds.rotation.x = rotationX;
-                    clouds.rotation.y = rotationY + 0.1;
+                    // Update planes
+                    for (let i = planes.length - 1; i >= 0; i--) {
+                        const p = planes[i];
+                        p.angle += p.speed;
+                        p.life++;
+
+                        // Position on tilted orbit
+                        const x = Math.cos(p.angle) * p.radius;
+                        const y = Math.sin(p.angle) * Math.sin(p.tilt) * p.radius;
+                        const z = Math.sin(p.angle) * Math.cos(p.tilt) * p.radius;
+                        p.mesh.position.set(x, y, z);
+
+                        // Point plane in direction of travel
+                        const nextAngle = p.angle + p.speed * 10;
+                        const nx = Math.cos(nextAngle) * p.radius;
+                        const ny = Math.sin(nextAngle) * Math.sin(p.tilt) * p.radius;
+                        const nz = Math.sin(nextAngle) * Math.cos(p.tilt) * p.radius;
+                        p.mesh.lookAt(nx, ny, nz);
+
+                        // Update contrail
+                        p.trailPositions.unshift({ x, y, z });
+                        if (p.trailPositions.length > 20) p.trailPositions.pop();
+                        const trailArr = p.trail.geometry.attributes.position.array;
+                        for (let j = 0; j < 20; j++) {
+                            const tp = p.trailPositions[j] || p.trailPositions[p.trailPositions.length - 1] || { x: 0, y: 0, z: 0 };
+                            trailArr[j * 3] = tp.x;
+                            trailArr[j * 3 + 1] = tp.y;
+                            trailArr[j * 3 + 2] = tp.z;
+                        }
+                        p.trail.geometry.attributes.position.needsUpdate = true;
+
+                        // Remove old planes
+                        if (p.life > p.maxLife) {
+                            scene.remove(p.mesh);
+                            planes.splice(i, 1);
+                        }
+                    }
 
                     renderer.render(scene, camera);
                 };
@@ -4350,14 +4741,7 @@
 
                 return () => {
                     cancelAnimationFrame(animationId);
-                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
-                    renderer.domElement.removeEventListener('mousemove', onMouseMove);
-                    renderer.domElement.removeEventListener('mouseup', onMouseUp);
-                    renderer.domElement.removeEventListener('mouseleave', onMouseUp);
-                    renderer.domElement.removeEventListener('wheel', onWheel);
-                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
-                    renderer.domElement.removeEventListener('touchmove', onTouchMove);
-                    renderer.domElement.removeEventListener('touchend', onTouchEnd);
+                    planes.forEach(p => scene.remove(p.mesh));
                     renderer.dispose();
                     if (containerRef.current && renderer.domElement) {
                         containerRef.current.removeChild(renderer.domElement);
@@ -4365,25 +4749,265 @@
                 };
             }, []);
 
+            // Update visuals when upgrades change
+            useEffect(() => {
+                if (!globeRef.current || !sceneRef.current) return;
+                const globe = globeRef.current;
+                const scene = sceneRef.current;
+                const positions = globe.geometry.attributes.position;
+                const colors = globe.geometry.attributes.color;
+
+                // Simplified but accurate land detection for visual updates
+                const isLandAt = (lat, lon) => {
+                    // North America
+                    if (lat > 49 && lat < 75 && lon > -170 && lon < -52) return true;
+                    if (lat > 24 && lat < 50 && lon > -130 && lon < -65) return true;
+                    if (lat > 14 && lat < 33 && lon > -118 && lon < -86) return true;
+                    if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
+                    // South America
+                    if (lat > -5 && lat < 12 && lon > -82 && lon < -35) return true;
+                    if (lat > -56 && lat < 0 && lon > -82 && lon < -35) return true;
+                    // Europe
+                    if (lat > 35 && lat < 72 && lon > -12 && lon < 60) return true;
+                    // Africa
+                    if (lat > -35 && lat < 38 && lon > -18 && lon < 52) return true;
+                    // Middle East & Central Asia
+                    if (lat > 12 && lat < 55 && lon > 34 && lon < 88) return true;
+                    // Asia
+                    if (lat > 5 && lat < 78 && lon > 60 && lon < 180) return true;
+                    if (lat > 65 && lat < 78 && lon > -180 && lon < -168) return true;
+                    // Oceania
+                    if (lat > -47 && lat < -10 && lon > 112 && lon < 180) return true;
+                    if (lat > -12 && lat < 10 && lon > 95 && lon < 156) return true;
+                    // Greenland/Iceland
+                    if (lat > 59 && lat < 84 && lon > -74 && lon < -10) return true;
+                    // Antarctica
+                    if (lat < -62) return true;
+                    return false;
+                };
+
+                for (let i = 0; i < positions.count; i++) {
+                    const x = positions.getX(i);
+                    const y = positions.getY(i);
+                    const z = positions.getZ(i);
+                    const lat = Math.asin(y) * (180 / Math.PI);
+                    const lon = Math.atan2(x, z) * (180 / Math.PI);
+                    const isLand = isLandAt(lat, lon);
+
+                    let landR = 0.15, landG = 0.15, landB = 0.15;
+                    let oceanR = 0.5, oceanG = 0.5, oceanB = 0.5;
+
+                    if (gameState.upgrades.godMode) {
+                        const t = (Date.now() * 0.001 + i * 0.1) % (Math.PI * 2);
+                        landR = Math.sin(t) * 0.5 + 0.5;
+                        landG = Math.sin(t + 2) * 0.5 + 0.5;
+                        landB = Math.sin(t + 4) * 0.5 + 0.5;
+                        oceanR = 1 - landR;
+                        oceanG = 1 - landG;
+                        oceanB = 1 - landB;
+                    } else if (gameState.upgrades.rainbowPlanet) {
+                        const hue = ((lon + 180) / 360);
+                        const rgb = hslToRgb(hue, 1, isLand ? 0.3 : 0.6);
+                        colors[i * 3] = rgb[0];
+                        colors[i * 3 + 1] = rgb[1];
+                        colors[i * 3 + 2] = rgb[2];
+                        continue;
+                    } else if (gameState.upgrades.neonPlanet) {
+                        landR = 0; landG = 1; landB = 0.8;
+                        oceanR = 0.8; oceanG = 0; oceanB = 1;
+                    } else if (gameState.upgrades.goldPlanet) {
+                        landR = 1; landG = 0.84; landB = 0;
+                        oceanR = 0.7; oceanG = 0.5; oceanB = 0.2;
+                    }
+
+                    if (isLand) {
+                        colors.array[i * 3] = landR;
+                        colors.array[i * 3 + 1] = landG;
+                        colors.array[i * 3 + 2] = landB;
+                    } else {
+                        colors.array[i * 3] = oceanR;
+                        colors.array[i * 3 + 1] = oceanG;
+                        colors.array[i * 3 + 2] = oceanB;
+                    }
+                }
+                colors.needsUpdate = true;
+
+                // Add fire rings
+                if (gameState.upgrades.fireRings && ringsRef.current.length === 0) {
+                    for (let i = 0; i < 3; i++) {
+                        const ringGeo = new THREE.TorusGeometry(1.3 + i * 0.15, 0.02, 8, 32);
+                        const ringMat = new THREE.MeshBasicMaterial({
+                            color: i === 0 ? 0xff4400 : i === 1 ? 0xff8800 : 0xffaa00,
+                            transparent: true,
+                            opacity: 0.7
+                        });
+                        const ring = new THREE.Mesh(ringGeo, ringMat);
+                        ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.3;
+                        scene.add(ring);
+                        ringsRef.current.push(ring);
+                    }
+                }
+
+                // Add moon
+                if (gameState.upgrades.moon && !scene.getObjectByName('moon')) {
+                    const moonGeo = new THREE.IcosahedronGeometry(0.15, 2);
+                    const moonMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+                    const moon = new THREE.Mesh(moonGeo, moonMat);
+                    moon.name = 'moon';
+                    moon.position.set(2, 0, 0);
+                    scene.add(moon);
+                }
+
+                // Add particles
+                if (gameState.upgrades.particles && !particlesRef.current) {
+                    const particleGeo = new THREE.BufferGeometry();
+                    const particlePos = [];
+                    for (let i = 0; i < 100; i++) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        const r = 1.5 + Math.random() * 0.5;
+                        particlePos.push(
+                            r * Math.sin(phi) * Math.cos(theta),
+                            r * Math.cos(phi),
+                            r * Math.sin(phi) * Math.sin(theta)
+                        );
+                    }
+                    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePos, 3));
+                    const particleMat = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.03 });
+                    const particles = new THREE.Points(particleGeo, particleMat);
+                    particles.name = 'particles';
+                    scene.add(particles);
+                    particlesRef.current = particles;
+                }
+
+            }, [gameState.upgrades]);
+
+            // HSL to RGB helper
+            const hslToRgb = (h, s, l) => {
+                let r, g, b;
+                if (s === 0) { r = g = b = l; }
+                else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1/6) return p + (q - p) * 6 * t;
+                        if (t < 1/2) return q;
+                        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    };
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+                return [r, g, b];
+            };
+
+            const purchasedCount = Object.values(gameState.upgrades).filter(Boolean).length;
+            const totalUpgrades = Object.keys(gameState.upgrades).length;
+
             return (
                 <div className="h-full flex flex-col bg-black select-none">
                     <div className="p-2 border-b-2 border-white bg-black flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <Icons.Globe size={24} />
-                            <span className="font-mono text-xs font-bold text-white">MAP.EXE</span>
+                            <span className="font-mono text-xs font-bold text-white">PLANET CLICKER</span>
                         </div>
-                        <span className="font-mono text-[10px] text-gray-400 hidden md:block">DRAG TO ROTATE • SCROLL TO ZOOM</span>
-                        <span className="font-mono text-[10px] text-gray-400 md:hidden">DRAG • PINCH ZOOM</span>
+                        <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs text-yellow-400 font-bold">{formatNumber(gameState.clicks)}</span>
+                            <button
+                                onClick={() => setShowShop(!showShop)}
+                                className="px-2 py-1 bg-yellow-500 text-black font-mono text-[10px] font-bold hover:bg-yellow-400 border border-yellow-300"
+                            >
+                                SHOP
+                            </button>
+                        </div>
                     </div>
-                    <div ref={containerRef} className="flex-grow relative">
-                        {loading && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black">
-                                <span className="font-mono text-white animate-pulse">LOADING EARTH...</span>
+
+                    <div className="flex-grow relative">
+                        <div
+                            ref={containerRef}
+                            className="absolute inset-0 cursor-pointer"
+                            onClick={handleGlobeClick}
+                        >
+                            {loading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black">
+                                    <span className="font-mono text-white animate-pulse">LOADING...</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Click effect */}
+                        {clickEffect && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-ping">
+                                <span className="font-mono text-2xl font-bold text-yellow-400">+{formatNumber(clickEffect.value)}</span>
+                            </div>
+                        )}
+
+                        {/* Stats overlay */}
+                        <div className="absolute top-2 left-2 bg-black/80 border border-white/30 p-2 font-mono text-[10px]">
+                            <div className="text-gray-400">CLICK POWER: <span className="text-green-400">{gameState.clickPower}x{gameState.clickMultiplier}</span></div>
+                            <div className="text-gray-400">AUTO/SEC: <span className="text-cyan-400">{gameState.autoClickers * gameState.clickMultiplier}</span></div>
+                            <div className="text-gray-400">TOTAL: <span className="text-yellow-400">{formatNumber(gameState.totalClicks)}</span></div>
+                            <div className="text-gray-400">UNLOCKS: <span className="text-purple-400">{purchasedCount}/{totalUpgrades}</span></div>
+                        </div>
+
+                        {/* Shop panel */}
+                        {showShop && (
+                            <div className="absolute inset-0 bg-black/95 overflow-auto">
+                                <div className="p-4">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-mono text-lg font-bold text-yellow-400">UPGRADE SHOP</span>
+                                        <button
+                                            onClick={() => setShowShop(false)}
+                                            className="px-3 py-1 bg-red-600 text-white font-mono text-xs hover:bg-red-500"
+                                        >
+                                            CLOSE
+                                        </button>
+                                    </div>
+                                    <div className="font-mono text-xs text-gray-400 mb-4">
+                                        BALANCE: <span className="text-yellow-400 font-bold">{formatNumber(gameState.clicks)}</span>
+                                    </div>
+
+                                    {shopItems.map(category => (
+                                        <div key={category.category} className="mb-4">
+                                            <div className="font-mono text-xs font-bold text-white border-b border-white/30 pb-1 mb-2">
+                                                {category.category}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {category.items.map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => buyUpgrade(item)}
+                                                        disabled={!canBuy(item)}
+                                                        className={`p-2 border text-left font-mono text-[10px] transition-all ${
+                                                            gameState.upgrades[item.id]
+                                                                ? 'bg-green-900/50 border-green-500 text-green-400'
+                                                                : isLocked(item)
+                                                                    ? 'bg-gray-900 border-gray-700 text-gray-600 cursor-not-allowed'
+                                                                    : canBuy(item)
+                                                                        ? 'bg-yellow-900/30 border-yellow-500 hover:bg-yellow-800/50 text-yellow-400 cursor-pointer'
+                                                                        : 'bg-gray-900 border-gray-600 text-gray-500'
+                                                        }`}
+                                                    >
+                                                        <div className="font-bold">{item.name}</div>
+                                                        <div className="text-[8px] opacity-70">{item.desc}</div>
+                                                        <div className={`mt-1 ${gameState.upgrades[item.id] ? 'text-green-400' : 'text-yellow-300'}`}>
+                                                            {gameState.upgrades[item.id] ? 'OWNED' : isLocked(item) ? 'LOCKED' : formatNumber(item.cost)}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
+
                     <div className="p-2 border-t-2 border-white bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-500">LOW_POLY_EARTH v1.0</span>
+                        <span className="font-mono text-[10px] text-gray-500">TAP PLANET TO EARN • BUY UPGRADES IN SHOP</span>
                     </div>
                 </div>
             );
@@ -4641,54 +5265,207 @@
             );
         };
 
-        // --- APPS Folder - Grid of all apps ---
+        // --- PERSONAL.EXE - Password Protected (never opens) ---
+        const PersonalApp = () => {
+            const [password, setPassword] = useState('');
+            const [attempts, setAttempts] = useState(0);
+            const [error, setError] = useState('');
+            const [shaking, setShaking] = useState(false);
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setAttempts(a => a + 1);
+                setShaking(true);
+                setTimeout(() => setShaking(false), 500);
+
+                const errors = [
+                    'ACCESS DENIED',
+                    'INVALID CREDENTIALS',
+                    'AUTHENTICATION FAILED',
+                    'PERMISSION DENIED',
+                    'UNAUTHORIZED ACCESS',
+                    'INCORRECT PASSWORD',
+                    'SECURITY VIOLATION',
+                    'ACCESS RESTRICTED',
+                    'VERIFICATION FAILED',
+                    'ENTRY PROHIBITED'
+                ];
+                setError(errors[Math.floor(Math.random() * errors.length)]);
+                setPassword('');
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-black select-none">
+                    <div className="p-2 border-b border-red-900 bg-black flex items-center gap-2">
+                        <Icons.Lock size={20} />
+                        <span className="font-mono text-xs font-bold text-red-500">PERSONAL.EXE</span>
+                        <span className="font-mono text-[10px] text-red-700">ENCRYPTED</span>
+                    </div>
+                    <div className="flex-grow flex flex-col items-center justify-center p-8">
+                        <div className="mb-8">
+                            <Icons.Lock size={64} />
+                        </div>
+                        <div className="font-mono text-red-500 text-lg font-bold mb-2">SECURE AREA</div>
+                        <div className="font-mono text-red-700 text-[10px] mb-6">AUTHORIZATION REQUIRED</div>
+
+                        <form onSubmit={handleSubmit} className={`w-64 ${shaking ? 'animate-shake' : ''}`}>
+                            <div className="mb-4">
+                                <input
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="ENTER PASSWORD"
+                                    className="w-full px-4 py-2 bg-black border-2 border-red-800 text-red-500 font-mono text-sm placeholder-red-900 focus:outline-none focus:border-red-500"
+                                />
+                            </div>
+                            <button
+                                type="submit"
+                                className="w-full px-4 py-2 bg-red-900 text-red-100 font-mono text-sm font-bold hover:bg-red-800 border-2 border-red-700"
+                            >
+                                AUTHENTICATE
+                            </button>
+                        </form>
+
+                        {error && (
+                            <div className="mt-6 p-3 border border-red-800 bg-red-950">
+                                <div className="font-mono text-red-500 text-sm font-bold">{error}</div>
+                            </div>
+                        )}
+
+                        {attempts > 0 && (
+                            <div className="mt-4 font-mono text-red-800 text-[10px]">
+                                FAILED ATTEMPTS: {attempts}
+                            </div>
+                        )}
+
+                        {attempts >= 5 && (
+                            <div className="mt-2 font-mono text-red-600 text-[10px] animate-pulse">
+                                WARNING: SECURITY PROTOCOL ACTIVATED
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-2 border-t border-red-900 text-center">
+                        <span className="font-mono text-[10px] text-red-800">CLASSIFIED • TOP SECRET • EYES ONLY</span>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- APPS Folder - Grid of all apps organized in folders ---
         const AppsFolder = ({ onOpenApp }) => {
-            const apps = [
-                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
-                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
-                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
-                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
-                { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
-                { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
-                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
-                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
-                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
-                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
-                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
-                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
-                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
-                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
-                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
-                { id: 'DOG', title: 'DOG.EXE', icon: 'Dog' },
-                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
-                { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+            const [selectedFolder, setSelectedFolder] = useState(null);
+
+            const folders = [
+                { key: 'GAMES', name: 'GAMES', icon: 'Games' },
+                { key: 'PRODUCTIVITY', name: 'PRODUCTIVITY', icon: 'Apps' },
+                { key: 'ABOUT', name: 'ABOUT', icon: 'Terminal' }
             ];
+
+            const APP_CATEGORIES = {
+                GAMES: [
+                    { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
+                    { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
+                    { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
+                    { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
+                    { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' }
+                ],
+                PRODUCTIVITY: [
+                    { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
+                    { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
+                    { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
+                    { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
+                    { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
+                    { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
+                    { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
+                    { id: 'VOID', title: 'VOID.TXT', icon: 'Void' }
+                ],
+                ABOUT: [
+                    { id: 'SYSTEM', title: 'ABOUT_SHORTCUT.EXE', icon: 'Terminal', isShortcut: true },
+                    { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
+                    { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
+                    { id: 'PERSONAL', title: 'PERSONAL.EXE', icon: 'Lock' },
+                    { id: 'DOG', title: 'DOG.EXE', icon: 'Dog' },
+                    { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
+                    { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+                ]
+            };
+
+            if (selectedFolder) {
+                const FolderIcon = Icons[folders.find(f => f.key === selectedFolder)?.icon || 'FolderClosed'];
+                const apps = APP_CATEGORIES[selectedFolder];
+                return (
+                    <div className="h-full flex flex-col bg-white select-none">
+                        <div className="p-2 border-b-2 border-black bg-white flex items-center gap-3">
+                            <button onClick={() => setSelectedFolder(null)} className="p-1 border-2 border-black hover:bg-black hover:text-white">
+                                <Icons.Back size={16} />
+                            </button>
+                            <FolderIcon size={24} />
+                            <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
+                            <span className="font-mono text-[10px] text-gray-500">({apps.length} ITEMS)</span>
+                        </div>
+                        <div className="flex-grow overflow-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead className="bg-black text-white text-xs font-mono sticky top-0">
+                                    <tr><th className="p-2">NAME</th><th className="p-2 border-l border-gray-600">TYPE</th></tr>
+                                </thead>
+                                <tbody className="font-mono text-xs">
+                                    {apps.map((app, idx) => {
+                                        const AppIcon = Icons[app.icon];
+                                        return (
+                                            <tr key={idx}
+                                                onClick={() => onOpenApp(app.id)}
+                                                className="border-b border-gray-200 hover:bg-yellow-100 cursor-pointer"
+                                            >
+                                                <td className="p-2 font-bold flex items-center gap-2">
+                                                    <AppIcon size={20} />
+                                                    {app.title}
+                                                    {app.isShortcut && <span className="text-[8px] text-gray-400 ml-1">(SHORTCUT)</span>}
+                                                </td>
+                                                <td className="p-2 border-l border-gray-200 text-gray-500">
+                                                    {app.title.split('.').pop()}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="p-2 border-t-2 border-black bg-white text-center">
+                            <span className="font-mono text-[10px] text-gray-500">CLICK TO OPEN • DOUBLE-CLICK TO RUN</span>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
                         <Icons.Apps size={24} />
                         <span className="font-mono text-xs font-bold">APPS</span>
-                        <span className="font-mono text-xs text-gray-400">({apps.length} items)</span>
+                        <span className="font-mono text-[10px] text-gray-500">/ROOT/APPS</span>
                     </div>
-                    <div className="flex-grow p-6 overflow-auto bg-gray-50">
-                        <div className="grid grid-cols-4 gap-6">
-                            {apps.map(app => {
-                                const AppIcon = Icons[app.icon];
+                    <div className="flex-grow p-6 flex items-start justify-center bg-gray-50">
+                        <div className="grid grid-cols-3 gap-8">
+                            {folders.map(folder => {
+                                const FolderIcon = Icons[folder.icon];
                                 return (
                                     <button
-                                        key={app.id}
-                                        onClick={() => onOpenApp(app.id)}
+                                        key={folder.key}
+                                        onClick={() => setSelectedFolder(folder.key)}
                                         className="group flex flex-col items-center gap-2 p-4 hover:bg-white border-2 border-transparent hover:border-black transition-all"
                                     >
                                         <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
-                                            <AppIcon size={32} />
+                                            <FolderIcon size={48} />
                                         </div>
-                                        <span className="font-mono text-[10px] font-bold uppercase text-center">{app.title}</span>
+                                        <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
+                                        <span className="font-mono text-[10px] text-gray-500">{APP_CATEGORIES[folder.key].length} ITEMS</span>
                                     </button>
                                 );
                             })}
                         </div>
+                    </div>
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">GAMES • PRODUCTIVITY • ABOUT</span>
                     </div>
                 </div>
             );
@@ -4879,7 +5656,8 @@
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
-                "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 }
+                "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
+                "PERSONAL": { id: "PERSONAL", title: "PERSONAL.EXE", icon: "Lock", x: 200, y: 80, w: '400px', h: '500px', isOpen: false, isMin: false, z: 32 }
             });
 
             // Render window content based on ID
@@ -4907,6 +5685,7 @@
                     case "MAP": return <MapApp />;
                     case "POMODORO": return <PomodoroApp />;
                     case "SCANNER": return <HealthScannerApp />;
+                    case "PERSONAL": return <PersonalApp />;
                     default: return null;
                 }
             };
