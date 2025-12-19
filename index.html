@@ -1131,17 +1131,17 @@
             const [lines, setLines] = useState([]);
             const [currentText, setCurrentText] = useState('');
             const inputRef = useRef(null);
+            const autoEncryptTimer = useRef(null);
 
             const encryptChar = () => {
                 const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
                 return chars[Math.floor(Math.random() * chars.length)];
             };
 
-            const submitLine = () => {
-                if (!currentText.trim()) return;
+            const submitLine = (text) => {
+                if (!text || !text.trim()) return;
 
                 const lineId = Date.now();
-                const text = currentText;
                 const textLength = text.length;
 
                 // Add the line
@@ -1154,48 +1154,65 @@
                 }]);
                 setCurrentText('');
 
-                // Start encrypting after 3 seconds
-                setTimeout(() => {
-                    let idx = 0;
-                    const encryptInterval = setInterval(() => {
-                        if (idx >= textLength) {
-                            clearInterval(encryptInterval);
-                            // Start fading
-                            setTimeout(() => {
-                                let fadeOp = 1;
-                                const fadeInterval = setInterval(() => {
-                                    fadeOp -= 0.1;
-                                    if (fadeOp <= 0) {
-                                        clearInterval(fadeInterval);
-                                        setLines(prev => prev.filter(l => l.id !== lineId));
-                                    } else {
-                                        setLines(prev => prev.map(l =>
-                                            l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
-                                        ));
-                                    }
-                                }, 80);
-                            }, 200);
-                            return;
-                        }
+                // Start encrypting immediately
+                let idx = 0;
+                const encryptInterval = setInterval(() => {
+                    if (idx >= textLength) {
+                        clearInterval(encryptInterval);
+                        // Start fading
+                        setTimeout(() => {
+                            let fadeOp = 1;
+                            const fadeInterval = setInterval(() => {
+                                fadeOp -= 0.1;
+                                if (fadeOp <= 0) {
+                                    clearInterval(fadeInterval);
+                                    setLines(prev => prev.filter(l => l.id !== lineId));
+                                } else {
+                                    setLines(prev => prev.map(l =>
+                                        l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
+                                    ));
+                                }
+                            }, 80);
+                        }, 200);
+                        return;
+                    }
 
-                        setLines(prev => prev.map(l => {
-                            if (l.id !== lineId) return l;
-                            const encrypted = l.originalText.split('').map((c, i) =>
-                                i <= idx ? encryptChar() : c
-                            ).join('');
-                            return { ...l, displayText: encrypted, phase: 'encrypting' };
-                        }));
-                        idx++;
-                    }, 50);
-                }, 3000);
+                    setLines(prev => prev.map(l => {
+                        if (l.id !== lineId) return l;
+                        const encrypted = l.originalText.split('').map((c, i) =>
+                            i <= idx ? encryptChar() : c
+                        ).join('');
+                        return { ...l, displayText: encrypted, phase: 'encrypting' };
+                    }));
+                    idx++;
+                }, 50);
             };
 
-            const handleKeyDown = (e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    submitLine();
+            const handleTextChange = (e) => {
+                const newText = e.target.value;
+                setCurrentText(newText);
+
+                // Clear existing timer
+                if (autoEncryptTimer.current) {
+                    clearTimeout(autoEncryptTimer.current);
+                }
+
+                // Set new timer to auto-encrypt after 1.5 seconds
+                if (newText.trim()) {
+                    autoEncryptTimer.current = setTimeout(() => {
+                        submitLine(newText);
+                    }, 1500);
                 }
             };
+
+            // Cleanup timer on unmount
+            useEffect(() => {
+                return () => {
+                    if (autoEncryptTimer.current) {
+                        clearTimeout(autoEncryptTimer.current);
+                    }
+                };
+            }, []);
 
             return (
                 <div
@@ -1227,8 +1244,7 @@
                                 ref={inputRef}
                                 type="text"
                                 value={currentText}
-                                onChange={(e) => setCurrentText(e.target.value)}
-                                onKeyDown={handleKeyDown}
+                                onChange={handleTextChange}
                                 className="bg-transparent outline-none flex-grow text-white caret-white"
                                 autoFocus
                                 onPaste={(e) => e.preventDefault()}
@@ -1237,7 +1253,7 @@
                         </div>
                     </div>
                     <div className="p-2 border-t border-gray-800 bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-600">WRITE INTO THE VOID. WATCH IT DISAPPEAR.</span>
+                        <span className="font-mono text-[10px] text-gray-600">TYPE INTO THE VOID. IT DISAPPEARS AUTOMATICALLY.</span>
                     </div>
                 </div>
             );
