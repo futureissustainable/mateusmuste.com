@@ -4262,169 +4262,16 @@
             );
         };
 
-        // --- HEALTH_SCANNER.EXE - Retro health scanner ---
+        // --- HEALTH_SCANNER.EXE - Embedded health score app ---
         const HealthScannerApp = () => {
-            const [scanning, setScanning] = useState(false);
-            const [scanProgress, setScanProgress] = useState(0);
-            const [results, setResults] = useState(null);
-            const [heartRate, setHeartRate] = useState(72);
-
-            useEffect(() => {
-                if (!scanning) return;
-
-                const interval = setInterval(() => {
-                    setScanProgress(prev => {
-                        if (prev >= 100) {
-                            setScanning(false);
-                            setResults({
-                                status: 'OPTIMAL',
-                                vitals: {
-                                    heart: Math.floor(68 + Math.random() * 12),
-                                    oxygen: Math.floor(96 + Math.random() * 4),
-                                    stress: Math.floor(15 + Math.random() * 25),
-                                    energy: Math.floor(70 + Math.random() * 30),
-                                    focus: Math.floor(75 + Math.random() * 25),
-                                    hydration: Math.floor(60 + Math.random() * 40)
-                                }
-                            });
-                            return 100;
-                        }
-                        return prev + 2;
-                    });
-                }, 50);
-
-                return () => clearInterval(interval);
-            }, [scanning]);
-
-            // Heartbeat animation
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setHeartRate(prev => Math.floor(68 + Math.random() * 12));
-                }, 1000);
-                return () => clearInterval(interval);
-            }, []);
-
-            const startScan = () => {
-                setScanning(true);
-                setScanProgress(0);
-                setResults(null);
-            };
-
-            const renderHeartbeat = () => {
-                const points = [];
-                for (let i = 0; i < 20; i++) {
-                    let y = 16;
-                    if (i === 5 || i === 15) y = 8;
-                    if (i === 6 || i === 16) y = 24;
-                    if (i === 7 || i === 17) y = 16;
-                    points.push(`${i * 8},${y}`);
-                }
-                return points.join(' ');
-            };
-
             return (
-                <div className="h-full flex flex-col bg-black select-none text-green-400">
-                    <div className="p-2 border-b-2 border-green-500 bg-black flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                            <Icons.HealthScanner size={24} />
-                            <span className="font-mono text-xs font-bold">HEALTH_SCANNER.EXE</span>
-                        </div>
-                        <span className="font-mono text-[10px]">v2.0.77</span>
-                    </div>
-
-                    <div className="flex-grow p-4 overflow-auto font-mono text-xs">
-                        {/* ECG Line */}
-                        <div className="mb-4 p-2 border border-green-500/50 bg-green-900/20">
-                            <svg width="100%" height="32" viewBox="0 0 160 32" preserveAspectRatio="none">
-                                <polyline
-                                    points={renderHeartbeat()}
-                                    fill="none"
-                                    stroke="#22c55e"
-                                    strokeWidth="2"
-                                    className={scanning ? 'animate-pulse' : ''}
-                                />
-                            </svg>
-                        </div>
-
-                        {!scanning && !results && (
-                            <div className="text-center py-8">
-                                <div className="mb-4 text-lg">BIOMETRIC SCANNER READY</div>
-                                <div className="mb-6 text-green-600 text-[10px]">
-                                    INITIALIZING QUANTUM HEALTH MATRIX...<br />
-                                    CALIBRATING VITAL SENSORS...<br />
-                                    SYSTEM READY
-                                </div>
-                                <button
-                                    onClick={startScan}
-                                    className="px-8 py-3 bg-green-500 text-black font-bold hover:bg-green-400 border-2 border-green-400"
-                                >
-                                    BEGIN SCAN
-                                </button>
-                            </div>
-                        )}
-
-                        {scanning && (
-                            <div className="text-center py-4">
-                                <div className="mb-4 animate-pulse">SCANNING BIOMETRICS...</div>
-                                <div className="w-full h-4 bg-green-900 border border-green-500 mb-2">
-                                    <div
-                                        className="h-full bg-green-500 transition-all"
-                                        style={{ width: `${scanProgress}%` }}
-                                    />
-                                </div>
-                                <div className="text-[10px] text-green-600">{scanProgress}% COMPLETE</div>
-                                <div className="mt-4 text-[10px] text-green-700 animate-pulse">
-                                    {scanProgress < 25 && 'ANALYZING HEART RHYTHM...'}
-                                    {scanProgress >= 25 && scanProgress < 50 && 'MEASURING OXYGEN SATURATION...'}
-                                    {scanProgress >= 50 && scanProgress < 75 && 'CALCULATING STRESS LEVELS...'}
-                                    {scanProgress >= 75 && 'COMPILING RESULTS...'}
-                                </div>
-                            </div>
-                        )}
-
-                        {results && (
-                            <div className="space-y-3">
-                                <div className="text-center mb-4">
-                                    <div className="text-2xl font-bold text-green-400">SCAN COMPLETE</div>
-                                    <div className={`text-lg ${results.status === 'OPTIMAL' ? 'text-green-300' : 'text-yellow-400'}`}>
-                                        STATUS: {results.status}
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-2">
-                                    {Object.entries(results.vitals).map(([key, value]) => (
-                                        <div key={key} className="p-2 border border-green-500/50 bg-green-900/10">
-                                            <div className="text-[10px] text-green-600 uppercase">{key}</div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex-grow h-2 bg-green-900">
-                                                    <div
-                                                        className="h-full bg-green-500"
-                                                        style={{ width: `${key === 'heart' ? (value/120)*100 : value}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-sm font-bold">
-                                                    {key === 'heart' ? `${value} BPM` : `${value}%`}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <button
-                                    onClick={startScan}
-                                    className="w-full mt-4 px-4 py-2 bg-green-900 text-green-400 font-bold hover:bg-green-800 border border-green-500"
-                                >
-                                    RESCAN
-                                </button>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="p-2 border-t-2 border-green-500 bg-black text-center">
-                        <span className="font-mono text-[10px] text-green-700">
-                            HEART: {heartRate} BPM • {new Date().toLocaleTimeString()}
-                        </span>
-                    </div>
+                <div className="h-full flex flex-col bg-white select-none">
+                    <iframe
+                        src="https://healthscore-2-0.vercel.app/"
+                        className="w-full h-full border-0"
+                        title="Health Scanner"
+                        allow="camera; microphone"
+                    />
                 </div>
             );
         };
@@ -4665,7 +4512,7 @@
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
-                "HEALTH": { id: "HEALTH", title: "HEALTH_SCANNER.EXE", icon: "HealthScanner", x: 250, y: 80, w: '400px', h: '450px', isOpen: false, isMin: false, z: 31 }
+                "HEALTH": { id: "HEALTH", title: "HEALTH_SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 }
             });
 
             // Render window content based on ID
