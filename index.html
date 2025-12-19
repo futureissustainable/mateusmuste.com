@@ -3934,85 +3934,51 @@
         const MapApp = () => {
             const canvasRef = useRef(null);
             const globeRef = useRef(null);
-            const phiRef = useRef(0);
-            const velocityRef = useRef(0.005);
-            const isHoveringRef = useRef(false);
-            const isDraggingRef = useRef(false);
-            const lastXRef = useRef(0);
 
             useEffect(() => {
                 if (!canvasRef.current) return;
 
-                const targetSpeed = 0.005;
-                const friction = 0.95;
-                const acceleration = 0.0002;
+                let phi = 0;
 
-                globeRef.current = window.COBE(canvasRef.current, {
+                const globe = createGlobe(canvasRef.current, {
                     devicePixelRatio: 2,
-                    width: 600,
-                    height: 600,
+                    width: 600 * 2,
+                    height: 600 * 2,
                     phi: 0,
-                    theta: 0.2,
-                    dark: 0,
+                    theta: 0,
+                    dark: 1,
                     diffuse: 1.2,
                     mapSamples: 16000,
                     mapBrightness: 6,
-                    baseColor: [0.9, 0.9, 0.9],
-                    markerColor: [0, 0, 0],
-                    glowColor: [1, 1, 1],
+                    baseColor: [0.3, 0.3, 0.3],
+                    markerColor: [1, 1, 1],
+                    glowColor: [0.1, 0.1, 0.1],
                     markers: [
-                        { location: [44.4268, 26.1025], size: 0.05 }, // Bucharest
+                        { location: [44.4268, 26.1025], size: 0.05 },
                     ],
                     onRender: (state) => {
-                        if (isDraggingRef.current) {
-                            // Don't auto-rotate while dragging
-                        } else if (isHoveringRef.current) {
-                            velocityRef.current *= friction;
-                        } else {
-                            if (velocityRef.current < targetSpeed) {
-                                velocityRef.current += acceleration;
-                            }
-                        }
-                        if (!isDraggingRef.current) {
-                            phiRef.current += velocityRef.current;
-                        }
-                        state.phi = phiRef.current;
+                        state.phi = phi;
+                        phi += 0.005;
                     }
                 });
 
+                globeRef.current = globe;
+
                 return () => {
-                    if (globeRef.current) globeRef.current.destroy();
+                    globe.destroy();
                 };
             }, []);
 
-            const handleMouseEnter = () => { isHoveringRef.current = true; };
-            const handleMouseLeave = () => { isHoveringRef.current = false; isDraggingRef.current = false; };
-            const handleMouseDown = (e) => { isDraggingRef.current = true; lastXRef.current = e.clientX; };
-            const handleMouseUp = () => { isDraggingRef.current = false; };
-            const handleMouseMove = (e) => {
-                if (isDraggingRef.current) {
-                    const delta = e.clientX - lastXRef.current;
-                    phiRef.current += delta * 0.005;
-                    lastXRef.current = e.clientX;
-                }
-            };
-
             return (
-                <div className="h-full flex flex-col bg-white select-none">
-                    <div className="flex-grow flex items-center justify-center bg-white p-4"
-                        onMouseEnter={handleMouseEnter}
-                        onMouseLeave={handleMouseLeave}
-                        onMouseDown={handleMouseDown}
-                        onMouseUp={handleMouseUp}
-                        onMouseMove={handleMouseMove}
-                    >
+                <div className="h-full flex flex-col bg-black select-none">
+                    <div className="flex-grow flex items-center justify-center">
                         <canvas
                             ref={canvasRef}
-                            style={{ width: '300px', height: '300px', cursor: 'grab' }}
+                            style={{ width: 300, height: 300, maxWidth: '100%', aspectRatio: 1, cursor: 'grab' }}
                         />
                     </div>
-                    <div className="p-2 border-t-2 border-black flex justify-between items-center">
-                        <span className="font-mono text-[10px] text-gray-500">DRAG TO ROTATE • HOVER TO SLOW</span>
+                    <div className="p-2 border-t border-white/20 text-center">
+                        <span className="font-mono text-[10px] text-gray-500">BUCHAREST, ROMANIA</span>
                     </div>
                 </div>
             );
