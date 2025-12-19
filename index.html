@@ -3943,6 +3943,8 @@
             const phiRef = useRef(0);
             const thetaRef = useRef(0.3);
             const scaleRef = useRef(1);
+            const isHoveringRef = useRef(false);
+            const rotationSpeedRef = useRef(0.003);
 
             const [gameStarted, setGameStarted] = useState(false);
             const [showShop, setShowShop] = useState(false);
@@ -3999,6 +4001,27 @@
                     return () => clearInterval(interval);
                 }
             }, [gameState.satellites, gameState.clickMultiplier, gameState.dogModeMultiplier]);
+
+            // Count visual satellites (1 per upgrade tier, max 6)
+            const getSatelliteCount = () => {
+                let count = 0;
+                if (gameState.upgrades.sat1) count++;
+                if (gameState.upgrades.sat2) count++;
+                if (gameState.upgrades.sat3) count++;
+                if (gameState.upgrades.sat4) count++;
+                if (gameState.upgrades.sat5) count++;
+                if (gameState.upgrades.sat6) count++;
+                return count;
+            };
+
+            // Count rings
+            const getRingCount = () => {
+                let count = 0;
+                if (gameState.upgrades.multi1) count++;
+                if (gameState.upgrades.multi2) count++;
+                if (gameState.upgrades.multi3) count++;
+                return count;
+            };
 
             // Shop items
             const shopItems = [
@@ -4095,7 +4118,7 @@
                 if (!canvasRef.current) return;
 
                 let globe = null;
-                const canvasSize = 280;
+                const canvasSize = 200;
 
                 const initGlobe = () => {
                     if (!window.createGlobe) {
@@ -4121,9 +4144,13 @@
                             { location: [44.4268, 26.1025], size: 0.05 },
                         ],
                         onRender: (state) => {
+                            // Smoothly slow down/speed up based on hover
+                            const targetSpeed = isHoveringRef.current ? 0.0005 : 0.003;
+                            rotationSpeedRef.current += (targetSpeed - rotationSpeedRef.current) * 0.05;
+
                             // Auto-rotate when not dragging
                             if (!pointerInteracting.current) {
-                                phiRef.current += 0.003;
+                                phiRef.current += rotationSpeedRef.current;
                             }
                             state.phi = phiRef.current;
                             state.theta = thetaRef.current;
@@ -4170,6 +4197,12 @@
                 scaleRef.current = Math.max(0.5, Math.min(2, scaleRef.current - e.deltaY * 0.001));
             };
 
+            const handleMouseEnter = () => { isHoveringRef.current = true; };
+            const handleMouseLeave = () => { isHoveringRef.current = false; };
+
+            const satelliteCount = getSatelliteCount();
+            const ringCount = getRingCount();
+
             return (
                 <div className="h-full flex flex-col bg-black select-none overflow-hidden">
                     {/* Header */}
@@ -4178,39 +4211,94 @@
                         {gameStarted ? (
                             <div className="flex items-center gap-3">
                                 <span className="font-mono text-xs text-white font-bold">{formatNumber(gameState.clicks)}</span>
-                                <button onClick={() => setShowShop(!showShop)} className="px-2 py-0.5 bg-white text-black font-mono text-[10px] font-bold hover:bg-gray-200">
+                                <button onClick={() => setShowShop(!showShop)} className="px-2 py-0.5 bg-white text-black font-mono text-[10px] font-bold border-2 border-white hover:invert">
                                     SHOP
                                 </button>
                             </div>
                         ) : (
-                            <span className="font-mono text-[10px] text-gray-500">DRAG • SCROLL • CLICK</span>
+                            <button
+                                onClick={() => setGameStarted(true)}
+                                className="px-2 py-0.5 bg-white text-black font-mono text-[10px] font-bold border-2 border-white hover:invert"
+                            >
+                                START MINING
+                            </button>
                         )}
                     </div>
 
                     {/* Globe container */}
                     <div ref={containerRef} className="flex-grow relative flex items-center justify-center">
-                        <canvas
-                            ref={canvasRef}
-                            style={{ width: 280, height: 280, cursor: 'grab' }}
-                            onPointerDown={handlePointerDown}
-                            onPointerUp={handlePointerUp}
-                            onPointerOut={handlePointerUp}
-                            onPointerMove={handlePointerMove}
-                            onWheel={handleWheel}
-                            onClick={handleGlobeClick}
-                        />
-
-                        {/* Start button */}
-                        {!gameStarted && globeReady && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <button
-                                    onClick={() => setGameStarted(true)}
-                                    className="pointer-events-auto px-4 py-2 bg-red-600 hover:bg-red-500 text-white font-mono text-xs font-bold border border-red-400"
-                                >
-                                    START MINING
-                                </button>
-                            </div>
+                        {/* Rings - behind globe */}
+                        {ringCount >= 1 && (
+                            <div
+                                className="absolute rounded-full border-2 border-white/30 pointer-events-none"
+                                style={{
+                                    width: 240, height: 240,
+                                    animation: 'spin 20s linear infinite'
+                                }}
+                            />
                         )}
+                        {ringCount >= 2 && (
+                            <div
+                                className="absolute rounded-full border-2 border-white/20 pointer-events-none"
+                                style={{
+                                    width: 280, height: 280,
+                                    animation: 'spin 30s linear infinite reverse'
+                                }}
+                            />
+                        )}
+                        {ringCount >= 3 && (
+                            <div
+                                className="absolute rounded-full border-2 border-white/15 pointer-events-none"
+                                style={{
+                                    width: 320, height: 320,
+                                    animation: 'spin 40s linear infinite'
+                                }}
+                            />
+                        )}
+
+                        {/* Globe wrapper for satellites to orbit around */}
+                        <div className="relative" style={{ width: 200, height: 200 }}>
+                            <canvas
+                                ref={canvasRef}
+                                style={{ width: 200, height: 200, cursor: 'grab' }}
+                                onPointerDown={handlePointerDown}
+                                onPointerUp={handlePointerUp}
+                                onPointerOut={handlePointerUp}
+                                onPointerMove={handlePointerMove}
+                                onWheel={handleWheel}
+                                onClick={handleGlobeClick}
+                                onMouseEnter={handleMouseEnter}
+                                onMouseLeave={handleMouseLeave}
+                            />
+
+                            {/* Orbiting satellites */}
+                            {Array.from({ length: satelliteCount }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="absolute pointer-events-none"
+                                    style={{
+                                        width: 200 + 40 + i * 20,
+                                        height: 200 + 40 + i * 20,
+                                        left: -(20 + i * 10),
+                                        top: -(20 + i * 10),
+                                        animation: `spin ${8 + i * 3}s linear infinite ${i % 2 === 0 ? '' : 'reverse'}`,
+                                        transform: `rotate(${i * 60}deg)`
+                                    }}
+                                >
+                                    <div
+                                        className="absolute bg-white"
+                                        style={{
+                                            width: 6,
+                                            height: 6,
+                                            top: 0,
+                                            left: '50%',
+                                            marginLeft: -3,
+                                            boxShadow: '0 0 4px #fff'
+                                        }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
 
                         {/* Click effect */}
                         {clickEffect && (
@@ -4267,6 +4355,14 @@
                             {gameStarted ? `POWER: ${gameState.clickPower} | AUTO: ${gameState.satellites}/s | MULTI: ${gameState.clickMultiplier}x` : 'BUCHAREST, ROMANIA'}
                         </span>
                     </div>
+
+                    {/* CSS for spin animation */}
+                    <style>{`
+                        @keyframes spin {
+                            from { transform: rotate(0deg); }
+                            to { transform: rotate(360deg); }
+                        }
+                    `}</style>
                 </div>
             );
         };
@@ -5259,7 +5355,7 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {/* DESKTOP ICONS - Only show main folders */}
-                    <div className={`absolute z-0 ${isMobile ? 'top-4 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
+                    <div className={`absolute z-0 ${isMobile ? 'top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
                         {desktopIcons.map(appId => {
                             const app = windows[appId];
                             if (!app) return null;
