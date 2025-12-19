@@ -1808,7 +1808,7 @@
                         </div>
                     </div>
                     <div className="flex-grow flex items-center justify-center p-2 md:p-4 bg-gray-50 overflow-hidden">
-                        <div className="relative border-2 border-black w-full h-full max-w-[600px] max-h-[400px]">
+                        <div className="relative border-2 border-black" style={{ width: 'min(100%, 600px)', aspectRatio: '3/2' }}>
                             <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} />
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
@@ -1976,8 +1976,26 @@
                 return () => window.removeEventListener('keydown', handle);
             }, []);
 
+            // Touch/swipe controls for mobile
+            const touchStartRef = useRef({ x: 0, y: 0 });
+            const handleTouchStart = (e) => {
+                touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            };
+            const handleTouchEnd = (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+                const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+                const threshold = 20;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > threshold) move(1, 0);
+                    else if (dx < -threshold) move(-1, 0);
+                } else {
+                    if (dy > threshold) move(0, 1);
+                    else if (dy < -threshold) move(0, -1);
+                }
+            };
+
             return (
-                <div className="h-full flex flex-col bg-white select-none">
+                <div className="h-full flex flex-col bg-white select-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                     <div className="h-8 px-3 flex justify-between items-center">
                         <span className="font-mono text-[10px] font-bold tracking-widest text-black">LABYRINTH</span>
                         <div className="flex gap-6 font-mono text-[10px]">
@@ -2004,7 +2022,8 @@
                         <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
                     </div>
                     <div className="h-8 px-3 flex justify-between items-center">
-                        <span className="font-mono text-[10px] text-gray-300">↑↓←→</span>
+                        <span className="font-mono text-[10px] text-gray-300 hidden md:inline">↑↓←→</span>
+                        <span className="font-mono text-[10px] text-gray-300 md:hidden">SWIPE TO MOVE</span>
                         <button
                             onClick={giveUp}
                             className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
