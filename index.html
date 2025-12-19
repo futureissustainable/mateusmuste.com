@@ -6034,50 +6034,53 @@
 
             const handleMouseUp = () => setDrag({ id: null, offsetX: 0, offsetY: 0 });
 
+            // Boot screen component with kernel messages and inversion
+            const BootScreen = () => {
+                const [lines, setLines] = useState([]);
+                const [inverted, setInverted] = useState(false);
+                const msgs = [
+                    'kernel: init ULTRA_INT v1.0.0',
+                    'kernel: loading core modules',
+                    'kernel: mounting filesystem',
+                    'kernel: starting display',
+                    'kernel: loading assets',
+                    'kernel: init window manager',
+                    'kernel: loading preferences',
+                    'kernel: starting services',
+                    'kernel: systems nominal',
+                    'kernel: boot complete'
+                ];
+                useEffect(() => {
+                    let i = 0;
+                    const iv = setInterval(() => {
+                        if (i < msgs.length) { setLines(p => [...p, msgs[i]]); i++; }
+                    }, 250);
+                    const inv = setTimeout(() => setInverted(true), 2500);
+                    return () => { clearInterval(iv); clearTimeout(inv); };
+                }, []);
+                return (
+                    <div className={`h-screen w-screen font-mono flex flex-col items-center justify-center transition-colors duration-500 ${inverted ? 'bg-white text-black' : 'bg-black text-white'}`}>
+                        <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{`
+██╗   ██╗██╗  ████████╗██████╗  █████╗     ██╗███╗   ██╗████████╗
+██║   ██║██║  ╚══██╔══╝██╔══██╗██╔══██╗    ██║████╗  ██║╚══██╔══╝
+██║   ██║██║     ██║   ██████╔╝███████║    ██║██╔██╗ ██║   ██║
+██║   ██║██║     ██║   ██╔══██╗██╔══██║    ██║██║╚██╗██║   ██║
+╚██████╔╝███████╗██║   ██║  ██║██║  ██║    ██║██║ ╚████║   ██║
+ ╚═════╝ ╚══════╝╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝   ╚═╝
+`}</pre>
+                        <div className={`text-[10px] tracking-[0.3em] mt-2 mb-10 ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>no side industries</div>
+                        <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {lines.map((l, i) => <div key={i}>{l}</div>)}
+                            {lines.length < msgs.length && <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />}
+                        </div>
+                    </div>
+                );
+            };
+
             // Boot screens
             if (!booted) {
                 if (bootPhase === 0) {
-                    return (
-                        <div className="h-screen w-screen bg-black text-white font-mono flex flex-col items-center justify-center overflow-hidden">
-                            <style>{`
-                                @keyframes glow {
-                                    0%, 100% { opacity: 0.4; filter: blur(0px); }
-                                    50% { opacity: 1; filter: blur(1px); }
-                                }
-                                @keyframes shimmer {
-                                    0% { background-position: -200% 0; }
-                                    100% { background-position: 200% 0; }
-                                }
-                                .boot-glow {
-                                    animation: glow 2s ease-in-out infinite;
-                                }
-                                .boot-shimmer {
-                                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-                                    background-size: 200% 100%;
-                                    animation: shimmer 2s linear infinite;
-                                }
-                            `}</style>
-                            <pre className="text-[8px] sm:text-[10px] md:text-xs leading-none boot-glow select-none">{`
- ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
- ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
- ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║
- ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║
- ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║
- ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝
-
- ██████╗  ██████╗  ██████╗ ████████╗
- ██╔══██╗██╔═══██╗██╔═══██╗╚══██╔══╝
- ██████╔╝██║   ██║██║   ██║   ██║
- ██╔══██╗██║   ██║██║   ██║   ██║
- ██████╔╝╚██████╔╝╚██████╔╝   ██║
- ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝
-`}</pre>
-                            <div className="mt-8 text-xs tracking-[0.3em] text-gray-500">ULTRA INT</div>
-                            <div className="mt-8 w-48 h-[2px] bg-gray-800 rounded overflow-hidden">
-                                <div className="h-full w-full boot-shimmer"></div>
-                            </div>
-                        </div>
-                    );
+                    return <BootScreen />;
                 }
                 if (bootPhase === 1) {
                     return (
