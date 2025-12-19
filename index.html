@@ -606,16 +606,46 @@
             const historyRef = useRef([]);
             const historyIndexRef = useRef(-1);
 
-            // Get accurate mouse position relative to canvas
+            // Get accurate mouse/touch position relative to canvas
             const getMousePos = (e) => {
                 const canvas = canvasRef.current;
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
+                // Handle both mouse and touch events
+                let clientX, clientY;
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if (e.changedTouches && e.changedTouches.length > 0) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
                 return {
-                    x: (e.clientX - rect.left) * scaleX,
-                    y: (e.clientY - rect.top) * scaleY
+                    x: (clientX - rect.left) * scaleX,
+                    y: (clientY - rect.top) * scaleY
                 };
+            };
+
+            // Touch event handlers
+            const handleTouchStart = (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    startDraw(e);
+                }
+            };
+            const handleTouchMove = (e) => {
+                e.preventDefault();
+                if (e.touches.length === 1) {
+                    draw(e);
+                }
+            };
+            const handleTouchEnd = (e) => {
+                e.preventDefault();
+                endDraw();
             };
 
             const saveToHistory = () => {
@@ -865,7 +895,10 @@
                             onMouseMove={draw}
                             onMouseUp={endDraw}
                             onMouseLeave={endDraw}
-                            className="block bg-white border border-gray-400"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                            className="block bg-white border border-gray-400 touch-none"
                             style={{ width: '100%', height: '100%' }}
                         />
                         {showTextInput && (
@@ -1689,8 +1722,35 @@
                 }
             }, []);
 
+            // Touch controls for mobile
+            const handleDirection = (newDir) => {
+                if (!runningRef.current) return;
+                if (newDir === 'up' && dir.current.y === 0) nextDir.current = { x: 0, y: -1 };
+                if (newDir === 'down' && dir.current.y === 0) nextDir.current = { x: 0, y: 1 };
+                if (newDir === 'left' && dir.current.x === 0) nextDir.current = { x: -1, y: 0 };
+                if (newDir === 'right' && dir.current.x === 0) nextDir.current = { x: 1, y: 0 };
+            };
+
+            // Swipe detection
+            const touchStartRef = useRef({ x: 0, y: 0 });
+            const handleTouchStart = (e) => {
+                touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            };
+            const handleTouchEnd = (e) => {
+                if (!runningRef.current) return;
+                const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+                const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > 30) handleDirection('right');
+                    else if (dx < -30) handleDirection('left');
+                } else {
+                    if (dy > 30) handleDirection('down');
+                    else if (dy < -30) handleDirection('up');
+                }
+            };
+
             return (
-                <div className="h-full flex flex-col bg-white select-none">
+                <div className="h-full flex flex-col bg-white select-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                     <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
                         <span className="font-mono text-xs font-bold">SNEK.EXE</span>
                         <div className="flex gap-4 font-mono text-xs">
@@ -1701,9 +1761,9 @@
                             </span>
                         </div>
                     </div>
-                    <div className="flex-grow flex items-center justify-center p-4 bg-gray-50">
-                        <div className="relative border-2 border-black">
-                            <canvas ref={canvasRef} width={600} height={400} className="block" />
+                    <div className="flex-grow flex items-center justify-center p-2 md:p-4 bg-gray-50 overflow-hidden">
+                        <div className="relative border-2 border-black w-full h-full max-w-[600px] max-h-[400px]">
+                            <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} />
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
                                     <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
@@ -1714,12 +1774,28 @@
                                     >
                                         {gameOver ? 'RETRY' : 'START'}
                                     </button>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs">ARROW KEYS TO MOVE • EAT FOOD • DON'T HIT WALLS</p>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4">SWIPE OR USE ARROWS • EAT FOOD • DON'T HIT WALLS</p>
                                 </div>
                             )}
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                    {/* Mobile D-Pad */}
+                    <div className="md:hidden p-2 border-t-2 border-black bg-white">
+                        <div className="flex justify-center">
+                            <div className="grid grid-cols-3 gap-1 w-32">
+                                <div></div>
+                                <button onTouchStart={() => handleDirection('up')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▲</button>
+                                <div></div>
+                                <button onTouchStart={() => handleDirection('left')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">◀</button>
+                                <div className="w-10 h-10 bg-gray-200"></div>
+                                <button onTouchStart={() => handleDirection('right')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▶</button>
+                                <div></div>
+                                <button onTouchStart={() => handleDirection('down')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▼</button>
+                                <div></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="hidden md:block p-2 border-t-2 border-black bg-white text-center">
                         <span className="font-mono text-[10px] text-gray-500">EAT FOOD • GROW LONGER • DON'T DIE</span>
                     </div>
                 </div>
@@ -2115,9 +2191,22 @@
         const StarshipApp = () => {
             const containerRef = useRef(null);
             const gameRef = useRef(null);
+            const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
             const [score, setScore] = useState(0);
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
+
+            // Mobile control handlers
+            const setKey = (key, value) => { keysRef.current[key] = value; };
+            const handleStart = () => {
+                if (gameRef.current) {
+                    if (gameOver) gameRef.current.restart();
+                    else gameRef.current.start();
+                }
+            };
+            const handleShoot = () => {
+                if (gameRef.current && started && !gameOver) gameRef.current.shoot();
+            };
 
             useEffect(() => {
                 if (!containerRef.current || gameRef.current) return;
@@ -2236,12 +2325,20 @@
                     lasers.push(laser);
                 };
 
-                // Controls
-                const keys = { left: false, right: false, up: false, down: false, shoot: false };
+                // Controls - using ref so mobile can update too
+                const keys = keysRef.current;
                 let canShoot = true;
                 let scoreVal = 0;
                 let isGameOver = false;
                 let isStarted = false;
+
+                const doShoot = () => {
+                    if (canShoot && isStarted && !isGameOver) {
+                        createLaser();
+                        canShoot = false;
+                        setTimeout(() => canShoot = true, 150);
+                    }
+                };
 
                 const onKeyDown = (e) => {
                     if (!isStarted && e.code === 'Space') {
@@ -2253,11 +2350,7 @@
                     if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
                     if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
                     if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
-                    if (e.code === 'Space' && canShoot && isStarted && !isGameOver) {
-                        createLaser();
-                        canShoot = false;
-                        setTimeout(() => canShoot = true, 150);
-                    }
+                    if (e.code === 'Space') doShoot();
                 };
                 const onKeyUp = (e) => {
                     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
@@ -2375,7 +2468,14 @@
                         setScore(0);
                         setGameOver(false);
                         setStarted(true);
-                    }
+                    },
+                    start: () => {
+                        if (!isStarted) {
+                            isStarted = true;
+                            setStarted(true);
+                        }
+                    },
+                    shoot: doShoot
                 };
 
                 return () => {
@@ -2396,13 +2496,15 @@
                         <span className="font-mono text-[10px] text-gray-400">SCORE <span className="text-black font-bold">{score.toString().padStart(6, '0')}</span></span>
                     </div>
 
-                    <div className="flex-grow flex items-center justify-center relative bg-gray-50">
+                    <div className="flex-grow flex items-center justify-center relative bg-gray-50 overflow-hidden">
                         {!started && !gameOver && (
                             <div className="absolute inset-0 bg-white/90 flex items-center justify-center z-10">
                                 <div className="text-center">
                                     <div className="text-2xl font-black tracking-widest mb-2">STARSHIP</div>
                                     <div className="font-mono text-[10px] text-gray-400 mb-4">LOW POLY COMBAT</div>
-                                    <div className="font-mono text-[10px] text-gray-500">PRESS SPACE TO START</div>
+                                    <button onClick={handleStart} className="px-4 py-2 bg-black text-white font-mono text-[10px] tracking-widest hover:bg-gray-800">
+                                        TAP TO START
+                                    </button>
                                 </div>
                             </div>
                         )}
@@ -2420,10 +2522,35 @@
                                 </div>
                             </div>
                         )}
-                        <div ref={containerRef} />
+                        <div ref={containerRef} className="w-full h-full flex items-center justify-center" />
                     </div>
 
-                    <div className="h-8 px-4 flex justify-between items-center border-t border-gray-100">
+                    {/* Mobile Controls */}
+                    <div className="md:hidden p-2 border-t border-gray-100 bg-white">
+                        <div className="flex justify-between items-center">
+                            {/* D-Pad */}
+                            <div className="grid grid-cols-3 gap-1">
+                                <div></div>
+                                <button onTouchStart={() => setKey('up', true)} onTouchEnd={() => setKey('up', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▲</button>
+                                <div></div>
+                                <button onTouchStart={() => setKey('left', true)} onTouchEnd={() => setKey('left', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">◀</button>
+                                <div className="w-10 h-10"></div>
+                                <button onTouchStart={() => setKey('right', true)} onTouchEnd={() => setKey('right', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▶</button>
+                                <div></div>
+                                <button onTouchStart={() => setKey('down', true)} onTouchEnd={() => setKey('down', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▼</button>
+                                <div></div>
+                            </div>
+                            {/* Fire Button */}
+                            <button
+                                onTouchStart={handleShoot}
+                                className="w-20 h-20 bg-black text-white font-mono font-bold text-xs rounded-full flex items-center justify-center active:bg-gray-700"
+                            >
+                                FIRE
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="hidden md:flex h-8 px-4 justify-between items-center border-t border-gray-100">
                         <span className="font-mono text-[10px] text-gray-300">WASD/ARROWS MOVE · SPACE SHOOT</span>
                         <button
                             onClick={() => gameRef.current?.restart()}
@@ -3989,12 +4116,13 @@
                 const stars = new THREE.Points(starGeometry, starMaterial);
                 scene.add(stars);
 
-                // Mouse interaction
+                // Mouse and touch interaction
                 let isDragging = false;
                 let prevMouseX = 0;
                 let prevMouseY = 0;
                 let rotationX = 0;
                 let rotationY = 0;
+                let lastPinchDist = 0;
 
                 const onMouseDown = (e) => {
                     isDragging = true;
@@ -4023,11 +4151,54 @@
                     camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
                 };
 
+                // Touch events
+                const onTouchStart = (e) => {
+                    if (e.touches.length === 1) {
+                        isDragging = true;
+                        prevMouseX = e.touches[0].clientX;
+                        prevMouseY = e.touches[0].clientY;
+                    } else if (e.touches.length === 2) {
+                        lastPinchDist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                    }
+                };
+
+                const onTouchMove = (e) => {
+                    e.preventDefault();
+                    if (e.touches.length === 1 && isDragging) {
+                        const deltaX = e.touches[0].clientX - prevMouseX;
+                        const deltaY = e.touches[0].clientY - prevMouseY;
+                        rotationY += deltaX * 0.005;
+                        rotationX += deltaY * 0.005;
+                        rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
+                        prevMouseX = e.touches[0].clientX;
+                        prevMouseY = e.touches[0].clientY;
+                    } else if (e.touches.length === 2) {
+                        const pinchDist = Math.hypot(
+                            e.touches[0].clientX - e.touches[1].clientX,
+                            e.touches[0].clientY - e.touches[1].clientY
+                        );
+                        const delta = lastPinchDist - pinchDist;
+                        camera.position.z += delta * 0.01;
+                        camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
+                        lastPinchDist = pinchDist;
+                    }
+                };
+
+                const onTouchEnd = () => {
+                    isDragging = false;
+                };
+
                 renderer.domElement.addEventListener('mousedown', onMouseDown);
                 renderer.domElement.addEventListener('mousemove', onMouseMove);
                 renderer.domElement.addEventListener('mouseup', onMouseUp);
                 renderer.domElement.addEventListener('mouseleave', onMouseUp);
                 renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+                renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
+                renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
+                renderer.domElement.addEventListener('touchend', onTouchEnd);
 
                 setLoading(false);
 
@@ -4056,6 +4227,9 @@
                     renderer.domElement.removeEventListener('mouseup', onMouseUp);
                     renderer.domElement.removeEventListener('mouseleave', onMouseUp);
                     renderer.domElement.removeEventListener('wheel', onWheel);
+                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
+                    renderer.domElement.removeEventListener('touchmove', onTouchMove);
+                    renderer.domElement.removeEventListener('touchend', onTouchEnd);
                     renderer.dispose();
                     if (containerRef.current && renderer.domElement) {
                         containerRef.current.removeChild(renderer.domElement);
@@ -4070,7 +4244,8 @@
                             <Icons.Globe size={24} />
                             <span className="font-mono text-xs font-bold text-white">MAP.EXE</span>
                         </div>
-                        <span className="font-mono text-[10px] text-gray-400">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+                        <span className="font-mono text-[10px] text-gray-400 hidden md:block">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+                        <span className="font-mono text-[10px] text-gray-400 md:hidden">DRAG • PINCH ZOOM</span>
                     </div>
                     <div ref={containerRef} className="flex-grow relative">
                         {loading && (
