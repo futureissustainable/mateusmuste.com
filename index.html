@@ -4397,6 +4397,8 @@
 
         const OS = () => {
             const [booted, setBooted] = useState(false);
+            const [bootPhase, setBootPhase] = useState(0); // 0: kernel, 1: mobile warning, 2: ready
+            const [isMobile, setIsMobile] = useState(false);
             const [topZ, setTopZ] = useState(100);
             const [destructionMode, setDestructionMode] = useState(false);
             const [dogReleased, setDogReleased] = useState(false);
@@ -4547,7 +4549,41 @@
             // Dragging State
             const [drag, setDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
 
-            useEffect(() => { setTimeout(() => setBooted(true), 600); }, []);
+            // Boot sequence with mobile detection
+            useEffect(() => {
+                const checkMobile = window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+                setIsMobile(checkMobile);
+
+                // Close SYSTEM window on mobile by default
+                if (checkMobile) {
+                    setWindows(prev => ({
+                        ...prev,
+                        SYSTEM: { ...prev.SYSTEM, isOpen: false }
+                    }));
+                }
+
+                // Phase 0: Show "BOOTING_KERNEL..." for 600ms
+                setTimeout(() => {
+                    if (checkMobile) {
+                        // Phase 1: Show mobile warning for 3 seconds
+                        setBootPhase(1);
+                        setTimeout(() => {
+                            setBootPhase(2);
+                            setBooted(true);
+                        }, 3000);
+                    } else {
+                        setBootPhase(2);
+                        setBooted(true);
+                    }
+                }, 600);
+
+                // Handle resize
+                const handleResize = () => {
+                    setIsMobile(window.innerWidth < 768);
+                };
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
 
             // Window Ops
             const focus = (id) => {
@@ -4592,7 +4628,28 @@
 
             const handleMouseUp = () => setDrag({ id: null, offsetX: 0, offsetY: 0 });
 
-            if (!booted) return <div className="h-screen w-screen bg-black text-white font-mono flex items-center justify-center">BOOTING_KERNEL...</div>;
+            // Boot screens
+            if (!booted) {
+                if (bootPhase === 0) {
+                    return <div className="h-screen w-screen bg-black text-white font-mono flex items-center justify-center">BOOTING_KERNEL...</div>;
+                }
+                if (bootPhase === 1) {
+                    return (
+                        <div className="h-screen w-screen bg-black text-white font-mono flex flex-col items-center justify-center p-8">
+                            <div className="text-center">
+                                <div className="text-2xl font-bold mb-4 animate-pulse">⚠ NOTICE</div>
+                                <div className="text-lg mb-2">BEST VIEWED ON DESKTOP</div>
+                                <div className="text-xs text-gray-500 mt-4">Mobile experience may be limited...</div>
+                                <div className="mt-8 flex gap-1 justify-center">
+                                    <div className="w-2 h-2 bg-white animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                                    <div className="w-2 h-2 bg-white animate-pulse" style={{ animationDelay: '200ms' }}></div>
+                                    <div className="w-2 h-2 bg-white animate-pulse" style={{ animationDelay: '400ms' }}></div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                }
+            }
 
             // Destruction overlay
             if (destructionMode === 'black') {
@@ -4628,7 +4685,7 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {/* DESKTOP ICONS - Only show main folders */}
-                    <div className="absolute top-4 left-4 z-0 flex flex-col gap-6">
+                    <div className={`absolute z-0 ${isMobile ? 'top-4 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
                         {desktopIcons.map(appId => {
                             const app = windows[appId];
                             if (!app) return null;
@@ -4642,16 +4699,16 @@
                                 <button
                                     key={app.id}
                                     onClick={() => open(app.id)}
-                                    className="group flex flex-col items-center gap-2 w-24"
+                                    className={`group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24 gap-2'}`}
                                     style={{
-                                        transform: `translate(${iconOffset.x}px, ${iconOffset.y}px)`,
+                                        transform: isMobile ? 'none' : `translate(${iconOffset.x}px, ${iconOffset.y}px)`,
                                         transition: 'transform 0.3s ease'
                                     }}
                                 >
-                                    <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
-                                        <IconCmp size={32} />
+                                    <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'}`}>
+                                        <IconCmp size={isMobile ? 24 : 32} />
                                     </div>
-                                    <span className="bg-white border border-black px-1 text-[10px] font-mono font-bold shadow-sm">{app.title}</span>
+                                    <span className={`bg-white border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>{isMobile ? app.title.split('_')[0] : app.title}</span>
                                 </button>
                             );
                         })}
@@ -4663,8 +4720,10 @@
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className="absolute flex flex-col bg-white border-2 border-black window-shadow"
-                                style={{
+                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-0 bottom-12' : 'absolute window-shadow'}`}
+                                style={isMobile ? {
+                                    zIndex: win.z
+                                } : {
                                     left: win.x,
                                     top: win.y,
                                     width: win.w,
@@ -4674,16 +4733,16 @@
                             >
                                 {/* HEADER (DRAG HANDLE) */}
                                 <div
-                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
-                                    onMouseDown={(e) => handleMouseDown(e, win.id)}
+                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none ${isMobile ? '' : 'cursor-move'} ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                                    onMouseDown={(e) => !isMobile && handleMouseDown(e, win.id)}
                                 >
                                     <div className="flex items-center gap-2 pl-2 pointer-events-none">
                                         <Icons.Square size={10} className="fill-current" />
-                                        <span className="font-mono text-xs font-bold tracking-widest uppercase">{win.title}</span>
+                                        <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()}>
-                                        <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>
-                                        <button onClick={() => close(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-red-500 hover:text-white"><Icons.X size={14} /></button>
+                                        {!isMobile && <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>}
+                                        <button onClick={() => close(win.id)} className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center border border-transparent hover:bg-red-500 hover:text-white"><Icons.X size={16} /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
@@ -4695,22 +4754,24 @@
                     ))}
 
                     {/* TASKBAR */}
-                    <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
-                        <div className="bg-black text-white px-2 py-1 font-black mr-2 select-none text-xs tracking-wider">MATEUSMUSTE.COM</div>
-                        {Object.values(windows).map(win => {
-                            const IconCmp = Icons[win.icon];
-                            return win.isOpen && (
-                                <button key={win.id}
-                                    onClick={() => { if (win.isMin) toggleMin(win.id); focus(win.id) }}
-                                    className={`flex items-center gap-2 px-3 py-1 border-2 border-black font-mono text-xs font-bold transition-all ${win.z === topZ && !win.isMin ? 'bg-black text-white btn-shadow' : 'bg-white hover:translate-y-[-2px]'}`}
-                                >
-                                    <IconCmp size={14} />
-                                    <span className="uppercase hidden md:inline">{win.title}</span>
-                                </button>
-                            );
-                        })}
+                    <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
+                        <div className={`bg-black text-white py-1 font-black select-none tracking-wider ${isMobile ? 'px-1 text-[8px]' : 'px-2 text-xs mr-2'}`}>{isMobile ? 'MM.COM' : 'MATEUSMUSTE.COM'}</div>
+                        <div className={`flex gap-1 ${isMobile ? 'overflow-x-auto flex-nowrap' : ''}`}>
+                            {Object.values(windows).map(win => {
+                                const IconCmp = Icons[win.icon];
+                                return win.isOpen && (
+                                    <button key={win.id}
+                                        onClick={() => { if (win.isMin) toggleMin(win.id); focus(win.id) }}
+                                        className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 border-2 border-black font-mono text-xs font-bold transition-all flex-shrink-0 ${win.z === topZ && !win.isMin ? 'bg-black text-white btn-shadow' : 'bg-white hover:translate-y-[-2px]'}`}
+                                    >
+                                        <IconCmp size={14} />
+                                        <span className="uppercase hidden md:inline">{win.title}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
                         <div className="flex-grow"></div>
-                        <div className="font-mono text-xs font-bold px-4 border-l-2 border-black">{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
                     {/* DOG - Cute pixel dog with running animation */}
