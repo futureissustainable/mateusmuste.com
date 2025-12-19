@@ -4375,9 +4375,9 @@
                 const y = Math.cos(phi);
                 const z = Math.sin(phi) * Math.sin(theta);
 
-                // Gem colors - crystals being mined
-                const gemColors = [0xff4444, 0xff8844, 0xffaa44, 0xff6666, 0xcc4444, 0xff3333];
-                const color = gemColors[Math.floor(Math.random() * gemColors.length)];
+                // Monochrome minerals - white/gray crystals
+                const brightness = 0.7 + Math.random() * 0.3; // 0.7 to 1.0
+                const color = new THREE.Color(brightness, brightness, brightness);
 
                 // Create small gem geometry
                 const gemGeo = new THREE.OctahedronGeometry(0.02 + Math.random() * 0.015, 0);
@@ -4939,9 +4939,18 @@
                         sat.mesh.rotation.y = sat.angle;
                     });
 
-                    // Animate multiplier rings (slow rotation)
-                    ringsRef.current.forEach((ring, idx) => {
-                        ring.rotation.z = rotationRef.current.y * (0.5 + idx * 0.2);
+                    // Animate multiplier rings - continuous independent rotation
+                    ringsRef.current.forEach((ringData, idx) => {
+                        // Each ring rotates on its own axis at its own speed
+                        if (idx === 0) {
+                            ringData.mesh.rotation.z += ringData.speed;
+                        } else if (idx === 1) {
+                            ringData.mesh.rotation.y += ringData.speed;
+                            ringData.mesh.rotation.z += ringData.speed * 0.5;
+                        } else {
+                            ringData.mesh.rotation.x += ringData.speed * 0.7;
+                            ringData.mesh.rotation.y += ringData.speed;
+                        }
                     });
 
                     // Animate falling gems
@@ -4979,7 +4988,7 @@
                     cancelAnimationFrame(animationId);
                     planes.forEach(p => scene.remove(p.mesh));
                     satellitesRef.current.forEach(s => scene.remove(s.mesh));
-                    ringsRef.current.forEach(r => scene.remove(r));
+                    ringsRef.current.forEach(r => scene.remove(r.mesh));
                     gemsRef.current.forEach(g => scene.remove(g.mesh));
                     if (cracksRef.current) scene.remove(cracksRef.current);
                     if (clouds2Ref.current) scene.remove(clouds2Ref.current);
@@ -5133,29 +5142,61 @@
                     cracksRef.current = cracks;
                 }
 
-                // Manage multiplier rings
+                // Manage multiplier rings - monochrome wireframe design
                 const ringCount = getRingCount();
-                const ringColors = [0x00ffff, 0x00ff88, 0xffff00]; // Cyan, Green, Yellow
 
                 // Remove extra rings
                 while (ringsRef.current.length > ringCount) {
-                    const ring = ringsRef.current.pop();
-                    scene.remove(ring);
+                    const ringData = ringsRef.current.pop();
+                    scene.remove(ringData.mesh);
                 }
 
-                // Add missing rings
+                // Add missing rings - elegant wireframe orbital rings
                 while (ringsRef.current.length < ringCount) {
                     const idx = ringsRef.current.length;
-                    const ringGeo = new THREE.TorusGeometry(1.2 + idx * 0.12, 0.015, 8, 64);
+                    const ringGroup = new THREE.Group();
+
+                    // Main ring - wireframe torus
+                    const radius = 1.25 + idx * 0.18;
+                    const tubeRadius = 0.008 + idx * 0.003;
+                    const ringGeo = new THREE.TorusGeometry(radius, tubeRadius, 3, 64);
                     const ringMat = new THREE.MeshBasicMaterial({
-                        color: ringColors[idx] || 0xffffff,
+                        color: 0xffffff,
+                        wireframe: true,
                         transparent: true,
-                        opacity: 0.6
+                        opacity: 0.7 - idx * 0.15
                     });
                     const ring = new THREE.Mesh(ringGeo, ringMat);
-                    ring.rotation.x = Math.PI / 2;
-                    scene.add(ring);
-                    ringsRef.current.push(ring);
+                    ringGroup.add(ring);
+
+                    // Inner accent ring
+                    const innerGeo = new THREE.TorusGeometry(radius - 0.02, 0.003, 3, 48);
+                    const innerMat = new THREE.MeshBasicMaterial({
+                        color: 0xaaaaaa,
+                        transparent: true,
+                        opacity: 0.4
+                    });
+                    const innerRing = new THREE.Mesh(innerGeo, innerMat);
+                    ringGroup.add(innerRing);
+
+                    // Set initial tilt - each ring at different angle
+                    const tilts = [
+                        { x: Math.PI / 2, y: 0, z: 0 },           // Horizontal
+                        { x: Math.PI / 2.5, y: Math.PI / 6, z: 0 }, // Tilted
+                        { x: Math.PI / 3, y: Math.PI / 4, z: Math.PI / 8 } // More tilted
+                    ];
+                    const tilt = tilts[idx] || tilts[0];
+                    ringGroup.rotation.x = tilt.x;
+                    ringGroup.rotation.y = tilt.y;
+                    ringGroup.rotation.z = tilt.z;
+
+                    scene.add(ringGroup);
+                    ringsRef.current.push({
+                        mesh: ringGroup,
+                        baseRotation: { ...tilt },
+                        speed: 0.008 + idx * 0.004, // Different speeds
+                        axis: idx // Which axis to rotate on
+                    });
                 }
 
                 // Manage satellites
@@ -5178,9 +5219,9 @@
                     const body = new THREE.Mesh(bodyGeo, bodyMat);
                     satGroup.add(body);
 
-                    // Solar panels
+                    // Solar panels - monochrome dark gray
                     const panelGeo = new THREE.BoxGeometry(0.08, 0.002, 0.025);
-                    const panelMat = new THREE.MeshBasicMaterial({ color: 0x4444ff });
+                    const panelMat = new THREE.MeshBasicMaterial({ color: 0x666666 });
                     const panel = new THREE.Mesh(panelGeo, panelMat);
                     satGroup.add(panel);
 
