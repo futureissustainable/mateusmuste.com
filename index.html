@@ -257,540 +257,79 @@
         // Initialize IP on load
         HighScoreManager.fetchIP();
 
-        // --- PIXEL ART ICONS (64x64) ---
-        const PixelIcon = ({ children, size = 64, ...props }) => (
-            <svg {...props} width={size} height={size} viewBox="0 0 64 64" fill="none" style={{ imageRendering: 'pixelated' }}>
-                {children}
-            </svg>
+        // --- PIXELARTICONS (from unpkg CDN) ---
+        const PixelartIcon = ({ name, size = 64, style = {}, className = '', ...props }) => (
+            <img
+                src={`https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`}
+                width={size}
+                height={size}
+                alt={name}
+                style={{ imageRendering: 'pixelated', ...style }}
+                className={className}
+                {...props}
+            />
         );
 
         const Icons = {
-            // System Info - Monitor with info screen
-            Terminal: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="8" width="48" height="36" fill="#000" />
-                    <rect x="12" y="12" width="40" height="28" fill="#fff" />
-                    <rect x="16" y="16" width="32" height="4" fill="#000" />
-                    <rect x="16" y="24" width="24" height="4" fill="#000" />
-                    <rect x="16" y="32" width="16" height="4" fill="#000" />
-                    <rect x="24" y="44" width="16" height="4" fill="#000" />
-                    <rect x="20" y="48" width="24" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            // Media Library - Stack of folders
-            Folder: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="20" width="48" height="36" fill="#000" />
-                    <rect x="12" y="24" width="40" height="28" fill="#fff" />
-                    <rect x="8" y="16" width="20" height="8" fill="#000" />
-                    <rect x="12" y="12" width="12" height="8" fill="#000" />
-                    <rect x="16" y="32" width="28" height="4" fill="#000" />
-                    <rect x="16" y="40" width="20" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            // Paint - Paint bucket icon
-            Palette: (p) => (
-                <PixelIcon {...p}>
-                    {/* Bucket body */}
-                    <rect x="12" y="20" width="40" height="32" fill="#000" />
-                    <rect x="16" y="24" width="32" height="24" fill="#fff" />
-                    {/* Handle */}
-                    <rect x="8" y="8" width="4" height="16" fill="#000" />
-                    <rect x="8" y="4" width="24" height="4" fill="#000" />
-                    <rect x="28" y="8" width="4" height="8" fill="#000" />
-                    {/* Paint drip */}
-                    <rect x="44" y="28" width="8" height="12" fill="#000" />
-                    <rect x="48" y="40" width="8" height="8" fill="#000" />
-                    <rect x="52" y="48" width="8" height="8" fill="#000" />
-                    {/* Rim */}
-                    <rect x="8" y="16" width="48" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            // Snake Game - Pixel snake
-            Snek: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="24" width="8" height="8" fill="#000" />
-                    <rect x="16" y="24" width="8" height="8" fill="#000" />
-                    <rect x="24" y="24" width="8" height="8" fill="#000" />
-                    <rect x="32" y="24" width="8" height="8" fill="#000" />
-                    <rect x="32" y="32" width="8" height="8" fill="#000" />
-                    <rect x="32" y="40" width="8" height="8" fill="#000" />
-                    <rect x="40" y="40" width="8" height="8" fill="#000" />
-                    <rect x="48" y="40" width="8" height="8" fill="#000" />
-                    <rect x="4" y="20" width="4" height="4" fill="#000" />
-                    <rect x="4" y="28" width="4" height="4" fill="#000" />
-                    <rect x="52" y="48" width="8" height="8" fill="#fff" stroke="#000" strokeWidth="2" />
-                </PixelIcon>
-            ),
-            // Trash Can - Desktop trash
-            TrashCan: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="12" y="8" width="40" height="8" fill="#000" />
-                    <rect x="20" y="4" width="24" height="8" fill="#000" />
-                    <rect x="16" y="16" width="32" height="40" fill="#000" />
-                    <rect x="20" y="20" width="24" height="32" fill="#fff" />
-                    <rect x="24" y="24" width="4" height="24" fill="#000" />
-                    <rect x="30" y="24" width="4" height="24" fill="#000" />
-                    <rect x="36" y="24" width="4" height="24" fill="#000" />
-                </PixelIcon>
-            ),
+            // System Info - Monitor
+            Terminal: (p) => <PixelartIcon name="monitor" {...p} />,
+            // Media Library - Folder
+            Folder: (p) => <PixelartIcon name="folder" {...p} />,
+            // Paint - Fill bucket
+            Palette: (p) => <PixelartIcon name="fill" {...p} />,
+            // Snake Game - Gamepad
+            Snek: (p) => <PixelartIcon name="gamepad" {...p} />,
+            // Trash Can
+            TrashCan: (p) => <PixelartIcon name="trash" {...p} />,
             // Undo arrow
-            Undo: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="24" width="8" height="8" fill="#000" />
-                    <rect x="16" y="16" width="8" height="8" fill="#000" />
-                    <rect x="24" y="8" width="8" height="8" fill="#000" />
-                    <rect x="16" y="32" width="32" height="8" fill="#000" />
-                    <rect x="40" y="40" width="8" height="16" fill="#000" />
-                </PixelIcon>
-            ),
+            Undo: (p) => <PixelartIcon name="undo" {...p} />,
             // Redo arrow
-            Redo: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="48" y="24" width="8" height="8" fill="#000" />
-                    <rect x="40" y="16" width="8" height="8" fill="#000" />
-                    <rect x="32" y="8" width="8" height="8" fill="#000" />
-                    <rect x="16" y="32" width="32" height="8" fill="#000" />
-                    <rect x="16" y="40" width="8" height="16" fill="#000" />
-                </PixelIcon>
-            ),
-            // File icon for trash items
-            FileDoc: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="12" y="4" width="32" height="56" fill="#000" />
-                    <rect x="16" y="8" width="24" height="48" fill="#fff" />
-                    <rect x="20" y="16" width="16" height="4" fill="#000" />
-                    <rect x="20" y="24" width="16" height="4" fill="#000" />
-                    <rect x="20" y="32" width="12" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            X: ({ size = 24, ...p }) => <svg width={size} height={size} {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
-            Minus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
-            Square: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>,
-            Trash: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
-            Send: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>,
+            Redo: (p) => <PixelartIcon name="redo" {...p} />,
+            // File document
+            FileDoc: (p) => <PixelartIcon name="file" {...p} />,
+            // Window controls
+            X: ({ size = 24, ...p }) => <PixelartIcon name="close" size={size} {...p} />,
+            Minus: ({ size = 24, ...p }) => <PixelartIcon name="minus" size={size} {...p} />,
+            Square: ({ size = 24, ...p }) => <PixelartIcon name="checkbox" size={size} {...p} />,
+            Trash: (p) => <PixelartIcon name="trash" {...p} />,
+            Send: (p) => <PixelartIcon name="send" {...p} />,
             // Media folder icons
-            Movies: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="12" width="48" height="40" fill="#000" />
-                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
-                    <rect x="8" y="8" width="12" height="8" fill="#000" />
-                    <polygon points="24,24 24,40 40,32" fill="#000" />
-                </PixelIcon>
-            ),
-            Books: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="12" width="48" height="40" fill="#000" />
-                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
-                    <rect x="8" y="8" width="12" height="8" fill="#000" />
-                    <rect x="20" y="22" width="24" height="4" fill="#000" />
-                    <rect x="20" y="30" width="16" height="4" fill="#000" />
-                    <rect x="20" y="38" width="20" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            Games: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="12" width="48" height="40" fill="#000" />
-                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
-                    <rect x="8" y="8" width="12" height="8" fill="#000" />
-                    <rect x="20" y="24" width="8" height="8" fill="#000" />
-                    <rect x="36" y="24" width="8" height="8" fill="#000" />
-                    <rect x="24" y="36" width="16" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            Music: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="12" width="48" height="40" fill="#000" />
-                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
-                    <rect x="8" y="8" width="12" height="8" fill="#000" />
-                    <rect x="36" y="20" width="4" height="20" fill="#000" />
-                    <rect x="28" y="36" width="12" height="8" fill="#000" />
-                    <rect x="36" y="20" width="12" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            Back: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>,
-            // New App Icons
-            Void: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="8" width="48" height="48" fill="#000" />
-                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
-                    <rect x="16" y="16" width="32" height="4" fill="#000" />
-                    <rect x="16" y="24" width="24" height="4" fill="#333" />
-                    <rect x="16" y="32" width="28" height="4" fill="#666" />
-                    <rect x="16" y="40" width="16" height="4" fill="#999" />
-                </PixelIcon>
-            ),
-            Oracle: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="20" y="4" width="24" height="8" fill="#000" />
-                    <rect x="16" y="12" width="32" height="8" fill="#000" />
-                    <rect x="12" y="20" width="40" height="24" fill="#000" />
-                    <rect x="16" y="24" width="32" height="16" fill="#fff" />
-                    <rect x="24" y="28" width="6" height="6" fill="#000" />
-                    <rect x="34" y="28" width="6" height="6" fill="#000" />
-                    <rect x="12" y="44" width="12" height="12" fill="#000" />
-                    <rect x="40" y="44" width="12" height="12" fill="#000" />
-                </PixelIcon>
-            ),
-            Radio: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="16" width="48" height="36" fill="#000" />
-                    <rect x="12" y="20" width="40" height="28" fill="#fff" />
-                    <rect x="16" y="24" width="16" height="16" fill="#000" />
-                    <rect x="20" y="28" width="8" height="8" fill="#fff" />
-                    <rect x="36" y="24" width="12" height="4" fill="#000" />
-                    <rect x="36" y="32" width="12" height="4" fill="#000" />
-                    <rect x="28" y="4" width="4" height="16" fill="#000" />
-                    <rect x="24" y="4" width="12" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            Dice: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="8" y="8" width="48" height="48" fill="#000" />
-                    <rect x="12" y="12" width="40" height="40" fill="#fff" />
-                    <rect x="20" y="20" width="8" height="8" fill="#000" />
-                    <rect x="36" y="20" width="8" height="8" fill="#000" />
-                    <rect x="28" y="28" width="8" height="8" fill="#000" />
-                    <rect x="20" y="36" width="8" height="8" fill="#000" />
-                    <rect x="36" y="36" width="8" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            Labyrinth: (p) => (
-                <PixelIcon {...p}>
-                    {/* Border */}
-                    <rect x="4" y="4" width="56" height="56" fill="#000" />
-                    <rect x="8" y="8" width="48" height="48" fill="#fff" />
-                    {/* Maze walls - proper labyrinth pattern */}
-                    <rect x="8" y="8" width="48" height="4" fill="#000" />
-                    <rect x="8" y="8" width="4" height="48" fill="#000" />
-                    <rect x="52" y="8" width="4" height="48" fill="#000" />
-                    <rect x="8" y="52" width="48" height="4" fill="#000" />
-                    {/* Inner walls */}
-                    <rect x="16" y="16" width="32" height="4" fill="#000" />
-                    <rect x="16" y="16" width="4" height="24" fill="#000" />
-                    <rect x="44" y="16" width="4" height="32" fill="#000" />
-                    <rect x="24" y="24" width="4" height="20" fill="#000" />
-                    <rect x="24" y="40" width="20" height="4" fill="#000" />
-                    <rect x="32" y="28" width="4" height="12" fill="#000" />
-                    <rect x="32" y="28" width="12" height="4" fill="#000" />
-                    {/* Entry gap top */}
-                    <rect x="28" y="8" width="8" height="4" fill="#fff" />
-                    {/* Exit gap bottom */}
-                    <rect x="28" y="52" width="8" height="4" fill="#fff" />
-                </PixelIcon>
-            ),
-            Minesweeper: (p) => (
-                <PixelIcon {...p}>
-                    {/* Grid background */}
-                    <rect x="4" y="4" width="56" height="56" fill="#000" />
-                    <rect x="8" y="8" width="48" height="48" fill="#fff" />
-                    {/* Grid lines */}
-                    <rect x="8" y="20" width="48" height="2" fill="#ccc" />
-                    <rect x="8" y="34" width="48" height="2" fill="#ccc" />
-                    <rect x="8" y="48" width="48" height="2" fill="#ccc" />
-                    <rect x="20" y="8" width="2" height="48" fill="#ccc" />
-                    <rect x="34" y="8" width="2" height="48" fill="#ccc" />
-                    <rect x="48" y="8" width="2" height="48" fill="#ccc" />
-                    {/* Pixel mine */}
-                    <rect x="24" y="38" width="8" height="8" fill="#000" />
-                    <rect x="26" y="36" width="4" height="2" fill="#000" />
-                    <rect x="26" y="46" width="4" height="2" fill="#000" />
-                    <rect x="22" y="40" width="2" height="4" fill="#000" />
-                    <rect x="32" y="40" width="2" height="4" fill="#000" />
-                    {/* Pixel 1 */}
-                    <rect x="12" y="10" width="4" height="2" fill="#000" />
-                    <rect x="14" y="10" width="2" height="8" fill="#000" />
-                    <rect x="10" y="18" width="8" height="2" fill="#000" />
-                    {/* Pixel flag */}
-                    <rect x="40" y="10" width="2" height="10" fill="#000" />
-                    <rect x="42" y="10" width="4" height="2" fill="#000" />
-                    <rect x="42" y="12" width="2" height="2" fill="#000" />
-                </PixelIcon>
-            ),
-            Starship: (p) => (
-                <PixelIcon {...p}>
-                    {/* Space background */}
-                    <rect x="4" y="4" width="56" height="56" fill="#000" />
-                    {/* Stars */}
-                    <rect x="10" y="10" width="2" height="2" fill="#fff" />
-                    <rect x="50" y="15" width="2" height="2" fill="#fff" />
-                    <rect x="25" y="8" width="2" height="2" fill="#fff" />
-                    <rect x="45" y="45" width="2" height="2" fill="#fff" />
-                    <rect x="12" y="50" width="2" height="2" fill="#fff" />
-                    {/* Pixel ship - top down view */}
-                    <rect x="30" y="12" width="4" height="4" fill="#fff" />
-                    <rect x="28" y="16" width="8" height="4" fill="#fff" />
-                    <rect x="26" y="20" width="12" height="8" fill="#fff" />
-                    <rect x="24" y="28" width="16" height="8" fill="#fff" />
-                    {/* Wings */}
-                    <rect x="16" y="32" width="8" height="4" fill="#fff" />
-                    <rect x="40" y="32" width="8" height="4" fill="#fff" />
-                    <rect x="12" y="36" width="8" height="4" fill="#fff" />
-                    <rect x="44" y="36" width="8" height="4" fill="#fff" />
-                    {/* Cockpit */}
-                    <rect x="30" y="20" width="4" height="4" fill="#000" />
-                    {/* Engine */}
-                    <rect x="28" y="36" width="8" height="6" fill="#888" />
-                    <rect x="30" y="42" width="4" height="4" fill="#888" />
-                </PixelIcon>
-            ),
-            Synth: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="4" y="16" width="56" height="36" fill="#000" />
-                    <rect x="8" y="20" width="48" height="28" fill="#333" />
-                    <rect x="12" y="24" width="8" height="16" fill="#fff" />
-                    <rect x="22" y="24" width="8" height="16" fill="#fff" />
-                    <rect x="32" y="24" width="8" height="16" fill="#fff" />
-                    <rect x="42" y="24" width="8" height="16" fill="#fff" />
-                    <rect x="16" y="24" width="4" height="10" fill="#000" />
-                    <rect x="26" y="24" width="4" height="10" fill="#000" />
-                    <rect x="46" y="24" width="4" height="10" fill="#000" />
-                </PixelIcon>
-            ),
-            Destruction: (p) => (
-                <PixelIcon {...p}>
-                    {/* Power button icon */}
-                    {/* Outer circle - pixelated */}
-                    <rect x="20" y="12" width="24" height="4" fill="#000" />
-                    <rect x="16" y="16" width="8" height="4" fill="#000" />
-                    <rect x="40" y="16" width="8" height="4" fill="#000" />
-                    <rect x="12" y="20" width="8" height="4" fill="#000" />
-                    <rect x="44" y="20" width="8" height="4" fill="#000" />
-                    <rect x="8" y="24" width="8" height="12" fill="#000" />
-                    <rect x="48" y="24" width="8" height="12" fill="#000" />
-                    <rect x="12" y="36" width="8" height="4" fill="#000" />
-                    <rect x="44" y="36" width="8" height="4" fill="#000" />
-                    <rect x="16" y="40" width="8" height="4" fill="#000" />
-                    <rect x="40" y="40" width="8" height="4" fill="#000" />
-                    <rect x="20" y="44" width="24" height="4" fill="#000" />
-                    {/* Power line on top */}
-                    <rect x="28" y="4" width="8" height="24" fill="#000" />
-                </PixelIcon>
-            ),
-            Tarot: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="16" y="4" width="32" height="56" fill="#000" />
-                    <rect x="20" y="8" width="24" height="48" fill="#fff" />
-                    <rect x="24" y="12" width="16" height="4" fill="#000" />
-                    <rect x="28" y="20" width="8" height="8" fill="#000" />
-                    <rect x="24" y="32" width="16" height="16" fill="#000" />
-                    <rect x="28" y="36" width="8" height="8" fill="#fff" />
-                </PixelIcon>
-            ),
-            Dog: (p) => (
-                <PixelIcon {...p}>
-                    {/* Cute dog - full black */}
-                    {/* Body */}
-                    <rect x="16" y="20" width="32" height="16" fill="#000" />
-                    {/* Head - rounder, cuter */}
-                    <rect x="4" y="16" width="16" height="16" fill="#000" />
-                    {/* Floppy ears */}
-                    <rect x="2" y="8" width="6" height="14" fill="#000" />
-                    <rect x="14" y="8" width="6" height="14" fill="#000" />
-                    {/* Eye - big cute eye */}
-                    <rect x="8" y="20" width="6" height="6" fill="#fff" />
-                    <rect x="10" y="22" width="3" height="3" fill="#000" />
-                    {/* Nose */}
-                    <rect x="4" y="26" width="4" height="4" fill="#000" />
-                    {/* Tail - wagging up */}
-                    <rect x="48" y="16" width="12" height="4" fill="#000" />
-                    <rect x="56" y="12" width="4" height="8" fill="#000" />
-                    {/* Legs */}
-                    <rect x="16" y="36" width="8" height="16" fill="#000" />
-                    <rect x="38" y="36" width="8" height="16" fill="#000" />
-                </PixelIcon>
-            ),
+            Movies: (p) => <PixelartIcon name="movie" {...p} />,
+            Books: (p) => <PixelartIcon name="book" {...p} />,
+            Games: (p) => <PixelartIcon name="gamepad" {...p} />,
+            Music: (p) => <PixelartIcon name="music" {...p} />,
+            Back: (p) => <PixelartIcon name="arrow-left" {...p} />,
+            // App Icons
+            Void: (p) => <PixelartIcon name="terminal" {...p} />,
+            Oracle: (p) => <PixelartIcon name="book-open" {...p} />,
+            Radio: (p) => <PixelartIcon name="radio-on" {...p} />,
+            Dice: (p) => <PixelartIcon name="dice" {...p} />,
+            Labyrinth: (p) => <PixelartIcon name="layout-rows" {...p} />,
+            Minesweeper: (p) => <PixelartIcon name="table" {...p} />,
+            Starship: (p) => <PixelartIcon name="arrow-up" {...p} />,
+            Synth: (p) => <PixelartIcon name="keyboard" {...p} />,
+            Destruction: (p) => <PixelartIcon name="power" {...p} />,
+            Tarot: (p) => <PixelartIcon name="card" {...p} />,
+            Dog: (p) => <PixelartIcon name="paw" {...p} />,
             // Email icon
-            Email: (p) => (
-                <PixelIcon {...p}>
-                    {/* Envelope */}
-                    <rect x="4" y="12" width="56" height="40" fill="#000" />
-                    <rect x="8" y="16" width="48" height="32" fill="#fff" />
-                    {/* Flap */}
-                    <polygon points="8,16 32,36 56,16" fill="#000" />
-                    <polygon points="12,20 32,32 52,20" fill="#fff" />
-                    {/* Bottom fold */}
-                    <polygon points="8,48 32,32 56,48" fill="#000" stroke="#fff" strokeWidth="2" />
-                </PixelIcon>
-            ),
+            Email: (p) => <PixelartIcon name="mail" {...p} />,
             // Apps folder icon
-            Apps: (p) => (
-                <PixelIcon {...p}>
-                    {/* Folder base */}
-                    <rect x="4" y="16" width="56" height="40" fill="#000" />
-                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
-                    {/* Folder tab */}
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    {/* Grid of apps inside */}
-                    <rect x="12" y="24" width="8" height="8" fill="#000" />
-                    <rect x="24" y="24" width="8" height="8" fill="#000" />
-                    <rect x="36" y="24" width="8" height="8" fill="#000" />
-                    <rect x="12" y="36" width="8" height="8" fill="#000" />
-                    <rect x="24" y="36" width="8" height="8" fill="#000" />
-                    <rect x="36" y="36" width="8" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            Gallery: (p) => (
-                <PixelIcon {...p}>
-                    {/* Photo frame */}
-                    <rect x="8" y="12" width="48" height="40" fill="#000" />
-                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
-                    {/* Pixel mountain left */}
-                    <rect x="12" y="40" width="4" height="8" fill="#000" />
-                    <rect x="16" y="36" width="4" height="12" fill="#000" />
-                    <rect x="20" y="32" width="4" height="16" fill="#000" />
-                    <rect x="24" y="36" width="4" height="12" fill="#000" />
-                    <rect x="28" y="40" width="4" height="8" fill="#000" />
-                    {/* Pixel mountain right */}
-                    <rect x="32" y="44" width="4" height="4" fill="#000" />
-                    <rect x="36" y="40" width="4" height="8" fill="#000" />
-                    <rect x="40" y="36" width="4" height="12" fill="#000" />
-                    <rect x="44" y="40" width="4" height="8" fill="#000" />
-                    <rect x="48" y="44" width="4" height="4" fill="#000" />
-                    {/* Sun */}
-                    <rect x="40" y="20" width="8" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            Globe: (p) => (
-                <PixelIcon {...p}>
-                    {/* Pixel globe - octagon shape */}
-                    <rect x="20" y="8" width="24" height="4" fill="#000" />
-                    <rect x="12" y="12" width="8" height="4" fill="#000" />
-                    <rect x="44" y="12" width="8" height="4" fill="#000" />
-                    <rect x="8" y="16" width="4" height="8" fill="#000" />
-                    <rect x="52" y="16" width="4" height="8" fill="#000" />
-                    <rect x="8" y="36" width="4" height="8" fill="#000" />
-                    <rect x="52" y="36" width="4" height="8" fill="#000" />
-                    <rect x="12" y="44" width="8" height="4" fill="#000" />
-                    <rect x="44" y="44" width="8" height="4" fill="#000" />
-                    <rect x="20" y="48" width="24" height="4" fill="#000" />
-                    {/* Fill */}
-                    <rect x="20" y="12" width="24" height="36" fill="#fff" />
-                    <rect x="12" y="16" width="8" height="28" fill="#fff" />
-                    <rect x="44" y="16" width="8" height="28" fill="#fff" />
-                    {/* Continents */}
-                    <rect x="18" y="18" width="8" height="10" fill="#000" />
-                    <rect x="34" y="14" width="10" height="6" fill="#000" />
-                    <rect x="38" y="20" width="8" height="12" fill="#000" />
-                    <rect x="22" y="32" width="10" height="8" fill="#000" />
-                    {/* Grid lines */}
-                    <rect x="12" y="24" width="40" height="2" fill="#888" />
-                    <rect x="12" y="34" width="40" height="2" fill="#888" />
-                    {/* Stand */}
-                    <rect x="28" y="52" width="8" height="4" fill="#000" />
-                    <rect x="22" y="56" width="20" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            Pomodoro: (p) => (
-                <PixelIcon {...p}>
-                    {/* Pot */}
-                    <rect x="16" y="44" width="32" height="16" fill="#000" />
-                    <rect x="20" y="48" width="24" height="8" fill="#fff" />
-                    {/* Stem */}
-                    <rect x="30" y="24" width="4" height="20" fill="#000" />
-                    {/* Leaves */}
-                    <rect x="22" y="28" width="8" height="6" fill="#000" />
-                    <rect x="34" y="20" width="8" height="6" fill="#000" />
-                    <rect x="26" y="12" width="12" height="8" fill="#000" />
-                    {/* Timer - pixel square */}
-                    <rect x="26" y="4" width="12" height="12" fill="#000" />
-                    <rect x="28" y="6" width="8" height="8" fill="#fff" />
-                    <rect x="31" y="8" width="2" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            HealthScanner: (p) => (
-                <PixelIcon {...p}>
-                    {/* Monitor frame */}
-                    <rect x="8" y="8" width="48" height="40" fill="#000" />
-                    <rect x="12" y="12" width="40" height="32" fill="#fff" />
-                    {/* Pixel heart rate - stepped line */}
-                    <rect x="14" y="28" width="6" height="2" fill="#000" />
-                    <rect x="20" y="26" width="2" height="4" fill="#000" />
-                    <rect x="22" y="20" width="2" height="8" fill="#000" />
-                    <rect x="24" y="18" width="2" height="4" fill="#000" />
-                    <rect x="26" y="32" width="2" height="8" fill="#000" />
-                    <rect x="28" y="38" width="2" height="4" fill="#000" />
-                    <rect x="30" y="28" width="6" height="2" fill="#000" />
-                    <rect x="36" y="26" width="2" height="4" fill="#000" />
-                    <rect x="38" y="20" width="2" height="8" fill="#000" />
-                    <rect x="40" y="18" width="2" height="4" fill="#000" />
-                    <rect x="42" y="28" width="6" height="2" fill="#000" />
-                    {/* Stand */}
-                    <rect x="24" y="48" width="16" height="4" fill="#000" />
-                    <rect x="20" y="52" width="24" height="4" fill="#000" />
-                </PixelIcon>
-            ),
-            // Lock icon for Personal.exe
-            Lock: (p) => (
-                <PixelIcon {...p}>
-                    {/* Shackle */}
-                    <rect x="20" y="8" width="4" height="20" fill="#f00" />
-                    <rect x="40" y="8" width="4" height="20" fill="#f00" />
-                    <rect x="20" y="4" width="24" height="4" fill="#f00" />
-                    {/* Lock body */}
-                    <rect x="12" y="28" width="40" height="28" fill="#f00" />
-                    <rect x="16" y="32" width="32" height="20" fill="#300" />
-                    {/* Keyhole */}
-                    <rect x="28" y="38" width="8" height="8" fill="#f00" />
-                    <rect x="30" y="46" width="4" height="6" fill="#f00" />
-                </PixelIcon>
-            ),
-            // Folder icon for app categories
-            FolderClosed: (p) => (
-                <PixelIcon {...p}>
-                    <rect x="4" y="16" width="56" height="40" fill="#000" />
-                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    <rect x="8" y="8" width="16" height="8" fill="#000" />
-                </PixelIcon>
-            ),
-            // Games folder - folder with controller
-            GamesFolder: (p) => (
-                <PixelIcon {...p}>
-                    {/* Folder base */}
-                    <rect x="4" y="16" width="56" height="40" fill="#000" />
-                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    {/* Controller icon inside */}
-                    <rect x="18" y="30" width="28" height="14" fill="#000" />
-                    <rect x="20" y="32" width="24" height="10" fill="#fff" />
-                    <rect x="22" y="34" width="4" height="6" fill="#000" />
-                    <rect x="24" y="36" width="6" height="2" fill="#000" />
-                    <rect x="36" y="35" width="3" height="3" fill="#000" />
-                    <rect x="40" y="35" width="3" height="3" fill="#000" />
-                </PixelIcon>
-            ),
-            // Productivity folder - folder with gear
-            ProductivityFolder: (p) => (
-                <PixelIcon {...p}>
-                    {/* Folder base */}
-                    <rect x="4" y="16" width="56" height="40" fill="#000" />
-                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    {/* Gear icon inside */}
-                    <rect x="28" y="28" width="8" height="8" fill="#000" />
-                    <rect x="30" y="26" width="4" height="12" fill="#000" />
-                    <rect x="26" y="30" width="12" height="4" fill="#000" />
-                    <rect x="27" y="27" width="2" height="2" fill="#000" />
-                    <rect x="35" y="27" width="2" height="2" fill="#000" />
-                    <rect x="27" y="35" width="2" height="2" fill="#000" />
-                    <rect x="35" y="35" width="2" height="2" fill="#000" />
-                    <rect x="30" y="30" width="4" height="4" fill="#fff" />
-                </PixelIcon>
-            ),
-            // About folder - folder with person
-            AboutFolder: (p) => (
-                <PixelIcon {...p}>
-                    {/* Folder base */}
-                    <rect x="4" y="16" width="56" height="40" fill="#000" />
-                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
-                    <rect x="4" y="12" width="24" height="8" fill="#000" />
-                    {/* Person icon inside */}
-                    <rect x="29" y="26" width="6" height="6" fill="#000" />
-                    <rect x="26" y="34" width="12" height="10" fill="#000" />
-                    <rect x="28" y="36" width="8" height="6" fill="#fff" />
-                </PixelIcon>
-            )
+            Apps: (p) => <PixelartIcon name="add-grid" {...p} />,
+            // Gallery
+            Gallery: (p) => <PixelartIcon name="image" {...p} />,
+            // Globe
+            Globe: (p) => <PixelartIcon name="globe" {...p} />,
+            // Pomodoro timer
+            Pomodoro: (p) => <PixelartIcon name="clock" {...p} />,
+            // Health scanner
+            HealthScanner: (p) => <PixelartIcon name="heart" {...p} />,
+            // Lock icon
+            Lock: (p) => <PixelartIcon name="lock" {...p} />,
+            // Folder icons for app categories
+            FolderClosed: (p) => <PixelartIcon name="folder" {...p} />,
+            GamesFolder: (p) => <PixelartIcon name="gamepad" {...p} />,
+            ProductivityFolder: (p) => <PixelartIcon name="sliders" {...p} />,
+            AboutFolder: (p) => <PixelartIcon name="user" {...p} />,
         };
 
         // --- DATA ---
