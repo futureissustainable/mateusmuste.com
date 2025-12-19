@@ -828,17 +828,30 @@
                             <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">App Stack</h3>
                             <div className="grid grid-cols-4 gap-1">
                                 {[
-                                    'Photoshop', 'Premiere', 'After Effects', 'Excel',
-                                    'Meta Ads', 'DaVinci', 'ArchiCAD', 'Squarespace',
-                                    'Unreal', 'Webflow', 'Midjourney', 'Google Ads',
-                                    'Blender', 'Cursor', 'ComfyUI', 'n8n'
+                                    { name: 'PHOTOSHOP', yrs: 9 },
+                                    { name: 'PREMIERE', yrs: 8 },
+                                    { name: 'AFTER EFFECTS', yrs: 6 },
+                                    { name: 'EXCEL', yrs: 5 },
+                                    { name: 'META ADS', yrs: 5 },
+                                    { name: 'DAVINCI', yrs: 4 },
+                                    { name: 'ARCHICAD', yrs: 3 },
+                                    { name: 'SQUARESPACE', yrs: 3 },
+                                    { name: 'UNREAL', yrs: 3 },
+                                    { name: 'WEBFLOW', yrs: 3 },
+                                    { name: 'MIDJOURNEY', yrs: 2 },
+                                    { name: 'GOOGLE ADS', yrs: 2 },
+                                    { name: 'BLENDER', yrs: 1 },
+                                    { name: 'CURSOR', yrs: 1 },
+                                    { name: 'COMFYUI', yrs: 1 },
+                                    { name: 'N8N', yrs: 1 }
                                 ].map((app, i, arr) => (
                                     <div
                                         key={i}
-                                        className="border-2 border-black aspect-square flex items-center justify-center p-1 cursor-default"
+                                        className="border-2 border-black aspect-square flex flex-col items-center justify-center p-1 cursor-default"
                                         style={{ opacity: 1 - (i / (arr.length - 1)) * 0.66 }}
                                     >
-                                        <span className="font-black text-[10px] text-center leading-tight">{app}</span>
+                                        <span className="font-black text-[8px] text-center leading-tight">{app.name}</span>
+                                        <span className="font-mono text-[10px] mt-1">{app.yrs}Y</span>
                                     </div>
                                 ))}
                             </div>
