@@ -300,7 +300,7 @@
             Music: (p) => <PixelartIcon name="music" {...p} />,
             Back: (p) => <PixelartIcon name="arrow-left" {...p} />,
             // App Icons
-            Void: (p) => <PixelartIcon name="terminal" {...p} />,
+            Void: (p) => <PixelartIcon name="code" {...p} />,
             Oracle: (p) => <PixelartIcon name="book-open" {...p} />,
             Radio: (p) => <PixelartIcon name="radio-on" {...p} />,
             Dice: (p) => <PixelartIcon name="dice" {...p} />,
@@ -318,7 +318,7 @@
             // Gallery
             Gallery: (p) => <PixelartIcon name="image" {...p} />,
             // Globe
-            Globe: (p) => <PixelartIcon name="globe" {...p} />,
+            Globe: (p) => <PixelartIcon name="map" {...p} />,
             // Pomodoro timer
             Pomodoro: (p) => <PixelartIcon name="clock" {...p} />,
             // Health scanner
@@ -6139,12 +6139,11 @@
                                     onMouseDown={(e) => !isMobile && handleMouseDown(e, win.id)}
                                 >
                                     <div className="flex items-center gap-2 pl-2 pointer-events-none">
-                                        <Icons.Square size={10} className="fill-current" />
                                         <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-                                        {!isMobile && <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>}
-                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'text-white hover:text-white' : 'text-black hover:text-white'}`}><Icons.X size={24} /></button>
+                                        {!isMobile && <button onClick={() => toggleMin(win.id)} className={`w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20 ${win.z === topZ ? 'invert' : ''}`}><Icons.Minus size={14} /></button>}
+                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'invert hover:invert-0' : ''}`}><Icons.X size={24} /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
