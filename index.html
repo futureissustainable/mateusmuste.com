@@ -4262,8 +4262,70 @@
             );
         };
 
-        // --- HEALTH_SCANNER.EXE - Embedded health score app ---
+        // --- SCANNER.EXE - Embedded health score app ---
         const HealthScannerApp = () => {
+            const [booting, setBooting] = useState(true);
+            const [bootText, setBootText] = useState('');
+
+            useEffect(() => {
+                const bootSequence = [
+                    'HEALTH SCANNER INDUSTRIES',
+                    '',
+                    'INITIALIZING BIOMETRIC SENSORS...',
+                    'LOADING NEURAL INTERFACE...',
+                    'CALIBRATING HEALTH MATRIX...',
+                    '',
+                    'SYSTEM READY'
+                ];
+
+                let lineIndex = 0;
+                let charIndex = 0;
+                let currentText = '';
+
+                const typeInterval = setInterval(() => {
+                    if (lineIndex >= bootSequence.length) {
+                        clearInterval(typeInterval);
+                        setTimeout(() => setBooting(false), 500);
+                        return;
+                    }
+
+                    const currentLine = bootSequence[lineIndex];
+                    if (charIndex < currentLine.length) {
+                        currentText += currentLine[charIndex];
+                        setBootText(currentText);
+                        charIndex++;
+                    } else {
+                        currentText += '\n';
+                        setBootText(currentText);
+                        lineIndex++;
+                        charIndex = 0;
+                    }
+                }, 30);
+
+                return () => clearInterval(typeInterval);
+            }, []);
+
+            if (booting) {
+                return (
+                    <div className="h-full flex flex-col bg-black select-none">
+                        <div className="flex-grow flex flex-col items-center justify-center p-8 font-mono">
+                            <div className="text-green-500 text-center whitespace-pre-line text-sm mb-8">
+                                {bootText}
+                                <span className="animate-pulse">_</span>
+                            </div>
+                            <div className="flex gap-2">
+                                <div className="w-3 h-3 bg-green-500 animate-pulse" style={{ animationDelay: '0ms' }}></div>
+                                <div className="w-3 h-3 bg-green-500 animate-pulse" style={{ animationDelay: '150ms' }}></div>
+                                <div className="w-3 h-3 bg-green-500 animate-pulse" style={{ animationDelay: '300ms' }}></div>
+                            </div>
+                        </div>
+                        <div className="p-2 border-t border-green-900 text-center">
+                            <span className="font-mono text-[10px] text-green-700">© HEALTH SCANNER INDUSTRIES 2077</span>
+                        </div>
+                    </div>
+                );
+            }
+
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <iframe
@@ -4282,7 +4344,7 @@
                 { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
                 { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
                 { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
-                { id: 'HEALTH', title: 'HEALTH_SCANNER.EXE', icon: 'HealthScanner' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
                 { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -4514,7 +4576,7 @@
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
-                "HEALTH": { id: "HEALTH", title: "HEALTH_SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 }
+                "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 }
             });
 
             // Render window content based on ID
@@ -4541,7 +4603,7 @@
                     case "GALLERY": return <GalleryApp />;
                     case "MAP": return <MapApp />;
                     case "POMODORO": return <PomodoroApp />;
-                    case "HEALTH": return <HealthScannerApp />;
+                    case "SCANNER": return <HealthScannerApp />;
                     default: return null;
                 }
             };
@@ -4742,7 +4804,7 @@
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()}>
                                         {!isMobile && <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>}
-                                        <button onClick={() => close(win.id)} className="w-8 h-8 md:w-6 md:h-6 flex items-center justify-center border border-transparent hover:bg-red-500 hover:text-white"><Icons.X size={16} /></button>
+                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center border-2 md:border border-current md:border-transparent hover:bg-red-500 hover:text-white ${win.z === topZ ? 'text-white' : 'text-black'}`}><Icons.X size={20} className="md:w-[14px] md:h-[14px]" /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
