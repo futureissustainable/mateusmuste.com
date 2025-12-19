@@ -5005,8 +5005,9 @@
 
         const OS = () => {
             const [booted, setBooted] = useState(false);
-            const [bootPhase, setBootPhase] = useState(0); // 0: kernel, 1: mobile warning, 2: ready
+            const [bootPhase, setBootPhase] = useState(-1); // -1: showcase (mobile), 0: kernel, 1: mobile warning, 2: ready
             const [isMobile, setIsMobile] = useState(false);
+            const [showcaseIndex, setShowcaseIndex] = useState(0);
             const [topZ, setTopZ] = useState(100);
             const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
@@ -5185,20 +5186,17 @@
                     img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
                 });
 
-                // Phase 0: Show kernel boot for 3 seconds
-                setTimeout(() => {
-                    if (checkMobile) {
-                        // Phase 1: Show mobile warning for 3 seconds
-                        setBootPhase(1);
-                        setTimeout(() => {
-                            setBootPhase(2);
-                            setBooted(true);
-                        }, 3000);
-                    } else {
+                if (checkMobile) {
+                    // Mobile: Start with showcase (phase -1), user taps to continue
+                    setBootPhase(-1);
+                } else {
+                    // Desktop: Skip showcase, go straight to kernel boot
+                    setBootPhase(0);
+                    setTimeout(() => {
                         setBootPhase(2);
                         setBooted(true);
-                    }
-                }, 3000);
+                    }, 3000);
+                }
 
                 // Handle resize
                 const handleResize = () => {
@@ -5298,8 +5296,119 @@
                 );
             };
 
+            // Mobile showcase data
+            const showcaseApps = [
+                {
+                    id: 'GLOBE',
+                    title: 'PLANET CLICKER',
+                    desc: 'INTERACTIVE 3D GLOBE',
+                    icon: '🌍',
+                    color: 'from-gray-900 to-black'
+                },
+                {
+                    id: 'TAROT',
+                    title: 'TAROT.DAT',
+                    desc: 'DIGITAL DIVINATION',
+                    icon: '🃏',
+                    color: 'from-purple-900 to-black'
+                },
+                {
+                    id: 'SNAKE',
+                    title: 'SNEK.EXE',
+                    desc: 'CLASSIC ARCADE GAME',
+                    icon: '🐍',
+                    color: 'from-green-900 to-black'
+                },
+                {
+                    id: 'SYNTH',
+                    title: 'SYNTH.WAV',
+                    desc: 'VIRTUAL SYNTHESIZER',
+                    icon: '🎹',
+                    color: 'from-blue-900 to-black'
+                },
+                {
+                    id: 'ORACLE',
+                    title: 'ORACLE.EXE',
+                    desc: 'WISDOM GENERATOR',
+                    icon: '🔮',
+                    color: 'from-amber-900 to-black'
+                }
+            ];
+
+            const handleShowcaseNext = () => {
+                if (showcaseIndex < showcaseApps.length - 1) {
+                    setShowcaseIndex(showcaseIndex + 1);
+                } else {
+                    // Done with showcase, go to kernel boot
+                    setBootPhase(0);
+                    setTimeout(() => {
+                        setBootPhase(1);
+                        setTimeout(() => {
+                            setBootPhase(2);
+                            setBooted(true);
+                        }, 2000);
+                    }, 2500);
+                }
+            };
+
+            const handleSkipShowcase = () => {
+                setBootPhase(0);
+                setTimeout(() => {
+                    setBootPhase(1);
+                    setTimeout(() => {
+                        setBootPhase(2);
+                        setBooted(true);
+                    }, 2000);
+                }, 2500);
+            };
+
             // Boot screens
             if (!booted) {
+                // Mobile showcase - swipeable preview cards
+                if (bootPhase === -1) {
+                    const currentApp = showcaseApps[showcaseIndex];
+                    return (
+                        <div
+                            className={`h-screen w-screen bg-gradient-to-b ${currentApp.color} text-white font-mono flex flex-col select-none transition-all duration-500`}
+                            onClick={handleShowcaseNext}
+                        >
+                            {/* Header */}
+                            <div className="flex justify-between items-center p-4">
+                                <div className="text-[10px] text-gray-400">MATEUSMUSTE.COM</div>
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); handleSkipShowcase(); }}
+                                    className="text-[10px] text-gray-400 border border-gray-600 px-2 py-1 hover:bg-white hover:text-black"
+                                >
+                                    SKIP
+                                </button>
+                            </div>
+
+                            {/* Main content */}
+                            <div className="flex-grow flex flex-col items-center justify-center px-8">
+                                <div className="text-6xl mb-6 animate-bounce">{currentApp.icon}</div>
+                                <div className="text-2xl font-bold mb-2 tracking-wider">{currentApp.title}</div>
+                                <div className="text-sm text-gray-400 mb-8">{currentApp.desc}</div>
+
+                                {/* Progress dots */}
+                                <div className="flex gap-2 mb-8">
+                                    {showcaseApps.map((_, i) => (
+                                        <div
+                                            key={i}
+                                            className={`w-2 h-2 transition-all ${i === showcaseIndex ? 'bg-white scale-125' : 'bg-gray-600'}`}
+                                        />
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Footer */}
+                            <div className="p-6 text-center">
+                                <div className="text-xs text-gray-500 animate-pulse">TAP TO CONTINUE</div>
+                                <div className="text-[10px] text-gray-600 mt-2">{showcaseIndex + 1} / {showcaseApps.length}</div>
+                            </div>
+                        </div>
+                    );
+                }
+
                 if (bootPhase === 0) {
                     return <BootScreen />;
                 }
