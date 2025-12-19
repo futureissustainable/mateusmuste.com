@@ -828,30 +828,17 @@
                             <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">App Stack</h3>
                             <div className="grid grid-cols-4 gap-1">
                                 {[
-                                    { name: 'PS', full: 'Photoshop', yrs: 9 },
-                                    { name: 'PR', full: 'Premiere', yrs: 8 },
-                                    { name: 'AE', full: 'After Effects', yrs: 6 },
-                                    { name: 'XL', full: 'Excel', yrs: 5 },
-                                    { name: 'MA', full: 'Meta Ads', yrs: 5 },
-                                    { name: 'DV', full: 'DaVinci', yrs: 4 },
-                                    { name: 'AC', full: 'ArchiCAD', yrs: 3 },
-                                    { name: 'SQ', full: 'Squarespace', yrs: 3 },
-                                    { name: 'UE', full: 'Unreal', yrs: 3 },
-                                    { name: 'WF', full: 'Webflow', yrs: 3 },
-                                    { name: 'MJ', full: 'Midjourney', yrs: 2 },
-                                    { name: 'GA', full: 'Google Ads', yrs: 2 },
-                                    { name: 'BL', full: 'Blender', yrs: 1 },
-                                    { name: 'CR', full: 'Cursor', yrs: 1 },
-                                    { name: 'CF', full: 'ComfyUI', yrs: 1 },
-                                    { name: 'N8', full: 'n8n', yrs: 1 }
-                                ].map((app, i) => (
-                                    <div key={i} className="group relative border-2 border-black aspect-square flex flex-col items-center justify-center hover:bg-black hover:text-white transition-all cursor-default">
-                                        <span className="font-black text-lg">{app.name}</span>
-                                        <span className="font-mono text-[10px]">{app.yrs}Y</span>
-                                        <div className="absolute inset-0 bg-black text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity">
-                                            <span className="font-mono text-[9px] text-center px-1">{app.full}</span>
-                                            <span className="font-black">{app.yrs} YRS</span>
-                                        </div>
+                                    'Photoshop', 'Premiere', 'After Effects', 'Excel',
+                                    'Meta Ads', 'DaVinci', 'ArchiCAD', 'Squarespace',
+                                    'Unreal', 'Webflow', 'Midjourney', 'Google Ads',
+                                    'Blender', 'Cursor', 'ComfyUI', 'n8n'
+                                ].map((app, i, arr) => (
+                                    <div
+                                        key={i}
+                                        className="border-2 border-black aspect-square flex items-center justify-center p-1 cursor-default"
+                                        style={{ opacity: 1 - (i / (arr.length - 1)) * 0.66 }}
+                                    >
+                                        <span className="font-black text-[10px] text-center leading-tight">{app}</span>
                                     </div>
                                 ))}
                             </div>
