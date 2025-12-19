@@ -4195,7 +4195,183 @@
             const rendererRef = useRef(null);
             const globeRef = useRef(null);
             const cloudsRef = useRef(null);
+            const ringsRef = useRef([]);
+            const particlesRef = useRef(null);
             const [loading, setLoading] = useState(true);
+            const [showShop, setShowShop] = useState(false);
+            const [clickEffect, setClickEffect] = useState(null);
+
+            // Game state with defaults
+            const defaultGameState = {
+                clicks: 0,
+                totalClicks: 0,
+                clickPower: 1,
+                autoClickers: 0,
+                clickMultiplier: 1,
+                // Upgrades purchased
+                upgrades: {
+                    clickPower1: false,    // +1 click power - 50
+                    clickPower2: false,    // +5 click power - 500
+                    clickPower3: false,    // +25 click power - 5000
+                    clickPower4: false,    // +100 click power - 50000
+                    autoClick1: false,     // 1 auto click/sec - 100
+                    autoClick2: false,     // 5 auto clicks/sec - 1000
+                    autoClick3: false,     // 25 auto clicks/sec - 10000
+                    autoClick4: false,     // 100 auto clicks/sec - 100000
+                    multiplier1: false,    // 2x multiplier - 2500
+                    multiplier2: false,    // 2x multiplier (4x total) - 25000
+                    multiplier3: false,    // 2x multiplier (8x total) - 250000
+                    // Visual upgrades
+                    goldPlanet: false,     // Golden planet - 1000
+                    neonPlanet: false,     // Neon glow - 5000
+                    rainbowPlanet: false,  // Rainbow colors - 25000
+                    fireRings: false,      // Fire rings - 10000
+                    starField: false,      // Dense star field - 2000
+                    particles: false,      // Particle effects - 15000
+                    pulse: false,          // Pulse animation - 7500
+                    moon: false,           // Orbiting moon - 20000
+                    doubleGlobe: false,    // Second small globe - 50000
+                    blackHole: false,      // Background black hole - 100000
+                    matrix: false,         // Matrix rain effect - 75000
+                    godMode: false         // Ultimate visual - 1000000
+                }
+            };
+
+            const [gameState, setGameState] = useState(() => {
+                // Try to load from localStorage
+                const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
+                if (saved) {
+                    try {
+                        return { ...defaultGameState, ...JSON.parse(saved) };
+                    } catch (e) {
+                        return defaultGameState;
+                    }
+                }
+                return defaultGameState;
+            });
+
+            // Load game state when IP is ready
+            useEffect(() => {
+                const loadGame = async () => {
+                    await HighScoreManager.fetchIP();
+                    const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
+                    if (saved) {
+                        try {
+                            setGameState(prev => ({ ...defaultGameState, ...JSON.parse(saved) }));
+                        } catch (e) {}
+                    }
+                };
+                loadGame();
+            }, []);
+
+            // Save game state whenever it changes
+            useEffect(() => {
+                localStorage.setItem(HighScoreManager.getStorageKey('mapclicker'), JSON.stringify(gameState));
+            }, [gameState]);
+
+            // Auto-clicker interval
+            useEffect(() => {
+                if (gameState.autoClickers > 0) {
+                    const interval = setInterval(() => {
+                        setGameState(prev => ({
+                            ...prev,
+                            clicks: prev.clicks + prev.autoClickers * prev.clickMultiplier,
+                            totalClicks: prev.totalClicks + prev.autoClickers * prev.clickMultiplier
+                        }));
+                    }, 1000);
+                    return () => clearInterval(interval);
+                }
+            }, [gameState.autoClickers, gameState.clickMultiplier]);
+
+            // Shop items
+            const shopItems = [
+                { category: 'CLICK POWER', items: [
+                    { id: 'clickPower1', name: '+1 CLICK', desc: 'Each tap gives +1 more', cost: 50, effect: () => ({ clickPower: gameState.clickPower + 1 }) },
+                    { id: 'clickPower2', name: '+5 CLICKS', desc: 'Each tap gives +5 more', cost: 500, effect: () => ({ clickPower: gameState.clickPower + 5 }), requires: 'clickPower1' },
+                    { id: 'clickPower3', name: '+25 CLICKS', desc: 'Each tap gives +25 more', cost: 5000, effect: () => ({ clickPower: gameState.clickPower + 25 }), requires: 'clickPower2' },
+                    { id: 'clickPower4', name: '+100 CLICKS', desc: 'Each tap gives +100 more', cost: 50000, effect: () => ({ clickPower: gameState.clickPower + 100 }), requires: 'clickPower3' },
+                ]},
+                { category: 'AUTO-CLICKERS', items: [
+                    { id: 'autoClick1', name: 'DRONE x1', desc: '1 click per second', cost: 100, effect: () => ({ autoClickers: gameState.autoClickers + 1 }) },
+                    { id: 'autoClick2', name: 'DRONE x5', desc: '+5 clicks per second', cost: 1000, effect: () => ({ autoClickers: gameState.autoClickers + 5 }), requires: 'autoClick1' },
+                    { id: 'autoClick3', name: 'DRONE x25', desc: '+25 clicks per second', cost: 10000, effect: () => ({ autoClickers: gameState.autoClickers + 25 }), requires: 'autoClick2' },
+                    { id: 'autoClick4', name: 'DRONE x100', desc: '+100 clicks per second', cost: 100000, effect: () => ({ autoClickers: gameState.autoClickers + 100 }), requires: 'autoClick3' },
+                ]},
+                { category: 'MULTIPLIERS', items: [
+                    { id: 'multiplier1', name: '2X MULTI', desc: 'Double all clicks', cost: 2500, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }) },
+                    { id: 'multiplier2', name: '4X MULTI', desc: 'Double again (4x total)', cost: 25000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier1' },
+                    { id: 'multiplier3', name: '8X MULTI', desc: 'Double again (8x total)', cost: 250000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier2' },
+                ]},
+                { category: 'PLANET SKINS', items: [
+                    { id: 'goldPlanet', name: 'GOLD PLANET', desc: 'Shiny golden Earth', cost: 1000 },
+                    { id: 'neonPlanet', name: 'NEON GLOW', desc: 'Cyberpunk neon colors', cost: 5000 },
+                    { id: 'rainbowPlanet', name: 'RAINBOW', desc: 'Colorful rainbow planet', cost: 25000, requires: 'neonPlanet' },
+                ]},
+                { category: 'VISUAL FX', items: [
+                    { id: 'starField', name: 'STAR FIELD', desc: 'Dense beautiful stars', cost: 2000 },
+                    { id: 'pulse', name: 'PULSE FX', desc: 'Planet pulses on click', cost: 7500 },
+                    { id: 'fireRings', name: 'FIRE RINGS', desc: 'Saturn-like fire rings', cost: 10000 },
+                    { id: 'particles', name: 'PARTICLES', desc: 'Floating particles', cost: 15000 },
+                    { id: 'moon', name: 'MOON', desc: 'Orbiting moon', cost: 20000 },
+                    { id: 'doubleGlobe', name: 'TWIN WORLD', desc: 'Second mini planet', cost: 50000, requires: 'moon' },
+                    { id: 'matrix', name: 'MATRIX', desc: 'Digital rain effect', cost: 75000 },
+                    { id: 'blackHole', name: 'BLACK HOLE', desc: 'Cosmic background', cost: 100000 },
+                    { id: 'godMode', name: 'GOD MODE', desc: 'ULTIMATE VISUALS', cost: 1000000, requires: 'blackHole' },
+                ]},
+            ];
+
+            const buyUpgrade = (item) => {
+                if (gameState.clicks >= item.cost && !gameState.upgrades[item.id]) {
+                    if (item.requires && !gameState.upgrades[item.requires]) return;
+
+                    const effectResult = item.effect ? item.effect() : {};
+                    setGameState(prev => ({
+                        ...prev,
+                        clicks: prev.clicks - item.cost,
+                        ...effectResult,
+                        upgrades: { ...prev.upgrades, [item.id]: true }
+                    }));
+                }
+            };
+
+            const canBuy = (item) => {
+                if (gameState.upgrades[item.id]) return false;
+                if (gameState.clicks < item.cost) return false;
+                if (item.requires && !gameState.upgrades[item.requires]) return false;
+                return true;
+            };
+
+            const isLocked = (item) => {
+                return item.requires && !gameState.upgrades[item.requires];
+            };
+
+            // Handle click on globe
+            const handleGlobeClick = () => {
+                const clickValue = gameState.clickPower * gameState.clickMultiplier;
+                setGameState(prev => ({
+                    ...prev,
+                    clicks: prev.clicks + clickValue,
+                    totalClicks: prev.totalClicks + clickValue
+                }));
+                setClickEffect({ value: clickValue, id: Date.now() });
+                setTimeout(() => setClickEffect(null), 500);
+
+                // Pulse effect
+                if (globeRef.current && gameState.upgrades.pulse) {
+                    globeRef.current.scale.set(1.1, 1.1, 1.1);
+                    setTimeout(() => {
+                        if (globeRef.current) globeRef.current.scale.set(1, 1, 1);
+                    }, 100);
+                }
+            };
+
+            const formatNumber = (num) => {
+                if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
+                if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
+                if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
+                if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+                return Math.floor(num).toString();
+            };
 
             useEffect(() => {
                 if (!containerRef.current) return;
@@ -4203,7 +4379,6 @@
                 const width = containerRef.current.clientWidth;
                 const height = containerRef.current.clientHeight;
 
-                // Scene setup
                 const scene = new THREE.Scene();
                 scene.background = new THREE.Color(0x000000);
                 sceneRef.current = scene;
@@ -4217,88 +4392,60 @@
                 containerRef.current.appendChild(renderer.domElement);
                 rendererRef.current = renderer;
 
-                // Create globe geometry (higher detail for accuracy)
                 const globeGeometry = new THREE.IcosahedronGeometry(1, 5);
 
-                // Accurate land detection function
                 const isLandAt = (lat, lon) => {
-                    // North America mainland
-                    if (lat > 48 && lat < 72 && lon > -170 && lon < -55) return true; // Canada/Alaska
+                    if (lat > 48 && lat < 72 && lon > -170 && lon < -55) return true;
                     if (lat > 25 && lat < 50 && lon > -130 && lon < -65) {
-                        // Continental US shape
-                        if (lat > 45 && lon < -90) return true; // Upper midwest/northeast
-                        if (lat > 30 && lon > -105 && lon < -75) return true; // Eastern US
-                        if (lat > 32 && lat < 42 && lon > -125 && lon < -115) return true; // California
-                        if (lat > 35 && lon > -115 && lon < -95) return true; // Southwest/midwest
-                        return lat > 28 && lon > -100 && lon < -80; // Southeast/Texas
+                        if (lat > 45 && lon < -90) return true;
+                        if (lat > 30 && lon > -105 && lon < -75) return true;
+                        if (lat > 32 && lat < 42 && lon > -125 && lon < -115) return true;
+                        if (lat > 35 && lon > -115 && lon < -95) return true;
+                        return lat > 28 && lon > -100 && lon < -80;
                     }
-                    if (lat > 15 && lat < 32 && lon > -118 && lon < -85) return true; // Mexico
-
-                    // Central America
+                    if (lat > 15 && lat < 32 && lon > -118 && lon < -85) return true;
                     if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
-
-                    // Caribbean (simplified)
-                    if (lat > 18 && lat < 24 && lon > -85 && lon < -74) return true; // Cuba
-
-                    // South America
-                    if (lat > -5 && lat < 12 && lon > -82 && lon < -60) return true; // Colombia/Venezuela
-                    if (lat > -20 && lat < 5 && lon > -80 && lon < -50) return true; // Brazil north/Peru
-                    if (lat > -35 && lat < -15 && lon > -70 && lon < -35) return true; // Brazil south/Paraguay
-                    if (lat > -55 && lat < -20 && lon > -75 && lon < -62) return true; // Argentina/Chile
-                    if (lat > -42 && lat < -30 && lon > -62 && lon < -48) return true; // Uruguay/south Brazil
-
-                    // Europe
-                    if (lat > 36 && lat < 45 && lon > -10 && lon < 3) return true; // Iberia
-                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true; // France
-                    if (lat > 50 && lat < 59 && lon > -11 && lon < 2) return true; // UK/Ireland
-                    if (lat > 47 && lat < 55 && lon > 5 && lon < 15) return true; // Germany/Benelux
-                    if (lat > 36 && lat < 47 && lon > 6 && lon < 19) return true; // Italy/Alps
-                    if (lat > 55 && lat < 71 && lon > 4 && lon < 32) return true; // Scandinavia
-                    if (lat > 46 && lat < 55 && lon > 14 && lon < 24) return true; // Poland/Czech
-                    if (lat > 35 && lat < 42 && lon > 19 && lon < 30) return true; // Greece/Balkans
-                    if (lat > 44 && lat < 70 && lon > 20 && lon < 60) return true; // Eastern Europe/Russia west
-
-                    // Africa
-                    if (lat > 20 && lat < 37 && lon > -18 && lon < 35) return true; // North Africa
-                    if (lat > -5 && lat < 25 && lon > -18 && lon < 15) return true; // West Africa
-                    if (lat > -5 && lat < 15 && lon > 10 && lon < 42) return true; // Central Africa
-                    if (lat > -12 && lat < 12 && lon > 28 && lon < 52) return true; // East Africa
-                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true; // Southern Africa
-                    if (lat > -27 && lat < -12 && lon > 42 && lon < 51) return true; // Madagascar
-
-                    // Middle East
+                    if (lat > 18 && lat < 24 && lon > -85 && lon < -74) return true;
+                    if (lat > -5 && lat < 12 && lon > -82 && lon < -60) return true;
+                    if (lat > -20 && lat < 5 && lon > -80 && lon < -50) return true;
+                    if (lat > -35 && lat < -15 && lon > -70 && lon < -35) return true;
+                    if (lat > -55 && lat < -20 && lon > -75 && lon < -62) return true;
+                    if (lat > -42 && lat < -30 && lon > -62 && lon < -48) return true;
+                    if (lat > 36 && lat < 45 && lon > -10 && lon < 3) return true;
+                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true;
+                    if (lat > 50 && lat < 59 && lon > -11 && lon < 2) return true;
+                    if (lat > 47 && lat < 55 && lon > 5 && lon < 15) return true;
+                    if (lat > 36 && lat < 47 && lon > 6 && lon < 19) return true;
+                    if (lat > 55 && lat < 71 && lon > 4 && lon < 32) return true;
+                    if (lat > 46 && lat < 55 && lon > 14 && lon < 24) return true;
+                    if (lat > 35 && lat < 42 && lon > 19 && lon < 30) return true;
+                    if (lat > 44 && lat < 70 && lon > 20 && lon < 60) return true;
+                    if (lat > 20 && lat < 37 && lon > -18 && lon < 35) return true;
+                    if (lat > -5 && lat < 25 && lon > -18 && lon < 15) return true;
+                    if (lat > -5 && lat < 15 && lon > 10 && lon < 42) return true;
+                    if (lat > -12 && lat < 12 && lon > 28 && lon < 52) return true;
+                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true;
+                    if (lat > -27 && lat < -12 && lon > 42 && lon < 51) return true;
                     if (lat > 12 && lat < 38 && lon > 34 && lon < 60) return true;
-                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true; // Turkey
-
-                    // Asia
-                    if (lat > 50 && lat < 75 && lon > 55 && lon < 180) return true; // Siberia
-                    if (lat > 35 && lat < 55 && lon > 45 && lon < 90) return true; // Central Asia
-                    if (lat > 20 && lat < 45 && lon > 70 && lon < 135) return true; // China/Mongolia
-                    if (lat > 30 && lat < 46 && lon > 128 && lon < 146) return true; // Japan
-                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true; // Korea
-                    if (lat > 8 && lat < 30 && lon > 68 && lon < 98) return true; // India/SE Asia
-                    if (lat > -10 && lat < 20 && lon > 95 && lon < 120) return true; // SE Asia mainland
-                    if (lat > -8 && lat < 6 && lon > 95 && lon < 141) return true; // Indonesia
-                    if (lat > 4 && lat < 21 && lon > 100 && lon < 122) return true; // Philippines area
-
-                    // Australia/Oceania
-                    if (lat > -45 && lat < -10 && lon > 112 && lon < 154) return true; // Australia
-                    if (lat > -48 && lat < -34 && lon > 166 && lon < 179) return true; // New Zealand
-                    if (lat > -22 && lat < -12 && lon > 142 && lon < 155) return true; // Papua New Guinea
-
-                    // Greenland
+                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true;
+                    if (lat > 50 && lat < 75 && lon > 55 && lon < 180) return true;
+                    if (lat > 35 && lat < 55 && lon > 45 && lon < 90) return true;
+                    if (lat > 20 && lat < 45 && lon > 70 && lon < 135) return true;
+                    if (lat > 30 && lat < 46 && lon > 128 && lon < 146) return true;
+                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true;
+                    if (lat > 8 && lat < 30 && lon > 68 && lon < 98) return true;
+                    if (lat > -10 && lat < 20 && lon > 95 && lon < 120) return true;
+                    if (lat > -8 && lat < 6 && lon > 95 && lon < 141) return true;
+                    if (lat > 4 && lat < 21 && lon > 100 && lon < 122) return true;
+                    if (lat > -45 && lat < -10 && lon > 112 && lon < 154) return true;
+                    if (lat > -48 && lat < -34 && lon > 166 && lon < 179) return true;
+                    if (lat > -22 && lat < -12 && lon > 142 && lon < 155) return true;
                     if (lat > 60 && lat < 84 && lon > -73 && lon < -12) return true;
-
-                    // Antarctica
                     if (lat < -62) return true;
-
-                    // Iceland
                     if (lat > 63 && lat < 67 && lon > -25 && lon < -13) return true;
-
                     return false;
                 };
 
-                // Create land masses using vertex colors
                 const positions = globeGeometry.attributes.position;
                 const colors = new Float32Array(positions.count * 3);
 
@@ -4306,20 +4453,14 @@
                     const x = positions.getX(i);
                     const y = positions.getY(i);
                     const z = positions.getZ(i);
-
-                    // Convert to lat/lon
                     const lat = Math.asin(y) * (180 / Math.PI);
                     const lon = Math.atan2(x, z) * (180 / Math.PI);
-
                     const isLand = isLandAt(lat, lon);
-
                     if (isLand) {
-                        // Land - dark gray/black
                         colors[i * 3] = 0.15;
                         colors[i * 3 + 1] = 0.15;
                         colors[i * 3 + 2] = 0.15;
                     } else {
-                        // Ocean - lighter gray
                         colors[i * 3] = 0.5;
                         colors[i * 3 + 1] = 0.5;
                         colors[i * 3 + 2] = 0.5;
@@ -4327,16 +4468,11 @@
                 }
 
                 globeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-
-                const globeMaterial = new THREE.MeshBasicMaterial({
-                    vertexColors: true
-                });
-
+                const globeMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
                 const globe = new THREE.Mesh(globeGeometry, globeMaterial);
                 scene.add(globe);
                 globeRef.current = globe;
 
-                // Create pixelated clouds
                 const cloudGeometry = new THREE.IcosahedronGeometry(1.05, 1);
                 const cloudMaterial = new THREE.MeshBasicMaterial({
                     color: 0xffffff,
@@ -4348,7 +4484,6 @@
                 scene.add(clouds);
                 cloudsRef.current = clouds;
 
-                // Add stars
                 const starGeometry = new THREE.BufferGeometry();
                 const starPositions = [];
                 for (let i = 0; i < 200; i++) {
@@ -4364,120 +4499,21 @@
                 const stars = new THREE.Points(starGeometry, starMaterial);
                 scene.add(stars);
 
-                // Mouse and touch interaction
-                let isDragging = false;
-                let prevMouseX = 0;
-                let prevMouseY = 0;
-                let rotationX = 0;
                 let rotationY = 0;
-                let lastPinchDist = 0;
-
-                const onMouseDown = (e) => {
-                    isDragging = true;
-                    prevMouseX = e.clientX;
-                    prevMouseY = e.clientY;
-                };
-
-                const onMouseMove = (e) => {
-                    if (!isDragging) return;
-                    const deltaX = e.clientX - prevMouseX;
-                    const deltaY = e.clientY - prevMouseY;
-                    rotationY += deltaX * 0.005;
-                    rotationX += deltaY * 0.005;
-                    rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
-                    prevMouseX = e.clientX;
-                    prevMouseY = e.clientY;
-                };
-
-                const onMouseUp = () => {
-                    isDragging = false;
-                };
-
-                const onWheel = (e) => {
-                    e.preventDefault();
-                    camera.position.z += e.deltaY * 0.002;
-                    camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
-                };
-
-                // Touch events
-                const onTouchStart = (e) => {
-                    if (e.touches.length === 1) {
-                        isDragging = true;
-                        prevMouseX = e.touches[0].clientX;
-                        prevMouseY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        lastPinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                    }
-                };
-
-                const onTouchMove = (e) => {
-                    e.preventDefault();
-                    if (e.touches.length === 1 && isDragging) {
-                        const deltaX = e.touches[0].clientX - prevMouseX;
-                        const deltaY = e.touches[0].clientY - prevMouseY;
-                        rotationY += deltaX * 0.005;
-                        rotationX += deltaY * 0.005;
-                        rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
-                        prevMouseX = e.touches[0].clientX;
-                        prevMouseY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        const pinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                        const delta = lastPinchDist - pinchDist;
-                        camera.position.z += delta * 0.01;
-                        camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
-                        lastPinchDist = pinchDist;
-                    }
-                };
-
-                const onTouchEnd = () => {
-                    isDragging = false;
-                };
-
-                renderer.domElement.addEventListener('mousedown', onMouseDown);
-                renderer.domElement.addEventListener('mousemove', onMouseMove);
-                renderer.domElement.addEventListener('mouseup', onMouseUp);
-                renderer.domElement.addEventListener('mouseleave', onMouseUp);
-                renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
-                renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-                renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
-                renderer.domElement.addEventListener('touchend', onTouchEnd);
-
                 setLoading(false);
 
-                // Animation
                 let animationId;
                 const animate = () => {
                     animationId = requestAnimationFrame(animate);
-
-                    if (!isDragging) {
-                        rotationY += 0.002;
-                    }
-
-                    globe.rotation.x = rotationX;
+                    rotationY += 0.005;
                     globe.rotation.y = rotationY;
-                    clouds.rotation.x = rotationX;
                     clouds.rotation.y = rotationY + 0.1;
-
                     renderer.render(scene, camera);
                 };
                 animate();
 
                 return () => {
                     cancelAnimationFrame(animationId);
-                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
-                    renderer.domElement.removeEventListener('mousemove', onMouseMove);
-                    renderer.domElement.removeEventListener('mouseup', onMouseUp);
-                    renderer.domElement.removeEventListener('mouseleave', onMouseUp);
-                    renderer.domElement.removeEventListener('wheel', onWheel);
-                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
-                    renderer.domElement.removeEventListener('touchmove', onTouchMove);
-                    renderer.domElement.removeEventListener('touchend', onTouchEnd);
                     renderer.dispose();
                     if (containerRef.current && renderer.domElement) {
                         containerRef.current.removeChild(renderer.domElement);
@@ -4485,25 +4521,252 @@
                 };
             }, []);
 
+            // Update visuals when upgrades change
+            useEffect(() => {
+                if (!globeRef.current || !sceneRef.current) return;
+                const globe = globeRef.current;
+                const scene = sceneRef.current;
+                const positions = globe.geometry.attributes.position;
+                const colors = globe.geometry.attributes.color;
+
+                const isLandAt = (lat, lon) => {
+                    if (lat > 48 && lat < 72 && lon > -170 && lon < -55) return true;
+                    if (lat > 25 && lat < 50 && lon > -130 && lon < -65) return true;
+                    if (lat > 15 && lat < 32 && lon > -118 && lon < -85) return true;
+                    if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
+                    if (lat > -5 && lat < 12 && lon > -82 && lon < -60) return true;
+                    if (lat > -55 && lat < 5 && lon > -80 && lon < -35) return true;
+                    if (lat > 36 && lat < 71 && lon > -11 && lon < 60) return true;
+                    if (lat > -35 && lat < 37 && lon > -18 && lon < 52) return true;
+                    if (lat > 8 && lat < 75 && lon > 26 && lon < 180) return true;
+                    if (lat > -45 && lat < -10 && lon > 112 && lon < 154) return true;
+                    if (lat > 60 && lat < 84 && lon > -73 && lon < -12) return true;
+                    if (lat < -62) return true;
+                    return false;
+                };
+
+                for (let i = 0; i < positions.count; i++) {
+                    const x = positions.getX(i);
+                    const y = positions.getY(i);
+                    const z = positions.getZ(i);
+                    const lat = Math.asin(y) * (180 / Math.PI);
+                    const lon = Math.atan2(x, z) * (180 / Math.PI);
+                    const isLand = isLandAt(lat, lon);
+
+                    let landR = 0.15, landG = 0.15, landB = 0.15;
+                    let oceanR = 0.5, oceanG = 0.5, oceanB = 0.5;
+
+                    if (gameState.upgrades.godMode) {
+                        const t = (Date.now() * 0.001 + i * 0.1) % (Math.PI * 2);
+                        landR = Math.sin(t) * 0.5 + 0.5;
+                        landG = Math.sin(t + 2) * 0.5 + 0.5;
+                        landB = Math.sin(t + 4) * 0.5 + 0.5;
+                        oceanR = 1 - landR;
+                        oceanG = 1 - landG;
+                        oceanB = 1 - landB;
+                    } else if (gameState.upgrades.rainbowPlanet) {
+                        const hue = ((lon + 180) / 360);
+                        const rgb = hslToRgb(hue, 1, isLand ? 0.3 : 0.6);
+                        colors[i * 3] = rgb[0];
+                        colors[i * 3 + 1] = rgb[1];
+                        colors[i * 3 + 2] = rgb[2];
+                        continue;
+                    } else if (gameState.upgrades.neonPlanet) {
+                        landR = 0; landG = 1; landB = 0.8;
+                        oceanR = 0.8; oceanG = 0; oceanB = 1;
+                    } else if (gameState.upgrades.goldPlanet) {
+                        landR = 1; landG = 0.84; landB = 0;
+                        oceanR = 0.7; oceanG = 0.5; oceanB = 0.2;
+                    }
+
+                    if (isLand) {
+                        colors.array[i * 3] = landR;
+                        colors.array[i * 3 + 1] = landG;
+                        colors.array[i * 3 + 2] = landB;
+                    } else {
+                        colors.array[i * 3] = oceanR;
+                        colors.array[i * 3 + 1] = oceanG;
+                        colors.array[i * 3 + 2] = oceanB;
+                    }
+                }
+                colors.needsUpdate = true;
+
+                // Add fire rings
+                if (gameState.upgrades.fireRings && ringsRef.current.length === 0) {
+                    for (let i = 0; i < 3; i++) {
+                        const ringGeo = new THREE.TorusGeometry(1.3 + i * 0.15, 0.02, 8, 32);
+                        const ringMat = new THREE.MeshBasicMaterial({
+                            color: i === 0 ? 0xff4400 : i === 1 ? 0xff8800 : 0xffaa00,
+                            transparent: true,
+                            opacity: 0.7
+                        });
+                        const ring = new THREE.Mesh(ringGeo, ringMat);
+                        ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.3;
+                        scene.add(ring);
+                        ringsRef.current.push(ring);
+                    }
+                }
+
+                // Add moon
+                if (gameState.upgrades.moon && !scene.getObjectByName('moon')) {
+                    const moonGeo = new THREE.IcosahedronGeometry(0.15, 2);
+                    const moonMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+                    const moon = new THREE.Mesh(moonGeo, moonMat);
+                    moon.name = 'moon';
+                    moon.position.set(2, 0, 0);
+                    scene.add(moon);
+                }
+
+                // Add particles
+                if (gameState.upgrades.particles && !particlesRef.current) {
+                    const particleGeo = new THREE.BufferGeometry();
+                    const particlePos = [];
+                    for (let i = 0; i < 100; i++) {
+                        const theta = Math.random() * Math.PI * 2;
+                        const phi = Math.random() * Math.PI;
+                        const r = 1.5 + Math.random() * 0.5;
+                        particlePos.push(
+                            r * Math.sin(phi) * Math.cos(theta),
+                            r * Math.cos(phi),
+                            r * Math.sin(phi) * Math.sin(theta)
+                        );
+                    }
+                    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePos, 3));
+                    const particleMat = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.03 });
+                    const particles = new THREE.Points(particleGeo, particleMat);
+                    particles.name = 'particles';
+                    scene.add(particles);
+                    particlesRef.current = particles;
+                }
+
+            }, [gameState.upgrades]);
+
+            // HSL to RGB helper
+            const hslToRgb = (h, s, l) => {
+                let r, g, b;
+                if (s === 0) { r = g = b = l; }
+                else {
+                    const hue2rgb = (p, q, t) => {
+                        if (t < 0) t += 1;
+                        if (t > 1) t -= 1;
+                        if (t < 1/6) return p + (q - p) * 6 * t;
+                        if (t < 1/2) return q;
+                        if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                        return p;
+                    };
+                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                    const p = 2 * l - q;
+                    r = hue2rgb(p, q, h + 1/3);
+                    g = hue2rgb(p, q, h);
+                    b = hue2rgb(p, q, h - 1/3);
+                }
+                return [r, g, b];
+            };
+
+            const purchasedCount = Object.values(gameState.upgrades).filter(Boolean).length;
+            const totalUpgrades = Object.keys(gameState.upgrades).length;
+
             return (
                 <div className="h-full flex flex-col bg-black select-none">
                     <div className="p-2 border-b-2 border-white bg-black flex justify-between items-center">
                         <div className="flex items-center gap-2">
                             <Icons.Globe size={24} />
-                            <span className="font-mono text-xs font-bold text-white">MAP.EXE</span>
+                            <span className="font-mono text-xs font-bold text-white">PLANET CLICKER</span>
                         </div>
-                        <span className="font-mono text-[10px] text-gray-400 hidden md:block">DRAG TO ROTATE • SCROLL TO ZOOM</span>
-                        <span className="font-mono text-[10px] text-gray-400 md:hidden">DRAG • PINCH ZOOM</span>
+                        <div className="flex items-center gap-3">
+                            <span className="font-mono text-xs text-yellow-400 font-bold">{formatNumber(gameState.clicks)}</span>
+                            <button
+                                onClick={() => setShowShop(!showShop)}
+                                className="px-2 py-1 bg-yellow-500 text-black font-mono text-[10px] font-bold hover:bg-yellow-400 border border-yellow-300"
+                            >
+                                SHOP
+                            </button>
+                        </div>
                     </div>
-                    <div ref={containerRef} className="flex-grow relative">
-                        {loading && (
-                            <div className="absolute inset-0 flex items-center justify-center bg-black">
-                                <span className="font-mono text-white animate-pulse">LOADING EARTH...</span>
+
+                    <div className="flex-grow relative">
+                        <div
+                            ref={containerRef}
+                            className="absolute inset-0 cursor-pointer"
+                            onClick={handleGlobeClick}
+                        >
+                            {loading && (
+                                <div className="absolute inset-0 flex items-center justify-center bg-black">
+                                    <span className="font-mono text-white animate-pulse">LOADING...</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Click effect */}
+                        {clickEffect && (
+                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-ping">
+                                <span className="font-mono text-2xl font-bold text-yellow-400">+{formatNumber(clickEffect.value)}</span>
+                            </div>
+                        )}
+
+                        {/* Stats overlay */}
+                        <div className="absolute top-2 left-2 bg-black/80 border border-white/30 p-2 font-mono text-[10px]">
+                            <div className="text-gray-400">CLICK POWER: <span className="text-green-400">{gameState.clickPower}x{gameState.clickMultiplier}</span></div>
+                            <div className="text-gray-400">AUTO/SEC: <span className="text-cyan-400">{gameState.autoClickers * gameState.clickMultiplier}</span></div>
+                            <div className="text-gray-400">TOTAL: <span className="text-yellow-400">{formatNumber(gameState.totalClicks)}</span></div>
+                            <div className="text-gray-400">UNLOCKS: <span className="text-purple-400">{purchasedCount}/{totalUpgrades}</span></div>
+                        </div>
+
+                        {/* Shop panel */}
+                        {showShop && (
+                            <div className="absolute inset-0 bg-black/95 overflow-auto">
+                                <div className="p-4">
+                                    <div className="flex justify-between items-center mb-4">
+                                        <span className="font-mono text-lg font-bold text-yellow-400">UPGRADE SHOP</span>
+                                        <button
+                                            onClick={() => setShowShop(false)}
+                                            className="px-3 py-1 bg-red-600 text-white font-mono text-xs hover:bg-red-500"
+                                        >
+                                            CLOSE
+                                        </button>
+                                    </div>
+                                    <div className="font-mono text-xs text-gray-400 mb-4">
+                                        BALANCE: <span className="text-yellow-400 font-bold">{formatNumber(gameState.clicks)}</span>
+                                    </div>
+
+                                    {shopItems.map(category => (
+                                        <div key={category.category} className="mb-4">
+                                            <div className="font-mono text-xs font-bold text-white border-b border-white/30 pb-1 mb-2">
+                                                {category.category}
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {category.items.map(item => (
+                                                    <button
+                                                        key={item.id}
+                                                        onClick={() => buyUpgrade(item)}
+                                                        disabled={!canBuy(item)}
+                                                        className={`p-2 border text-left font-mono text-[10px] transition-all ${
+                                                            gameState.upgrades[item.id]
+                                                                ? 'bg-green-900/50 border-green-500 text-green-400'
+                                                                : isLocked(item)
+                                                                    ? 'bg-gray-900 border-gray-700 text-gray-600 cursor-not-allowed'
+                                                                    : canBuy(item)
+                                                                        ? 'bg-yellow-900/30 border-yellow-500 hover:bg-yellow-800/50 text-yellow-400 cursor-pointer'
+                                                                        : 'bg-gray-900 border-gray-600 text-gray-500'
+                                                        }`}
+                                                    >
+                                                        <div className="font-bold">{item.name}</div>
+                                                        <div className="text-[8px] opacity-70">{item.desc}</div>
+                                                        <div className={`mt-1 ${gameState.upgrades[item.id] ? 'text-green-400' : 'text-yellow-300'}`}>
+                                                            {gameState.upgrades[item.id] ? 'OWNED' : isLocked(item) ? 'LOCKED' : formatNumber(item.cost)}
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
                     </div>
+
                     <div className="p-2 border-t-2 border-white bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-500">LOW_POLY_EARTH v1.0</span>
+                        <span className="font-mono text-[10px] text-gray-500">TAP PLANET TO EARN • BUY UPGRADES IN SHOP</span>
                     </div>
                 </div>
             );
