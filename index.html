@@ -6491,7 +6491,7 @@
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-0 bottom-12' : 'absolute window-shadow'}`}
+                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'}`}
                                 style={isMobile ? {
                                     zIndex: win.z
                                 } : {
@@ -6525,7 +6525,7 @@
                     ))}
 
                     {/* TASKBAR */}
-                    <div className="mt-auto h-12 bg-white border-t-2 border-black flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute bottom-0 w-full shadow-2xl">
+                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
                         <div className={`bg-black text-white py-1 font-black select-none tracking-wider ${isMobile ? 'px-1 text-[8px]' : 'px-2 text-xs mr-2'}`}>{isMobile ? 'MM.COM' : 'MATEUSMUSTE.COM'}</div>
                         <div className={`flex gap-1 ${isMobile ? 'overflow-x-auto flex-nowrap' : ''}`}>
                             {Object.values(windows).map(win => {
