@@ -4258,6 +4258,7 @@
             const globeRef = useRef(null);
             const cloudsRef = useRef(null);
             const clouds2Ref = useRef(null);
+            const bgGridRef = useRef(null);
             const ringsRef = useRef([]);
             const satellitesRef = useRef([]);
             const gemsRef = useRef([]);
@@ -4297,8 +4298,11 @@
                     multi2: false,     // 2x (4x), middle ring - 15000
                     multi3: false,     // 2x (8x), outer ring - 75000
                     // God mode - unlocks at 2M total clicks
-                    godMode: false     // Dark mode + crimson grid - 1000000
-                }
+                    godMode: false,     // Dark mode + crimson grid - 1000000
+                    // Dog mode - unlocks at 100M, resets game with 1M multiplier
+                    dogMode: false
+                },
+                dogModeMultiplier: 1  // All costs and clicks multiplied by this
             };
 
             const [showCorrupted, setShowCorrupted] = useState(true);
@@ -4340,7 +4344,7 @@
             useEffect(() => {
                 if (gameState.satellites > 0) {
                     const interval = setInterval(() => {
-                        const autoAmount = gameState.satellites * gameState.clickMultiplier;
+                        const autoAmount = gameState.satellites * gameState.clickMultiplier * gameState.dogModeMultiplier;
                         setGameState(prev => ({
                             ...prev,
                             clicks: prev.clicks + autoAmount,
@@ -4349,7 +4353,7 @@
                     }, 1000);
                     return () => clearInterval(interval);
                 }
-            }, [gameState.satellites, gameState.clickMultiplier]);
+            }, [gameState.satellites, gameState.clickMultiplier, gameState.dogModeMultiplier]);
 
             // Count satellites for visual
             const getSatelliteCount = () => {
@@ -4403,19 +4407,34 @@
                 },
                 {
                     category: 'ASCENSION', desc: 'Ultimate power', items: [
-                        { id: 'godMode', name: 'GOD MODE', desc: 'Dark crimson grid', cost: 1000000 },
+                        { id: 'godMode', name: 'GOD MODE', desc: 'Dark crimson grid, 1M/click', cost: 1000000 },
+                        { id: 'dogMode', name: 'DOG MODE', desc: 'RESET: 1M× costs & clicks', cost: 100000000, requires: 'godMode' },
                     ]
                 },
             ];
 
+            const getActualCost = (baseCost) => baseCost * gameState.dogModeMultiplier;
+
             const buyUpgrade = (item) => {
-                if (gameState.clicks >= item.cost && !gameState.upgrades[item.id]) {
+                const actualCost = getActualCost(item.cost);
+                if (gameState.clicks >= actualCost && !gameState.upgrades[item.id]) {
                     if (item.requires && !gameState.upgrades[item.requires]) return;
+
+                    // DOG MODE: Reset game with 1M multiplier
+                    if (item.id === 'dogMode') {
+                        const newMultiplier = gameState.dogModeMultiplier * 1000000;
+                        setGameState({
+                            ...defaultGameState,
+                            dogModeMultiplier: newMultiplier,
+                            upgrades: { ...defaultGameState.upgrades, dogMode: true }
+                        });
+                        return;
+                    }
 
                     const effectResult = item.effect ? item.effect() : {};
                     setGameState(prev => ({
                         ...prev,
-                        clicks: prev.clicks - item.cost,
+                        clicks: prev.clicks - actualCost,
                         ...effectResult,
                         upgrades: { ...prev.upgrades, [item.id]: true }
                     }));
@@ -4424,7 +4443,7 @@
 
             const canBuy = (item) => {
                 if (gameState.upgrades[item.id]) return false;
-                if (gameState.clicks < item.cost) return false;
+                if (gameState.clicks < getActualCost(item.cost)) return false;
                 if (item.requires && !gameState.upgrades[item.requires]) return false;
                 return true;
             };
@@ -4475,7 +4494,7 @@
 
             // Handle click on globe
             const handleGlobeClick = () => {
-                const clickValue = gameState.clickPower * gameState.clickMultiplier;
+                const clickValue = gameState.clickPower * gameState.clickMultiplier * gameState.dogModeMultiplier;
                 setGameState(prev => ({
                     ...prev,
                     clicks: prev.clicks + clickValue,
@@ -4782,6 +4801,7 @@
                 });
                 const backgroundGrid = new THREE.Mesh(bgGeo, bgMat);
                 scene.add(backgroundGrid);
+                bgGridRef.current = backgroundGrid;
 
                 // Plane system - rare flying planes
                 const planes = [];
@@ -5107,28 +5127,28 @@
                     let landR, landG, landB, oceanR, oceanG, oceanB;
 
                     if (isGodMode) {
-                        // Dark mode with crimson - land is dark, ocean shows crimson grid
-                        landR = 1.0; landG = 1.0; landB = 1.0;
-                        oceanR = 0.95; oceanG = 0.95; oceanB = 0.95;
+                        // CORRUPTED MODE - Inverted colors (dark bg, light planet)
+                        landR = 0.9; landG = 0.9; landB = 0.9;  // Light land
+                        oceanR = 0.5; oceanG = 0.5; oceanB = 0.5;  // Mid-gray ocean
                     } else {
-                        // Progressive darkness: light gray/blue -> very dark -> black
-                        // Darken as user plays more
+                        // Normal mode - progressive monochrome
                         const lightness = redProgress;
 
-                        // Land: 0.15 -> 0.02
-                        landR = 0.85 + (lightness * 0.15);
-                        landG = 0.85 + (lightness * 0.15);
-                        landB = 0.85 + (lightness * 0.15);
+                        // Land gets lighter as progress increases
+                        landR = 0.15 + (lightness * 0.7);
+                        landG = 0.15 + (lightness * 0.7);
+                        landB = 0.15 + (lightness * 0.7);
 
-                        // Ocean: 0.5 -> 0.05
-                        oceanR = 0.5 + (lightness * 0.45);
-                        oceanG = 0.5 + (lightness * 0.45);
-                        oceanB = 0.5 + (lightness * 0.45);
+                        // Ocean stays mid-gray range
+                        oceanR = 0.5 + (lightness * 0.3);
+                        oceanG = 0.5 + (lightness * 0.3);
+                        oceanB = 0.5 + (lightness * 0.3);
                     }
 
                     if (isLand) {
                         colors.array[i * 3] = landR;
                         colors.array[i * 3 + 1] = landG;
+                        colors.array[i * 3 + 2] = landB;
                     } else {
                         colors.array[i * 3] = oceanR;
                         colors.array[i * 3 + 1] = oceanG;
@@ -5137,18 +5157,47 @@
                 }
                 colors.needsUpdate = true;
 
-                // Update cloud wireframe color for god mode
-                if (cloudsRef.current) {
+                // Update scene background for corrupted mode
+                if (sceneRef.current) {
                     if (isGodMode) {
-                        cloudsRef.current.material.color.setHex(0xdc143c); // Crimson
-                        cloudsRef.current.material.opacity = 0.6;
+                        sceneRef.current.background = new THREE.Color(0x000000); // Black background
                     } else {
-                        cloudsRef.current.material.color.setHex(0xffffff);
-                        cloudsRef.current.material.opacity = 0.25;
+                        sceneRef.current.background = new THREE.Color(0xffffff); // White background
                     }
                 }
 
+                // Update cloud wireframe color for god mode (inverted)
+                if (cloudsRef.current) {
+                    if (isGodMode) {
+                        cloudsRef.current.material.color.setHex(0xffffff); // White clouds in corrupted mode
+                        cloudsRef.current.material.opacity = 0.4;
+                    } else {
+                        cloudsRef.current.material.color.setHex(0x000000); // Black clouds in normal mode
+                        cloudsRef.current.material.opacity = 0.2;
+                    }
+                }
 
+                // Update second cloud layer for corrupted mode
+                if (clouds2Ref.current) {
+                    if (isGodMode) {
+                        clouds2Ref.current.material.color.setHex(0xffffff);
+                        clouds2Ref.current.material.opacity = 0.25;
+                    } else {
+                        clouds2Ref.current.material.color.setHex(0x000000);
+                        clouds2Ref.current.material.opacity = 0.15;
+                    }
+                }
+
+                // Update background grid for corrupted mode
+                if (bgGridRef.current) {
+                    if (isGodMode) {
+                        bgGridRef.current.material.color.setHex(0xffffff);
+                        bgGridRef.current.material.opacity = 0.2;
+                    } else {
+                        bgGridRef.current.material.color.setHex(0x000000);
+                        bgGridRef.current.material.opacity = 0.15;
+                    }
+                }
 
                 // Manage multiplier rings - clean orbital rings
                 const ringCount = getRingCount();
@@ -5204,6 +5253,14 @@
                     });
                 }
 
+                // Update ring colors for corrupted mode
+                ringsRef.current.forEach((ringData, idx) => {
+                    const ring = ringData.mesh.children[0];
+                    if (ring && ring.material) {
+                        ring.material.color.setHex(isGodMode ? 0xffffff : 0x000000);
+                    }
+                });
+
                 // Manage satellites
                 const satCount = getSatelliteCount();
 
@@ -5246,7 +5303,15 @@
                     });
                 }
 
-            }, [gameState.upgrades, gameState.totalClicks]);
+                // Update satellite colors for corrupted mode
+                satellitesRef.current.forEach((satData) => {
+                    const bodyColor = isGodMode ? 0xcccccc : 0x333333;
+                    const panelColor = isGodMode ? 0x999999 : 0x666666;
+                    if (satData.mesh.children[0]) satData.mesh.children[0].material.color.setHex(bodyColor);
+                    if (satData.mesh.children[1]) satData.mesh.children[1].material.color.setHex(panelColor);
+                });
+
+            }, [gameState.upgrades, gameState.totalClicks, showCorrupted]);
 
             // HSL to RGB helper
             const hslToRgb = (h, s, l) => {
@@ -5329,13 +5394,16 @@
 
                         {/* Stats overlay - game mode only */}
                         {gameStarted && (
-                            <div className="absolute top-2 left-2 bg-white/80 border border-black/30 p-2 font-mono text-[10px]">
-                                <div className="text-gray-600">POWER: <span className="text-black">{gameState.clickPower}x{gameState.clickMultiplier}</span></div>
-                                <div className="text-gray-600">PULSE: <span className="text-black">{(gameState.popStrength * 100).toFixed(1)}%</span></div>
-                                <div className="text-gray-600">SATS: <span className="text-black">{getSatelliteCount()} ({gameState.satellites * gameState.clickMultiplier}/s)</span></div>
-                                <div className="text-gray-600">RINGS: <span className="text-black">{getRingCount()}/3</span></div>
-                                <div className="text-gray-600">TOTAL: <span className={gameState.upgrades.godMode ? 'text-red-500' : 'text-black'}>{formatNumber(gameState.totalClicks)}</span></div>
-                                <div className="text-gray-600">HEAT: <span className="text-black">{(getRedProgress() * 100).toFixed(1)}%</span></div>
+                            <div className={`absolute top-2 left-2 border p-2 font-mono text-[10px] ${gameState.upgrades.godMode && showCorrupted ? 'bg-black/80 border-white/30' : 'bg-white/80 border-black/30'}`}>
+                                {gameState.dogModeMultiplier > 1 && (
+                                    <div className="text-yellow-500 font-bold mb-1">🐕 DOG MODE x{formatNumber(gameState.dogModeMultiplier)}</div>
+                                )}
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>POWER: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{gameState.clickPower}x{gameState.clickMultiplier}{gameState.dogModeMultiplier > 1 ? `x${formatNumber(gameState.dogModeMultiplier)}` : ''}</span></div>
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>PULSE: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{(gameState.popStrength * 100).toFixed(1)}%</span></div>
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>SATS: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{getSatelliteCount()} ({formatNumber(gameState.satellites * gameState.clickMultiplier * gameState.dogModeMultiplier)}/s)</span></div>
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>RINGS: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{getRingCount()}/3</span></div>
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>TOTAL: <span className={gameState.upgrades.godMode ? 'text-red-500' : 'text-black'}>{formatNumber(gameState.totalClicks)}</span></div>
+                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>HEAT: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{(getRedProgress() * 100).toFixed(1)}%</span></div>
                             </div>
                         )}
 
@@ -5390,7 +5458,7 @@
                                                         <div className="font-bold">{item.name}</div>
                                                         <div className="text-[8px] opacity-70">{item.desc}</div>
                                                         <div className={`mt-1 ${gameState.upgrades[item.id] ? 'text-black' : canBuy(item) ? 'text-white' : 'text-gray-400'}`}>
-                                                            {gameState.upgrades[item.id] ? 'OWNED' : isLocked(item) ? 'LOCKED' : formatNumber(item.cost)}
+                                                            {gameState.upgrades[item.id] ? 'OWNED' : isLocked(item) ? 'LOCKED' : formatNumber(getActualCost(item.cost))}
                                                         </div>
                                                     </button>
                                                 ))}
