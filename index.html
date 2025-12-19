@@ -656,6 +656,53 @@
                     <rect x="4" y="12" width="24" height="8" fill="#000" />
                     <rect x="8" y="8" width="16" height="8" fill="#000" />
                 </PixelIcon>
+            ),
+            // Games folder - folder with controller
+            GamesFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Controller icon inside */}
+                    <rect x="18" y="30" width="28" height="14" fill="#000" />
+                    <rect x="20" y="32" width="24" height="10" fill="#fff" />
+                    <rect x="22" y="34" width="4" height="6" fill="#000" />
+                    <rect x="24" y="36" width="6" height="2" fill="#000" />
+                    <rect x="36" y="35" width="3" height="3" fill="#000" />
+                    <rect x="40" y="35" width="3" height="3" fill="#000" />
+                </PixelIcon>
+            ),
+            // Productivity folder - folder with gear
+            ProductivityFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Gear icon inside */}
+                    <rect x="28" y="28" width="8" height="8" fill="#000" />
+                    <rect x="30" y="26" width="4" height="12" fill="#000" />
+                    <rect x="26" y="30" width="12" height="4" fill="#000" />
+                    <rect x="27" y="27" width="2" height="2" fill="#000" />
+                    <rect x="35" y="27" width="2" height="2" fill="#000" />
+                    <rect x="27" y="35" width="2" height="2" fill="#000" />
+                    <rect x="35" y="35" width="2" height="2" fill="#000" />
+                    <rect x="30" y="30" width="4" height="4" fill="#fff" />
+                </PixelIcon>
+            ),
+            // About folder - folder with person
+            AboutFolder: (p) => (
+                <PixelIcon {...p}>
+                    {/* Folder base */}
+                    <rect x="4" y="16" width="56" height="40" fill="#000" />
+                    <rect x="8" y="20" width="48" height="32" fill="#fff" />
+                    <rect x="4" y="12" width="24" height="8" fill="#000" />
+                    {/* Person icon inside */}
+                    <rect x="29" y="26" width="6" height="6" fill="#000" />
+                    <rect x="26" y="34" width="12" height="10" fill="#000" />
+                    <rect x="28" y="36" width="8" height="6" fill="#fff" />
+                </PixelIcon>
             )
         };
 
@@ -5822,9 +5869,9 @@
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
-                { key: 'GAMES', name: 'GAMES', icon: 'Games' },
-                { key: 'PRODUCTIVITY', name: 'PRODUCTIVITY', icon: 'Apps' },
-                { key: 'ABOUT', name: 'ABOUT', icon: 'Terminal' }
+                { key: 'GAMES', name: 'GAMES', icon: 'GamesFolder' },
+                { key: 'PRODUCTIVITY', name: 'PRODUCTIVITY', icon: 'ProductivityFolder' },
+                { key: 'ABOUT', name: 'ABOUT', icon: 'AboutFolder' }
             ];
 
             const APP_CATEGORIES = {
@@ -6356,7 +6403,7 @@
                                     </div>
                                 </div>
                                 {/* CONTENT */}
-                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={e => e.stopPropagation()}>
+                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={() => focus(win.id)}>
                                     {getWindowContent(win.id)}
                                 </div>
                             </div>
