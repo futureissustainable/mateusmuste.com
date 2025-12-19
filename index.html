@@ -5259,7 +5259,7 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {/* DESKTOP ICONS - Only show main folders */}
-                    <div className={`absolute z-0 ${isMobile ? 'top-4 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
+                    <div className={`absolute z-0 ${isMobile ? 'top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
                         {desktopIcons.map(appId => {
                             const app = windows[appId];
                             if (!app) return null;
