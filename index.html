@@ -5750,26 +5750,30 @@
             );
         };
 
-        // --- CONTACT - Email via Paint ---
-        const ContactApp = ({ onOpenPaint }) => {
+        // --- CONTACT - Simple email contact ---
+        const ContactApp = () => {
+            const [copied, setCopied] = useState(false);
+            const email = 'mateusmuste9@gmail.com';
+
+            const copyEmail = () => {
+                navigator.clipboard.writeText(email);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
-                        <Icons.Email size={24} />
-                        <span className="app-header-title">CONTACT</span>
-                    </div>
-                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-8">
-                        <Icons.Email size={64} />
-                        <div className="font-mono text-lg font-bold mt-4 mb-2">GET IN TOUCH</div>
-                        <div className="font-mono text-sm text-gray-500 mb-6">mateusmuste9@gmail.com</div>
-                        <button
-                            onClick={onOpenPaint}
-                            className="btn-primary"
-                        >
-                            DRAW YOUR MESSAGE
-                        </button>
-                        <div className="font-mono text-[10px] text-gray-400 mt-4">
-                            Opens PAINT.EXE
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
+                        <Icons.Email size={48} />
+                        <div className="font-mono text-lg font-bold mt-4 mb-1">GET IN TOUCH</div>
+                        <div className="font-mono text-xs text-gray-500 mb-4">{email}</div>
+                        <div className="flex gap-2">
+                            <button onClick={copyEmail} className="btn-primary">
+                                {copied ? 'COPIED!' : 'COPY EMAIL'}
+                            </button>
+                            <a href={`mailto:${email}`} className="btn-primary">
+                                OPEN MAIL
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -5881,7 +5885,7 @@
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
-                "CONTACT": { id: "CONTACT", title: "CONTACT", icon: "Email", x: 200, y: 140, w: '400px', h: '350px', isOpen: false, isMin: false, z: 13, isDesktop: true },
+                "CONTACT": { id: "CONTACT", title: "CONTACT", icon: "Email", x: 200, y: 140, w: '320px', h: '220px', isOpen: false, isMin: false, z: 13, isDesktop: true },
                 "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: '700px', h: '600px', isOpen: false, isMin: false, z: 14 },
                 "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 15 },
                 "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 16 },
@@ -5908,7 +5912,7 @@
                     case "SYSTEM": return <SystemInfo />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} />;
-                    case "CONTACT": return <ContactApp onOpenPaint={() => open("PAINT")} />;
+                    case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
                     case "SNAKE": return <SnakeAppNew />;
                     case "TRASH": return <TrashApp />;
