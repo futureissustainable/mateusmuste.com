@@ -3137,39 +3137,29 @@
 
         // --- TAROT.DAT - Tarot card pull ---
         // Pixel art tarot card component with card frame
-        const PixelTarotCard = ({ pixels, width = 24, height = 32, showFrame = true }) => {
-            const cardWidth = width + 8;
-            const cardHeight = height + 12;
-            const scale = 4;
+        const PixelTarotCard = ({ pixels, width = 24, height = 32, scale = 3 }) => {
+            const cardWidth = width + 4;
+            const cardHeight = height + 6;
 
             return (
                 <div className="relative" style={{ width: cardWidth * scale, height: cardHeight * scale }}>
-                    {/* Card frame */}
+                    {/* Card frame - thin border */}
                     <div
-                        className="absolute inset-0 bg-white border-2 border-gray-300"
+                        className="absolute inset-0 bg-white"
                         style={{
-                            borderRadius: '4px',
-                            boxShadow: '2px 2px 0 rgba(0,0,0,0.2)'
-                        }}
-                    />
-                    {/* Inner border */}
-                    <div
-                        className="absolute bg-gray-100 border border-gray-400"
-                        style={{
-                            top: scale * 2,
-                            left: scale * 2,
-                            right: scale * 2,
-                            bottom: scale * 2,
+                            borderRadius: '2px',
+                            border: '1px solid #666',
+                            boxShadow: '1px 1px 0 rgba(0,0,0,0.15)'
                         }}
                     />
                     {/* Pixel art area */}
                     <div
                         className="absolute flex items-center justify-center"
                         style={{
-                            top: scale * 3,
-                            left: scale * 3,
-                            right: scale * 3,
-                            bottom: scale * 3,
+                            top: scale,
+                            left: scale,
+                            right: scale,
+                            bottom: scale * 2,
                         }}
                     >
                         <svg width={width * scale} height={height * scale} viewBox={`0 0 ${width} ${height}`} style={{ imageRendering: 'pixelated' }}>
@@ -3186,7 +3176,7 @@
         };
 
         const TarotApp = () => {
-            const [card, setCard] = useState(null);
+            const [cards, setCards] = useState([]);
             const [revealed, setRevealed] = useState(false);
             const [alreadyPulled, setAlreadyPulled] = useState(false);
             const [isShuffling, setIsShuffling] = useState(false);
@@ -3989,17 +3979,15 @@
 
             useEffect(() => {
                 // Check localStorage for existing pull (simulating IP-based storage)
-                const savedCard = localStorage.getItem('tarot_card');
-                if (savedCard) {
-                    const parsed = JSON.parse(savedCard);
-                    // Check if it's the new format with pixels (not old ascii format)
-                    if (parsed.pixels) {
-                        setCard(parsed);
+                const savedCards = localStorage.getItem('tarot_cards_3');
+                if (savedCards) {
+                    const parsed = JSON.parse(savedCards);
+                    if (Array.isArray(parsed) && parsed.length === 3 && parsed[0].pixels) {
+                        setCards(parsed);
                         setRevealed(true);
                         setAlreadyPulled(true);
                     } else {
-                        // Old format - clear it so user can pull again
-                        localStorage.removeItem('tarot_card');
+                        localStorage.removeItem('tarot_cards_3');
                     }
                 }
             }, []);
@@ -4075,7 +4063,7 @@
                 ]
             ];
 
-            const pullCard = () => {
+            const pullCards = () => {
                 if (alreadyPulled || isShuffling) return;
 
                 setIsShuffling(true);
@@ -4086,9 +4074,11 @@
                     if (frame >= 20) {
                         clearInterval(shuffleInterval);
                         setIsShuffling(false);
-                        const randomCard = tarotCards[Math.floor(Math.random() * tarotCards.length)];
-                        setCard(randomCard);
-                        localStorage.setItem('tarot_card', JSON.stringify(randomCard));
+                        // Pick 3 unique random cards
+                        const shuffled = [...tarotCards].sort(() => Math.random() - 0.5);
+                        const selectedCards = shuffled.slice(0, 3);
+                        setCards(selectedCards);
+                        localStorage.setItem('tarot_cards_3', JSON.stringify(selectedCards));
                         setTimeout(() => setRevealed(true), 500);
                         setAlreadyPulled(true);
                     }
@@ -4160,29 +4150,38 @@
                                 </div>
                                 <div className="font-mono text-[10px] text-gray-500 animate-pulse">SHUFFLING...</div>
                             </div>
-                        ) : !card ? (
+                        ) : cards.length === 0 ? (
                             <div className="text-center">
-                                <div className="mb-6">
-                                    <PixelTarotCard pixels={questionPixels} />
+                                <div className="mb-6 flex gap-2 justify-center">
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
+                                    <PixelTarotCard pixels={questionPixels} scale={2} />
                                 </div>
                                 <button
-                                    onClick={pullCard}
+                                    onClick={pullCards}
                                     className="px-6 py-2 bg-white text-black font-mono text-[10px] font-bold hover:invert transition-all"
                                 >
-                                    PULL CARD
+                                    DRAW 3 CARDS
                                 </button>
-                                <p className="mt-4 font-mono text-[10px] text-gray-600">ONE PULL PER VISITOR</p>
+                                <p className="mt-4 font-mono text-[10px] text-gray-600">ONE READING PER VISITOR</p>
                             </div>
                         ) : (
                             <div className={`text-center transition-all duration-500 ${revealed ? 'opacity-100' : 'opacity-0'}`}>
-                                <div className="mb-4">
-                                    <PixelTarotCard pixels={card.pixels} />
+                                <div className="flex gap-3 justify-center mb-4">
+                                    {cards.map((card, idx) => (
+                                        <div key={idx} className="flex flex-col items-center">
+                                            <div className="text-[8px] text-gray-600 mb-1">{['PAST', 'PRESENT', 'FUTURE'][idx]}</div>
+                                            <PixelTarotCard pixels={card.pixels} scale={2} />
+                                            <div className="font-mono text-[8px] text-gray-500 mt-1">{card.num}</div>
+                                            <div className="text-[9px] font-bold mt-1 max-w-[80px]">{card.name}</div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="font-mono text-[10px] text-gray-500 mb-1">{card.num}</div>
-                                <div className="text-sm font-black mb-2 tracking-wider">{card.name}</div>
-                                <div className="font-mono text-[10px] text-gray-400 max-w-xs">{card.meaning}</div>
+                                <div className="font-mono text-[9px] text-gray-400 max-w-md mx-auto">
+                                    {cards.map((c, i) => <span key={i}>{c.meaning}{i < 2 ? ' • ' : ''}</span>)}
+                                </div>
                                 {alreadyPulled && (
-                                    <p className="mt-4 font-mono text-[10px] text-gray-700">FATE SEALED</p>
+                                    <p className="mt-3 font-mono text-[10px] text-gray-700">FATE SEALED</p>
                                 )}
                             </div>
                         )}
