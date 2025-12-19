@@ -4196,7 +4196,6 @@
             const cameraRef = useRef(null);
             const globeRef = useRef(null);
             const cloudsRef = useRef(null);
-            const clouds2Ref = useRef(null);
             const cracksRef = useRef(null);
             const ringsRef = useRef([]);
             const satellitesRef = useRef([]);
@@ -4677,29 +4676,40 @@
                 scene.add(globe);
                 globeRef.current = globe;
 
-                // Multiple cloud layers for realistic atmosphere
-                const cloudGeometry = new THREE.IcosahedronGeometry(1.03, 4);
-                const cloudMaterial = new THREE.MeshBasicMaterial({
+                // Cloud layer - scattered points for noise pattern effect
+                const cloudPoints = [];
+                const cloudCount = 800;
+                for (let i = 0; i < cloudCount; i++) {
+                    // Random position on sphere surface with some clustering
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    const r = 1.025 + Math.random() * 0.02; // Slight variation in height
+
+                    // Create cloud clusters by occasionally grouping points
+                    const clusterChance = Math.random();
+                    let x = r * Math.sin(phi) * Math.cos(theta);
+                    let y = r * Math.cos(phi);
+                    let z = r * Math.sin(phi) * Math.sin(theta);
+
+                    // Add some noise offset for organic look
+                    x += (Math.random() - 0.5) * 0.03;
+                    y += (Math.random() - 0.5) * 0.03;
+                    z += (Math.random() - 0.5) * 0.03;
+
+                    cloudPoints.push(x, y, z);
+                }
+                const cloudGeometry = new THREE.BufferGeometry();
+                cloudGeometry.setAttribute('position', new THREE.Float32BufferAttribute(cloudPoints, 3));
+                const cloudMaterial = new THREE.PointsMaterial({
                     color: 0xffffff,
+                    size: 0.015,
                     transparent: true,
-                    opacity: 0.2,
-                    wireframe: true
+                    opacity: 0.6,
+                    sizeAttenuation: true
                 });
-                const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                const clouds = new THREE.Points(cloudGeometry, cloudMaterial);
                 scene.add(clouds);
                 cloudsRef.current = clouds;
-
-                // Second cloud layer (opposite rotation for depth)
-                const cloud2Geometry = new THREE.IcosahedronGeometry(1.06, 3);
-                const cloud2Material = new THREE.MeshBasicMaterial({
-                    color: 0xccddff,
-                    transparent: true,
-                    opacity: 0.15,
-                    wireframe: true
-                });
-                const clouds2 = new THREE.Mesh(cloud2Geometry, cloud2Material);
-                scene.add(clouds2);
-                clouds2Ref.current = clouds2;
 
                 const starGeometry = new THREE.BufferGeometry();
                 const starPositions = [];
@@ -4872,13 +4882,9 @@
 
                     globe.rotation.x = rotationRef.current.x;
                     globe.rotation.y = rotationRef.current.y;
+                    // Clouds rotate slightly faster than globe for drift effect
                     clouds.rotation.x = rotationRef.current.x;
-                    clouds.rotation.y = rotationRef.current.y + 0.05;
-                    // Second cloud layer rotates opposite
-                    if (clouds2Ref.current) {
-                        clouds2Ref.current.rotation.x = rotationRef.current.x * 0.8;
-                        clouds2Ref.current.rotation.y = -rotationRef.current.y * 0.7 + 0.1;
-                    }
+                    clouds.rotation.y = rotationRef.current.y + 0.002;
 
                     // Rotate cracks with globe
                     if (cracksRef.current) {
@@ -4939,18 +4945,10 @@
                         sat.mesh.rotation.y = sat.angle;
                     });
 
-                    // Animate multiplier rings - continuous independent rotation
-                    ringsRef.current.forEach((ringData, idx) => {
-                        // Each ring rotates on its own axis at its own speed
-                        if (idx === 0) {
-                            ringData.mesh.rotation.z += ringData.speed;
-                        } else if (idx === 1) {
-                            ringData.mesh.rotation.y += ringData.speed;
-                            ringData.mesh.rotation.z += ringData.speed * 0.5;
-                        } else {
-                            ringData.mesh.rotation.x += ringData.speed * 0.7;
-                            ringData.mesh.rotation.y += ringData.speed;
-                        }
+                    // Animate multiplier rings - orbit around planet
+                    ringsRef.current.forEach((ringData) => {
+                        // Rotate around Y axis (orbit the planet)
+                        ringData.mesh.rotation.y += ringData.speed;
                     });
 
                     // Animate falling gems
@@ -4991,7 +4989,6 @@
                     ringsRef.current.forEach(r => scene.remove(r.mesh));
                     gemsRef.current.forEach(g => scene.remove(g.mesh));
                     if (cracksRef.current) scene.remove(cracksRef.current);
-                    if (clouds2Ref.current) scene.remove(clouds2Ref.current);
                     renderer.domElement.removeEventListener('mousedown', onMouseDown);
                     renderer.domElement.removeEventListener('mousemove', onMouseMove);
                     renderer.domElement.removeEventListener('mouseup', onMouseUp);
@@ -5142,7 +5139,7 @@
                     cracksRef.current = cracks;
                 }
 
-                // Manage multiplier rings - monochrome wireframe design
+                // Manage multiplier rings - clean orbital rings
                 const ringCount = getRingCount();
 
                 // Remove extra rings
@@ -5151,51 +5148,48 @@
                     scene.remove(ringData.mesh);
                 }
 
-                // Add missing rings - elegant wireframe orbital rings
+                // Add missing rings - simple rotating orbital rings
                 while (ringsRef.current.length < ringCount) {
                     const idx = ringsRef.current.length;
                     const ringGroup = new THREE.Group();
 
-                    // Main ring - wireframe torus
-                    const radius = 1.25 + idx * 0.18;
-                    const tubeRadius = 0.008 + idx * 0.003;
-                    const ringGeo = new THREE.TorusGeometry(radius, tubeRadius, 3, 64);
-                    const ringMat = new THREE.MeshBasicMaterial({
+                    // Create ring as a simple circle line
+                    const radius = 1.3 + idx * 0.2;
+                    const segments = 128;
+                    const ringPoints = [];
+                    for (let i = 0; i <= segments; i++) {
+                        const angle = (i / segments) * Math.PI * 2;
+                        ringPoints.push(new THREE.Vector3(
+                            Math.cos(angle) * radius,
+                            0,
+                            Math.sin(angle) * radius
+                        ));
+                    }
+                    const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPoints);
+                    const ringMat = new THREE.LineBasicMaterial({
                         color: 0xffffff,
-                        wireframe: true,
                         transparent: true,
-                        opacity: 0.7 - idx * 0.15
+                        opacity: 0.8 - idx * 0.15
                     });
-                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    const ring = new THREE.Line(ringGeo, ringMat);
                     ringGroup.add(ring);
 
-                    // Inner accent ring
-                    const innerGeo = new THREE.TorusGeometry(radius - 0.02, 0.003, 3, 48);
-                    const innerMat = new THREE.MeshBasicMaterial({
-                        color: 0xaaaaaa,
-                        transparent: true,
-                        opacity: 0.4
-                    });
-                    const innerRing = new THREE.Mesh(innerGeo, innerMat);
-                    ringGroup.add(innerRing);
-
-                    // Set initial tilt - each ring at different angle
+                    // Tilt each ring differently
                     const tilts = [
-                        { x: Math.PI / 2, y: 0, z: 0 },           // Horizontal
-                        { x: Math.PI / 2.5, y: Math.PI / 6, z: 0 }, // Tilted
-                        { x: Math.PI / 3, y: Math.PI / 4, z: Math.PI / 8 } // More tilted
+                        { x: Math.PI * 0.1, z: 0 },
+                        { x: Math.PI * 0.15, z: Math.PI * 0.1 },
+                        { x: Math.PI * 0.05, z: -Math.PI * 0.15 }
                     ];
                     const tilt = tilts[idx] || tilts[0];
                     ringGroup.rotation.x = tilt.x;
-                    ringGroup.rotation.y = tilt.y;
                     ringGroup.rotation.z = tilt.z;
 
                     scene.add(ringGroup);
                     ringsRef.current.push({
                         mesh: ringGroup,
-                        baseRotation: { ...tilt },
-                        speed: 0.008 + idx * 0.004, // Different speeds
-                        axis: idx // Which axis to rotate on
+                        tiltX: tilt.x,
+                        tiltZ: tilt.z,
+                        speed: 0.01 + idx * 0.005
                     });
                 }
 
