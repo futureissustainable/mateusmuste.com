@@ -1128,91 +1128,91 @@
 
         // --- VOID.TXT - Text encrypts then fades into the void ---
         const VoidApp = () => {
-            const [lines, setLines] = useState([]);
-            const [currentText, setCurrentText] = useState('');
+            // Each char: { id, char, timestamp, phase: 'visible'|'encrypting'|'fading', opacity }
+            const [chars, setChars] = useState([]);
             const inputRef = useRef(null);
-            const autoEncryptTimer = useRef(null);
+            const charIdRef = useRef(0);
 
             const encryptChar = () => {
-                const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
-                return chars[Math.floor(Math.random() * chars.length)];
+                const symbols = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
+                return symbols[Math.floor(Math.random() * symbols.length)];
             };
 
-            const submitLine = (text) => {
-                if (!text || !text.trim()) return;
-
-                const lineId = Date.now();
-                const textLength = text.length;
-
-                // Add the line
-                setLines(prev => [...prev, {
-                    id: lineId,
-                    originalText: text,
-                    displayText: text,
-                    opacity: 1,
-                    phase: 'visible'
-                }]);
-                setCurrentText('');
-
-                // Start encrypting immediately
-                let idx = 0;
-                const encryptInterval = setInterval(() => {
-                    if (idx >= textLength) {
-                        clearInterval(encryptInterval);
-                        // Start fading
-                        setTimeout(() => {
-                            let fadeOp = 1;
-                            const fadeInterval = setInterval(() => {
-                                fadeOp -= 0.1;
-                                if (fadeOp <= 0) {
-                                    clearInterval(fadeInterval);
-                                    setLines(prev => prev.filter(l => l.id !== lineId));
-                                } else {
-                                    setLines(prev => prev.map(l =>
-                                        l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
-                                    ));
-                                }
-                            }, 80);
-                        }, 200);
-                        return;
-                    }
-
-                    setLines(prev => prev.map(l => {
-                        if (l.id !== lineId) return l;
-                        const encrypted = l.originalText.split('').map((c, i) =>
-                            i <= idx ? encryptChar() : c
-                        ).join('');
-                        return { ...l, displayText: encrypted, phase: 'encrypting' };
-                    }));
-                    idx++;
-                }, 50);
-            };
-
-            const handleTextChange = (e) => {
-                const newText = e.target.value;
-                setCurrentText(newText);
-
-                // Clear existing timer
-                if (autoEncryptTimer.current) {
-                    clearTimeout(autoEncryptTimer.current);
-                }
-
-                // Set new timer to auto-encrypt after 1.5 seconds
-                if (newText.trim()) {
-                    autoEncryptTimer.current = setTimeout(() => {
-                        submitLine(newText);
-                    }, 1500);
-                }
-            };
-
-            // Cleanup timer on unmount
+            // Process loop - runs every 50ms to update char states
             useEffect(() => {
-                return () => {
-                    if (autoEncryptTimer.current) {
-                        clearTimeout(autoEncryptTimer.current);
-                    }
-                };
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    setChars(prev => {
+                        let updated = false;
+                        const newChars = prev.map(c => {
+                            // After 1.5s, start encrypting
+                            if (c.phase === 'visible' && now - c.timestamp >= 1500) {
+                                updated = true;
+                                return { ...c, phase: 'encrypting', displayChar: encryptChar() };
+                            }
+                            // After encrypting for 300ms, start fading
+                            if (c.phase === 'encrypting' && now - c.timestamp >= 1800) {
+                                updated = true;
+                                return { ...c, phase: 'fading', opacity: 0.8 };
+                            }
+                            // Fade out
+                            if (c.phase === 'fading') {
+                                const newOpacity = c.opacity - 0.15;
+                                if (newOpacity <= 0) {
+                                    updated = true;
+                                    return null; // Mark for removal
+                                }
+                                updated = true;
+                                return { ...c, opacity: newOpacity, displayChar: encryptChar() };
+                            }
+                            return c;
+                        }).filter(Boolean);
+                        return updated ? newChars : prev;
+                    });
+                }, 50);
+                return () => clearInterval(interval);
             }, []);
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'Backspace') {
+                    // Remove most recent visible char
+                    setChars(prev => {
+                        const visibleChars = prev.filter(c => c.phase === 'visible');
+                        if (visibleChars.length === 0) return prev;
+                        const lastVisible = visibleChars[visibleChars.length - 1];
+                        return prev.filter(c => c.id !== lastVisible.id);
+                    });
+                    e.preventDefault();
+                } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                    // Add new character
+                    const newChar = {
+                        id: charIdRef.current++,
+                        char: e.key,
+                        displayChar: e.key,
+                        timestamp: Date.now(),
+                        phase: 'visible',
+                        opacity: 1
+                    };
+                    setChars(prev => [...prev, newChar]);
+                    e.preventDefault();
+                }
+            };
+
+            // Render chars grouped - visible chars are white, encrypting are green
+            const renderChars = () => {
+                return chars.map(c => (
+                    <span
+                        key={c.id}
+                        style={{
+                            color: c.phase === 'encrypting' ? '#0f0' :
+                                   c.phase === 'fading' ? `rgba(0,255,0,${c.opacity})` : 'white',
+                            textShadow: c.phase !== 'visible' ? '0 0 5px #0f0' : 'none'
+                        }}
+                    >
+                        {c.displayChar}
+                    </span>
+                ));
+            };
 
             return (
                 <div
@@ -1226,34 +1226,24 @@
                         <span className="font-mono text-[10px] text-gray-600">NO SAVE // NO COPY // JUST VOID</span>
                     </div>
                     <div className="flex-grow p-4 overflow-auto font-mono text-sm">
-                        {lines.map(line => (
-                            <div
-                                key={line.id}
-                                className="mb-1 transition-opacity duration-100"
-                                style={{
-                                    color: line.phase === 'encrypting' ? '#0f0' : `rgba(255,255,255,${line.opacity})`,
-                                    textShadow: line.phase === 'encrypting' ? '0 0 5px #0f0' : 'none'
-                                }}
-                            >
-                                {line.displayText}
-                            </div>
-                        ))}
-                        <div className="flex items-center text-white">
+                        <div className="flex flex-wrap items-start">
                             <span className="mr-2 text-gray-600">{'>'}</span>
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={currentText}
-                                onChange={handleTextChange}
-                                className="bg-transparent outline-none flex-grow text-white caret-white"
-                                autoFocus
-                                onPaste={(e) => e.preventDefault()}
-                            />
-                            <span className="animate-pulse text-white">_</span>
+                            <div className="flex-grow">
+                                {renderChars()}
+                                <span className="animate-pulse text-white">_</span>
+                            </div>
                         </div>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            className="absolute opacity-0 pointer-events-none"
+                            onKeyDown={handleKeyDown}
+                            onPaste={(e) => e.preventDefault()}
+                            autoFocus
+                        />
                     </div>
                     <div className="p-2 border-t border-gray-800 bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-600">TYPE INTO THE VOID. IT DISAPPEARS AUTOMATICALLY.</span>
+                        <span className="font-mono text-[10px] text-gray-600">TYPE INTO THE VOID. WATCH IT DISAPPEAR BEHIND YOU.</span>
                     </div>
                 </div>
             );
