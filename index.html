@@ -464,6 +464,71 @@
                     <rect x="24" y="36" width="8" height="8" fill="#000" />
                     <rect x="36" y="36" width="8" height="8" fill="#000" />
                 </PixelIcon>
+            ),
+            Gallery: (p) => (
+                <PixelIcon {...p}>
+                    {/* Photo stack */}
+                    <rect x="8" y="12" width="44" height="36" fill="#000" />
+                    <rect x="12" y="16" width="36" height="28" fill="#fff" />
+                    {/* Mountains landscape */}
+                    <polygon points="12,40 24,28 32,36 44,24 48,44" fill="#000" />
+                    {/* Sun */}
+                    <rect x="38" y="20" width="6" height="6" fill="#000" />
+                    {/* Second photo behind */}
+                    <rect x="12" y="8" width="44" height="4" fill="#000" />
+                    <rect x="52" y="8" width="4" height="40" fill="#000" />
+                </PixelIcon>
+            ),
+            Globe: (p) => (
+                <PixelIcon {...p}>
+                    {/* Globe circle */}
+                    <circle cx="32" cy="32" r="24" fill="#000" />
+                    <circle cx="32" cy="32" r="20" fill="#fff" />
+                    {/* Continents simplified */}
+                    <rect x="20" y="20" width="8" height="12" fill="#000" />
+                    <rect x="32" y="16" width="12" height="8" fill="#000" />
+                    <rect x="36" y="24" width="8" height="16" fill="#000" />
+                    <rect x="24" y="36" width="10" height="8" fill="#000" />
+                    {/* Latitude lines */}
+                    <rect x="14" y="26" width="36" height="2" fill="#888" />
+                    <rect x="14" y="38" width="36" height="2" fill="#888" />
+                    {/* Stand */}
+                    <rect x="28" y="54" width="8" height="6" fill="#000" />
+                    <rect x="22" y="58" width="20" height="4" fill="#000" />
+                </PixelIcon>
+            ),
+            Pomodoro: (p) => (
+                <PixelIcon {...p}>
+                    {/* Pot */}
+                    <rect x="16" y="44" width="32" height="16" fill="#000" />
+                    <rect x="20" y="48" width="24" height="8" fill="#fff" />
+                    {/* Stem */}
+                    <rect x="30" y="24" width="4" height="20" fill="#000" />
+                    {/* Leaves */}
+                    <rect x="22" y="28" width="8" height="6" fill="#000" />
+                    <rect x="34" y="20" width="8" height="6" fill="#000" />
+                    <rect x="26" y="12" width="12" height="8" fill="#000" />
+                    {/* Timer circle */}
+                    <circle cx="32" cy="8" r="6" fill="#000" stroke="#000" strokeWidth="2" />
+                </PixelIcon>
+            ),
+            HealthScanner: (p) => (
+                <PixelIcon {...p}>
+                    {/* Monitor frame */}
+                    <rect x="8" y="8" width="48" height="40" fill="#000" />
+                    <rect x="12" y="12" width="40" height="32" fill="#fff" />
+                    {/* Heart rate line */}
+                    <polyline points="14,28 20,28 24,18 28,38 32,28 36,28 40,18 44,38 48,28" stroke="#000" strokeWidth="2" fill="none" />
+                    {/* Heart icon */}
+                    <rect x="28" y="16" width="4" height="4" fill="#000" />
+                    <rect x="32" y="16" width="4" height="4" fill="#000" />
+                    <rect x="26" y="18" width="12" height="6" fill="#000" />
+                    <rect x="28" y="24" width="8" height="4" fill="#000" />
+                    <rect x="30" y="28" width="4" height="4" fill="#000" />
+                    {/* Stand */}
+                    <rect x="24" y="48" width="16" height="4" fill="#000" />
+                    <rect x="20" y="52" width="24" height="4" fill="#000" />
+                </PixelIcon>
             )
         };
 
@@ -3695,9 +3760,682 @@
             );
         };
 
+        // --- GALLERY.EXE - Photo gallery with 9 placeholder photos ---
+        const GalleryApp = () => {
+            const [selectedPhoto, setSelectedPhoto] = useState(null);
+
+            const photos = [
+                { id: 1, title: 'ME_001.JPG', category: 'SELF', desc: 'Profile shot' },
+                { id: 2, title: 'ME_002.JPG', category: 'SELF', desc: 'Another one' },
+                { id: 3, title: 'DOG_001.JPG', category: 'DOGS', desc: 'Good boy' },
+                { id: 4, title: 'DOG_002.JPG', category: 'DOGS', desc: 'Best friend' },
+                { id: 5, title: 'DOG_003.JPG', category: 'DOGS', desc: 'Sleeping' },
+                { id: 6, title: 'WORK_001.JPG', category: 'WORK', desc: 'Office vibes' },
+                { id: 7, title: 'WORK_002.JPG', category: 'WORK', desc: 'Late night coding' },
+                { id: 8, title: 'WORK_003.JPG', category: 'WORK', desc: 'Setup tour' },
+                { id: 9, title: 'RANDOM_001.JPG', category: 'MISC', desc: 'Life moment' }
+            ];
+
+            // Generate placeholder image pattern based on id
+            const getPlaceholderPattern = (id) => {
+                const patterns = [
+                    // Person silhouette
+                    [[0,0,1,1,0,0],[0,1,1,1,1,0],[0,0,1,1,0,0],[0,1,1,1,1,0],[1,1,1,1,1,1],[1,0,1,1,0,1],[0,0,1,1,0,0],[0,1,0,0,1,0]],
+                    // Another person
+                    [[0,1,1,1,1,0],[1,1,1,1,1,1],[0,1,0,0,1,0],[0,0,1,1,0,0],[0,1,1,1,1,0],[1,1,1,1,1,1],[0,1,0,0,1,0],[1,1,0,0,1,1]],
+                    // Dog sitting
+                    [[1,1,0,0,1,1],[1,1,1,1,1,1],[0,1,0,0,1,0],[0,1,1,1,1,0],[0,1,1,1,1,0],[1,1,1,1,1,1],[1,0,0,0,0,1],[1,1,0,0,1,1]],
+                    // Dog lying
+                    [[0,0,0,0,0,0],[1,1,0,0,1,1],[1,1,1,1,1,1],[1,1,1,1,1,1],[0,1,1,1,1,0],[1,0,1,1,0,1],[1,0,0,0,0,1],[0,0,0,0,0,0]],
+                    // Dog running
+                    [[0,1,1,0,0,0],[1,1,1,1,1,0],[0,1,1,1,1,1],[0,0,1,1,1,0],[0,1,0,0,1,0],[1,0,0,0,0,1],[1,0,0,0,0,1],[0,0,0,0,0,0]],
+                    // Computer/desk
+                    [[0,0,0,0,0,0],[1,1,1,1,1,1],[1,0,0,0,0,1],[1,0,1,1,0,1],[1,0,0,0,0,1],[1,1,1,1,1,1],[0,0,1,1,0,0],[0,1,1,1,1,0]],
+                    // Code screen
+                    [[1,1,1,1,1,1],[1,0,0,0,0,1],[1,0,1,1,0,1],[1,0,1,0,0,1],[1,0,0,1,1,1],[1,0,1,1,0,1],[1,0,0,0,0,1],[1,1,1,1,1,1]],
+                    // Setup
+                    [[0,0,0,0,0,0],[1,1,1,0,1,1],[1,0,1,0,1,0],[1,1,1,0,1,0],[0,0,0,0,0,0],[0,1,1,1,1,0],[0,1,0,0,1,0],[0,1,1,1,1,0]],
+                    // Abstract/random
+                    [[1,0,1,0,1,0],[0,1,0,1,0,1],[1,1,0,0,1,1],[0,0,1,1,0,0],[1,0,0,0,0,1],[0,1,1,1,1,0],[1,0,1,0,1,0],[0,1,0,1,0,1]]
+                ];
+                return patterns[(id - 1) % patterns.length];
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Icons.Gallery size={24} />
+                            <span className="font-mono text-xs font-bold">GALLERY.EXE</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-gray-500">{photos.length} PHOTOS</span>
+                    </div>
+
+                    {selectedPhoto ? (
+                        <div className="flex-grow flex flex-col bg-black">
+                            <div className="flex-grow flex items-center justify-center p-8">
+                                <div className="bg-gray-900 border-2 border-white p-4">
+                                    <svg width="240" height="240" viewBox="0 0 6 8" style={{ imageRendering: 'pixelated' }}>
+                                        <rect width="6" height="8" fill="#222" />
+                                        {getPlaceholderPattern(selectedPhoto.id).map((row, y) =>
+                                            row.map((cell, x) =>
+                                                cell ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#fff" /> : null
+                                            )
+                                        )}
+                                    </svg>
+                                </div>
+                            </div>
+                            <div className="p-4 bg-gray-900 border-t-2 border-white">
+                                <div className="flex justify-between items-center">
+                                    <div>
+                                        <div className="font-mono text-white text-sm font-bold">{selectedPhoto.title}</div>
+                                        <div className="font-mono text-gray-400 text-[10px]">{selectedPhoto.category} / {selectedPhoto.desc}</div>
+                                    </div>
+                                    <button
+                                        onClick={() => setSelectedPhoto(null)}
+                                        className="px-4 py-2 bg-white text-black font-mono text-xs font-bold hover:invert"
+                                    >
+                                        BACK
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-grow p-4 overflow-auto bg-gray-100">
+                            <div className="grid grid-cols-3 gap-3">
+                                {photos.map(photo => (
+                                    <button
+                                        key={photo.id}
+                                        onClick={() => setSelectedPhoto(photo)}
+                                        className="group aspect-square bg-white border-2 border-black hover:bg-black transition-all flex flex-col items-center justify-center p-2"
+                                    >
+                                        <svg width="48" height="64" viewBox="0 0 6 8" style={{ imageRendering: 'pixelated' }} className="group-hover:invert">
+                                            <rect width="6" height="8" fill="#eee" />
+                                            {getPlaceholderPattern(photo.id).map((row, y) =>
+                                                row.map((cell, x) =>
+                                                    cell ? <rect key={`${x}-${y}`} x={x} y={y} width="1" height="1" fill="#000" /> : null
+                                                )
+                                            )}
+                                        </svg>
+                                        <div className="font-mono text-[8px] mt-1 text-gray-600 group-hover:text-white truncate w-full text-center">{photo.title}</div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- MAP.EXE - Low poly Three.js globe with accurate map ---
+        const MapApp = () => {
+            const containerRef = useRef(null);
+            const sceneRef = useRef(null);
+            const rendererRef = useRef(null);
+            const globeRef = useRef(null);
+            const cloudsRef = useRef(null);
+            const [loading, setLoading] = useState(true);
+
+            useEffect(() => {
+                if (!containerRef.current) return;
+
+                const width = containerRef.current.clientWidth;
+                const height = containerRef.current.clientHeight;
+
+                // Scene setup
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0x000000);
+                sceneRef.current = scene;
+
+                const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+                camera.position.z = 3;
+
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                containerRef.current.appendChild(renderer.domElement);
+                rendererRef.current = renderer;
+
+                // Create globe geometry (low poly)
+                const globeGeometry = new THREE.IcosahedronGeometry(1, 2);
+
+                // Create land masses using vertex colors for low-poly look
+                const positions = globeGeometry.attributes.position;
+                const colors = new Float32Array(positions.count * 3);
+
+                for (let i = 0; i < positions.count; i++) {
+                    const x = positions.getX(i);
+                    const y = positions.getY(i);
+                    const z = positions.getZ(i);
+
+                    // Convert to lat/lon
+                    const lat = Math.asin(y) * (180 / Math.PI);
+                    const lon = Math.atan2(x, z) * (180 / Math.PI);
+
+                    // Simplified continent detection
+                    let isLand = false;
+
+                    // North America
+                    if (lat > 25 && lat < 70 && lon > -130 && lon < -60) isLand = true;
+                    // South America
+                    if (lat > -55 && lat < 10 && lon > -80 && lon < -35) isLand = true;
+                    // Europe
+                    if (lat > 35 && lat < 70 && lon > -10 && lon < 40) isLand = true;
+                    // Africa
+                    if (lat > -35 && lat < 35 && lon > -20 && lon < 50) isLand = true;
+                    // Asia
+                    if (lat > 10 && lat < 70 && lon > 40 && lon < 150) isLand = true;
+                    // Australia
+                    if (lat > -45 && lat < -10 && lon > 110 && lon < 155) isLand = true;
+                    // Antarctica
+                    if (lat < -60) isLand = true;
+
+                    // Add some randomness for more natural look
+                    if (Math.random() > 0.85) isLand = !isLand;
+
+                    if (isLand) {
+                        colors[i * 3] = 0.1;
+                        colors[i * 3 + 1] = 0.1;
+                        colors[i * 3 + 2] = 0.1;
+                    } else {
+                        colors[i * 3] = 0.4;
+                        colors[i * 3 + 1] = 0.4;
+                        colors[i * 3 + 2] = 0.4;
+                    }
+                }
+
+                globeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+                const globeMaterial = new THREE.MeshBasicMaterial({
+                    vertexColors: true,
+                    flatShading: true
+                });
+
+                const globe = new THREE.Mesh(globeGeometry, globeMaterial);
+                scene.add(globe);
+                globeRef.current = globe;
+
+                // Add wireframe edges for low-poly effect
+                const edges = new THREE.EdgesGeometry(globeGeometry);
+                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 });
+                const wireframe = new THREE.LineSegments(edges, lineMaterial);
+                globe.add(wireframe);
+
+                // Create pixelated clouds
+                const cloudGeometry = new THREE.IcosahedronGeometry(1.05, 1);
+                const cloudMaterial = new THREE.MeshBasicMaterial({
+                    color: 0xffffff,
+                    transparent: true,
+                    opacity: 0.3,
+                    wireframe: true
+                });
+                const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+                scene.add(clouds);
+                cloudsRef.current = clouds;
+
+                // Add stars
+                const starGeometry = new THREE.BufferGeometry();
+                const starPositions = [];
+                for (let i = 0; i < 200; i++) {
+                    const x = (Math.random() - 0.5) * 20;
+                    const y = (Math.random() - 0.5) * 20;
+                    const z = (Math.random() - 0.5) * 20;
+                    if (Math.sqrt(x*x + y*y + z*z) > 5) {
+                        starPositions.push(x, y, z);
+                    }
+                }
+                starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starPositions, 3));
+                const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.05 });
+                const stars = new THREE.Points(starGeometry, starMaterial);
+                scene.add(stars);
+
+                // Mouse interaction
+                let isDragging = false;
+                let prevMouseX = 0;
+                let prevMouseY = 0;
+                let rotationX = 0;
+                let rotationY = 0;
+
+                const onMouseDown = (e) => {
+                    isDragging = true;
+                    prevMouseX = e.clientX;
+                    prevMouseY = e.clientY;
+                };
+
+                const onMouseMove = (e) => {
+                    if (!isDragging) return;
+                    const deltaX = e.clientX - prevMouseX;
+                    const deltaY = e.clientY - prevMouseY;
+                    rotationY += deltaX * 0.005;
+                    rotationX += deltaY * 0.005;
+                    rotationX = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationX));
+                    prevMouseX = e.clientX;
+                    prevMouseY = e.clientY;
+                };
+
+                const onMouseUp = () => {
+                    isDragging = false;
+                };
+
+                const onWheel = (e) => {
+                    e.preventDefault();
+                    camera.position.z += e.deltaY * 0.002;
+                    camera.position.z = Math.max(1.5, Math.min(5, camera.position.z));
+                };
+
+                renderer.domElement.addEventListener('mousedown', onMouseDown);
+                renderer.domElement.addEventListener('mousemove', onMouseMove);
+                renderer.domElement.addEventListener('mouseup', onMouseUp);
+                renderer.domElement.addEventListener('mouseleave', onMouseUp);
+                renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
+
+                setLoading(false);
+
+                // Animation
+                let animationId;
+                const animate = () => {
+                    animationId = requestAnimationFrame(animate);
+
+                    if (!isDragging) {
+                        rotationY += 0.002;
+                    }
+
+                    globe.rotation.x = rotationX;
+                    globe.rotation.y = rotationY;
+                    clouds.rotation.x = rotationX;
+                    clouds.rotation.y = rotationY + 0.1;
+
+                    renderer.render(scene, camera);
+                };
+                animate();
+
+                return () => {
+                    cancelAnimationFrame(animationId);
+                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
+                    renderer.domElement.removeEventListener('mousemove', onMouseMove);
+                    renderer.domElement.removeEventListener('mouseup', onMouseUp);
+                    renderer.domElement.removeEventListener('mouseleave', onMouseUp);
+                    renderer.domElement.removeEventListener('wheel', onWheel);
+                    renderer.dispose();
+                    if (containerRef.current && renderer.domElement) {
+                        containerRef.current.removeChild(renderer.domElement);
+                    }
+                };
+            }, []);
+
+            return (
+                <div className="h-full flex flex-col bg-black select-none">
+                    <div className="p-2 border-b-2 border-white bg-black flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Icons.Globe size={24} />
+                            <span className="font-mono text-xs font-bold text-white">MAP.EXE</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-gray-400">DRAG TO ROTATE • SCROLL TO ZOOM</span>
+                    </div>
+                    <div ref={containerRef} className="flex-grow relative">
+                        {loading && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black">
+                                <span className="font-mono text-white animate-pulse">LOADING EARTH...</span>
+                            </div>
+                        )}
+                    </div>
+                    <div className="p-2 border-t-2 border-white bg-black text-center">
+                        <span className="font-mono text-[10px] text-gray-500">LOW_POLY_EARTH v1.0</span>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- POMODORO.EXE - Timer with growing plant ---
+        const PomodoroApp = () => {
+            const [mode, setMode] = useState('work'); // 'work' or 'break'
+            const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
+            const [isRunning, setIsRunning] = useState(false);
+            const [sessions, setSessions] = useState(0);
+
+            const WORK_TIME = 25 * 60;
+            const BREAK_TIME = 5 * 60;
+
+            useEffect(() => {
+                if (!isRunning) return;
+
+                const interval = setInterval(() => {
+                    setTimeLeft(prev => {
+                        if (prev <= 1) {
+                            if (mode === 'work') {
+                                setMode('break');
+                                setSessions(s => s + 1);
+                                return BREAK_TIME;
+                            } else {
+                                setMode('work');
+                                return WORK_TIME;
+                            }
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+
+                return () => clearInterval(interval);
+            }, [isRunning, mode]);
+
+            const progress = mode === 'work'
+                ? 1 - (timeLeft / WORK_TIME)
+                : 1 - (timeLeft / BREAK_TIME);
+
+            const formatTime = (seconds) => {
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const reset = () => {
+                setIsRunning(false);
+                setMode('work');
+                setTimeLeft(WORK_TIME);
+            };
+
+            // Plant growth stages based on progress (0-1)
+            const renderPlant = () => {
+                const isSleeping = mode === 'break';
+                const growth = mode === 'work' ? progress : 1;
+
+                return (
+                    <svg width="120" height="160" viewBox="0 0 24 32" style={{ imageRendering: 'pixelated' }}>
+                        {/* Pot */}
+                        <rect x="6" y="26" width="12" height="6" fill="#000" />
+                        <rect x="7" y="27" width="10" height="4" fill="#666" />
+
+                        {/* Soil */}
+                        <rect x="7" y="25" width="10" height="2" fill="#333" />
+
+                        {/* Stem - grows with progress */}
+                        {growth > 0 && <rect x="11" y={25 - Math.floor(growth * 12)} width="2" height={Math.floor(growth * 12)} fill="#000" />}
+
+                        {/* Leaves at different growth stages */}
+                        {growth > 0.2 && (
+                            <>
+                                <rect x="9" y="21" width="2" height="2" fill="#000" />
+                                <rect x="8" y="20" width="2" height="2" fill="#000" />
+                            </>
+                        )}
+                        {growth > 0.4 && (
+                            <>
+                                <rect x="13" y="18" width="2" height="2" fill="#000" />
+                                <rect x="14" y="17" width="2" height="2" fill="#000" />
+                            </>
+                        )}
+                        {growth > 0.6 && (
+                            <>
+                                <rect x="8" y="15" width="2" height="2" fill="#000" />
+                                <rect x="7" y="14" width="2" height="2" fill="#000" />
+                            </>
+                        )}
+                        {growth > 0.8 && (
+                            <>
+                                <rect x="13" y="12" width="2" height="2" fill="#000" />
+                                <rect x="14" y="11" width="2" height="2" fill="#000" />
+                            </>
+                        )}
+
+                        {/* Flower at full growth or during break */}
+                        {(growth >= 1 || isSleeping) && (
+                            <>
+                                <rect x="10" y="9" width="4" height="4" fill="#000" />
+                                <rect x="9" y="10" width="6" height="2" fill="#000" />
+                                <rect x="11" y="8" width="2" height="1" fill="#000" />
+                            </>
+                        )}
+
+                        {/* Sleeping ZZZ during break */}
+                        {isSleeping && (
+                            <>
+                                <rect x="16" y="6" width="4" height="1" fill="#000" />
+                                <rect x="19" y="5" width="1" height="2" fill="#000" />
+                                <rect x="17" y="4" width="3" height="1" fill="#000" />
+
+                                <rect x="18" y="2" width="3" height="1" fill="#666" />
+                                <rect x="20" y="1" width="1" height="2" fill="#666" />
+                                <rect x="18" y="0" width="3" height="1" fill="#666" />
+                            </>
+                        )}
+                    </svg>
+                );
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Icons.Pomodoro size={24} />
+                            <span className="font-mono text-xs font-bold">POMODORO.EXE</span>
+                        </div>
+                        <span className="font-mono text-[10px] text-gray-500">SESSIONS: {sessions}</span>
+                    </div>
+
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
+                        {/* Mode indicator */}
+                        <div className={`px-4 py-1 mb-4 font-mono text-xs font-bold ${mode === 'work' ? 'bg-black text-white' : 'bg-gray-300 text-black'}`}>
+                            {mode === 'work' ? 'FOCUS TIME' : 'BREAK TIME'}
+                        </div>
+
+                        {/* Plant */}
+                        <div className="mb-6">
+                            {renderPlant()}
+                        </div>
+
+                        {/* Timer */}
+                        <div className="font-mono text-5xl font-black mb-6 tracking-wider">
+                            {formatTime(timeLeft)}
+                        </div>
+
+                        {/* Progress bar */}
+                        <div className="w-48 h-2 bg-gray-200 border-2 border-black mb-6">
+                            <div
+                                className="h-full bg-black transition-all duration-1000"
+                                style={{ width: `${progress * 100}%` }}
+                            />
+                        </div>
+
+                        {/* Controls */}
+                        <div className="flex gap-4">
+                            <button
+                                onClick={() => setIsRunning(!isRunning)}
+                                className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                            >
+                                {isRunning ? 'PAUSE' : 'START'}
+                            </button>
+                            <button
+                                onClick={reset}
+                                className="px-6 py-3 bg-white text-black font-mono font-bold text-sm hover:bg-black hover:text-white border-2 border-black"
+                            >
+                                RESET
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
+                        <span className="font-mono text-[10px] text-gray-500">
+                            {mode === 'work' ? 'GROW YOUR FOCUS' : 'PLANT IS RESTING'}
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- HEALTH_SCANNER.EXE - Retro health scanner ---
+        const HealthScannerApp = () => {
+            const [scanning, setScanning] = useState(false);
+            const [scanProgress, setScanProgress] = useState(0);
+            const [results, setResults] = useState(null);
+            const [heartRate, setHeartRate] = useState(72);
+
+            useEffect(() => {
+                if (!scanning) return;
+
+                const interval = setInterval(() => {
+                    setScanProgress(prev => {
+                        if (prev >= 100) {
+                            setScanning(false);
+                            setResults({
+                                status: 'OPTIMAL',
+                                vitals: {
+                                    heart: Math.floor(68 + Math.random() * 12),
+                                    oxygen: Math.floor(96 + Math.random() * 4),
+                                    stress: Math.floor(15 + Math.random() * 25),
+                                    energy: Math.floor(70 + Math.random() * 30),
+                                    focus: Math.floor(75 + Math.random() * 25),
+                                    hydration: Math.floor(60 + Math.random() * 40)
+                                }
+                            });
+                            return 100;
+                        }
+                        return prev + 2;
+                    });
+                }, 50);
+
+                return () => clearInterval(interval);
+            }, [scanning]);
+
+            // Heartbeat animation
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    setHeartRate(prev => Math.floor(68 + Math.random() * 12));
+                }, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const startScan = () => {
+                setScanning(true);
+                setScanProgress(0);
+                setResults(null);
+            };
+
+            const renderHeartbeat = () => {
+                const points = [];
+                for (let i = 0; i < 20; i++) {
+                    let y = 16;
+                    if (i === 5 || i === 15) y = 8;
+                    if (i === 6 || i === 16) y = 24;
+                    if (i === 7 || i === 17) y = 16;
+                    points.push(`${i * 8},${y}`);
+                }
+                return points.join(' ');
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-black select-none text-green-400">
+                    <div className="p-2 border-b-2 border-green-500 bg-black flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                            <Icons.HealthScanner size={24} />
+                            <span className="font-mono text-xs font-bold">HEALTH_SCANNER.EXE</span>
+                        </div>
+                        <span className="font-mono text-[10px]">v2.0.77</span>
+                    </div>
+
+                    <div className="flex-grow p-4 overflow-auto font-mono text-xs">
+                        {/* ECG Line */}
+                        <div className="mb-4 p-2 border border-green-500/50 bg-green-900/20">
+                            <svg width="100%" height="32" viewBox="0 0 160 32" preserveAspectRatio="none">
+                                <polyline
+                                    points={renderHeartbeat()}
+                                    fill="none"
+                                    stroke="#22c55e"
+                                    strokeWidth="2"
+                                    className={scanning ? 'animate-pulse' : ''}
+                                />
+                            </svg>
+                        </div>
+
+                        {!scanning && !results && (
+                            <div className="text-center py-8">
+                                <div className="mb-4 text-lg">BIOMETRIC SCANNER READY</div>
+                                <div className="mb-6 text-green-600 text-[10px]">
+                                    INITIALIZING QUANTUM HEALTH MATRIX...<br />
+                                    CALIBRATING VITAL SENSORS...<br />
+                                    SYSTEM READY
+                                </div>
+                                <button
+                                    onClick={startScan}
+                                    className="px-8 py-3 bg-green-500 text-black font-bold hover:bg-green-400 border-2 border-green-400"
+                                >
+                                    BEGIN SCAN
+                                </button>
+                            </div>
+                        )}
+
+                        {scanning && (
+                            <div className="text-center py-4">
+                                <div className="mb-4 animate-pulse">SCANNING BIOMETRICS...</div>
+                                <div className="w-full h-4 bg-green-900 border border-green-500 mb-2">
+                                    <div
+                                        className="h-full bg-green-500 transition-all"
+                                        style={{ width: `${scanProgress}%` }}
+                                    />
+                                </div>
+                                <div className="text-[10px] text-green-600">{scanProgress}% COMPLETE</div>
+                                <div className="mt-4 text-[10px] text-green-700 animate-pulse">
+                                    {scanProgress < 25 && 'ANALYZING HEART RHYTHM...'}
+                                    {scanProgress >= 25 && scanProgress < 50 && 'MEASURING OXYGEN SATURATION...'}
+                                    {scanProgress >= 50 && scanProgress < 75 && 'CALCULATING STRESS LEVELS...'}
+                                    {scanProgress >= 75 && 'COMPILING RESULTS...'}
+                                </div>
+                            </div>
+                        )}
+
+                        {results && (
+                            <div className="space-y-3">
+                                <div className="text-center mb-4">
+                                    <div className="text-2xl font-bold text-green-400">SCAN COMPLETE</div>
+                                    <div className={`text-lg ${results.status === 'OPTIMAL' ? 'text-green-300' : 'text-yellow-400'}`}>
+                                        STATUS: {results.status}
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2">
+                                    {Object.entries(results.vitals).map(([key, value]) => (
+                                        <div key={key} className="p-2 border border-green-500/50 bg-green-900/10">
+                                            <div className="text-[10px] text-green-600 uppercase">{key}</div>
+                                            <div className="flex items-center gap-2">
+                                                <div className="flex-grow h-2 bg-green-900">
+                                                    <div
+                                                        className="h-full bg-green-500"
+                                                        style={{ width: `${key === 'heart' ? (value/120)*100 : value}%` }}
+                                                    />
+                                                </div>
+                                                <span className="text-sm font-bold">
+                                                    {key === 'heart' ? `${value} BPM` : `${value}%`}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <button
+                                    onClick={startScan}
+                                    className="w-full mt-4 px-4 py-2 bg-green-900 text-green-400 font-bold hover:bg-green-800 border border-green-500"
+                                >
+                                    RESCAN
+                                </button>
+                            </div>
+                        )}
+                    </div>
+
+                    <div className="p-2 border-t-2 border-green-500 bg-black text-center">
+                        <span className="font-mono text-[10px] text-green-700">
+                            HEART: {heartRate} BPM • {new Date().toLocaleTimeString()}
+                        </span>
+                    </div>
+                </div>
+            );
+        };
+
         // --- APPS Folder - Grid of all apps ---
         const AppsFolder = ({ onOpenApp }) => {
             const apps = [
+                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
+                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
+                { id: 'HEALTH', title: 'HEALTH_SCANNER.EXE', icon: 'HealthScanner' },
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
                 { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -3923,7 +4661,11 @@
                 "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 22 },
                 "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 24 },
-                "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 25 }
+                "DOG": { id: "DOG", title: "DOG.EXE", icon: "Dog", x: 300, y: 170, w: '300px', h: '350px', isOpen: false, isMin: false, z: 25 },
+                "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
+                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
+                "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
+                "HEALTH": { id: "HEALTH", title: "HEALTH_SCANNER.EXE", icon: "HealthScanner", x: 250, y: 80, w: '400px', h: '450px', isOpen: false, isMin: false, z: 31 }
             });
 
             // Render window content based on ID
@@ -3947,6 +4689,10 @@
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
                     case "TAROT": return <TarotApp />;
                     case "DOG": return <DogApp onClose={() => { setDogReleased(true); close("DOG"); }} />;
+                    case "GALLERY": return <GalleryApp />;
+                    case "MAP": return <MapApp />;
+                    case "POMODORO": return <PomodoroApp />;
+                    case "HEALTH": return <HealthScannerApp />;
                     default: return null;
                 }
             };
