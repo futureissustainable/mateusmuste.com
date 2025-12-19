@@ -203,7 +203,7 @@
                     <rect x="20" y="32" width="12" height="4" fill="#000" />
                 </PixelIcon>
             ),
-            X: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
+            X: ({ size = 24, ...p }) => <svg width={size} height={size} {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>,
             Minus: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg>,
             Square: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect></svg>,
             Trash: (p) => <svg {...p} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>,
@@ -296,24 +296,26 @@
             ),
             Labyrinth: (p) => (
                 <PixelIcon {...p}>
-                    {/* Outer border */}
+                    {/* Border */}
                     <rect x="4" y="4" width="56" height="56" fill="#000" />
                     <rect x="8" y="8" width="48" height="48" fill="#fff" />
-                    {/* Maze walls - more complex pattern */}
-                    <rect x="8" y="8" width="4" height="32" fill="#000" />
-                    <rect x="8" y="8" width="24" height="4" fill="#000" />
+                    {/* Maze walls - proper labyrinth pattern */}
+                    <rect x="8" y="8" width="48" height="4" fill="#000" />
+                    <rect x="8" y="8" width="4" height="48" fill="#000" />
+                    <rect x="52" y="8" width="4" height="48" fill="#000" />
+                    <rect x="8" y="52" width="48" height="4" fill="#000" />
+                    {/* Inner walls */}
+                    <rect x="16" y="16" width="32" height="4" fill="#000" />
                     <rect x="16" y="16" width="4" height="24" fill="#000" />
-                    <rect x="24" y="16" width="20" height="4" fill="#000" />
+                    <rect x="44" y="16" width="4" height="32" fill="#000" />
                     <rect x="24" y="24" width="4" height="20" fill="#000" />
-                    <rect x="32" y="28" width="16" height="4" fill="#000" />
-                    <rect x="40" y="8" width="4" height="24" fill="#000" />
-                    <rect x="48" y="16" width="4" height="28" fill="#000" />
-                    <rect x="32" y="40" width="20" height="4" fill="#000" />
-                    <rect x="8" y="48" width="28" height="4" fill="#000" />
-                    {/* Player marker */}
-                    <rect x="10" y="10" width="4" height="4" fill="#000" />
-                    {/* Exit marker */}
-                    <rect x="50" y="50" width="4" height="4" fill="#000" />
+                    <rect x="24" y="40" width="20" height="4" fill="#000" />
+                    <rect x="32" y="28" width="4" height="12" fill="#000" />
+                    <rect x="32" y="28" width="12" height="4" fill="#000" />
+                    {/* Entry gap top */}
+                    <rect x="28" y="8" width="8" height="4" fill="#fff" />
+                    {/* Exit gap bottom */}
+                    <rect x="28" y="52" width="8" height="4" fill="#fff" />
                 </PixelIcon>
             ),
             Minesweeper: (p) => (
@@ -323,23 +325,25 @@
                     <rect x="8" y="8" width="48" height="48" fill="#fff" />
                     {/* Grid lines */}
                     <rect x="8" y="20" width="48" height="2" fill="#ccc" />
-                    <rect x="8" y="32" width="48" height="2" fill="#ccc" />
-                    <rect x="8" y="44" width="48" height="2" fill="#ccc" />
+                    <rect x="8" y="34" width="48" height="2" fill="#ccc" />
+                    <rect x="8" y="48" width="48" height="2" fill="#ccc" />
                     <rect x="20" y="8" width="2" height="48" fill="#ccc" />
-                    <rect x="32" y="8" width="2" height="48" fill="#ccc" />
-                    <rect x="44" y="8" width="2" height="48" fill="#ccc" />
-                    {/* Mine symbol */}
-                    <circle cx="26" cy="38" r="6" fill="#000" />
-                    <rect x="25" y="30" width="2" height="4" fill="#000" />
-                    <rect x="25" y="42" width="2" height="4" fill="#000" />
-                    <rect x="18" y="37" width="4" height="2" fill="#000" />
-                    <rect x="30" y="37" width="4" height="2" fill="#000" />
-                    {/* Numbers */}
-                    <text x="14" y="18" fontSize="10" fontWeight="bold" fill="#000">1</text>
-                    <text x="38" y="18" fontSize="10" fontWeight="bold" fill="#000">2</text>
-                    {/* Flag */}
-                    <rect x="48" y="46" width="2" height="8" fill="#000" />
-                    <polygon points="50,46 50,50 54,48" fill="#000" />
+                    <rect x="34" y="8" width="2" height="48" fill="#ccc" />
+                    <rect x="48" y="8" width="2" height="48" fill="#ccc" />
+                    {/* Pixel mine */}
+                    <rect x="24" y="38" width="8" height="8" fill="#000" />
+                    <rect x="26" y="36" width="4" height="2" fill="#000" />
+                    <rect x="26" y="46" width="4" height="2" fill="#000" />
+                    <rect x="22" y="40" width="2" height="4" fill="#000" />
+                    <rect x="32" y="40" width="2" height="4" fill="#000" />
+                    {/* Pixel 1 */}
+                    <rect x="12" y="10" width="4" height="2" fill="#000" />
+                    <rect x="14" y="10" width="2" height="8" fill="#000" />
+                    <rect x="10" y="18" width="8" height="2" fill="#000" />
+                    {/* Pixel flag */}
+                    <rect x="40" y="10" width="2" height="10" fill="#000" />
+                    <rect x="42" y="10" width="4" height="2" fill="#000" />
+                    <rect x="42" y="12" width="2" height="2" fill="#000" />
                 </PixelIcon>
             ),
             Starship: (p) => (
@@ -352,15 +356,21 @@
                     <rect x="25" y="8" width="2" height="2" fill="#fff" />
                     <rect x="45" y="45" width="2" height="2" fill="#fff" />
                     <rect x="12" y="50" width="2" height="2" fill="#fff" />
-                    {/* Ship body - arrow shape */}
-                    <polygon points="32,16 24,40 32,36 40,40" fill="#fff" />
-                    {/* Ship wings */}
-                    <polygon points="24,40 16,48 24,44" fill="#fff" />
-                    <polygon points="40,40 48,48 40,44" fill="#fff" />
+                    {/* Pixel ship - top down view */}
+                    <rect x="30" y="12" width="4" height="4" fill="#fff" />
+                    <rect x="28" y="16" width="8" height="4" fill="#fff" />
+                    <rect x="26" y="20" width="12" height="8" fill="#fff" />
+                    <rect x="24" y="28" width="16" height="8" fill="#fff" />
+                    {/* Wings */}
+                    <rect x="16" y="32" width="8" height="4" fill="#fff" />
+                    <rect x="40" y="32" width="8" height="4" fill="#fff" />
+                    <rect x="12" y="36" width="8" height="4" fill="#fff" />
+                    <rect x="44" y="36" width="8" height="4" fill="#fff" />
                     {/* Cockpit */}
-                    <rect x="30" y="24" width="4" height="6" fill="#000" />
-                    {/* Engine glow */}
-                    <rect x="30" y="40" width="4" height="4" fill="#888" />
+                    <rect x="30" y="20" width="4" height="4" fill="#000" />
+                    {/* Engine */}
+                    <rect x="28" y="36" width="8" height="6" fill="#888" />
+                    <rect x="30" y="42" width="4" height="4" fill="#888" />
                 </PixelIcon>
             ),
             Synth: (p) => (
@@ -467,34 +477,53 @@
             ),
             Gallery: (p) => (
                 <PixelIcon {...p}>
-                    {/* Photo stack */}
-                    <rect x="8" y="12" width="44" height="36" fill="#000" />
-                    <rect x="12" y="16" width="36" height="28" fill="#fff" />
-                    {/* Mountains landscape */}
-                    <polygon points="12,40 24,28 32,36 44,24 48,44" fill="#000" />
+                    {/* Photo frame */}
+                    <rect x="8" y="12" width="48" height="40" fill="#000" />
+                    <rect x="12" y="16" width="40" height="32" fill="#fff" />
+                    {/* Pixel mountain left */}
+                    <rect x="12" y="40" width="4" height="8" fill="#000" />
+                    <rect x="16" y="36" width="4" height="12" fill="#000" />
+                    <rect x="20" y="32" width="4" height="16" fill="#000" />
+                    <rect x="24" y="36" width="4" height="12" fill="#000" />
+                    <rect x="28" y="40" width="4" height="8" fill="#000" />
+                    {/* Pixel mountain right */}
+                    <rect x="32" y="44" width="4" height="4" fill="#000" />
+                    <rect x="36" y="40" width="4" height="8" fill="#000" />
+                    <rect x="40" y="36" width="4" height="12" fill="#000" />
+                    <rect x="44" y="40" width="4" height="8" fill="#000" />
+                    <rect x="48" y="44" width="4" height="4" fill="#000" />
                     {/* Sun */}
-                    <rect x="38" y="20" width="6" height="6" fill="#000" />
-                    {/* Second photo behind */}
-                    <rect x="12" y="8" width="44" height="4" fill="#000" />
-                    <rect x="52" y="8" width="4" height="40" fill="#000" />
+                    <rect x="40" y="20" width="8" height="8" fill="#000" />
                 </PixelIcon>
             ),
             Globe: (p) => (
                 <PixelIcon {...p}>
-                    {/* Globe circle */}
-                    <circle cx="32" cy="32" r="24" fill="#000" />
-                    <circle cx="32" cy="32" r="20" fill="#fff" />
-                    {/* Continents simplified */}
-                    <rect x="20" y="20" width="8" height="12" fill="#000" />
-                    <rect x="32" y="16" width="12" height="8" fill="#000" />
-                    <rect x="36" y="24" width="8" height="16" fill="#000" />
-                    <rect x="24" y="36" width="10" height="8" fill="#000" />
-                    {/* Latitude lines */}
-                    <rect x="14" y="26" width="36" height="2" fill="#888" />
-                    <rect x="14" y="38" width="36" height="2" fill="#888" />
+                    {/* Pixel globe - octagon shape */}
+                    <rect x="20" y="8" width="24" height="4" fill="#000" />
+                    <rect x="12" y="12" width="8" height="4" fill="#000" />
+                    <rect x="44" y="12" width="8" height="4" fill="#000" />
+                    <rect x="8" y="16" width="4" height="8" fill="#000" />
+                    <rect x="52" y="16" width="4" height="8" fill="#000" />
+                    <rect x="8" y="36" width="4" height="8" fill="#000" />
+                    <rect x="52" y="36" width="4" height="8" fill="#000" />
+                    <rect x="12" y="44" width="8" height="4" fill="#000" />
+                    <rect x="44" y="44" width="8" height="4" fill="#000" />
+                    <rect x="20" y="48" width="24" height="4" fill="#000" />
+                    {/* Fill */}
+                    <rect x="20" y="12" width="24" height="36" fill="#fff" />
+                    <rect x="12" y="16" width="8" height="28" fill="#fff" />
+                    <rect x="44" y="16" width="8" height="28" fill="#fff" />
+                    {/* Continents */}
+                    <rect x="18" y="18" width="8" height="10" fill="#000" />
+                    <rect x="34" y="14" width="10" height="6" fill="#000" />
+                    <rect x="38" y="20" width="8" height="12" fill="#000" />
+                    <rect x="22" y="32" width="10" height="8" fill="#000" />
+                    {/* Grid lines */}
+                    <rect x="12" y="24" width="40" height="2" fill="#888" />
+                    <rect x="12" y="34" width="40" height="2" fill="#888" />
                     {/* Stand */}
-                    <rect x="28" y="54" width="8" height="6" fill="#000" />
-                    <rect x="22" y="58" width="20" height="4" fill="#000" />
+                    <rect x="28" y="52" width="8" height="4" fill="#000" />
+                    <rect x="22" y="56" width="20" height="4" fill="#000" />
                 </PixelIcon>
             ),
             Pomodoro: (p) => (
@@ -508,8 +537,10 @@
                     <rect x="22" y="28" width="8" height="6" fill="#000" />
                     <rect x="34" y="20" width="8" height="6" fill="#000" />
                     <rect x="26" y="12" width="12" height="8" fill="#000" />
-                    {/* Timer circle */}
-                    <circle cx="32" cy="8" r="6" fill="#000" stroke="#000" strokeWidth="2" />
+                    {/* Timer - pixel square */}
+                    <rect x="26" y="4" width="12" height="12" fill="#000" />
+                    <rect x="28" y="6" width="8" height="8" fill="#fff" />
+                    <rect x="31" y="8" width="2" height="4" fill="#000" />
                 </PixelIcon>
             ),
             HealthScanner: (p) => (
@@ -517,14 +548,18 @@
                     {/* Monitor frame */}
                     <rect x="8" y="8" width="48" height="40" fill="#000" />
                     <rect x="12" y="12" width="40" height="32" fill="#fff" />
-                    {/* Heart rate line */}
-                    <polyline points="14,28 20,28 24,18 28,38 32,28 36,28 40,18 44,38 48,28" stroke="#000" strokeWidth="2" fill="none" />
-                    {/* Heart icon */}
-                    <rect x="28" y="16" width="4" height="4" fill="#000" />
-                    <rect x="32" y="16" width="4" height="4" fill="#000" />
-                    <rect x="26" y="18" width="12" height="6" fill="#000" />
-                    <rect x="28" y="24" width="8" height="4" fill="#000" />
-                    <rect x="30" y="28" width="4" height="4" fill="#000" />
+                    {/* Pixel heart rate - stepped line */}
+                    <rect x="14" y="28" width="6" height="2" fill="#000" />
+                    <rect x="20" y="26" width="2" height="4" fill="#000" />
+                    <rect x="22" y="20" width="2" height="8" fill="#000" />
+                    <rect x="24" y="18" width="2" height="4" fill="#000" />
+                    <rect x="26" y="32" width="2" height="8" fill="#000" />
+                    <rect x="28" y="38" width="2" height="4" fill="#000" />
+                    <rect x="30" y="28" width="6" height="2" fill="#000" />
+                    <rect x="36" y="26" width="2" height="4" fill="#000" />
+                    <rect x="38" y="20" width="2" height="8" fill="#000" />
+                    <rect x="40" y="18" width="2" height="4" fill="#000" />
+                    <rect x="42" y="28" width="6" height="2" fill="#000" />
                     {/* Stand */}
                     <rect x="24" y="48" width="16" height="4" fill="#000" />
                     <rect x="20" y="52" width="24" height="4" fill="#000" />
@@ -1128,73 +1163,90 @@
 
         // --- VOID.TXT - Text encrypts then fades into the void ---
         const VoidApp = () => {
-            const [lines, setLines] = useState([]);
-            const [currentText, setCurrentText] = useState('');
+            // Each char: { id, char, timestamp, phase: 'visible'|'encrypting'|'fading', opacity }
+            const [chars, setChars] = useState([]);
             const inputRef = useRef(null);
+            const charIdRef = useRef(0);
 
             const encryptChar = () => {
-                const chars = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
-                return chars[Math.floor(Math.random() * chars.length)];
+                const symbols = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
+                return symbols[Math.floor(Math.random() * symbols.length)];
             };
 
-            const submitLine = () => {
-                if (!currentText.trim()) return;
-
-                const lineId = Date.now();
-                const text = currentText;
-                const textLength = text.length;
-
-                // Add the line
-                setLines(prev => [...prev, {
-                    id: lineId,
-                    originalText: text,
-                    displayText: text,
-                    opacity: 1,
-                    phase: 'visible'
-                }]);
-                setCurrentText('');
-
-                // Start encrypting after 3 seconds
-                setTimeout(() => {
-                    let idx = 0;
-                    const encryptInterval = setInterval(() => {
-                        if (idx >= textLength) {
-                            clearInterval(encryptInterval);
-                            // Start fading
-                            setTimeout(() => {
-                                let fadeOp = 1;
-                                const fadeInterval = setInterval(() => {
-                                    fadeOp -= 0.1;
-                                    if (fadeOp <= 0) {
-                                        clearInterval(fadeInterval);
-                                        setLines(prev => prev.filter(l => l.id !== lineId));
-                                    } else {
-                                        setLines(prev => prev.map(l =>
-                                            l.id === lineId ? { ...l, opacity: fadeOp, phase: 'fading' } : l
-                                        ));
-                                    }
-                                }, 80);
-                            }, 200);
-                            return;
-                        }
-
-                        setLines(prev => prev.map(l => {
-                            if (l.id !== lineId) return l;
-                            const encrypted = l.originalText.split('').map((c, i) =>
-                                i <= idx ? encryptChar() : c
-                            ).join('');
-                            return { ...l, displayText: encrypted, phase: 'encrypting' };
-                        }));
-                        idx++;
-                    }, 50);
-                }, 3000);
-            };
+            // Process loop - runs every 50ms to update char states
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    const now = Date.now();
+                    setChars(prev => {
+                        let updated = false;
+                        const newChars = prev.map(c => {
+                            // After 1.5s, start encrypting
+                            if (c.phase === 'visible' && now - c.timestamp >= 1500) {
+                                updated = true;
+                                return { ...c, phase: 'encrypting', displayChar: encryptChar() };
+                            }
+                            // After encrypting for 300ms, start fading
+                            if (c.phase === 'encrypting' && now - c.timestamp >= 1800) {
+                                updated = true;
+                                return { ...c, phase: 'fading', opacity: 0.8 };
+                            }
+                            // Fade out
+                            if (c.phase === 'fading') {
+                                const newOpacity = c.opacity - 0.15;
+                                if (newOpacity <= 0) {
+                                    updated = true;
+                                    return null; // Mark for removal
+                                }
+                                updated = true;
+                                return { ...c, opacity: newOpacity, displayChar: encryptChar() };
+                            }
+                            return c;
+                        }).filter(Boolean);
+                        return updated ? newChars : prev;
+                    });
+                }, 50);
+                return () => clearInterval(interval);
+            }, []);
 
             const handleKeyDown = (e) => {
-                if (e.key === 'Enter') {
+                if (e.key === 'Backspace') {
+                    // Remove most recent visible char
+                    setChars(prev => {
+                        const visibleChars = prev.filter(c => c.phase === 'visible');
+                        if (visibleChars.length === 0) return prev;
+                        const lastVisible = visibleChars[visibleChars.length - 1];
+                        return prev.filter(c => c.id !== lastVisible.id);
+                    });
                     e.preventDefault();
-                    submitLine();
+                } else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
+                    // Add new character
+                    const newChar = {
+                        id: charIdRef.current++,
+                        char: e.key,
+                        displayChar: e.key,
+                        timestamp: Date.now(),
+                        phase: 'visible',
+                        opacity: 1
+                    };
+                    setChars(prev => [...prev, newChar]);
+                    e.preventDefault();
                 }
+            };
+
+            // Render chars grouped - visible chars are white, encrypting are green
+            const renderChars = () => {
+                return chars.map(c => (
+                    <span
+                        key={c.id}
+                        style={{
+                            color: c.phase === 'encrypting' ? '#0f0' :
+                                   c.phase === 'fading' ? `rgba(0,255,0,${c.opacity})` : 'white',
+                            textShadow: c.phase !== 'visible' ? '0 0 5px #0f0' : 'none'
+                        }}
+                    >
+                        {c.displayChar}
+                    </span>
+                ));
             };
 
             return (
@@ -1209,35 +1261,24 @@
                         <span className="font-mono text-[10px] text-gray-600">NO SAVE // NO COPY // JUST VOID</span>
                     </div>
                     <div className="flex-grow p-4 overflow-auto font-mono text-sm">
-                        {lines.map(line => (
-                            <div
-                                key={line.id}
-                                className="mb-1 transition-opacity duration-100"
-                                style={{
-                                    color: line.phase === 'encrypting' ? '#0f0' : `rgba(255,255,255,${line.opacity})`,
-                                    textShadow: line.phase === 'encrypting' ? '0 0 5px #0f0' : 'none'
-                                }}
-                            >
-                                {line.displayText}
-                            </div>
-                        ))}
-                        <div className="flex items-center text-white">
+                        <div className="flex flex-wrap items-start">
                             <span className="mr-2 text-gray-600">{'>'}</span>
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={currentText}
-                                onChange={(e) => setCurrentText(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                className="bg-transparent outline-none flex-grow text-white caret-white"
-                                autoFocus
-                                onPaste={(e) => e.preventDefault()}
-                            />
-                            <span className="animate-pulse text-white">_</span>
+                            <div className="flex-grow">
+                                {renderChars()}
+                                <span className="animate-pulse text-white">_</span>
+                            </div>
                         </div>
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            className="absolute opacity-0 pointer-events-none"
+                            onKeyDown={handleKeyDown}
+                            onPaste={(e) => e.preventDefault()}
+                            autoFocus
+                        />
                     </div>
                     <div className="p-2 border-t border-gray-800 bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-600">WRITE INTO THE VOID. WATCH IT DISAPPEAR.</span>
+                        <span className="font-mono text-[10px] text-gray-600">TYPE INTO THE VOID. WATCH IT DISAPPEAR BEHIND YOU.</span>
                     </div>
                 </div>
             );
@@ -1779,28 +1820,13 @@
                                     >
                                         {gameOver ? 'RETRY' : 'START'}
                                     </button>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4">SWIPE OR USE ARROWS • EAT FOOD • DON'T HIT WALLS</p>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 hidden md:block">ARROW KEYS TO MOVE</p>
+                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 md:hidden">SWIPE TO MOVE</p>
                                 </div>
                             )}
                         </div>
                     </div>
-                    {/* Mobile D-Pad */}
-                    <div className="md:hidden p-2 border-t-2 border-black bg-white">
-                        <div className="flex justify-center">
-                            <div className="grid grid-cols-3 gap-1 w-32">
-                                <div></div>
-                                <button onTouchStart={() => handleDirection('up')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▲</button>
-                                <div></div>
-                                <button onTouchStart={() => handleDirection('left')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">◀</button>
-                                <div className="w-10 h-10 bg-gray-200"></div>
-                                <button onTouchStart={() => handleDirection('right')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▶</button>
-                                <div></div>
-                                <button onTouchStart={() => handleDirection('down')} className="w-10 h-10 bg-black text-white font-bold flex items-center justify-center">▼</button>
-                                <div></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="hidden md:block p-2 border-t-2 border-black bg-white text-center">
+                    <div className="p-2 border-t-2 border-black bg-white text-center">
                         <span className="font-mono text-[10px] text-gray-500">EAT FOOD • GROW LONGER • DON'T DIE</span>
                     </div>
                 </div>
@@ -2197,20 +2223,62 @@
             const containerRef = useRef(null);
             const gameRef = useRef(null);
             const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
+            const touchRef = useRef({ startX: 0, startY: 0, startTime: 0, isDragging: false });
             const [score, setScore] = useState(0);
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
 
             // Mobile control handlers
-            const setKey = (key, value) => { keysRef.current[key] = value; };
             const handleStart = () => {
                 if (gameRef.current) {
                     if (gameOver) gameRef.current.restart();
                     else gameRef.current.start();
                 }
             };
-            const handleShoot = () => {
-                if (gameRef.current && started && !gameOver) gameRef.current.shoot();
+
+            // Touch-based drag controls
+            const handleTouchStart = (e) => {
+                const touch = e.touches[0];
+                touchRef.current = {
+                    startX: touch.clientX,
+                    startY: touch.clientY,
+                    startTime: Date.now(),
+                    isDragging: false
+                };
+            };
+
+            const handleTouchMove = (e) => {
+                if (!started || gameOver) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const dx = touch.clientX - touchRef.current.startX;
+                const dy = touch.clientY - touchRef.current.startY;
+                touchRef.current.isDragging = true;
+
+                // Set movement based on drag position (relative to start)
+                const threshold = 20;
+                keysRef.current.left = dx < -threshold;
+                keysRef.current.right = dx > threshold;
+                keysRef.current.up = dy < -threshold;
+                keysRef.current.down = dy > threshold;
+            };
+
+            const handleTouchEnd = (e) => {
+                // Reset all movement
+                keysRef.current.left = false;
+                keysRef.current.right = false;
+                keysRef.current.up = false;
+                keysRef.current.down = false;
+
+                // Tap to shoot (short touch without much movement)
+                const elapsed = Date.now() - touchRef.current.startTime;
+                if (elapsed < 200 && !touchRef.current.isDragging) {
+                    if (!started && !gameOver) {
+                        handleStart();
+                    } else if (gameRef.current && started && !gameOver) {
+                        gameRef.current.shoot();
+                    }
+                }
             };
 
             useEffect(() => {
@@ -2527,36 +2595,18 @@
                                 </div>
                             </div>
                         )}
-                        <div ref={containerRef} className="w-full h-full flex items-center justify-center" />
+                        <div
+                            ref={containerRef}
+                            className="w-full h-full flex items-center justify-center touch-none"
+                            onTouchStart={handleTouchStart}
+                            onTouchMove={handleTouchMove}
+                            onTouchEnd={handleTouchEnd}
+                        />
                     </div>
 
-                    {/* Mobile Controls */}
-                    <div className="md:hidden p-2 border-t border-gray-100 bg-white">
-                        <div className="flex justify-between items-center">
-                            {/* D-Pad */}
-                            <div className="grid grid-cols-3 gap-1">
-                                <div></div>
-                                <button onTouchStart={() => setKey('up', true)} onTouchEnd={() => setKey('up', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▲</button>
-                                <div></div>
-                                <button onTouchStart={() => setKey('left', true)} onTouchEnd={() => setKey('left', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">◀</button>
-                                <div className="w-10 h-10"></div>
-                                <button onTouchStart={() => setKey('right', true)} onTouchEnd={() => setKey('right', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▶</button>
-                                <div></div>
-                                <button onTouchStart={() => setKey('down', true)} onTouchEnd={() => setKey('down', false)} className="w-10 h-10 bg-gray-200 font-bold flex items-center justify-center active:bg-black active:text-white">▼</button>
-                                <div></div>
-                            </div>
-                            {/* Fire Button */}
-                            <button
-                                onTouchStart={handleShoot}
-                                className="w-20 h-20 bg-black text-white font-mono font-bold text-xs rounded-full flex items-center justify-center active:bg-gray-700"
-                            >
-                                FIRE
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="hidden md:flex h-8 px-4 justify-between items-center border-t border-gray-100">
-                        <span className="font-mono text-[10px] text-gray-300">WASD/ARROWS MOVE · SPACE SHOOT</span>
+                    <div className="h-8 px-4 flex justify-between items-center border-t border-gray-100">
+                        <span className="font-mono text-[10px] text-gray-300 hidden md:inline">WASD/ARROWS MOVE · SPACE SHOOT</span>
+                        <span className="font-mono text-[10px] text-gray-300 md:hidden">DRAG TO MOVE · TAP TO SHOOT</span>
                         <button
                             onClick={() => gameRef.current?.restart()}
                             className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
@@ -4982,9 +5032,9 @@
                                         <Icons.Square size={10} className="fill-current" />
                                         <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
                                     </div>
-                                    <div className="flex gap-1" onMouseDown={e => e.stopPropagation()}>
+                                    <div className="flex gap-1" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
                                         {!isMobile && <button onClick={() => toggleMin(win.id)} className="w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20"><Icons.Minus size={14} /></button>}
-                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center border-2 md:border border-current md:border-transparent hover:bg-red-500 hover:text-white ${win.z === topZ ? 'text-white' : 'text-black'}`}><Icons.X size={20} className="md:w-[14px] md:h-[14px]" /></button>
+                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'text-white hover:text-white' : 'text-black hover:text-white'}`}><Icons.X size={24} /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
