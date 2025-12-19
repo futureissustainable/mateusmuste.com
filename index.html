@@ -1808,7 +1808,7 @@
                         </div>
                     </div>
                     <div className="flex-grow flex items-center justify-center p-2 md:p-4 bg-gray-50 overflow-hidden">
-                        <div className="relative border-2 border-black w-full h-full max-w-[600px] max-h-[400px]">
+                        <div className="relative border-2 border-black" style={{ width: 'min(100%, 600px)', aspectRatio: '3/2' }}>
                             <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} />
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
@@ -1976,8 +1976,26 @@
                 return () => window.removeEventListener('keydown', handle);
             }, []);
 
+            // Touch/swipe controls for mobile
+            const touchStartRef = useRef({ x: 0, y: 0 });
+            const handleTouchStart = (e) => {
+                touchStartRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            };
+            const handleTouchEnd = (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+                const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+                const threshold = 20;
+                if (Math.abs(dx) > Math.abs(dy)) {
+                    if (dx > threshold) move(1, 0);
+                    else if (dx < -threshold) move(-1, 0);
+                } else {
+                    if (dy > threshold) move(0, 1);
+                    else if (dy < -threshold) move(0, -1);
+                }
+            };
+
             return (
-                <div className="h-full flex flex-col bg-white select-none">
+                <div className="h-full flex flex-col bg-white select-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                     <div className="h-8 px-3 flex justify-between items-center">
                         <span className="font-mono text-[10px] font-bold tracking-widest text-black">LABYRINTH</span>
                         <div className="flex gap-6 font-mono text-[10px]">
@@ -2004,7 +2022,8 @@
                         <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
                     </div>
                     <div className="h-8 px-3 flex justify-between items-center">
-                        <span className="font-mono text-[10px] text-gray-300">↑↓←→</span>
+                        <span className="font-mono text-[10px] text-gray-300 hidden md:inline">↑↓←→</span>
+                        <span className="font-mono text-[10px] text-gray-300 md:hidden">SWIPE TO MOVE</span>
                         <button
                             onClick={giveUp}
                             className="font-mono text-[10px] text-gray-300 hover:text-black transition-colors"
@@ -4078,10 +4097,88 @@
                 containerRef.current.appendChild(renderer.domElement);
                 rendererRef.current = renderer;
 
-                // Create globe geometry (low poly)
-                const globeGeometry = new THREE.IcosahedronGeometry(1, 2);
+                // Create globe geometry (higher detail for accuracy)
+                const globeGeometry = new THREE.IcosahedronGeometry(1, 5);
 
-                // Create land masses using vertex colors for low-poly look
+                // Accurate land detection function
+                const isLandAt = (lat, lon) => {
+                    // North America mainland
+                    if (lat > 48 && lat < 72 && lon > -170 && lon < -55) return true; // Canada/Alaska
+                    if (lat > 25 && lat < 50 && lon > -130 && lon < -65) {
+                        // Continental US shape
+                        if (lat > 45 && lon < -90) return true; // Upper midwest/northeast
+                        if (lat > 30 && lon > -105 && lon < -75) return true; // Eastern US
+                        if (lat > 32 && lat < 42 && lon > -125 && lon < -115) return true; // California
+                        if (lat > 35 && lon > -115 && lon < -95) return true; // Southwest/midwest
+                        return lat > 28 && lon > -100 && lon < -80; // Southeast/Texas
+                    }
+                    if (lat > 15 && lat < 32 && lon > -118 && lon < -85) return true; // Mexico
+
+                    // Central America
+                    if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
+
+                    // Caribbean (simplified)
+                    if (lat > 18 && lat < 24 && lon > -85 && lon < -74) return true; // Cuba
+
+                    // South America
+                    if (lat > -5 && lat < 12 && lon > -82 && lon < -60) return true; // Colombia/Venezuela
+                    if (lat > -20 && lat < 5 && lon > -80 && lon < -50) return true; // Brazil north/Peru
+                    if (lat > -35 && lat < -15 && lon > -70 && lon < -35) return true; // Brazil south/Paraguay
+                    if (lat > -55 && lat < -20 && lon > -75 && lon < -62) return true; // Argentina/Chile
+                    if (lat > -42 && lat < -30 && lon > -62 && lon < -48) return true; // Uruguay/south Brazil
+
+                    // Europe
+                    if (lat > 36 && lat < 45 && lon > -10 && lon < 3) return true; // Iberia
+                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true; // France
+                    if (lat > 50 && lat < 59 && lon > -11 && lon < 2) return true; // UK/Ireland
+                    if (lat > 47 && lat < 55 && lon > 5 && lon < 15) return true; // Germany/Benelux
+                    if (lat > 36 && lat < 47 && lon > 6 && lon < 19) return true; // Italy/Alps
+                    if (lat > 55 && lat < 71 && lon > 4 && lon < 32) return true; // Scandinavia
+                    if (lat > 46 && lat < 55 && lon > 14 && lon < 24) return true; // Poland/Czech
+                    if (lat > 35 && lat < 42 && lon > 19 && lon < 30) return true; // Greece/Balkans
+                    if (lat > 44 && lat < 70 && lon > 20 && lon < 60) return true; // Eastern Europe/Russia west
+
+                    // Africa
+                    if (lat > 20 && lat < 37 && lon > -18 && lon < 35) return true; // North Africa
+                    if (lat > -5 && lat < 25 && lon > -18 && lon < 15) return true; // West Africa
+                    if (lat > -5 && lat < 15 && lon > 10 && lon < 42) return true; // Central Africa
+                    if (lat > -12 && lat < 12 && lon > 28 && lon < 52) return true; // East Africa
+                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true; // Southern Africa
+                    if (lat > -27 && lat < -12 && lon > 42 && lon < 51) return true; // Madagascar
+
+                    // Middle East
+                    if (lat > 12 && lat < 38 && lon > 34 && lon < 60) return true;
+                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true; // Turkey
+
+                    // Asia
+                    if (lat > 50 && lat < 75 && lon > 55 && lon < 180) return true; // Siberia
+                    if (lat > 35 && lat < 55 && lon > 45 && lon < 90) return true; // Central Asia
+                    if (lat > 20 && lat < 45 && lon > 70 && lon < 135) return true; // China/Mongolia
+                    if (lat > 30 && lat < 46 && lon > 128 && lon < 146) return true; // Japan
+                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true; // Korea
+                    if (lat > 8 && lat < 30 && lon > 68 && lon < 98) return true; // India/SE Asia
+                    if (lat > -10 && lat < 20 && lon > 95 && lon < 120) return true; // SE Asia mainland
+                    if (lat > -8 && lat < 6 && lon > 95 && lon < 141) return true; // Indonesia
+                    if (lat > 4 && lat < 21 && lon > 100 && lon < 122) return true; // Philippines area
+
+                    // Australia/Oceania
+                    if (lat > -45 && lat < -10 && lon > 112 && lon < 154) return true; // Australia
+                    if (lat > -48 && lat < -34 && lon > 166 && lon < 179) return true; // New Zealand
+                    if (lat > -22 && lat < -12 && lon > 142 && lon < 155) return true; // Papua New Guinea
+
+                    // Greenland
+                    if (lat > 60 && lat < 84 && lon > -73 && lon < -12) return true;
+
+                    // Antarctica
+                    if (lat < -62) return true;
+
+                    // Iceland
+                    if (lat > 63 && lat < 67 && lon > -25 && lon < -13) return true;
+
+                    return false;
+                };
+
+                // Create land masses using vertex colors
                 const positions = globeGeometry.attributes.position;
                 const colors = new Float32Array(positions.count * 3);
 
@@ -4094,54 +4191,30 @@
                     const lat = Math.asin(y) * (180 / Math.PI);
                     const lon = Math.atan2(x, z) * (180 / Math.PI);
 
-                    // Simplified continent detection
-                    let isLand = false;
-
-                    // North America
-                    if (lat > 25 && lat < 70 && lon > -130 && lon < -60) isLand = true;
-                    // South America
-                    if (lat > -55 && lat < 10 && lon > -80 && lon < -35) isLand = true;
-                    // Europe
-                    if (lat > 35 && lat < 70 && lon > -10 && lon < 40) isLand = true;
-                    // Africa
-                    if (lat > -35 && lat < 35 && lon > -20 && lon < 50) isLand = true;
-                    // Asia
-                    if (lat > 10 && lat < 70 && lon > 40 && lon < 150) isLand = true;
-                    // Australia
-                    if (lat > -45 && lat < -10 && lon > 110 && lon < 155) isLand = true;
-                    // Antarctica
-                    if (lat < -60) isLand = true;
-
-                    // Add some randomness for more natural look
-                    if (Math.random() > 0.85) isLand = !isLand;
+                    const isLand = isLandAt(lat, lon);
 
                     if (isLand) {
-                        colors[i * 3] = 0.1;
-                        colors[i * 3 + 1] = 0.1;
-                        colors[i * 3 + 2] = 0.1;
+                        // Land - dark gray/black
+                        colors[i * 3] = 0.15;
+                        colors[i * 3 + 1] = 0.15;
+                        colors[i * 3 + 2] = 0.15;
                     } else {
-                        colors[i * 3] = 0.4;
-                        colors[i * 3 + 1] = 0.4;
-                        colors[i * 3 + 2] = 0.4;
+                        // Ocean - lighter gray
+                        colors[i * 3] = 0.5;
+                        colors[i * 3 + 1] = 0.5;
+                        colors[i * 3 + 2] = 0.5;
                     }
                 }
 
                 globeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
 
                 const globeMaterial = new THREE.MeshBasicMaterial({
-                    vertexColors: true,
-                    flatShading: true
+                    vertexColors: true
                 });
 
                 const globe = new THREE.Mesh(globeGeometry, globeMaterial);
                 scene.add(globe);
                 globeRef.current = globe;
-
-                // Add wireframe edges for low-poly effect
-                const edges = new THREE.EdgesGeometry(globeGeometry);
-                const lineMaterial = new THREE.LineBasicMaterial({ color: 0x333333 });
-                const wireframe = new THREE.LineSegments(edges, lineMaterial);
-                globe.add(wireframe);
 
                 // Create pixelated clouds
                 const cloudGeometry = new THREE.IcosahedronGeometry(1.05, 1);
