@@ -14,6 +14,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+    <script src="https://unpkg.com/cobe@0.6.3/dist/index.js"></script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -828,17 +829,30 @@
                             <h3 className="text-2xl font-black uppercase mb-4 border-b-2 border-black">App Stack</h3>
                             <div className="grid grid-cols-4 gap-1">
                                 {[
-                                    'Photoshop', 'Premiere', 'After Effects', 'Excel',
-                                    'Meta Ads', 'DaVinci', 'ArchiCAD', 'Squarespace',
-                                    'Unreal', 'Webflow', 'Midjourney', 'Google Ads',
-                                    'Blender', 'Cursor', 'ComfyUI', 'n8n'
+                                    { name: 'PHOTOSHOP', yrs: 9 },
+                                    { name: 'PREMIERE', yrs: 8 },
+                                    { name: 'AFTER EFFECTS', yrs: 6 },
+                                    { name: 'EXCEL', yrs: 5 },
+                                    { name: 'META ADS', yrs: 5 },
+                                    { name: 'DAVINCI', yrs: 4 },
+                                    { name: 'ARCHICAD', yrs: 3 },
+                                    { name: 'SQUARESPACE', yrs: 3 },
+                                    { name: 'UNREAL', yrs: 3 },
+                                    { name: 'WEBFLOW', yrs: 3 },
+                                    { name: 'MIDJOURNEY', yrs: 2 },
+                                    { name: 'GOOGLE ADS', yrs: 2 },
+                                    { name: 'BLENDER', yrs: 1 },
+                                    { name: 'CURSOR', yrs: 1 },
+                                    { name: 'COMFYUI', yrs: 1 },
+                                    { name: 'N8N', yrs: 1 }
                                 ].map((app, i, arr) => (
                                     <div
                                         key={i}
-                                        className="border-2 border-black aspect-square flex items-center justify-center p-1 cursor-default"
+                                        className="border-2 border-black aspect-square flex flex-col items-center justify-center p-1 cursor-default"
                                         style={{ opacity: 1 - (i / (arr.length - 1)) * 0.66 }}
                                     >
-                                        <span className="font-black text-[10px] text-center leading-tight">{app}</span>
+                                        <span className="font-black text-[8px] text-center leading-tight">{app.name}</span>
+                                        <span className="font-mono text-[8px] mt-1">{app.yrs} YRS</span>
                                     </div>
                                 ))}
                             </div>
@@ -3916,1231 +3930,89 @@
             );
         };
 
-        // --- MAP.EXE - Low poly Three.js globe with accurate map ---
+        // --- MAP.EXE - Interactive COBE globe ---
         const MapApp = () => {
-            const containerRef = useRef(null);
-            const sceneRef = useRef(null);
-            const rendererRef = useRef(null);
-            const cameraRef = useRef(null);
+            const canvasRef = useRef(null);
             const globeRef = useRef(null);
-            const cloudsRef = useRef(null);
-            const clouds2Ref = useRef(null);
-            const bgGridRef = useRef(null);
-            const ringsRef = useRef([]);
-            const satellitesRef = useRef([]);
-            const gemsRef = useRef([]);
-            const rotationRef = useRef({ x: 0, y: 0, autoRotate: true });
-            const dragRef = useRef({ isDragging: false, prevX: 0, prevY: 0 });
-            const [loading, setLoading] = useState(true);
-            const [gameStarted, setGameStarted] = useState(false);
-            const [showShop, setShowShop] = useState(false);
-            const [clickEffect, setClickEffect] = useState(null);
-            const [popScale, setPopScale] = useState(1);
+            const phiRef = useRef(0);
+            const velocityRef = useRef(0.005);
+            const isHoveringRef = useRef(false);
+            const isDraggingRef = useRef(false);
+            const lastXRef = useRef(0);
 
-            // Game state with defaults
-            const defaultGameState = {
-                clicks: 0,
-                totalClicks: 0,
-                clickPower: 1,
-                satellites: 0,
-                clickMultiplier: 1,
-                popStrength: 0.005, // 0.5% base pop, upgrades add more
-                upgrades: {
-                    // Click power - increases pop effect
-                    power1: false,     // +1 power, +0.5% pop - 50
-                    power2: false,     // +2 power, +0.5% pop - 200
-                    power3: false,     // +5 power, +1% pop - 1000
-                    power4: false,     // +10 power, +1% pop - 5000
-                    power5: false,     // +25 power, +1% pop - 25000
-                    power6: false,     // +50 power, +1% pop - 100000
-                    // Satellites - visible orbiting + auto clicks
-                    sat1: false,       // 1 satellite, 1/sec - 100
-                    sat2: false,       // +1 satellite, +2/sec - 500
-                    sat3: false,       // +2 satellites, +5/sec - 2500
-                    sat4: false,       // +3 satellites, +10/sec - 10000
-                    sat5: false,       // +4 satellites, +25/sec - 50000
-                    sat6: false,       // +5 satellites, +50/sec - 200000
-                    // Multipliers - add glowing rings
-                    multi1: false,     // 2x, inner ring - 2000
-                    multi2: false,     // 2x (4x), middle ring - 15000
-                    multi3: false,     // 2x (8x), outer ring - 75000
-                    // God mode - unlocks at 2M total clicks
-                    godMode: false,     // Dark mode + crimson grid - 1000000
-                    // Dog mode - unlocks at 100M, resets game with 1M multiplier
-                    dogMode: false
-                },
-                dogModeMultiplier: 1  // All costs and clicks multiplied by this
-            };
-
-            const [showCorrupted, setShowCorrupted] = useState(true);
-
-            const [gameState, setGameState] = useState(() => {
-                const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        return { ...defaultGameState, ...parsed, upgrades: { ...defaultGameState.upgrades, ...parsed.upgrades } };
-                    } catch (e) {
-                        return defaultGameState;
-                    }
-                }
-                return defaultGameState;
-            });
-
-            // Load game state when IP is ready
             useEffect(() => {
-                const loadGame = async () => {
-                    await HighScoreManager.fetchIP();
-                    const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
-                    if (saved) {
-                        try {
-                            const parsed = JSON.parse(saved);
-                            setGameState({ ...defaultGameState, ...parsed, upgrades: { ...defaultGameState.upgrades, ...parsed.upgrades } });
-                        } catch (e) { }
+                if (!canvasRef.current) return;
+
+                const targetSpeed = 0.005;
+                const friction = 0.95;
+                const acceleration = 0.0002;
+
+                globeRef.current = window.COBE(canvasRef.current, {
+                    devicePixelRatio: 2,
+                    width: 600,
+                    height: 600,
+                    phi: 0,
+                    theta: 0.2,
+                    dark: 0,
+                    diffuse: 1.2,
+                    mapSamples: 16000,
+                    mapBrightness: 6,
+                    baseColor: [0.9, 0.9, 0.9],
+                    markerColor: [0, 0, 0],
+                    glowColor: [1, 1, 1],
+                    markers: [
+                        { location: [44.4268, 26.1025], size: 0.05 }, // Bucharest
+                    ],
+                    onRender: (state) => {
+                        if (isDraggingRef.current) {
+                            // Don't auto-rotate while dragging
+                        } else if (isHoveringRef.current) {
+                            velocityRef.current *= friction;
+                        } else {
+                            if (velocityRef.current < targetSpeed) {
+                                velocityRef.current += acceleration;
+                            }
+                        }
+                        if (!isDraggingRef.current) {
+                            phiRef.current += velocityRef.current;
+                        }
+                        state.phi = phiRef.current;
                     }
-                };
-                loadGame();
-            }, []);
-
-            // Save game state whenever it changes
-            useEffect(() => {
-                localStorage.setItem(HighScoreManager.getStorageKey('mapclicker'), JSON.stringify(gameState));
-            }, [gameState]);
-
-            // Satellite auto-clicker interval
-            useEffect(() => {
-                if (gameState.satellites > 0) {
-                    const interval = setInterval(() => {
-                        const autoAmount = gameState.satellites * gameState.clickMultiplier * gameState.dogModeMultiplier;
-                        setGameState(prev => ({
-                            ...prev,
-                            clicks: prev.clicks + autoAmount,
-                            totalClicks: prev.totalClicks + autoAmount
-                        }));
-                    }, 1000);
-                    return () => clearInterval(interval);
-                }
-            }, [gameState.satellites, gameState.clickMultiplier, gameState.dogModeMultiplier]);
-
-            // Count satellites for visual
-            const getSatelliteCount = () => {
-                let count = 0;
-                if (gameState.upgrades.sat1) count += 1;
-                if (gameState.upgrades.sat2) count += 1;
-                if (gameState.upgrades.sat3) count += 2;
-                if (gameState.upgrades.sat4) count += 3;
-                if (gameState.upgrades.sat5) count += 4;
-                if (gameState.upgrades.sat6) count += 5;
-                return count;
-            };
-
-            // Count multiplier rings
-            const getRingCount = () => {
-                let count = 0;
-                if (gameState.upgrades.multi1) count++;
-                if (gameState.upgrades.multi2) count++;
-                if (gameState.upgrades.multi3) count++;
-                return count;
-            };
-
-            // Shop items - all visually impactful
-            const shopItems = [
-                {
-                    category: 'CLICK POWER', desc: 'Increases tap power & earth pulse', items: [
-                        { id: 'power1', name: 'TREMOR I', desc: '+1 power, +0.5% pulse', cost: 50, effect: () => ({ clickPower: gameState.clickPower + 1, popStrength: gameState.popStrength + 0.005 }) },
-                        { id: 'power2', name: 'TREMOR II', desc: '+2 power, +0.5% pulse', cost: 200, effect: () => ({ clickPower: gameState.clickPower + 2, popStrength: gameState.popStrength + 0.005 }), requires: 'power1' },
-                        { id: 'power3', name: 'QUAKE I', desc: '+5 power, +1% pulse', cost: 1000, effect: () => ({ clickPower: gameState.clickPower + 5, popStrength: gameState.popStrength + 0.01 }), requires: 'power2' },
-                        { id: 'power4', name: 'QUAKE II', desc: '+10 power, +1% pulse', cost: 5000, effect: () => ({ clickPower: gameState.clickPower + 10, popStrength: gameState.popStrength + 0.01 }), requires: 'power3' },
-                        { id: 'power5', name: 'CATACLYSM I', desc: '+25 power, +1% pulse', cost: 25000, effect: () => ({ clickPower: gameState.clickPower + 25, popStrength: gameState.popStrength + 0.01 }), requires: 'power4' },
-                        { id: 'power6', name: 'CATACLYSM II', desc: '+50 power, +1% pulse', cost: 100000, effect: () => ({ clickPower: gameState.clickPower + 50, popStrength: gameState.popStrength + 0.01 }), requires: 'power5' },
-                    ]
-                },
-                {
-                    category: 'SATELLITES', desc: 'Orbiting satellites that auto-click', items: [
-                        { id: 'sat1', name: 'SPUTNIK', desc: '+1 satellite, 1/sec', cost: 100, effect: () => ({ satellites: gameState.satellites + 1 }) },
-                        { id: 'sat2', name: 'EXPLORER', desc: '+1 satellite, +2/sec', cost: 500, effect: () => ({ satellites: gameState.satellites + 2 }), requires: 'sat1' },
-                        { id: 'sat3', name: 'VOYAGER', desc: '+2 satellites, +5/sec', cost: 2500, effect: () => ({ satellites: gameState.satellites + 5 }), requires: 'sat2' },
-                        { id: 'sat4', name: 'HUBBLE', desc: '+3 satellites, +10/sec', cost: 10000, effect: () => ({ satellites: gameState.satellites + 10 }), requires: 'sat3' },
-                        { id: 'sat5', name: 'JAMES WEBB', desc: '+4 satellites, +25/sec', cost: 50000, effect: () => ({ satellites: gameState.satellites + 25 }), requires: 'sat4' },
-                        { id: 'sat6', name: 'DYSON SWARM', desc: '+5 satellites, +50/sec', cost: 200000, effect: () => ({ satellites: gameState.satellites + 50 }), requires: 'sat5' },
-                    ]
-                },
-                {
-                    category: 'MULTIPLIERS', desc: 'Energy rings that multiply all clicks', items: [
-                        { id: 'multi1', name: 'INNER RING', desc: '2x all clicks', cost: 2000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }) },
-                        { id: 'multi2', name: 'MIDDLE RING', desc: '2x (4x total)', cost: 15000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multi1' },
-                        { id: 'multi3', name: 'OUTER RING', desc: '2x (8x total)', cost: 75000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multi2' },
-                    ]
-                },
-                {
-                    category: 'ASCENSION', desc: 'Ultimate power', items: [
-                        { id: 'godMode', name: 'GOD MODE', desc: 'Dark crimson grid, 1M/click', cost: 1000000 },
-                        { id: 'dogMode', name: 'DOG MODE', desc: 'RESET: 1M× costs & clicks', cost: 100000000, requires: 'godMode' },
-                    ]
-                },
-            ];
-
-            const getActualCost = (baseCost) => baseCost * gameState.dogModeMultiplier;
-
-            const buyUpgrade = (item) => {
-                const actualCost = getActualCost(item.cost);
-                if (gameState.clicks >= actualCost && !gameState.upgrades[item.id]) {
-                    if (item.requires && !gameState.upgrades[item.requires]) return;
-
-                    // DOG MODE: Reset game with 1M multiplier
-                    if (item.id === 'dogMode') {
-                        const newMultiplier = gameState.dogModeMultiplier * 1000000;
-                        setGameState({
-                            ...defaultGameState,
-                            dogModeMultiplier: newMultiplier,
-                            upgrades: { ...defaultGameState.upgrades, dogMode: true }
-                        });
-                        return;
-                    }
-
-                    const effectResult = item.effect ? item.effect() : {};
-                    setGameState(prev => ({
-                        ...prev,
-                        clicks: prev.clicks - actualCost,
-                        ...effectResult,
-                        upgrades: { ...prev.upgrades, [item.id]: true }
-                    }));
-                }
-            };
-
-            const canBuy = (item) => {
-                if (gameState.upgrades[item.id]) return false;
-                if (gameState.clicks < getActualCost(item.cost)) return false;
-                if (item.requires && !gameState.upgrades[item.requires]) return false;
-                return true;
-            };
-
-            const isLocked = (item) => {
-                return item.requires && !gameState.upgrades[item.requires];
-            };
-
-            // Spawn gem that flies from earth and falls
-            const spawnGem = () => {
-                if (!sceneRef.current) return;
-                const scene = sceneRef.current;
-
-                // Random position on globe surface
-                const theta = Math.random() * Math.PI * 2;
-                const phi = Math.random() * Math.PI;
-                const x = Math.sin(phi) * Math.cos(theta);
-                const y = Math.cos(phi);
-                const z = Math.sin(phi) * Math.sin(theta);
-
-                // Monochrome minerals - white/gray crystals
-                const brightness = 0.7 + Math.random() * 0.3; // 0.7 to 1.0
-                const color = new THREE.Color(brightness, brightness, brightness);
-
-                // Create small gem geometry
-                const gemGeo = new THREE.OctahedronGeometry(0.02 + Math.random() * 0.015, 0);
-                const gemMat = new THREE.MeshBasicMaterial({ color });
-                const gem = new THREE.Mesh(gemGeo, gemMat);
-
-                // Start at earth surface
-                gem.position.set(x * 1.02, y * 1.02, z * 1.02);
-
-                // Velocity - outward from center + slight random + gravity will pull down
-                const speed = 0.02 + Math.random() * 0.02;
-                const velocity = {
-                    x: x * speed + (Math.random() - 0.5) * 0.01,
-                    y: y * speed + (Math.random() - 0.5) * 0.01 + 0.01, // slight upward
-                    z: z * speed + (Math.random() - 0.5) * 0.01
-                };
-
-                scene.add(gem);
-                gemsRef.current.push({
-                    mesh: gem,
-                    velocity,
-                    life: 0
                 });
-            };
-
-            // Handle click on globe
-            const handleGlobeClick = () => {
-                const clickValue = gameState.clickPower * gameState.clickMultiplier * gameState.dogModeMultiplier;
-                setGameState(prev => ({
-                    ...prev,
-                    clicks: prev.clicks + clickValue,
-                    totalClicks: prev.totalClicks + clickValue
-                }));
-                setClickEffect({ value: clickValue, id: Date.now() });
-                setTimeout(() => setClickEffect(null), 500);
-
-                // Pop effect based on popStrength
-                setPopScale(1 + gameState.popStrength);
-                setTimeout(() => setPopScale(1), 100);
-
-                // Spawn gems - more gems as you progress (1-5 based on power)
-                const gemCount = Math.min(5, 1 + Math.floor(gameState.clickPower / 20));
-                for (let i = 0; i < gemCount; i++) {
-                    spawnGem();
-                }
-            };
-
-            // Apply pop scale to globe
-            useEffect(() => {
-                if (globeRef.current) {
-                    globeRef.current.scale.set(popScale, popScale, popScale);
-                }
-            }, [popScale]);
-
-            const formatNumber = (num) => {
-                if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
-                if (num >= 1e9) return (num / 1e9).toFixed(1) + 'B';
-                if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
-                if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-                return Math.floor(num).toString();
-            };
-
-            // Calculate earth redness based on total clicks (0 to 2M)
-            const getRedProgress = () => {
-                return Math.min(1, gameState.totalClicks / 1000000);
-            };
-
-            useEffect(() => {
-                if (!containerRef.current) return;
-
-                const width = containerRef.current.clientWidth;
-                const height = containerRef.current.clientHeight;
-
-                const scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xffffff);
-                sceneRef.current = scene;
-
-                const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-                camera.position.z = 3;
-                cameraRef.current = camera;
-
-                const renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(width, height);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                containerRef.current.appendChild(renderer.domElement);
-                rendererRef.current = renderer;
-
-                // Very high resolution globe (subdivision 8 for maximum detail)
-                const globeGeometry = new THREE.IcosahedronGeometry(1, 8);
-
-                // Highly detailed land detection with accurate continent shapes
-                const isLandAt = (lat, lon) => {
-                    // NORTH AMERICA
-                    // Alaska
-                    if (lat > 54 && lat < 72 && lon > -170 && lon < -130) return true;
-                    if (lat > 60 && lat < 72 && lon > -170 && lon < -140) return true;
-                    // Canada - detailed regions
-                    if (lat > 60 && lat < 75 && lon > -140 && lon < -60) return true;
-                    if (lat > 49 && lat < 60 && lon > -140 && lon < -52) return true;
-                    // US West Coast - California shape
-                    if (lat > 32 && lat < 42 && lon > -125 && lon < -114) {
-                        if (lon > -125 && lon < -119) return true;
-                        if (lat > 37 && lon > -123 && lon < -117) return true;
-                    }
-                    // US Pacific Northwest
-                    if (lat > 42 && lat < 49 && lon > -125 && lon < -116) return true;
-                    // US Mountain/Southwest
-                    if (lat > 31 && lat < 49 && lon > -117 && lon < -102) return true;
-                    // US Great Plains
-                    if (lat > 36 && lat < 49 && lon > -105 && lon < -90) return true;
-                    // US Midwest
-                    if (lat > 37 && lat < 49 && lon > -97 && lon < -82) return true;
-                    // US Northeast
-                    if (lat > 39 && lat < 47 && lon > -80 && lon < -67) return true;
-                    // US Southeast
-                    if (lat > 25 && lat < 39 && lon > -92 && lon < -75) return true;
-                    // Florida
-                    if (lat > 24 && lat < 31 && lon > -88 && lon < -79) return true;
-                    // Texas
-                    if (lat > 26 && lat < 37 && lon > -107 && lon < -93) return true;
-                    // Mexico - detailed
-                    if (lat > 14 && lat < 33 && lon > -118 && lon < -86) {
-                        if (lat > 28 && lon > -118 && lon < -104) return true;
-                        if (lat > 22 && lat < 30 && lon > -111 && lon < -97) return true;
-                        if (lat > 14 && lat < 24 && lon > -106 && lon < -92) return true;
-                        if (lat > 17 && lat < 22 && lon > -92 && lon < -86) return true;
-                    }
-                    // Central America
-                    if (lat > 7 && lat < 18 && lon > -92 && lon < -77) return true;
-                    // Caribbean Islands
-                    if (lat > 18 && lat < 24 && lon > -85 && lon < -74) return true; // Cuba
-                    if (lat > 17 && lat < 20 && lon > -73 && lon < -68) return true; // Hispaniola
-                    if (lat > 17 && lat < 19 && lon > -67 && lon < -65) return true; // Puerto Rico
-                    if (lat > 21 && lat < 27 && lon > -80 && lon < -76) return true; // Bahamas
-
-                    // SOUTH AMERICA - detailed
-                    // Colombia/Venezuela
-                    if (lat > 0 && lat < 12 && lon > -79 && lon < -60) return true;
-                    // Ecuador/Peru coast
-                    if (lat > -18 && lat < 2 && lon > -82 && lon < -69) return true;
-                    // Brazil - detailed regions
-                    if (lat > -5 && lat < 5 && lon > -74 && lon < -35) return true; // Amazon
-                    if (lat > -23 && lat < -5 && lon > -65 && lon < -35) return true; // Central
-                    if (lat > -33 && lat < -20 && lon > -58 && lon < -40) return true; // South
-                    // Bolivia/Paraguay
-                    if (lat > -27 && lat < -10 && lon > -69 && lon < -54) return true;
-                    // Argentina - detailed
-                    if (lat > -55 && lat < -22 && lon > -73 && lon < -53) return true;
-                    // Chile - narrow strip
-                    if (lat > -56 && lat < -18 && lon > -76 && lon < -67) return true;
-                    // Uruguay
-                    if (lat > -35 && lat < -30 && lon > -58 && lon < -53) return true;
-
-                    // EUROPE - detailed
-                    // Iberian Peninsula
-                    if (lat > 36 && lat < 44 && lon > -10 && lon < -1) return true; // Spain/Portugal
-                    // France
-                    if (lat > 42 && lat < 51 && lon > -5 && lon < 8) return true;
-                    // UK
-                    if (lat > 50 && lat < 59 && lon > -8 && lon < 2) return true;
-                    // Ireland
-                    if (lat > 51 && lat < 56 && lon > -11 && lon < -5) return true;
-                    // Benelux/Germany
-                    if (lat > 47 && lat < 55 && lon > 3 && lon < 15) return true;
-                    // Switzerland/Austria
-                    if (lat > 45 && lat < 48 && lon > 6 && lon < 17) return true;
-                    // Italy
-                    if (lat > 36 && lat < 47 && lon > 7 && lon < 19) {
-                        if (lat > 43 && lon > 7 && lon < 14) return true;
-                        if (lat > 36 && lat < 44 && lon > 12 && lon < 19) return true;
-                    }
-                    // Scandinavia - Norway
-                    if (lat > 58 && lat < 71 && lon > 4 && lon < 32) return true;
-                    // Sweden/Finland
-                    if (lat > 55 && lat < 70 && lon > 11 && lon < 32) return true;
-                    // Denmark
-                    if (lat > 54 && lat < 58 && lon > 8 && lon < 15) return true;
-                    // Poland
-                    if (lat > 49 && lat < 55 && lon > 14 && lon < 24) return true;
-                    // Balkans
-                    if (lat > 35 && lat < 47 && lon > 13 && lon < 30) return true;
-                    // Eastern Europe/Ukraine
-                    if (lat > 44 && lat < 56 && lon > 22 && lon < 40) return true;
-                    // Russia West
-                    if (lat > 45 && lat < 70 && lon > 28 && lon < 60) return true;
-
-                    // AFRICA - detailed
-                    // Morocco/Algeria/Tunisia
-                    if (lat > 27 && lat < 38 && lon > -13 && lon < 12) return true;
-                    // Libya/Egypt
-                    if (lat > 20 && lat < 32 && lon > 10 && lon < 35) return true;
-                    // West Africa coastal
-                    if (lat > 4 && lat < 15 && lon > -18 && lon < 0) return true;
-                    // West Africa interior
-                    if (lat > 10 && lat < 25 && lon > -18 && lon < 25) return true;
-                    // Central Africa
-                    if (lat > -5 && lat < 15 && lon > 8 && lon < 32) return true;
-                    // Congo basin
-                    if (lat > -12 && lat < 5 && lon > 12 && lon < 32) return true;
-                    // East Africa - Horn
-                    if (lat > 0 && lat < 15 && lon > 32 && lon < 52) return true;
-                    // East Africa - Tanzania/Kenya
-                    if (lat > -12 && lat < 5 && lon > 29 && lon < 42) return true;
-                    // Southern Africa
-                    if (lat > -35 && lat < -10 && lon > 10 && lon < 42) return true;
-                    // Madagascar
-                    if (lat > -26 && lat < -12 && lon > 43 && lon < 51) return true;
-
-                    // MIDDLE EAST - detailed
-                    // Turkey
-                    if (lat > 36 && lat < 42 && lon > 26 && lon < 45) return true;
-                    // Arabian Peninsula
-                    if (lat > 12 && lat < 32 && lon > 34 && lon < 60) return true;
-                    // Iran
-                    if (lat > 25 && lat < 40 && lon > 44 && lon < 64) return true;
-
-                    // ASIA - detailed
-                    // Russia/Siberia
-                    if (lat > 50 && lat < 78 && lon > 60 && lon < 180) return true;
-                    if (lat > 65 && lat < 78 && lon > -180 && lon < -168) return true; // Eastern tip
-                    // Central Asia (Kazakhstan, etc)
-                    if (lat > 35 && lat < 55 && lon > 46 && lon < 88) return true;
-                    // China
-                    if (lat > 18 && lat < 54 && lon > 73 && lon < 135) {
-                        if (lat > 35 && lon > 73 && lon < 135) return true;
-                        if (lat > 20 && lat < 45 && lon > 97 && lon < 123) return true;
-                        if (lat > 18 && lat < 26 && lon > 108 && lon < 120) return true;
-                    }
-                    // Mongolia
-                    if (lat > 42 && lat < 52 && lon > 87 && lon < 120) return true;
-                    // Japan
-                    if (lat > 30 && lat < 46 && lon > 129 && lon < 146) return true;
-                    // Korea
-                    if (lat > 33 && lat < 43 && lon > 124 && lon < 132) return true;
-                    // India subcontinent
-                    if (lat > 8 && lat < 35 && lon > 68 && lon < 98) return true;
-                    // Sri Lanka
-                    if (lat > 5 && lat < 10 && lon > 79 && lon < 82) return true;
-                    // Southeast Asia mainland
-                    if (lat > 5 && lat < 29 && lon > 92 && lon < 109) return true;
-                    // Malaysia/Indonesia
-                    if (lat > -8 && lat < 8 && lon > 95 && lon < 141) return true;
-                    // Philippines
-                    if (lat > 5 && lat < 21 && lon > 116 && lon < 127) return true;
-                    // Taiwan
-                    if (lat > 22 && lat < 26 && lon > 120 && lon < 122) return true;
-
-                    // OCEANIA
-                    // Australia - detailed
-                    if (lat > -44 && lat < -10 && lon > 112 && lon < 154) {
-                        if (lat > -44 && lat < -32 && lon > 115 && lon < 150) return true;
-                        if (lat > -32 && lat < -20 && lon > 113 && lon < 154) return true;
-                        if (lat > -20 && lat < -10 && lon > 120 && lon < 150) return true;
-                    }
-                    // New Zealand
-                    if (lat > -47 && lat < -34 && lon > 166 && lon < 179) return true;
-                    // Papua New Guinea
-                    if (lat > -12 && lat < -1 && lon > 140 && lon < 156) return true;
-
-                    // OTHER
-                    // Greenland
-                    if (lat > 59 && lat < 84 && lon > -74 && lon < -10) return true;
-                    // Iceland
-                    if (lat > 63 && lat < 67 && lon > -25 && lon < -13) return true;
-                    // Antarctica
-                    if (lat < -62) return true;
-                    // Svalbard
-                    if (lat > 76 && lat < 81 && lon > 10 && lon < 35) return true;
-
-                    return false;
-                };
-
-                const positions = globeGeometry.attributes.position;
-                const colors = new Float32Array(positions.count * 3);
-
-                for (let i = 0; i < positions.count; i++) {
-                    const x = positions.getX(i);
-                    const y = positions.getY(i);
-                    const z = positions.getZ(i);
-                    const lat = Math.asin(y) * (180 / Math.PI);
-                    const lon = Math.atan2(x, z) * (180 / Math.PI);
-                    const isLand = isLandAt(lat, lon);
-                    if (isLand) {
-                        colors[i * 3] = 0.15;
-                        colors[i * 3 + 1] = 0.15;
-                        colors[i * 3 + 2] = 0.15;
-                    } else {
-                        colors[i * 3] = 0.5;
-                        colors[i * 3 + 1] = 0.5;
-                        colors[i * 3 + 2] = 0.5;
-                    }
-                }
-
-                globeGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
-                const globeMaterial = new THREE.MeshBasicMaterial({ vertexColors: true });
-                const globe = new THREE.Mesh(globeGeometry, globeMaterial);
-                scene.add(globe);
-                globeRef.current = globe;
-
-                // Multiple cloud layers for realistic atmosphere
-                const cloudGeometry = new THREE.IcosahedronGeometry(1.03, 4);
-                const cloudMaterial = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    transparent: true,
-                    opacity: 0.2,
-                    wireframe: true
-                });
-                const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
-                scene.add(clouds);
-                cloudsRef.current = clouds;
-
-                // Second cloud layer (opposite rotation for depth)
-                const cloud2Geometry = new THREE.IcosahedronGeometry(1.06, 3);
-                const cloud2Material = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    transparent: true,
-                    opacity: 0.15,
-                    wireframe: true
-                });
-                const clouds2 = new THREE.Mesh(cloud2Geometry, cloud2Material);
-                scene.add(clouds2);
-                clouds2Ref.current = clouds2;
-
-                // Background Grid - replaces stars for retro "White Grid" look
-                const bgGeo = new THREE.IcosahedronGeometry(20, 2);
-                const bgMat = new THREE.MeshBasicMaterial({
-                    color: 0x000000,
-                    wireframe: true,
-                    transparent: true,
-                    opacity: 0.15,
-                    side: THREE.BackSide
-                });
-                const backgroundGrid = new THREE.Mesh(bgGeo, bgMat);
-                scene.add(backgroundGrid);
-                bgGridRef.current = backgroundGrid;
-
-                // Plane system - rare flying planes
-                const planes = [];
-                const createPlane = () => {
-                    const planeGroup = new THREE.Group();
-                    // Fuselage
-                    const bodyGeo = new THREE.ConeGeometry(0.015, 0.08, 4);
-                    bodyGeo.rotateX(Math.PI / 2);
-                    const bodyMat = new THREE.MeshBasicMaterial({ color: 0x000000 });
-                    const body = new THREE.Mesh(bodyGeo, bodyMat);
-                    planeGroup.add(body);
-                    // Wings
-                    const wingGeo = new THREE.BoxGeometry(0.1, 0.005, 0.02);
-                    const wing = new THREE.Mesh(wingGeo, bodyMat);
-                    wing.position.z = 0.01;
-                    planeGroup.add(wing);
-                    // Tail
-                    const tailGeo = new THREE.BoxGeometry(0.03, 0.005, 0.015);
-                    const tail = new THREE.Mesh(tailGeo, bodyMat);
-                    tail.position.z = 0.035;
-                    tail.position.y = 0.01;
-                    planeGroup.add(tail);
-                    // Contrail (white line behind plane)
-                    const trailGeo = new THREE.BufferGeometry();
-                    const trailPositions = new Float32Array(60);
-                    trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPositions, 3));
-                    const trailMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 });
-                    const trail = new THREE.Line(trailGeo, trailMat);
-                    trail.frustumCulled = false;
-                    planeGroup.add(trail);
-
-                    // Random orbit parameters
-                    const startAngle = Math.random() * Math.PI * 2;
-                    const orbitTilt = (Math.random() - 0.5) * Math.PI * 0.6;
-                    const orbitRadius = 1.15 + Math.random() * 0.1;
-                    const speed = 0.003 + Math.random() * 0.002;
-                    const direction = Math.random() > 0.5 ? 1 : -1;
-
-                    scene.add(planeGroup);
-                    return {
-                        mesh: planeGroup,
-                        trail: trail,
-                        trailPositions: [],
-                        angle: startAngle,
-                        tilt: orbitTilt,
-                        radius: orbitRadius,
-                        speed: speed * direction,
-                        life: 0,
-                        maxLife: 600 + Math.random() * 400
-                    };
-                };
-
-                let lastPlaneSpawn = 0;
-                setLoading(false);
-
-                // Mouse/touch interaction for rotation and zoom
-                let lastPinchDist = 0;
-
-                const onMouseDown = (e) => {
-                    dragRef.current.isDragging = true;
-                    dragRef.current.prevX = e.clientX;
-                    dragRef.current.prevY = e.clientY;
-                    rotationRef.current.autoRotate = false;
-                };
-
-                const onMouseMove = (e) => {
-                    if (!dragRef.current.isDragging) return;
-                    const deltaX = e.clientX - dragRef.current.prevX;
-                    const deltaY = e.clientY - dragRef.current.prevY;
-                    rotationRef.current.y += deltaX * 0.005;
-                    rotationRef.current.x += deltaY * 0.005;
-                    rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-                    dragRef.current.prevX = e.clientX;
-                    dragRef.current.prevY = e.clientY;
-                };
-
-                const onMouseUp = () => {
-                    dragRef.current.isDragging = false;
-                    // Resume auto-rotate after 2 seconds of no interaction
-                    setTimeout(() => {
-                        if (!dragRef.current.isDragging) {
-                            rotationRef.current.autoRotate = true;
-                        }
-                    }, 2000);
-                };
-
-                const onWheel = (e) => {
-                    e.preventDefault();
-                    camera.position.z += e.deltaY * 0.002;
-                    camera.position.z = Math.max(1.5, Math.min(6, camera.position.z));
-                };
-
-                const onTouchStart = (e) => {
-                    if (e.touches.length === 1) {
-                        dragRef.current.isDragging = true;
-                        dragRef.current.prevX = e.touches[0].clientX;
-                        dragRef.current.prevY = e.touches[0].clientY;
-                        rotationRef.current.autoRotate = false;
-                    } else if (e.touches.length === 2) {
-                        lastPinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                    }
-                };
-
-                const onTouchMove = (e) => {
-                    e.preventDefault();
-                    if (e.touches.length === 1 && dragRef.current.isDragging) {
-                        const deltaX = e.touches[0].clientX - dragRef.current.prevX;
-                        const deltaY = e.touches[0].clientY - dragRef.current.prevY;
-                        rotationRef.current.y += deltaX * 0.005;
-                        rotationRef.current.x += deltaY * 0.005;
-                        rotationRef.current.x = Math.max(-Math.PI / 2, Math.min(Math.PI / 2, rotationRef.current.x));
-                        dragRef.current.prevX = e.touches[0].clientX;
-                        dragRef.current.prevY = e.touches[0].clientY;
-                    } else if (e.touches.length === 2) {
-                        const pinchDist = Math.hypot(
-                            e.touches[0].clientX - e.touches[1].clientX,
-                            e.touches[0].clientY - e.touches[1].clientY
-                        );
-                        const delta = lastPinchDist - pinchDist;
-                        camera.position.z += delta * 0.01;
-                        camera.position.z = Math.max(1.5, Math.min(6, camera.position.z));
-                        lastPinchDist = pinchDist;
-                    }
-                };
-
-                const onTouchEnd = () => {
-                    dragRef.current.isDragging = false;
-                    setTimeout(() => {
-                        if (!dragRef.current.isDragging) {
-                            rotationRef.current.autoRotate = true;
-                        }
-                    }, 2000);
-                };
-
-                renderer.domElement.addEventListener('mousedown', onMouseDown);
-                renderer.domElement.addEventListener('mousemove', onMouseMove);
-                renderer.domElement.addEventListener('mouseup', onMouseUp);
-                renderer.domElement.addEventListener('mouseleave', onMouseUp);
-                renderer.domElement.addEventListener('wheel', onWheel, { passive: false });
-                renderer.domElement.addEventListener('touchstart', onTouchStart, { passive: false });
-                renderer.domElement.addEventListener('touchmove', onTouchMove, { passive: false });
-                renderer.domElement.addEventListener('touchend', onTouchEnd);
-
-                let animationId;
-                const animate = () => {
-                    animationId = requestAnimationFrame(animate);
-
-                    // Auto-rotate when not dragging
-                    if (rotationRef.current.autoRotate) {
-                        rotationRef.current.y += 0.00075;
-                    }
-
-                    globe.rotation.x = rotationRef.current.x;
-                    globe.rotation.y = rotationRef.current.y;
-
-                    if (cloudsRef.current) {
-                        cloudsRef.current.rotation.x = rotationRef.current.x;
-                        cloudsRef.current.rotation.y = rotationRef.current.y + 0.05;
-                    }
-
-                    // Second cloud layer rotates opposite
-                    if (clouds2Ref.current) {
-                        clouds2Ref.current.rotation.x = rotationRef.current.x * 0.8;
-                        clouds2Ref.current.rotation.y = -rotationRef.current.y * 0.7 + 0.1;
-                    }
-
-                    // Rare plane spawning (average every 15-30 seconds, max 2 planes)
-                    if (planes.length < 2 && Math.random() < 0.001) {
-                        planes.push(createPlane());
-                    }
-
-                    // Update planes
-                    for (let i = planes.length - 1; i >= 0; i--) {
-                        const p = planes[i];
-                        p.angle += p.speed;
-                        p.life++;
-
-                        // Position on tilted orbit
-                        const x = Math.cos(p.angle) * p.radius;
-                        const y = Math.sin(p.angle) * Math.sin(p.tilt) * p.radius;
-                        const z = Math.sin(p.angle) * Math.cos(p.tilt) * p.radius;
-                        p.mesh.position.set(x, y, z);
-
-                        // Point plane in direction of travel
-                        const nextAngle = p.angle + p.speed * 10;
-                        const nx = Math.cos(nextAngle) * p.radius;
-                        const ny = Math.sin(nextAngle) * Math.sin(p.tilt) * p.radius;
-                        const nz = Math.sin(nextAngle) * Math.cos(p.tilt) * p.radius;
-                        p.mesh.lookAt(nx, ny, nz);
-
-                        // Update contrail
-                        p.trailPositions.unshift({ x, y, z });
-                        if (p.trailPositions.length > 20) p.trailPositions.pop();
-                        const trailArr = p.trail.geometry.attributes.position.array;
-                        for (let j = 0; j < 20; j++) {
-                            const tp = p.trailPositions[j] || p.trailPositions[p.trailPositions.length - 1] || { x: 0, y: 0, z: 0 };
-                            trailArr[j * 3] = tp.x;
-                            trailArr[j * 3 + 1] = tp.y;
-                            trailArr[j * 3 + 2] = tp.z;
-                        }
-                        p.trail.geometry.attributes.position.needsUpdate = true;
-
-                        // Remove old planes
-                        if (p.life > p.maxLife) {
-                            scene.remove(p.mesh);
-                            planes.splice(i, 1);
-                        }
-                    }
-
-                    // Animate satellites
-                    satellitesRef.current.forEach(sat => {
-                        sat.angle += sat.speed;
-                        const x = Math.cos(sat.angle) * sat.radius;
-                        const y = Math.sin(sat.angle) * Math.sin(sat.tilt) * sat.radius;
-                        const z = Math.sin(sat.angle) * Math.cos(sat.tilt) * sat.radius;
-                        sat.mesh.position.set(x, y, z);
-                        sat.mesh.rotation.y = sat.angle;
-                    });
-
-                    // Animate multiplier rings - orbit around planet
-                    ringsRef.current.forEach((ringData) => {
-                        // Rotate around Y axis (orbit the planet)
-                        ringData.mesh.rotation.y += ringData.speed;
-                    });
-
-                    // Animate falling gems
-                    const gravity = -0.001;
-                    for (let i = gemsRef.current.length - 1; i >= 0; i--) {
-                        const gem = gemsRef.current[i];
-                        gem.life++;
-
-                        // Apply gravity
-                        gem.velocity.y += gravity;
-
-                        // Move gem
-                        gem.mesh.position.x += gem.velocity.x;
-                        gem.mesh.position.y += gem.velocity.y;
-                        gem.mesh.position.z += gem.velocity.z;
-
-                        // Spin the gem
-                        gem.mesh.rotation.x += 0.1;
-                        gem.mesh.rotation.z += 0.05;
-
-                        // Remove if fallen off screen or too old
-                        if (gem.mesh.position.y < -3 || gem.life > 180) {
-                            scene.remove(gem.mesh);
-                            gem.mesh.geometry.dispose();
-                            gem.mesh.material.dispose();
-                            gemsRef.current.splice(i, 1);
-                        }
-                    }
-
-                    renderer.render(scene, camera);
-                };
-                animate();
 
                 return () => {
-                    cancelAnimationFrame(animationId);
-                    planes.forEach(p => scene.remove(p.mesh));
-                    satellitesRef.current.forEach(s => scene.remove(s.mesh));
-                    ringsRef.current.forEach(r => scene.remove(r.mesh));
-                    gemsRef.current.forEach(g => scene.remove(g.mesh));
-                    if (clouds2Ref.current) scene.remove(clouds2Ref.current);
-                    renderer.domElement.removeEventListener('mousedown', onMouseDown);
-                    renderer.domElement.removeEventListener('mousemove', onMouseMove);
-                    renderer.domElement.removeEventListener('mouseup', onMouseUp);
-                    renderer.domElement.removeEventListener('mouseleave', onMouseUp);
-                    renderer.domElement.removeEventListener('wheel', onWheel);
-                    renderer.domElement.removeEventListener('touchstart', onTouchStart);
-                    renderer.domElement.removeEventListener('touchmove', onTouchMove);
-                    renderer.domElement.removeEventListener('touchend', onTouchEnd);
-                    renderer.dispose();
-                    if (containerRef.current && renderer.domElement) {
-                        containerRef.current.removeChild(renderer.domElement);
-                    }
+                    if (globeRef.current) globeRef.current.destroy();
                 };
             }, []);
 
-            // Update visuals when upgrades/clicks change
-            useEffect(() => {
-                if (!globeRef.current || !sceneRef.current) return;
-                const globe = globeRef.current;
-                const scene = sceneRef.current;
-                const positions = globe.geometry.attributes.position;
-                const colors = globe.geometry.attributes.color;
-
-                const redProgress = getRedProgress();
-                // Apply visual corruption only if God Mode is owned AND toggled on
-                const isGodMode = gameState.upgrades.godMode && showCorrupted;
-
-                // Simplified but accurate land detection for visual updates
-                const isLandAt = (lat, lon) => {
-                    if (lat > 49 && lat < 75 && lon > -170 && lon < -52) return true;
-                    if (lat > 24 && lat < 50 && lon > -130 && lon < -65) return true;
-                    if (lat > 14 && lat < 33 && lon > -118 && lon < -86) return true;
-                    if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
-                    if (lat > -5 && lat < 12 && lon > -82 && lon < -35) return true;
-                    if (lat > -56 && lat < 0 && lon > -82 && lon < -35) return true;
-                    if (lat > 35 && lat < 72 && lon > -12 && lon < 60) return true;
-                    if (lat > -35 && lat < 38 && lon > -18 && lon < 52) return true;
-                    if (lat > 12 && lat < 55 && lon > 34 && lon < 88) return true;
-                    if (lat > 5 && lat < 78 && lon > 60 && lon < 180) return true;
-                    if (lat > 65 && lat < 78 && lon > -180 && lon < -168) return true;
-                    if (lat > -47 && lat < -10 && lon > 112 && lon < 180) return true;
-                    if (lat > -12 && lat < 10 && lon > 95 && lon < 156) return true;
-                    if (lat > 59 && lat < 84 && lon > -74 && lon < -10) return true;
-                    if (lat < -62) return true;
-                    return false;
-                };
-
-                // Update globe colors based on progression
-                for (let i = 0; i < positions.count; i++) {
-                    const x = positions.getX(i);
-                    const y = positions.getY(i);
-                    const z = positions.getZ(i);
-                    const lat = Math.asin(y) * (180 / Math.PI);
-                    const lon = Math.atan2(x, z) * (180 / Math.PI);
-                    const isLand = isLandAt(lat, lon);
-
-                    let landR, landG, landB, oceanR, oceanG, oceanB;
-
-                    if (isGodMode) {
-                        // CORRUPTED MODE - Inverted colors (dark bg, light planet)
-                        landR = 0.9; landG = 0.9; landB = 0.9;  // Light land
-                        oceanR = 0.5; oceanG = 0.5; oceanB = 0.5;  // Mid-gray ocean
-                    } else {
-                        // Normal mode - progressive monochrome
-                        const lightness = redProgress;
-
-                        // Land gets lighter as progress increases
-                        landR = 0.15 + (lightness * 0.7);
-                        landG = 0.15 + (lightness * 0.7);
-                        landB = 0.15 + (lightness * 0.7);
-
-                        // Ocean stays mid-gray range
-                        oceanR = 0.5 + (lightness * 0.3);
-                        oceanG = 0.5 + (lightness * 0.3);
-                        oceanB = 0.5 + (lightness * 0.3);
-                    }
-
-                    if (isLand) {
-                        colors.array[i * 3] = landR;
-                        colors.array[i * 3 + 1] = landG;
-                        colors.array[i * 3 + 2] = landB;
-                    } else {
-                        colors.array[i * 3] = oceanR;
-                        colors.array[i * 3 + 1] = oceanG;
-                        colors.array[i * 3 + 2] = oceanB;
-                    }
+            const handleMouseEnter = () => { isHoveringRef.current = true; };
+            const handleMouseLeave = () => { isHoveringRef.current = false; isDraggingRef.current = false; };
+            const handleMouseDown = (e) => { isDraggingRef.current = true; lastXRef.current = e.clientX; };
+            const handleMouseUp = () => { isDraggingRef.current = false; };
+            const handleMouseMove = (e) => {
+                if (isDraggingRef.current) {
+                    const delta = e.clientX - lastXRef.current;
+                    phiRef.current += delta * 0.005;
+                    lastXRef.current = e.clientX;
                 }
-                colors.needsUpdate = true;
-
-                // Update scene background for corrupted mode
-                if (sceneRef.current) {
-                    if (isGodMode) {
-                        sceneRef.current.background = new THREE.Color(0x000000); // Black background
-                    } else {
-                        sceneRef.current.background = new THREE.Color(0xffffff); // White background
-                    }
-                }
-
-                // Update cloud wireframe color for god mode (inverted)
-                if (cloudsRef.current) {
-                    if (isGodMode) {
-                        cloudsRef.current.material.color.setHex(0xffffff); // White clouds in corrupted mode
-                        cloudsRef.current.material.opacity = 0.4;
-                    } else {
-                        cloudsRef.current.material.color.setHex(0x000000); // Black clouds in normal mode
-                        cloudsRef.current.material.opacity = 0.2;
-                    }
-                }
-
-                // Update second cloud layer for corrupted mode
-                if (clouds2Ref.current) {
-                    if (isGodMode) {
-                        clouds2Ref.current.material.color.setHex(0xffffff);
-                        clouds2Ref.current.material.opacity = 0.25;
-                    } else {
-                        clouds2Ref.current.material.color.setHex(0x000000);
-                        clouds2Ref.current.material.opacity = 0.15;
-                    }
-                }
-
-                // Update background grid for corrupted mode
-                if (bgGridRef.current) {
-                    if (isGodMode) {
-                        bgGridRef.current.material.color.setHex(0xffffff);
-                        bgGridRef.current.material.opacity = 0.2;
-                    } else {
-                        bgGridRef.current.material.color.setHex(0x000000);
-                        bgGridRef.current.material.opacity = 0.15;
-                    }
-                }
-
-                // Manage multiplier rings - clean orbital rings
-                const ringCount = getRingCount();
-
-                // Remove extra rings
-                while (ringsRef.current.length > ringCount) {
-                    const ringData = ringsRef.current.pop();
-                    scene.remove(ringData.mesh);
-                }
-
-                // Add missing rings - simple rotating orbital rings
-                while (ringsRef.current.length < ringCount) {
-                    const idx = ringsRef.current.length;
-                    const ringGroup = new THREE.Group();
-
-                    // Create ring as a simple circle line
-                    const radius = 1.3 + idx * 0.2;
-                    const segments = 128;
-                    const ringPoints = [];
-                    for (let i = 0; i <= segments; i++) {
-                        const angle = (i / segments) * Math.PI * 2;
-                        ringPoints.push(new THREE.Vector3(
-                            Math.cos(angle) * radius,
-                            0,
-                            Math.sin(angle) * radius
-                        ));
-                    }
-                    const ringGeo = new THREE.BufferGeometry().setFromPoints(ringPoints);
-                    const ringMat = new THREE.LineBasicMaterial({
-                        color: 0x000000,
-                        transparent: true,
-                        opacity: 0.8 - idx * 0.15
-                    });
-                    const ring = new THREE.Line(ringGeo, ringMat);
-                    ringGroup.add(ring);
-
-                    // Tilt each ring differently
-                    const tilts = [
-                        { x: Math.PI * 0.1, z: 0 },
-                        { x: Math.PI * 0.15, z: Math.PI * 0.1 },
-                        { x: Math.PI * 0.05, z: -Math.PI * 0.15 }
-                    ];
-                    const tilt = tilts[idx] || tilts[0];
-                    ringGroup.rotation.x = tilt.x;
-                    ringGroup.rotation.z = tilt.z;
-
-                    scene.add(ringGroup);
-                    ringsRef.current.push({
-                        mesh: ringGroup,
-                        tiltX: tilt.x,
-                        tiltZ: tilt.z,
-                        speed: 0.01 + idx * 0.005
-                    });
-                }
-
-                // Update ring colors for corrupted mode
-                ringsRef.current.forEach((ringData, idx) => {
-                    const ring = ringData.mesh.children[0];
-                    if (ring && ring.material) {
-                        ring.material.color.setHex(isGodMode ? 0xffffff : 0x000000);
-                    }
-                });
-
-                // Manage satellites
-                const satCount = getSatelliteCount();
-
-                // Remove extra satellites
-                while (satellitesRef.current.length > satCount) {
-                    const sat = satellitesRef.current.pop();
-                    scene.remove(sat.mesh);
-                }
-
-                // Add missing satellites
-                while (satellitesRef.current.length < satCount) {
-                    const idx = satellitesRef.current.length;
-                    const satGroup = new THREE.Group();
-
-                    // Satellite body
-                    const bodyGeo = new THREE.BoxGeometry(0.03, 0.02, 0.02);
-                    const bodyMat = new THREE.MeshBasicMaterial({ color: 0x333333 });
-                    const body = new THREE.Mesh(bodyGeo, bodyMat);
-                    satGroup.add(body);
-
-                    // Solar panels - monochrome dark gray
-                    const panelGeo = new THREE.BoxGeometry(0.08, 0.002, 0.025);
-                    const panelMat = new THREE.MeshBasicMaterial({ color: 0x666666 });
-                    const panel = new THREE.Mesh(panelGeo, panelMat);
-                    satGroup.add(panel);
-
-                    // Random orbit parameters
-                    const orbitRadius = 1.25 + (idx % 4) * 0.08;
-                    const orbitTilt = (idx * 0.4) % Math.PI;
-                    const orbitSpeed = 0.01 + (idx % 3) * 0.005;
-                    const startAngle = (idx * 1.3) % (Math.PI * 2);
-
-                    scene.add(satGroup);
-                    satellitesRef.current.push({
-                        mesh: satGroup,
-                        radius: orbitRadius,
-                        tilt: orbitTilt,
-                        speed: orbitSpeed,
-                        angle: startAngle
-                    });
-                }
-
-                // Update satellite colors for corrupted mode
-                satellitesRef.current.forEach((satData) => {
-                    const bodyColor = isGodMode ? 0xcccccc : 0x333333;
-                    const panelColor = isGodMode ? 0x999999 : 0x666666;
-                    if (satData.mesh.children[0]) satData.mesh.children[0].material.color.setHex(bodyColor);
-                    if (satData.mesh.children[1]) satData.mesh.children[1].material.color.setHex(panelColor);
-                });
-
-            }, [gameState.upgrades, gameState.totalClicks, showCorrupted]);
-
-            // HSL to RGB helper
-            const hslToRgb = (h, s, l) => {
-                let r, g, b;
-                if (s === 0) { r = g = b = l; }
-                else {
-                    const hue2rgb = (p, q, t) => {
-                        if (t < 0) t += 1;
-                        if (t > 1) t -= 1;
-                        if (t < 1 / 6) return p + (q - p) * 6 * t;
-                        if (t < 1 / 2) return q;
-                        if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-                        return p;
-                    };
-                    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-                    const p = 2 * l - q;
-                    r = hue2rgb(p, q, h + 1 / 3);
-                    g = hue2rgb(p, q, h);
-                    b = hue2rgb(p, q, h - 1 / 3);
-                }
-                return [r, g, b];
             };
-
-            const purchasedCount = Object.values(gameState.upgrades).filter(Boolean).length;
-            const totalUpgrades = Object.keys(gameState.upgrades).length;
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="app-header">
-                        <div className="flex items-center gap-2">
-                            <Icons.Globe size={24} color="black" />
-                            <span className="font-mono text-xs font-bold text-black">{gameStarted ? 'PLANET CLICKER' : 'MAP.EXE'}</span>
-                        </div>
-                        {gameStarted ? (
-                            <div className="flex items-center gap-3">
-                                <span className="font-mono text-xs text-black font-bold">{formatNumber(gameState.clicks)}</span>
-                                <button
-                                    onClick={() => setShowShop(!showShop)}
-                                    className="btn-primary btn-xs"
-                                >
-                                    SHOP
-                                </button>
-                            </div>
-                        ) : (
-                            <span className="font-mono text-[10px] text-gray-400">DRAG TO ROTATE • SCROLL TO ZOOM</span>
-                        )}
+                    <div className="flex-grow flex items-center justify-center bg-white p-4"
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        onMouseDown={handleMouseDown}
+                        onMouseUp={handleMouseUp}
+                        onMouseMove={handleMouseMove}
+                    >
+                        <canvas
+                            ref={canvasRef}
+                            style={{ width: '300px', height: '300px', cursor: 'grab' }}
+                        />
                     </div>
-
-                    <div className="flex-grow relative">
-                        <div
-                            ref={containerRef}
-                            className={`absolute inset-0 ${gameStarted ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'}`}
-                            onClick={gameStarted ? handleGlobeClick : undefined}
-                        >
-                            {loading && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black">
-                                    <span className="font-mono text-white animate-pulse">LOADING...</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {/* START MINING button - exploration mode */}
-                        {!gameStarted && !loading && (
-                            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                                <button
-                                    onClick={() => setGameStarted(true)}
-                                    className="pointer-events-auto px-6 py-3 bg-red-600 hover:bg-red-500 text-white font-mono text-sm font-bold border-2 border-red-400 shadow-lg transition-all hover:scale-105"
-                                >
-                                    START MINING
-                                </button>
-                            </div>
-                        )}
-
-                        {/* Click effect - game mode only */}
-                        {gameStarted && clickEffect && (
-                            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none animate-ping">
-                                <span className="font-mono text-2xl font-bold text-white">+{formatNumber(clickEffect.value)}</span>
-                            </div>
-                        )}
-
-                        {/* Stats overlay - game mode only */}
-                        {gameStarted && (
-                            <div className={`absolute top-2 left-2 border p-2 font-mono text-[10px] ${gameState.upgrades.godMode && showCorrupted ? 'bg-black/80 border-white/30' : 'bg-white/80 border-black/30'}`}>
-                                {gameState.dogModeMultiplier > 1 && (
-                                    <div className="text-yellow-500 font-bold mb-1">DOG MODE x{formatNumber(gameState.dogModeMultiplier)}</div>
-                                )}
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>POWER: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{gameState.clickPower}x{gameState.clickMultiplier}{gameState.dogModeMultiplier > 1 ? `x${formatNumber(gameState.dogModeMultiplier)}` : ''}</span></div>
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>PULSE: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{(gameState.popStrength * 100).toFixed(1)}%</span></div>
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>SATS: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{getSatelliteCount()} ({formatNumber(gameState.satellites * gameState.clickMultiplier * gameState.dogModeMultiplier)}/s)</span></div>
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>RINGS: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{getRingCount()}/3</span></div>
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>TOTAL: <span className={gameState.upgrades.godMode ? 'text-red-500' : 'text-black'}>{formatNumber(gameState.totalClicks)}</span></div>
-                                <div className={gameState.upgrades.godMode && showCorrupted ? 'text-gray-400' : 'text-gray-600'}>HEAT: <span className={gameState.upgrades.godMode && showCorrupted ? 'text-white' : 'text-black'}>{(getRedProgress() * 100).toFixed(1)}%</span></div>
-                            </div>
-                        )}
-
-                        {/* Shop panel */}
-                        {showShop && (
-                            <div className="absolute inset-0 bg-white/95 overflow-auto">
-                                <div className="p-4">
-                                    <div className="flex justify-between items-center mb-4">
-                                        <div className="flex flex-col">
-                                            <span className="font-mono text-lg font-bold text-black">UPGRADE SHOP</span>
-                                            {gameState.upgrades.godMode && (
-                                                <button
-                                                    onClick={() => setShowCorrupted(!showCorrupted)}
-                                                    className={`mt-1 text-[10px] font-mono px-2 py-0.5 border ${showCorrupted ? 'bg-black text-white border-black' : 'bg-white text-black border-black/50'}`}
-                                                >
-                                                    MODE: {showCorrupted ? 'CORRUPTED' : 'NORMAL'}
-                                                </button>
-                                            )}
-                                        </div>
-                                        <button
-                                            onClick={() => setShowShop(false)}
-                                            className="px-3 py-1 bg-black text-white font-mono text-xs hover:bg-gray-800"
-                                        >
-                                            CLOSE
-                                        </button>
-                                    </div>
-                                    <div className="font-mono text-xs text-gray-500 mb-4">
-                                        BALANCE: <span className="text-black font-bold">{formatNumber(gameState.clicks)}</span>
-                                    </div>
-
-                                    {shopItems.map(category => (
-                                        <div key={category.category} className="mb-4">
-                                            <div className="font-mono text-xs font-bold text-black border-b border-black/30 pb-1 mb-1">
-                                                {category.category}
-                                            </div>
-                                            {category.desc && <div className="font-mono text-[9px] text-gray-500 mb-2">{category.desc}</div>}
-                                            <div className="grid grid-cols-2 gap-2">
-                                                {category.items.map(item => (
-                                                    <button
-                                                        key={item.id}
-                                                        onClick={() => buyUpgrade(item)}
-                                                        disabled={!canBuy(item)}
-                                                        className={`p-2 border text-left font-mono text-[10px] transition-all ${gameState.upgrades[item.id]
-                                                            ? 'bg-white border-black text-black'
-                                                            : isLocked(item)
-                                                                ? 'bg-white border-gray-200 text-gray-300 cursor-not-allowed'
-                                                                : canBuy(item)
-                                                                    ? 'bg-black border-black text-white hover:bg-gray-800 cursor-pointer'
-                                                                    : 'bg-white border-gray-400 text-gray-500'
-                                                            }`}
-                                                    >
-                                                        <div className="font-bold">{item.name}</div>
-                                                        <div className="text-[8px] opacity-70">{item.desc}</div>
-                                                        <div className={`mt-1 ${gameState.upgrades[item.id] ? 'text-black' : canBuy(item) ? 'text-white' : 'text-gray-400'}`}>
-                                                            {gameState.upgrades[item.id] ? 'OWNED' : isLocked(item) ? 'LOCKED' : formatNumber(getActualCost(item.cost))}
-                                                        </div>
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    <div className="p-2 border-t-2 border-white bg-black text-center">
-                        <span className="app-footer-text">
-                            {gameStarted ? 'TAP PLANET TO EARN • BUY UPGRADES IN SHOP' : 'EXPLORE THE GLOBE • CLICK BUTTON TO START MINING'}
-                        </span>
+                    <div className="p-2 border-t-2 border-black flex justify-between items-center">
+                        <span className="font-mono text-[10px] text-gray-500">DRAG TO ROTATE • HOVER TO SLOW</span>
                     </div>
                 </div>
             );
@@ -5900,7 +4772,7 @@
                 "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 100, y: 60, w: '520px', h: '550px', isOpen: false, isMin: false, z: 24 },
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
-                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
+                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '360px', h: '400px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: '350px', h: '620px', isOpen: false, isMin: false, z: 30 },
                 "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
                 "PERSONAL": { id: "PERSONAL", title: "PERSONAL.EXE", icon: "Lock", x: 200, y: 80, w: '400px', h: '500px', isOpen: false, isMin: false, z: 32 }
@@ -6034,50 +4906,53 @@
 
             const handleMouseUp = () => setDrag({ id: null, offsetX: 0, offsetY: 0 });
 
+            // Boot screen component with kernel messages and inversion
+            const BootScreen = () => {
+                const [lines, setLines] = useState([]);
+                const [inverted, setInverted] = useState(false);
+                const msgs = [
+                    'kernel: init ULTRA_INT v1.0.0',
+                    'kernel: loading core modules',
+                    'kernel: mounting filesystem',
+                    'kernel: starting display',
+                    'kernel: loading assets',
+                    'kernel: init window manager',
+                    'kernel: loading preferences',
+                    'kernel: starting services',
+                    'kernel: systems nominal',
+                    'kernel: boot complete'
+                ];
+                useEffect(() => {
+                    let i = 0;
+                    const iv = setInterval(() => {
+                        if (i < msgs.length) { setLines(p => [...p, msgs[i]]); i++; }
+                    }, 250);
+                    const inv = setTimeout(() => setInverted(true), 2500);
+                    return () => { clearInterval(iv); clearTimeout(inv); };
+                }, []);
+                return (
+                    <div className={`h-screen w-screen font-mono flex flex-col items-center justify-center transition-colors duration-500 ${inverted ? 'bg-white text-black' : 'bg-black text-white'}`}>
+                        <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{`
+██╗   ██╗██╗  ████████╗██████╗  █████╗     ██╗███╗   ██╗████████╗
+██║   ██║██║  ╚══██╔══╝██╔══██╗██╔══██╗    ██║████╗  ██║╚══██╔══╝
+██║   ██║██║     ██║   ██████╔╝███████║    ██║██╔██╗ ██║   ██║
+██║   ██║██║     ██║   ██╔══██╗██╔══██║    ██║██║╚██╗██║   ██║
+╚██████╔╝███████╗██║   ██║  ██║██║  ██║    ██║██║ ╚████║   ██║
+ ╚═════╝ ╚══════╝╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝   ╚═╝
+`}</pre>
+                        <div className={`text-[10px] tracking-[0.3em] mt-2 mb-10 ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>no side industries</div>
+                        <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
+                            {lines.map((l, i) => <div key={i}>{l}</div>)}
+                            {lines.length < msgs.length && <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />}
+                        </div>
+                    </div>
+                );
+            };
+
             // Boot screens
             if (!booted) {
                 if (bootPhase === 0) {
-                    return (
-                        <div className="h-screen w-screen bg-black text-white font-mono flex flex-col items-center justify-center overflow-hidden">
-                            <style>{`
-                                @keyframes glow {
-                                    0%, 100% { opacity: 0.4; filter: blur(0px); }
-                                    50% { opacity: 1; filter: blur(1px); }
-                                }
-                                @keyframes shimmer {
-                                    0% { background-position: -200% 0; }
-                                    100% { background-position: 200% 0; }
-                                }
-                                .boot-glow {
-                                    animation: glow 2s ease-in-out infinite;
-                                }
-                                .boot-shimmer {
-                                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
-                                    background-size: 200% 100%;
-                                    animation: shimmer 2s linear infinite;
-                                }
-                            `}</style>
-                            <pre className="text-[8px] sm:text-[10px] md:text-xs leading-none boot-glow select-none">{`
- ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
- ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
- ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║
- ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║
- ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║
- ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝
-
- ██████╗  ██████╗  ██████╗ ████████╗
- ██╔══██╗██╔═══██╗██╔═══██╗╚══██╔══╝
- ██████╔╝██║   ██║██║   ██║   ██║
- ██╔══██╗██║   ██║██║   ██║   ██║
- ██████╔╝╚██████╔╝╚██████╔╝   ██║
- ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝
-`}</pre>
-                            <div className="mt-8 text-xs tracking-[0.3em] text-gray-500">ULTRA INT</div>
-                            <div className="mt-8 w-48 h-[2px] bg-gray-800 rounded overflow-hidden">
-                                <div className="h-full w-full boot-shimmer"></div>
-                            </div>
-                        </div>
-                    );
+                    return <BootScreen />;
                 }
                 if (bootPhase === 1) {
                     return (
