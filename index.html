@@ -5734,7 +5734,8 @@
             const renderFlowerRoom = () => {
                 const shelves = [];
                 const flowersPerShelf = 5;
-                for (let i = 0; i < Math.ceil(flowers.length / flowersPerShelf) || 1; i++) {
+                const shelfCount = Math.ceil(flowers.length / flowersPerShelf);
+                for (let i = 0; i < shelfCount; i++) {
                     shelves.push(flowers.slice(i * flowersPerShelf, (i + 1) * flowersPerShelf));
                 }
 
@@ -5746,8 +5747,7 @@
                         </div>
                         {flowers.length === 0 ? (
                             <div className="text-center py-12">
-                                <div className="font-mono text-gray-400 text-sm">NO FLOWERS YET</div>
-                                <div className="font-mono text-gray-400 text-xs mt-2">COMPLETE A FOCUS SESSION TO GROW A FLOWER</div>
+                                <div className="font-mono text-gray-500 text-sm">Empty so far, get productive!</div>
                             </div>
                         ) : (
                             shelves.map((shelf, shelfIdx) => (
@@ -6278,7 +6278,7 @@
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 250, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 24 },
                 "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '550px', h: '500px', isOpen: false, isMin: false, z: 29 },
-                "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 120, w: '350px', h: '500px', isOpen: false, isMin: false, z: 30 },
+                "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: '350px', h: '620px', isOpen: false, isMin: false, z: 30 },
                 "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
                 "PERSONAL": { id: "PERSONAL", title: "PERSONAL.EXE", icon: "Lock", x: 200, y: 80, w: '400px', h: '500px', isOpen: false, isMin: false, z: 32 }
             });
