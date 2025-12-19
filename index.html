@@ -4196,53 +4196,50 @@
             const globeRef = useRef(null);
             const cloudsRef = useRef(null);
             const ringsRef = useRef([]);
-            const particlesRef = useRef(null);
+            const satellitesRef = useRef([]);
             const [loading, setLoading] = useState(true);
             const [showShop, setShowShop] = useState(false);
             const [clickEffect, setClickEffect] = useState(null);
+            const [popScale, setPopScale] = useState(1);
 
             // Game state with defaults
             const defaultGameState = {
                 clicks: 0,
                 totalClicks: 0,
                 clickPower: 1,
-                autoClickers: 0,
+                satellites: 0,
                 clickMultiplier: 1,
-                // Upgrades purchased
+                popStrength: 0.005, // 0.5% base pop, upgrades add more
                 upgrades: {
-                    clickPower1: false,    // +1 click power - 50
-                    clickPower2: false,    // +5 click power - 500
-                    clickPower3: false,    // +25 click power - 5000
-                    clickPower4: false,    // +100 click power - 50000
-                    autoClick1: false,     // 1 auto click/sec - 100
-                    autoClick2: false,     // 5 auto clicks/sec - 1000
-                    autoClick3: false,     // 25 auto clicks/sec - 10000
-                    autoClick4: false,     // 100 auto clicks/sec - 100000
-                    multiplier1: false,    // 2x multiplier - 2500
-                    multiplier2: false,    // 2x multiplier (4x total) - 25000
-                    multiplier3: false,    // 2x multiplier (8x total) - 250000
-                    // Visual upgrades
-                    goldPlanet: false,     // Golden planet - 1000
-                    neonPlanet: false,     // Neon glow - 5000
-                    rainbowPlanet: false,  // Rainbow colors - 25000
-                    fireRings: false,      // Fire rings - 10000
-                    starField: false,      // Dense star field - 2000
-                    particles: false,      // Particle effects - 15000
-                    pulse: false,          // Pulse animation - 7500
-                    moon: false,           // Orbiting moon - 20000
-                    doubleGlobe: false,    // Second small globe - 50000
-                    blackHole: false,      // Background black hole - 100000
-                    matrix: false,         // Matrix rain effect - 75000
-                    godMode: false         // Ultimate visual - 1000000
+                    // Click power - increases pop effect
+                    power1: false,     // +1 power, +0.5% pop - 50
+                    power2: false,     // +2 power, +0.5% pop - 200
+                    power3: false,     // +5 power, +1% pop - 1000
+                    power4: false,     // +10 power, +1% pop - 5000
+                    power5: false,     // +25 power, +1% pop - 25000
+                    power6: false,     // +50 power, +1% pop - 100000
+                    // Satellites - visible orbiting + auto clicks
+                    sat1: false,       // 1 satellite, 1/sec - 100
+                    sat2: false,       // +1 satellite, +2/sec - 500
+                    sat3: false,       // +2 satellites, +5/sec - 2500
+                    sat4: false,       // +3 satellites, +10/sec - 10000
+                    sat5: false,       // +4 satellites, +25/sec - 50000
+                    sat6: false,       // +5 satellites, +50/sec - 200000
+                    // Multipliers - add glowing rings
+                    multi1: false,     // 2x, inner ring - 2000
+                    multi2: false,     // 2x (4x), middle ring - 15000
+                    multi3: false,     // 2x (8x), outer ring - 75000
+                    // God mode - unlocks at 1M total clicks
+                    godMode: false     // Dark mode + crimson grid - 1000000
                 }
             };
 
             const [gameState, setGameState] = useState(() => {
-                // Try to load from localStorage
                 const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
                 if (saved) {
                     try {
-                        return { ...defaultGameState, ...JSON.parse(saved) };
+                        const parsed = JSON.parse(saved);
+                        return { ...defaultGameState, ...parsed, upgrades: { ...defaultGameState.upgrades, ...parsed.upgrades } };
                     } catch (e) {
                         return defaultGameState;
                     }
@@ -4257,7 +4254,8 @@
                     const saved = localStorage.getItem(HighScoreManager.getStorageKey('mapclicker'));
                     if (saved) {
                         try {
-                            setGameState(prev => ({ ...defaultGameState, ...JSON.parse(saved) }));
+                            const parsed = JSON.parse(saved);
+                            setGameState({ ...defaultGameState, ...parsed, upgrades: { ...defaultGameState.upgrades, ...parsed.upgrades } });
                         } catch (e) {}
                     }
                 };
@@ -4269,54 +4267,67 @@
                 localStorage.setItem(HighScoreManager.getStorageKey('mapclicker'), JSON.stringify(gameState));
             }, [gameState]);
 
-            // Auto-clicker interval
+            // Satellite auto-clicker interval
             useEffect(() => {
-                if (gameState.autoClickers > 0) {
+                if (gameState.satellites > 0) {
                     const interval = setInterval(() => {
+                        const autoAmount = gameState.satellites * gameState.clickMultiplier;
                         setGameState(prev => ({
                             ...prev,
-                            clicks: prev.clicks + prev.autoClickers * prev.clickMultiplier,
-                            totalClicks: prev.totalClicks + prev.autoClickers * prev.clickMultiplier
+                            clicks: prev.clicks + autoAmount,
+                            totalClicks: prev.totalClicks + autoAmount
                         }));
                     }, 1000);
                     return () => clearInterval(interval);
                 }
-            }, [gameState.autoClickers, gameState.clickMultiplier]);
+            }, [gameState.satellites, gameState.clickMultiplier]);
 
-            // Shop items
+            // Count satellites for visual
+            const getSatelliteCount = () => {
+                let count = 0;
+                if (gameState.upgrades.sat1) count += 1;
+                if (gameState.upgrades.sat2) count += 1;
+                if (gameState.upgrades.sat3) count += 2;
+                if (gameState.upgrades.sat4) count += 3;
+                if (gameState.upgrades.sat5) count += 4;
+                if (gameState.upgrades.sat6) count += 5;
+                return count;
+            };
+
+            // Count multiplier rings
+            const getRingCount = () => {
+                let count = 0;
+                if (gameState.upgrades.multi1) count++;
+                if (gameState.upgrades.multi2) count++;
+                if (gameState.upgrades.multi3) count++;
+                return count;
+            };
+
+            // Shop items - all visually impactful
             const shopItems = [
-                { category: 'CLICK POWER', items: [
-                    { id: 'clickPower1', name: '+1 CLICK', desc: 'Each tap gives +1 more', cost: 50, effect: () => ({ clickPower: gameState.clickPower + 1 }) },
-                    { id: 'clickPower2', name: '+5 CLICKS', desc: 'Each tap gives +5 more', cost: 500, effect: () => ({ clickPower: gameState.clickPower + 5 }), requires: 'clickPower1' },
-                    { id: 'clickPower3', name: '+25 CLICKS', desc: 'Each tap gives +25 more', cost: 5000, effect: () => ({ clickPower: gameState.clickPower + 25 }), requires: 'clickPower2' },
-                    { id: 'clickPower4', name: '+100 CLICKS', desc: 'Each tap gives +100 more', cost: 50000, effect: () => ({ clickPower: gameState.clickPower + 100 }), requires: 'clickPower3' },
+                { category: 'CLICK POWER', desc: 'Increases tap power & earth pulse', items: [
+                    { id: 'power1', name: 'TREMOR I', desc: '+1 power, +0.5% pulse', cost: 50, effect: () => ({ clickPower: gameState.clickPower + 1, popStrength: gameState.popStrength + 0.005 }) },
+                    { id: 'power2', name: 'TREMOR II', desc: '+2 power, +0.5% pulse', cost: 200, effect: () => ({ clickPower: gameState.clickPower + 2, popStrength: gameState.popStrength + 0.005 }), requires: 'power1' },
+                    { id: 'power3', name: 'QUAKE I', desc: '+5 power, +1% pulse', cost: 1000, effect: () => ({ clickPower: gameState.clickPower + 5, popStrength: gameState.popStrength + 0.01 }), requires: 'power2' },
+                    { id: 'power4', name: 'QUAKE II', desc: '+10 power, +1% pulse', cost: 5000, effect: () => ({ clickPower: gameState.clickPower + 10, popStrength: gameState.popStrength + 0.01 }), requires: 'power3' },
+                    { id: 'power5', name: 'CATACLYSM I', desc: '+25 power, +1% pulse', cost: 25000, effect: () => ({ clickPower: gameState.clickPower + 25, popStrength: gameState.popStrength + 0.01 }), requires: 'power4' },
+                    { id: 'power6', name: 'CATACLYSM II', desc: '+50 power, +1% pulse', cost: 100000, effect: () => ({ clickPower: gameState.clickPower + 50, popStrength: gameState.popStrength + 0.01 }), requires: 'power5' },
                 ]},
-                { category: 'AUTO-CLICKERS', items: [
-                    { id: 'autoClick1', name: 'DRONE x1', desc: '1 click per second', cost: 100, effect: () => ({ autoClickers: gameState.autoClickers + 1 }) },
-                    { id: 'autoClick2', name: 'DRONE x5', desc: '+5 clicks per second', cost: 1000, effect: () => ({ autoClickers: gameState.autoClickers + 5 }), requires: 'autoClick1' },
-                    { id: 'autoClick3', name: 'DRONE x25', desc: '+25 clicks per second', cost: 10000, effect: () => ({ autoClickers: gameState.autoClickers + 25 }), requires: 'autoClick2' },
-                    { id: 'autoClick4', name: 'DRONE x100', desc: '+100 clicks per second', cost: 100000, effect: () => ({ autoClickers: gameState.autoClickers + 100 }), requires: 'autoClick3' },
+                { category: 'SATELLITES', desc: 'Orbiting satellites that auto-click', items: [
+                    { id: 'sat1', name: 'SPUTNIK', desc: '+1 satellite, 1/sec', cost: 100, effect: () => ({ satellites: gameState.satellites + 1 }) },
+                    { id: 'sat2', name: 'EXPLORER', desc: '+1 satellite, +2/sec', cost: 500, effect: () => ({ satellites: gameState.satellites + 2 }), requires: 'sat1' },
+                    { id: 'sat3', name: 'VOYAGER', desc: '+2 satellites, +5/sec', cost: 2500, effect: () => ({ satellites: gameState.satellites + 5 }), requires: 'sat2' },
+                    { id: 'sat4', name: 'HUBBLE', desc: '+3 satellites, +10/sec', cost: 10000, effect: () => ({ satellites: gameState.satellites + 10 }), requires: 'sat3' },
+                    { id: 'sat5', name: 'JAMES WEBB', desc: '+4 satellites, +25/sec', cost: 50000, effect: () => ({ satellites: gameState.satellites + 25 }), requires: 'sat4' },
+                    { id: 'sat6', name: 'DYSON SWARM', desc: '+5 satellites, +50/sec', cost: 200000, effect: () => ({ satellites: gameState.satellites + 50 }), requires: 'sat5' },
                 ]},
-                { category: 'MULTIPLIERS', items: [
-                    { id: 'multiplier1', name: '2X MULTI', desc: 'Double all clicks', cost: 2500, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }) },
-                    { id: 'multiplier2', name: '4X MULTI', desc: 'Double again (4x total)', cost: 25000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier1' },
-                    { id: 'multiplier3', name: '8X MULTI', desc: 'Double again (8x total)', cost: 250000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multiplier2' },
+                { category: 'MULTIPLIERS', desc: 'Energy rings that multiply all clicks', items: [
+                    { id: 'multi1', name: 'INNER RING', desc: '2x all clicks', cost: 2000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }) },
+                    { id: 'multi2', name: 'MIDDLE RING', desc: '2x (4x total)', cost: 15000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multi1' },
+                    { id: 'multi3', name: 'OUTER RING', desc: '2x (8x total)', cost: 75000, effect: () => ({ clickMultiplier: gameState.clickMultiplier * 2 }), requires: 'multi2' },
                 ]},
-                { category: 'PLANET SKINS', items: [
-                    { id: 'goldPlanet', name: 'GOLD PLANET', desc: 'Shiny golden Earth', cost: 1000 },
-                    { id: 'neonPlanet', name: 'NEON GLOW', desc: 'Cyberpunk neon colors', cost: 5000 },
-                    { id: 'rainbowPlanet', name: 'RAINBOW', desc: 'Colorful rainbow planet', cost: 25000, requires: 'neonPlanet' },
-                ]},
-                { category: 'VISUAL FX', items: [
-                    { id: 'starField', name: 'STAR FIELD', desc: 'Dense beautiful stars', cost: 2000 },
-                    { id: 'pulse', name: 'PULSE FX', desc: 'Planet pulses on click', cost: 7500 },
-                    { id: 'fireRings', name: 'FIRE RINGS', desc: 'Saturn-like fire rings', cost: 10000 },
-                    { id: 'particles', name: 'PARTICLES', desc: 'Floating particles', cost: 15000 },
-                    { id: 'moon', name: 'MOON', desc: 'Orbiting moon', cost: 20000 },
-                    { id: 'doubleGlobe', name: 'TWIN WORLD', desc: 'Second mini planet', cost: 50000, requires: 'moon' },
-                    { id: 'matrix', name: 'MATRIX', desc: 'Digital rain effect', cost: 75000 },
-                    { id: 'blackHole', name: 'BLACK HOLE', desc: 'Cosmic background', cost: 100000 },
-                    { id: 'godMode', name: 'GOD MODE', desc: 'ULTIMATE VISUALS', cost: 1000000, requires: 'blackHole' },
+                { category: 'ASCENSION', desc: 'Ultimate power', items: [
+                    { id: 'godMode', name: 'GOD MODE', desc: 'Dark crimson grid', cost: 1000000 },
                 ]},
             ];
 
@@ -4356,14 +4367,17 @@
                 setClickEffect({ value: clickValue, id: Date.now() });
                 setTimeout(() => setClickEffect(null), 500);
 
-                // Pulse effect
-                if (globeRef.current && gameState.upgrades.pulse) {
-                    globeRef.current.scale.set(1.1, 1.1, 1.1);
-                    setTimeout(() => {
-                        if (globeRef.current) globeRef.current.scale.set(1, 1, 1);
-                    }, 100);
-                }
+                // Pop effect based on popStrength
+                setPopScale(1 + gameState.popStrength);
+                setTimeout(() => setPopScale(1), 100);
             };
+
+            // Apply pop scale to globe
+            useEffect(() => {
+                if (globeRef.current) {
+                    globeRef.current.scale.set(popScale, popScale, popScale);
+                }
+            }, [popScale]);
 
             const formatNumber = (num) => {
                 if (num >= 1e12) return (num / 1e12).toFixed(1) + 'T';
@@ -4371,6 +4385,11 @@
                 if (num >= 1e6) return (num / 1e6).toFixed(1) + 'M';
                 if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
                 return Math.floor(num).toString();
+            };
+
+            // Calculate earth redness based on total clicks (0 to 1M)
+            const getRedProgress = () => {
+                return Math.min(1, gameState.totalClicks / 1000000);
             };
 
             useEffect(() => {
@@ -4735,6 +4754,21 @@
                         }
                     }
 
+                    // Animate satellites
+                    satellitesRef.current.forEach(sat => {
+                        sat.angle += sat.speed;
+                        const x = Math.cos(sat.angle) * sat.radius;
+                        const y = Math.sin(sat.angle) * Math.sin(sat.tilt) * sat.radius;
+                        const z = Math.sin(sat.angle) * Math.cos(sat.tilt) * sat.radius;
+                        sat.mesh.position.set(x, y, z);
+                        sat.mesh.rotation.y = sat.angle;
+                    });
+
+                    // Animate multiplier rings (slow rotation)
+                    ringsRef.current.forEach((ring, idx) => {
+                        ring.rotation.z = rotationY * (0.5 + idx * 0.2);
+                    });
+
                     renderer.render(scene, camera);
                 };
                 animate();
@@ -4742,6 +4776,8 @@
                 return () => {
                     cancelAnimationFrame(animationId);
                     planes.forEach(p => scene.remove(p.mesh));
+                    satellitesRef.current.forEach(s => scene.remove(s.mesh));
+                    ringsRef.current.forEach(r => scene.remove(r));
                     renderer.dispose();
                     if (containerRef.current && renderer.domElement) {
                         containerRef.current.removeChild(renderer.domElement);
@@ -4749,7 +4785,7 @@
                 };
             }, []);
 
-            // Update visuals when upgrades change
+            // Update visuals when upgrades/clicks change
             useEffect(() => {
                 if (!globeRef.current || !sceneRef.current) return;
                 const globe = globeRef.current;
@@ -4757,35 +4793,30 @@
                 const positions = globe.geometry.attributes.position;
                 const colors = globe.geometry.attributes.color;
 
+                const redProgress = getRedProgress();
+                const isGodMode = gameState.upgrades.godMode;
+
                 // Simplified but accurate land detection for visual updates
                 const isLandAt = (lat, lon) => {
-                    // North America
                     if (lat > 49 && lat < 75 && lon > -170 && lon < -52) return true;
                     if (lat > 24 && lat < 50 && lon > -130 && lon < -65) return true;
                     if (lat > 14 && lat < 33 && lon > -118 && lon < -86) return true;
                     if (lat > 7 && lat < 22 && lon > -92 && lon < -77) return true;
-                    // South America
                     if (lat > -5 && lat < 12 && lon > -82 && lon < -35) return true;
                     if (lat > -56 && lat < 0 && lon > -82 && lon < -35) return true;
-                    // Europe
                     if (lat > 35 && lat < 72 && lon > -12 && lon < 60) return true;
-                    // Africa
                     if (lat > -35 && lat < 38 && lon > -18 && lon < 52) return true;
-                    // Middle East & Central Asia
                     if (lat > 12 && lat < 55 && lon > 34 && lon < 88) return true;
-                    // Asia
                     if (lat > 5 && lat < 78 && lon > 60 && lon < 180) return true;
                     if (lat > 65 && lat < 78 && lon > -180 && lon < -168) return true;
-                    // Oceania
                     if (lat > -47 && lat < -10 && lon > 112 && lon < 180) return true;
                     if (lat > -12 && lat < 10 && lon > 95 && lon < 156) return true;
-                    // Greenland/Iceland
                     if (lat > 59 && lat < 84 && lon > -74 && lon < -10) return true;
-                    // Antarctica
                     if (lat < -62) return true;
                     return false;
                 };
 
+                // Update globe colors based on progression
                 for (let i = 0; i < positions.count; i++) {
                     const x = positions.getX(i);
                     const y = positions.getY(i);
@@ -4794,30 +4825,22 @@
                     const lon = Math.atan2(x, z) * (180 / Math.PI);
                     const isLand = isLandAt(lat, lon);
 
-                    let landR = 0.15, landG = 0.15, landB = 0.15;
-                    let oceanR = 0.5, oceanG = 0.5, oceanB = 0.5;
+                    let landR, landG, landB, oceanR, oceanG, oceanB;
 
-                    if (gameState.upgrades.godMode) {
-                        const t = (Date.now() * 0.001 + i * 0.1) % (Math.PI * 2);
-                        landR = Math.sin(t) * 0.5 + 0.5;
-                        landG = Math.sin(t + 2) * 0.5 + 0.5;
-                        landB = Math.sin(t + 4) * 0.5 + 0.5;
-                        oceanR = 1 - landR;
-                        oceanG = 1 - landG;
-                        oceanB = 1 - landB;
-                    } else if (gameState.upgrades.rainbowPlanet) {
-                        const hue = ((lon + 180) / 360);
-                        const rgb = hslToRgb(hue, 1, isLand ? 0.3 : 0.6);
-                        colors[i * 3] = rgb[0];
-                        colors[i * 3 + 1] = rgb[1];
-                        colors[i * 3 + 2] = rgb[2];
-                        continue;
-                    } else if (gameState.upgrades.neonPlanet) {
-                        landR = 0; landG = 1; landB = 0.8;
-                        oceanR = 0.8; oceanG = 0; oceanB = 1;
-                    } else if (gameState.upgrades.goldPlanet) {
-                        landR = 1; landG = 0.84; landB = 0;
-                        oceanR = 0.7; oceanG = 0.5; oceanB = 0.2;
+                    if (isGodMode) {
+                        // Dark mode with crimson - land is dark, ocean shows crimson grid
+                        landR = 0.05; landG = 0; landB = 0;
+                        oceanR = 0.4; oceanG = 0; oceanB = 0.05;
+                    } else {
+                        // Progressive redness: gray -> orange -> red
+                        // Land: dark gray -> dark red
+                        landR = 0.15 + redProgress * 0.5;
+                        landG = 0.15 * (1 - redProgress * 0.8);
+                        landB = 0.15 * (1 - redProgress * 0.9);
+                        // Ocean: gray -> dark orange/red
+                        oceanR = 0.5 + redProgress * 0.3;
+                        oceanG = 0.5 * (1 - redProgress * 0.6);
+                        oceanB = 0.5 * (1 - redProgress * 0.8);
                     }
 
                     if (isLand) {
@@ -4832,55 +4855,85 @@
                 }
                 colors.needsUpdate = true;
 
-                // Add fire rings
-                if (gameState.upgrades.fireRings && ringsRef.current.length === 0) {
-                    for (let i = 0; i < 3; i++) {
-                        const ringGeo = new THREE.TorusGeometry(1.3 + i * 0.15, 0.02, 8, 32);
-                        const ringMat = new THREE.MeshBasicMaterial({
-                            color: i === 0 ? 0xff4400 : i === 1 ? 0xff8800 : 0xffaa00,
-                            transparent: true,
-                            opacity: 0.7
-                        });
-                        const ring = new THREE.Mesh(ringGeo, ringMat);
-                        ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.3;
-                        scene.add(ring);
-                        ringsRef.current.push(ring);
+                // Update cloud wireframe color for god mode
+                if (cloudsRef.current) {
+                    if (isGodMode) {
+                        cloudsRef.current.material.color.setHex(0xdc143c); // Crimson
+                        cloudsRef.current.material.opacity = 0.6;
+                    } else {
+                        cloudsRef.current.material.color.setHex(0xffffff);
+                        cloudsRef.current.material.opacity = 0.25;
                     }
                 }
 
-                // Add moon
-                if (gameState.upgrades.moon && !scene.getObjectByName('moon')) {
-                    const moonGeo = new THREE.IcosahedronGeometry(0.15, 2);
-                    const moonMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
-                    const moon = new THREE.Mesh(moonGeo, moonMat);
-                    moon.name = 'moon';
-                    moon.position.set(2, 0, 0);
-                    scene.add(moon);
+                // Manage multiplier rings
+                const ringCount = getRingCount();
+                const ringColors = [0x00ffff, 0x00ff88, 0xffff00]; // Cyan, Green, Yellow
+
+                // Remove extra rings
+                while (ringsRef.current.length > ringCount) {
+                    const ring = ringsRef.current.pop();
+                    scene.remove(ring);
                 }
 
-                // Add particles
-                if (gameState.upgrades.particles && !particlesRef.current) {
-                    const particleGeo = new THREE.BufferGeometry();
-                    const particlePos = [];
-                    for (let i = 0; i < 100; i++) {
-                        const theta = Math.random() * Math.PI * 2;
-                        const phi = Math.random() * Math.PI;
-                        const r = 1.5 + Math.random() * 0.5;
-                        particlePos.push(
-                            r * Math.sin(phi) * Math.cos(theta),
-                            r * Math.cos(phi),
-                            r * Math.sin(phi) * Math.sin(theta)
-                        );
-                    }
-                    particleGeo.setAttribute('position', new THREE.Float32BufferAttribute(particlePos, 3));
-                    const particleMat = new THREE.PointsMaterial({ color: 0x00ffff, size: 0.03 });
-                    const particles = new THREE.Points(particleGeo, particleMat);
-                    particles.name = 'particles';
-                    scene.add(particles);
-                    particlesRef.current = particles;
+                // Add missing rings
+                while (ringsRef.current.length < ringCount) {
+                    const idx = ringsRef.current.length;
+                    const ringGeo = new THREE.TorusGeometry(1.2 + idx * 0.12, 0.015, 8, 64);
+                    const ringMat = new THREE.MeshBasicMaterial({
+                        color: ringColors[idx] || 0xffffff,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const ring = new THREE.Mesh(ringGeo, ringMat);
+                    ring.rotation.x = Math.PI / 2;
+                    scene.add(ring);
+                    ringsRef.current.push(ring);
                 }
 
-            }, [gameState.upgrades]);
+                // Manage satellites
+                const satCount = getSatelliteCount();
+
+                // Remove extra satellites
+                while (satellitesRef.current.length > satCount) {
+                    const sat = satellitesRef.current.pop();
+                    scene.remove(sat.mesh);
+                }
+
+                // Add missing satellites
+                while (satellitesRef.current.length < satCount) {
+                    const idx = satellitesRef.current.length;
+                    const satGroup = new THREE.Group();
+
+                    // Satellite body
+                    const bodyGeo = new THREE.BoxGeometry(0.03, 0.02, 0.02);
+                    const bodyMat = new THREE.MeshBasicMaterial({ color: 0xcccccc });
+                    const body = new THREE.Mesh(bodyGeo, bodyMat);
+                    satGroup.add(body);
+
+                    // Solar panels
+                    const panelGeo = new THREE.BoxGeometry(0.08, 0.002, 0.025);
+                    const panelMat = new THREE.MeshBasicMaterial({ color: 0x4444ff });
+                    const panel = new THREE.Mesh(panelGeo, panelMat);
+                    satGroup.add(panel);
+
+                    // Random orbit parameters
+                    const orbitRadius = 1.25 + (idx % 4) * 0.08;
+                    const orbitTilt = (idx * 0.4) % Math.PI;
+                    const orbitSpeed = 0.01 + (idx % 3) * 0.005;
+                    const startAngle = (idx * 1.3) % (Math.PI * 2);
+
+                    scene.add(satGroup);
+                    satellitesRef.current.push({
+                        mesh: satGroup,
+                        radius: orbitRadius,
+                        tilt: orbitTilt,
+                        speed: orbitSpeed,
+                        angle: startAngle
+                    });
+                }
+
+            }, [gameState.upgrades, gameState.totalClicks]);
 
             // HSL to RGB helper
             const hslToRgb = (h, s, l) => {
@@ -4947,10 +5000,12 @@
 
                         {/* Stats overlay */}
                         <div className="absolute top-2 left-2 bg-black/80 border border-white/30 p-2 font-mono text-[10px]">
-                            <div className="text-gray-400">CLICK POWER: <span className="text-green-400">{gameState.clickPower}x{gameState.clickMultiplier}</span></div>
-                            <div className="text-gray-400">AUTO/SEC: <span className="text-cyan-400">{gameState.autoClickers * gameState.clickMultiplier}</span></div>
-                            <div className="text-gray-400">TOTAL: <span className="text-yellow-400">{formatNumber(gameState.totalClicks)}</span></div>
-                            <div className="text-gray-400">UNLOCKS: <span className="text-purple-400">{purchasedCount}/{totalUpgrades}</span></div>
+                            <div className="text-gray-400">POWER: <span className="text-green-400">{gameState.clickPower}x{gameState.clickMultiplier}</span></div>
+                            <div className="text-gray-400">PULSE: <span className="text-orange-400">{(gameState.popStrength * 100).toFixed(1)}%</span></div>
+                            <div className="text-gray-400">SATS: <span className="text-cyan-400">{getSatelliteCount()} ({gameState.satellites * gameState.clickMultiplier}/s)</span></div>
+                            <div className="text-gray-400">RINGS: <span className="text-yellow-400">{getRingCount()}/3</span></div>
+                            <div className="text-gray-400">TOTAL: <span className={gameState.upgrades.godMode ? 'text-red-500' : 'text-yellow-400'}>{formatNumber(gameState.totalClicks)}</span></div>
+                            <div className="text-gray-400">HEAT: <span style={{ color: `rgb(${Math.floor(128 + getRedProgress() * 127)}, ${Math.floor(128 * (1 - getRedProgress()))}, ${Math.floor(128 * (1 - getRedProgress()))})` }}>{(getRedProgress() * 100).toFixed(1)}%</span></div>
                         </div>
 
                         {/* Shop panel */}
@@ -4972,9 +5027,10 @@
 
                                     {shopItems.map(category => (
                                         <div key={category.category} className="mb-4">
-                                            <div className="font-mono text-xs font-bold text-white border-b border-white/30 pb-1 mb-2">
+                                            <div className="font-mono text-xs font-bold text-white border-b border-white/30 pb-1 mb-1">
                                                 {category.category}
                                             </div>
+                                            {category.desc && <div className="font-mono text-[9px] text-gray-500 mb-2">{category.desc}</div>}
                                             <div className="grid grid-cols-2 gap-2">
                                                 {category.items.map(item => (
                                                     <button
