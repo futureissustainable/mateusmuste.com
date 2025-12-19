@@ -5951,7 +5951,20 @@
                     }));
                 }
 
-                // Phase 0: Show "BOOTING_KERNEL..." for 600ms
+                // Preload all pixelarticons during boot
+                const iconNames = [
+                    'monitor', 'folder', 'fill', 'gamepad', 'trash', 'undo', 'redo', 'file',
+                    'close', 'minus', 'checkbox', 'send', 'movie', 'book', 'music', 'arrow-left',
+                    'code', 'book-open', 'radio-on', 'dice', 'layout-rows', 'table', 'arrow-up',
+                    'keyboard', 'power', 'card', 'paw', 'mail', 'add-grid', 'image', 'map',
+                    'clock', 'heart', 'lock', 'sliders', 'user'
+                ];
+                iconNames.forEach(name => {
+                    const img = new Image();
+                    img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
+                });
+
+                // Phase 0: Show kernel boot for 3 seconds
                 setTimeout(() => {
                     if (checkMobile) {
                         // Phase 1: Show mobile warning for 3 seconds
@@ -5964,7 +5977,7 @@
                         setBootPhase(2);
                         setBooted(true);
                     }
-                }, 600);
+                }, 3000);
 
                 // Handle resize
                 const handleResize = () => {
@@ -6024,7 +6037,47 @@
             // Boot screens
             if (!booted) {
                 if (bootPhase === 0) {
-                    return <div className="h-screen w-screen bg-black text-white font-mono flex items-center justify-center">BOOTING_KERNEL...</div>;
+                    return (
+                        <div className="h-screen w-screen bg-black text-white font-mono flex flex-col items-center justify-center overflow-hidden">
+                            <style>{`
+                                @keyframes glow {
+                                    0%, 100% { opacity: 0.4; filter: blur(0px); }
+                                    50% { opacity: 1; filter: blur(1px); }
+                                }
+                                @keyframes shimmer {
+                                    0% { background-position: -200% 0; }
+                                    100% { background-position: 200% 0; }
+                                }
+                                .boot-glow {
+                                    animation: glow 2s ease-in-out infinite;
+                                }
+                                .boot-shimmer {
+                                    background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.1) 50%, transparent 100%);
+                                    background-size: 200% 100%;
+                                    animation: shimmer 2s linear infinite;
+                                }
+                            `}</style>
+                            <pre className="text-[8px] sm:text-[10px] md:text-xs leading-none boot-glow select-none">{`
+ ███████╗██╗   ██╗███████╗████████╗███████╗███╗   ███╗
+ ██╔════╝╚██╗ ██╔╝██╔════╝╚══██╔══╝██╔════╝████╗ ████║
+ ███████╗ ╚████╔╝ ███████╗   ██║   █████╗  ██╔████╔██║
+ ╚════██║  ╚██╔╝  ╚════██║   ██║   ██╔══╝  ██║╚██╔╝██║
+ ███████║   ██║   ███████║   ██║   ███████╗██║ ╚═╝ ██║
+ ╚══════╝   ╚═╝   ╚══════╝   ╚═╝   ╚══════╝╚═╝     ╚═╝
+
+ ██████╗  ██████╗  ██████╗ ████████╗
+ ██╔══██╗██╔═══██╗██╔═══██╗╚══██╔══╝
+ ██████╔╝██║   ██║██║   ██║   ██║
+ ██╔══██╗██║   ██║██║   ██║   ██║
+ ██████╔╝╚██████╔╝╚██████╔╝   ██║
+ ╚═════╝  ╚═════╝  ╚═════╝    ╚═╝
+`}</pre>
+                            <div className="mt-8 text-xs tracking-[0.3em] text-gray-500">ULTRA INT</div>
+                            <div className="mt-8 w-48 h-[2px] bg-gray-800 rounded overflow-hidden">
+                                <div className="h-full w-full boot-shimmer"></div>
+                            </div>
+                        </div>
+                    );
                 }
                 if (bootPhase === 1) {
                     return (
