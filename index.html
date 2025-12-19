@@ -55,6 +55,99 @@
             box-shadow: 2px 2px 0px 0px #000000;
         }
 
+        /* Design System - Standardized Components */
+
+        /* Primary Button: solid black */
+        .btn-primary {
+            padding: 0.75rem 1.5rem;
+            background: #000;
+            color: #fff;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: filter 0.15s;
+        }
+        .btn-primary:hover { filter: invert(1); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        /* Secondary Button: outlined */
+        .btn-secondary {
+            padding: 0.75rem 1.5rem;
+            background: #fff;
+            color: #000;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.875rem;
+            font-weight: 700;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-secondary:hover { background: #000; color: #fff; }
+
+        /* Button Sizes */
+        .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.625rem; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
+        .btn-lg { padding: 1rem 2rem; font-size: 1.125rem; }
+        .btn-full { width: 100%; }
+
+        /* Icon Button (square, compact) */
+        .btn-icon {
+            padding: 0.25rem;
+            background: #fff;
+            border: 1px solid #000;
+            cursor: pointer;
+        }
+        .btn-icon:hover { background: #f3f3f3; }
+
+        /* Toolbar Button (selectable toggle) */
+        .btn-toolbar {
+            padding: 0.25rem 0.5rem;
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.625rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            border: 1px solid #000;
+            cursor: pointer;
+            background: #fff;
+        }
+        .btn-toolbar:hover { background: #f3f3f3; }
+        .btn-toolbar.active { background: #000; color: #fff; }
+
+        /* App Header */
+        .app-header {
+            padding: 0.5rem;
+            border-bottom: 2px solid #000;
+            background: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .app-header-title {
+            font-family: 'Geist Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+        .app-header-subtitle {
+            font-family: 'Geist Mono', monospace;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        /* App Footer/Status Bar */
+        .app-footer {
+            padding: 0.5rem;
+            border-top: 2px solid #000;
+            background: #fff;
+            text-align: center;
+        }
+        .app-footer-text {
+            font-family: 'Geist Mono', monospace;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
         /* Scrollbar */
         ::-webkit-scrollbar {
             width: 12px;
@@ -1046,13 +1139,13 @@
                 <div className="h-full flex flex-col bg-gray-100 select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex flex-wrap gap-2 items-center">
                         <div className="flex gap-1">
-                            <button onClick={undo} className="p-1 border border-black hover:bg-gray-100" title="Undo"><Icons.Undo size={16} /></button>
-                            <button onClick={redo} className="p-1 border border-black hover:bg-gray-100" title="Redo"><Icons.Redo size={16} /></button>
+                            <button onClick={undo} className="btn-icon" title="Undo"><Icons.Undo size={16} /></button>
+                            <button onClick={redo} className="btn-icon" title="Redo"><Icons.Redo size={16} /></button>
                         </div>
                         <div className="w-px h-4 bg-black"></div>
                         <div className="flex gap-1 flex-wrap">
                             {tools.map(t => (
-                                <button key={t} onClick={() => setTool(t)} className={`px-2 py-1 text-[10px] font-bold border border-black uppercase ${tool === t ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'}`}>{t}</button>
+                                <button key={t} onClick={() => setTool(t)} className={`btn-toolbar ${tool === t ? 'active' : ''}`}>{t}</button>
                             ))}
                         </div>
                         <div className="w-px h-4 bg-black"></div>
@@ -1067,7 +1160,7 @@
                             <span className="text-[10px] font-mono w-4">{size}</span>
                         </div>
                         <div className="flex-grow"></div>
-                        <button onClick={send} className="px-2 py-1 border border-black bg-black text-white text-xs font-bold hover:invert flex items-center gap-1"><Icons.Send size={12} /> SEND</button>
+                        <button onClick={send} className="btn-primary btn-sm flex items-center gap-1"><Icons.Send size={12} /> SEND</button>
                     </div>
                     <div className="flex-grow relative cursor-crosshair bg-gray-300 p-[2px] overflow-hidden" ref={containerRef}>
                         <canvas
@@ -1093,7 +1186,7 @@
                                     className="border border-black px-2 py-1 text-xs font-mono"
                                     autoFocus
                                 />
-                                <button onClick={placeText} className="bg-black text-white px-2 text-xs font-bold">OK</button>
+                                <button onClick={placeText} className="btn-primary btn-xs">OK</button>
                             </div>
                         )}
                         <div className="absolute bottom-1 left-1 bg-black text-white text-[10px] px-2 font-mono">{status}</div>
@@ -1122,7 +1215,7 @@
                             </button>
                             <FolderIcon size={24} />
                             <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
-                            <span className="font-mono text-[10px] text-gray-500">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
+                            <span className="app-footer-text">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
                         </div>
                         <div className="flex-grow overflow-auto">
                             <table className="w-full text-left border-collapse">
@@ -1139,8 +1232,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div className="p-2 border-t-2 border-black bg-white text-center">
-                            <span className="font-mono text-[10px] text-gray-500">CLICK TO VIEW • HOVER TO PREVIEW</span>
+                        <div className="app-footer">
+                            <span className="app-footer-text">CLICK TO VIEW • HOVER TO PREVIEW</span>
                         </div>
                     </div>
                 );
@@ -1150,8 +1243,8 @@
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
                         <Icons.Folder size={24} />
-                        <span className="font-mono text-xs font-bold">MEDIA_LIB</span>
-                        <span className="font-mono text-[10px] text-gray-500">/ROOT/MEDIA</span>
+                        <span className="app-header-title">MEDIA_LIB</span>
+                        <span className="app-footer-text">/ROOT/MEDIA</span>
                     </div>
                     <div className="flex-grow p-6 flex items-start justify-center bg-gray-50">
                         <div className="grid grid-cols-4 gap-8">
@@ -1167,14 +1260,14 @@
                                             <FolderIcon size={48} />
                                         </div>
                                         <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
-                                        <span className="font-mono text-[10px] text-gray-500">{MEDIA_DB[folder.key].length} ITEMS</span>
+                                        <span className="app-footer-text">{MEDIA_DB[folder.key].length} ITEMS</span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">MOVIES • BOOKS • GAMES • MUSIC</span>
+                    <div className="app-footer">
+                        <span className="app-footer-text">MOVIES • BOOKS • GAMES • MUSIC</span>
                     </div>
                 </div>
             );
@@ -1479,9 +1572,9 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">ORACLE.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-500">ASK THE DEAD</span>
+                    <div className="app-header">
+                        <span className="app-header-title">ORACLE.EXE</span>
+                        <span className="app-footer-text">ASK THE DEAD</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-8 bg-gray-50">
                         {answer && (
@@ -1510,14 +1603,14 @@
                             <button
                                 onClick={askOracle}
                                 disabled={isThinking}
-                                className="w-full mt-2 bg-black text-white py-3 font-mono font-bold text-sm hover:invert border-2 border-black disabled:opacity-50"
+                                className="btn-primary btn-full mt-2"
                             >
                                 SEEK TRUTH
                             </button>
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">DOSTOEVSKY • NIETZSCHE • RAND • CAMUS</span>
+                    <div className="app-footer">
+                        <span className="app-footer-text">DOSTOEVSKY • NIETZSCHE • RAND • CAMUS</span>
                     </div>
                 </div>
             );
@@ -1544,9 +1637,9 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">RADIO.WAV</span>
-                        <span className="font-mono text-[10px] text-gray-500">MATEUS_PLAYLIST</span>
+                    <div className="app-header">
+                        <span className="app-header-title">RADIO.WAV</span>
+                        <span className="app-footer-text">MATEUS_PLAYLIST</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-8 bg-gray-50">
                         <div className="flex items-end justify-center gap-1 h-32 mb-8 p-4 border-2 border-black bg-white">
@@ -1560,7 +1653,7 @@
                         </div>
                         <button
                             onClick={openPlaylist}
-                            className="bg-black text-white px-8 py-4 font-mono font-bold text-lg hover:invert border-2 border-black transition-all"
+                            className="btn-primary btn-lg"
                         >
                             {isPlaying ? '► NOW PLAYING' : '► TUNE IN'}
                         </button>
@@ -1951,8 +2044,8 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">SNEK.EXE</span>
+                    <div className="app-header">
+                        <span className="app-header-title">SNEK.EXE</span>
                         <div className="flex gap-4 font-mono text-xs">
                             <span>SCORE: <span className="font-bold">{score}</span></span>
                             <span>HIGH: <span className="font-bold">{highScore}</span></span>
@@ -1970,7 +2063,7 @@
                                     {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">GAME OVER</p>}
                                     <button
                                         onClick={start}
-                                        className="bg-black text-white px-6 py-3 font-mono font-bold text-sm hover:invert border-2 border-black"
+                                        className="btn-primary"
                                     >
                                         {gameOver ? 'RETRY' : 'START'}
                                     </button>
@@ -1980,8 +2073,8 @@
                             )}
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">EAT FOOD • GROW LONGER • DON'T DIE</span>
+                    <div className="app-footer">
+                        <span className="app-footer-text">EAT FOOD • GROW LONGER • DON'T DIE</span>
                     </div>
                 </div>
             );
@@ -2780,7 +2873,7 @@
                                 <div className="text-center">
                                     <div className="text-2xl font-black tracking-widest mb-2">STARSHIP</div>
                                     <div className="font-mono text-[10px] text-gray-400 mb-4">LOW POLY COMBAT</div>
-                                    <button onClick={handleStart} className="px-4 py-2 bg-black text-white font-mono text-[10px] tracking-widest hover:bg-gray-800">
+                                    <button onClick={handleStart} className="btn-primary btn-xs tracking-widest">
                                         TAP TO START
                                     </button>
                                 </div>
@@ -2929,8 +3022,8 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">SYNTH_001.WAV</span>
+                    <div className="app-header">
+                        <span className="app-header-title">SYNTH_001.WAV</span>
                         <button
                             onClick={togglePlay}
                             className={`px-4 py-1 font-mono text-xs font-bold border-2 border-black ${isPlaying ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'}`}
@@ -2961,7 +3054,7 @@
                     </div>
                     <div className="p-4 border-t-2 border-black bg-white flex gap-8">
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-gray-500">TEMPO</span>
+                            <span className="app-footer-text">TEMPO</span>
                             <input
                                 type="range"
                                 min="60"
@@ -2973,7 +3066,7 @@
                             <span className="font-mono text-xs w-8 text-black">{tempo}</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-gray-500">FILTER</span>
+                            <span className="app-footer-text">FILTER</span>
                             <input
                                 type="range"
                                 min="100"
@@ -3044,9 +3137,9 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none relative overflow-hidden">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
-                        <span className="font-mono text-xs font-bold">DESTRUCTION.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-500">DANGER ZONE</span>
+                    <div className="app-header">
+                        <span className="app-header-title">DESTRUCTION.EXE</span>
+                        <span className="app-footer-text">DANGER ZONE</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 relative z-10">
                         <div className="text-center">
@@ -3071,7 +3164,7 @@
                             {!buttonGone && (
                                 <button
                                     onClick={handleClick}
-                                    className={`px-8 py-4 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black transition-all ${confirmStep > 5 ? 'animate-pulse' : ''}`}
+                                    className={`btn-primary btn-lg ${confirmStep > 5 ? 'animate-pulse' : ''}`}
                                     style={{
                                         transform: `translate(${buttonPos.x}px, ${buttonPos.y}px)`,
                                     }}
@@ -4123,7 +4216,7 @@
             return (
                 <div className="h-full flex flex-col bg-black text-white select-none">
                     <div className="p-2 border-b border-gray-800">
-                        <span className="font-mono text-[10px] text-gray-500">TAROT.DAT</span>
+                        <span className="app-footer-text">TAROT.DAT</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4">
                         {isShuffling ? (
@@ -4159,7 +4252,7 @@
                                 </div>
                                 <button
                                     onClick={pullCards}
-                                    className="px-6 py-2 bg-white text-black font-mono text-xs font-bold hover:invert transition-all"
+                                    className="btn-secondary btn-sm"
                                 >
                                     DRAW 3 CARDS
                                 </button>
@@ -4233,12 +4326,12 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                    <div className="app-header">
                         <div className="flex items-center gap-2">
                             <Icons.Gallery size={24} />
-                            <span className="font-mono text-xs font-bold">GALLERY.EXE</span>
+                            <span className="app-header-title">GALLERY.EXE</span>
                         </div>
-                        <span className="font-mono text-[10px] text-gray-500">{photos.length} PHOTOS</span>
+                        <span className="app-footer-text">{photos.length} PHOTOS</span>
                     </div>
 
                     {selectedPhoto ? (
@@ -4263,7 +4356,7 @@
                                     </div>
                                     <button
                                         onClick={() => setSelectedPhoto(null)}
-                                        className="px-4 py-2 bg-white text-black font-mono text-xs font-bold hover:invert"
+                                        className="btn-secondary btn-sm"
                                     >
                                         BACK
                                     </button>
@@ -5388,7 +5481,7 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                    <div className="app-header">
                         <div className="flex items-center gap-2">
                             <Icons.Globe size={24} color="black" />
                             <span className="font-mono text-xs font-bold text-black">{gameStarted ? 'PLANET CLICKER' : 'MAP.EXE'}</span>
@@ -5398,7 +5491,7 @@
                                 <span className="font-mono text-xs text-black font-bold">{formatNumber(gameState.clicks)}</span>
                                 <button
                                     onClick={() => setShowShop(!showShop)}
-                                    className="px-2 py-1 bg-black text-white font-mono text-[10px] font-bold hover:bg-gray-800 border border-black"
+                                    className="btn-primary btn-xs"
                                 >
                                     SHOP
                                 </button>
@@ -5519,7 +5612,7 @@
                     </div>
 
                     <div className="p-2 border-t-2 border-white bg-black text-center">
-                        <span className="font-mono text-[10px] text-gray-500">
+                        <span className="app-footer-text">
                             {gameStarted ? 'TAP PLANET TO EARN • BUY UPGRADES IN SHOP' : 'EXPLORE THE GLOBE • CLICK BUTTON TO START MINING'}
                         </span>
                     </div>
@@ -5782,13 +5875,13 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex justify-between items-center">
+                    <div className="app-header">
                         <div className="flex items-center gap-2">
                             <Icons.Pomodoro size={24} />
-                            <span className="font-mono text-xs font-bold">POMODORO.EXE</span>
+                            <span className="app-header-title">POMODORO.EXE</span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <span className="font-mono text-[10px] text-gray-500">SESSIONS: {sessions}</span>
+                            <span className="app-footer-text">SESSIONS: {sessions}</span>
                             <button
                                 onClick={() => setView(view === 'timer' ? 'room' : 'timer')}
                                 className={`px-2 py-1 font-mono text-[10px] border-2 border-black ${view === 'room' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
@@ -5827,13 +5920,13 @@
                             <div className="flex gap-4">
                                 <button
                                     onClick={() => setIsRunning(!isRunning)}
-                                    className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                                    className="btn-primary"
                                 >
                                     {isRunning ? 'PAUSE' : 'START'}
                                 </button>
                                 <button
                                     onClick={reset}
-                                    className="px-6 py-3 bg-white text-black font-mono font-bold text-sm hover:bg-black hover:text-white border-2 border-black"
+                                    className="btn-secondary"
                                 >
                                     RESET
                                 </button>
@@ -5841,8 +5934,8 @@
                         </div>
                     )}
 
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">
+                    <div className="app-footer">
+                        <span className="app-footer-text">
                             {view === 'room' ? `TOTAL: ${formatTotalTime(totalTime)}` : (mode === 'work' ? 'GROW YOUR FOCUS' : 'PLANT IS RESTING')}
                         </span>
                     </div>
@@ -6061,7 +6154,7 @@
                             </button>
                             <FolderIcon size={24} />
                             <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
-                            <span className="font-mono text-[10px] text-gray-500">({apps.length} ITEMS)</span>
+                            <span className="app-footer-text">({apps.length} ITEMS)</span>
                         </div>
                         <div className="flex-grow overflow-auto">
                             <table className="w-full text-left border-collapse">
@@ -6090,8 +6183,8 @@
                                 </tbody>
                             </table>
                         </div>
-                        <div className="p-2 border-t-2 border-black bg-white text-center">
-                            <span className="font-mono text-[10px] text-gray-500">CLICK TO OPEN • DOUBLE-CLICK TO RUN</span>
+                        <div className="app-footer">
+                            <span className="app-footer-text">CLICK TO OPEN • DOUBLE-CLICK TO RUN</span>
                         </div>
                     </div>
                 );
@@ -6101,8 +6194,8 @@
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
                         <Icons.Apps size={24} />
-                        <span className="font-mono text-xs font-bold">APPS</span>
-                        <span className="font-mono text-[10px] text-gray-500">/ROOT/APPS</span>
+                        <span className="app-header-title">APPS</span>
+                        <span className="app-footer-text">/ROOT/APPS</span>
                     </div>
                     <div className="flex-grow p-6 flex items-start justify-center bg-gray-50">
                         <div className="grid grid-cols-3 gap-8">
@@ -6118,14 +6211,14 @@
                                             <FolderIcon size={48} />
                                         </div>
                                         <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
-                                        <span className="font-mono text-[10px] text-gray-500">{APP_CATEGORIES[folder.key].length} ITEMS</span>
+                                        <span className="app-footer-text">{APP_CATEGORIES[folder.key].length} ITEMS</span>
                                     </button>
                                 );
                             })}
                         </div>
                     </div>
-                    <div className="p-2 border-t-2 border-black bg-white text-center">
-                        <span className="font-mono text-[10px] text-gray-500">GAMES • PRODUCTIVITY • ABOUT</span>
+                    <div className="app-footer">
+                        <span className="app-footer-text">GAMES • PRODUCTIVITY • ABOUT</span>
                     </div>
                 </div>
             );
@@ -6137,7 +6230,7 @@
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
                         <Icons.Email size={24} />
-                        <span className="font-mono text-xs font-bold">CONTACT</span>
+                        <span className="app-header-title">CONTACT</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-8">
                         <Icons.Email size={64} />
@@ -6145,7 +6238,7 @@
                         <div className="font-mono text-sm text-gray-500 mb-6">mateusmuste9@gmail.com</div>
                         <button
                             onClick={onOpenPaint}
-                            className="px-6 py-3 bg-black text-white font-mono font-bold text-sm hover:invert border-2 border-black"
+                            className="btn-primary"
                         >
                             DRAW YOUR MESSAGE
                         </button>
