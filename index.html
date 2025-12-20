@@ -12,6 +12,23 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                fontFamily: {
+                    'sans': ['PPNeueBit', 'sans-serif'],
+                    'serif': ['PPNeueBit', 'sans-serif'],
+                    'mono': ['PPNeueBit', 'sans-serif'],
+                },
+                extend: {
+                    fontFamily: {
+                        'heading': ['PPMondwest', 'sans-serif'],
+                        'body': ['PPNeueBit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
 
     <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
     <script type="module">
@@ -69,7 +86,7 @@
         body {
             background-color: var(--bg);
             color: var(--fg);
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
             overflow: hidden;
             margin: 0;
             padding: 0;
@@ -83,20 +100,45 @@
         }
 
         .font-mono {
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
         }
 
         .font-sans {
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
         }
 
         .font-serif {
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
         }
 
         /* Headings use PPMondwest */
         h1, h2, h3, h4, h5, h6 {
-            font-family: 'PPMondwest', sans-serif;
+            font-family: 'PPMondwest', sans-serif !important;
+        }
+
+        /* Heading font utility class */
+        .font-heading {
+            font-family: 'PPMondwest', sans-serif !important;
+        }
+
+        /* Body font utility class */
+        .font-body {
+            font-family: 'PPNeueBit', sans-serif !important;
+        }
+
+        /* Universal font fallback - ensure ALL text uses our fonts */
+        *, *::before, *::after {
+            font-family: inherit;
+        }
+
+        /* Force PPNeueBit on all form elements and inputs */
+        input, textarea, select, button, code, pre, kbd, samp {
+            font-family: 'PPNeueBit', sans-serif !important;
+        }
+
+        /* Ensure bold/black text stays in PPNeueBit */
+        .font-bold, .font-black, .font-semibold, .font-medium, .font-extrabold {
+            font-family: inherit !important;
         }
 
         /* Brutalist Styles */
@@ -119,7 +161,7 @@
             padding: 0.75rem 1.5rem;
             background: #000;
             color: #fff;
-            font-family: 'PPMondwest', sans-serif;
+            font-family: 'PPMondwest', sans-serif !important;
             font-size: 0.875rem;
             font-weight: 700;
             border: 2px solid #000;
@@ -134,7 +176,7 @@
             padding: 0.75rem 1.5rem;
             background: #fff;
             color: #000;
-            font-family: 'PPMondwest', sans-serif;
+            font-family: 'PPMondwest', sans-serif !important;
             font-size: 0.875rem;
             font-weight: 700;
             border: 2px solid #000;
@@ -161,7 +203,7 @@
         /* Toolbar Button (selectable toggle) */
         .btn-toolbar {
             padding: 0.25rem 0.5rem;
-            font-family: 'PPMondwest', sans-serif;
+            font-family: 'PPMondwest', sans-serif !important;
             font-size: 0.625rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -182,12 +224,12 @@
             align-items: center;
         }
         .app-header-title {
-            font-family: 'PPMondwest', sans-serif;
+            font-family: 'PPMondwest', sans-serif !important;
             font-size: 0.75rem;
             font-weight: 700;
         }
         .app-header-subtitle {
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
             font-size: 10px;
             color: #6b7280;
         }
@@ -200,7 +242,7 @@
             text-align: center;
         }
         .app-footer-text {
-            font-family: 'PPNeueBit', sans-serif;
+            font-family: 'PPNeueBit', sans-serif !important;
             font-size: 10px;
             color: #6b7280;
         }
