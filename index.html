@@ -42,7 +42,25 @@
 
     <style>
         :root {
-            --bg: #e5e5e5;
+            /* Warm neutral gray palette - intentional brutalist */
+            --gray-50: #FAFAFA;
+            --gray-100: #F0F0F0;
+            --gray-200: #E0E0E0;
+            --gray-300: #C0C0C0;
+            --gray-400: #909090;
+            --gray-500: #606060;
+            --gray-600: #404040;
+            --gray-700: #303030;
+            --gray-800: #1a1a1a;
+            --gray-900: #0a0a0a;
+
+            /* Accent colors */
+            --crimson: #DC143C;
+            --crimson-dark: #8B0000;
+            --code-green: #00FF41;
+            --code-green-dim: #00CC33;
+
+            --bg: var(--gray-100);
             --fg: #000000;
         }
 
@@ -55,6 +73,22 @@
             padding: 0;
             user-select: none;
             -webkit-font-smoothing: antialiased;
+            /* Custom cursor system */
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M4 4l16 8-8 2-2 8z'/%3E%3Cpath fill='%23fff' d='M5 5l13 6.5-6.5 1.5-1.5 6.5z'/%3E%3C/svg%3E") 0 0, auto;
+        }
+
+        /* Cursor states */
+        .cursor-grab, [draggable="true"] {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M8 6V4h2v2h4V4h2v2h2v2h-2v2h2v2h-2v2h2v2h-2v2h-4v-2H8v2H6v-2H4v-2h2v-2H4v-2h2V8H4V6h4zm2 2v2h4V8h-4zm0 4v2h4v-2h-4z'/%3E%3C/svg%3E") 12 12, grab;
+        }
+        .cursor-grabbing, .dragging {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M6 8V6h2v2h8V6h2v2h2v4h-2v4h2v2h-2v2h-8v-2H6v-2H4v-4h2V8h2zm2 2v2h8v-2H8zm0 4v2h8v-2H8z'/%3E%3C/svg%3E") 12 12, grabbing;
+        }
+        button, [role="button"], .clickable {
+            cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='%23000' d='M10 2v6H8v4h2v2H8v2h2v2H8v2h2v2h8v-2h2v-6h-2v-2h-2V6h-2V2h-4zm2 2h2v6h2v2h2v4h-6v-2h-2v-2h2v-2H8V8h2V4z'/%3E%3C/svg%3E") 6 0, pointer;
+        }
+        input, textarea, [contenteditable] {
+            cursor: text;
         }
 
         .font-mono {
@@ -76,7 +110,7 @@
 
         /* Design System - Standardized Components */
 
-        /* Primary Button: solid black */
+        /* Primary Button: solid black with tactile press */
         .btn-primary {
             padding: 0.75rem 1.5rem;
             background: #000;
@@ -86,12 +120,21 @@
             font-weight: 700;
             border: 2px solid #000;
             cursor: pointer;
-            transition: filter 0.15s;
+            transition: all 50ms ease-out;
+            box-shadow: 2px 2px 0px 0px #000;
+            position: relative;
         }
-        .btn-primary:hover { filter: invert(1); }
-        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary:hover {
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px 0px #000;
+        }
+        .btn-primary:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px 0px #000;
+        }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
-        /* Secondary Button: outlined */
+        /* Secondary Button: outlined with tactile press */
         .btn-secondary {
             padding: 0.75rem 1.5rem;
             background: #fff;
@@ -101,9 +144,19 @@
             font-weight: 700;
             border: 2px solid #000;
             cursor: pointer;
-            transition: all 0.15s;
+            transition: all 50ms ease-out;
+            box-shadow: 2px 2px 0px 0px #000;
         }
-        .btn-secondary:hover { background: #000; color: #fff; }
+        .btn-secondary:hover {
+            background: #000;
+            color: #fff;
+            transform: translate(-1px, -1px);
+            box-shadow: 3px 3px 0px 0px #000;
+        }
+        .btn-secondary:active {
+            transform: translate(2px, 2px);
+            box-shadow: 0px 0px 0px 0px #000;
+        }
 
         /* Button Sizes */
         .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.625rem; }
@@ -111,16 +164,18 @@
         .btn-lg { padding: 1rem 2rem; font-size: 1.125rem; }
         .btn-full { width: 100%; }
 
-        /* Icon Button (square, compact) */
+        /* Icon Button (square, compact) - with press state */
         .btn-icon {
             padding: 0.25rem;
             background: #fff;
             border: 1px solid #000;
             cursor: pointer;
+            transition: all 50ms ease-out;
         }
-        .btn-icon:hover { background: #f3f3f3; }
+        .btn-icon:hover { background: var(--gray-100); transform: scale(1.05); }
+        .btn-icon:active { transform: scale(0.95); background: var(--gray-200); }
 
-        /* Toolbar Button (selectable toggle) */
+        /* Toolbar Button (selectable toggle) - with press state */
         .btn-toolbar {
             padding: 0.25rem 0.5rem;
             font-family: 'Geist Mono', monospace;
@@ -130,8 +185,10 @@
             border: 1px solid #000;
             cursor: pointer;
             background: #fff;
+            transition: all 50ms ease-out;
         }
-        .btn-toolbar:hover { background: #f3f3f3; }
+        .btn-toolbar:hover { background: var(--gray-100); transform: translateY(-1px); }
+        .btn-toolbar:active { transform: translateY(1px); background: var(--gray-200); }
         .btn-toolbar.active { background: #000; color: #fff; }
 
         /* App Header */
@@ -188,17 +245,52 @@
             background: #333;
         }
 
-        /* Background Patterns */
+        /* Background Patterns - warm neutral grays */
         .desktop-bg-grid {
-            background-color: #f0f0f0;
-            background-image: radial-gradient(#aaa 1px, transparent 1px);
+            background-color: var(--gray-100);
+            background-image: radial-gradient(var(--gray-400) 1px, transparent 1px);
             background-size: 20px 20px;
         }
         .desktop-bg-solid {
-            background-color: #e5e5e5;
+            background-color: var(--gray-200);
         }
         .desktop-bg-ascii {
-            background-color: #f0f0f0;
+            background-color: var(--gray-100);
+        }
+
+        /* Icon selection state */
+        .icon-selected .icon-box {
+            outline: 3px solid #000;
+            outline-offset: 2px;
+            background: var(--gray-100) !important;
+        }
+        .icon-selected .icon-label {
+            background: #000 !important;
+            color: #fff !important;
+        }
+
+        /* Window inactive state dimming */
+        .window-inactive {
+            opacity: 0.85;
+        }
+        .window-inactive .window-content {
+            filter: saturate(0.9);
+        }
+
+        /* Anticipation pulse for icon before opening */
+        @keyframes icon-pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+        }
+        .icon-opening {
+            animation: icon-pulse 0.15s ease-out;
+        }
+
+        /* Drag lift effect */
+        .icon-lifting {
+            transform: scale(1.05) translateY(-4px);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+            transition: all 100ms ease-out;
         }
 
         canvas {
@@ -333,6 +425,22 @@
         @keyframes stackFlash {
             0%, 100% { opacity: 1; background: #000; }
             50% { opacity: 0.7; background: #300; }
+        }
+
+        /* Fade in/out animation for welcome back */
+        @keyframes fade-in-out {
+            0% { opacity: 0; transform: translateY(10px); }
+            15% { opacity: 1; transform: translateY(0); }
+            85% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-5px); }
+        }
+        .animate-fade-in-out {
+            animation: fade-in-out 2s ease-in-out forwards;
+        }
+
+        /* Global transition for all interactive elements */
+        button, .clickable, .interactive {
+            transition: all 50ms ease-out;
         }
     </style>
 </head>
@@ -890,6 +998,33 @@
             Words: (p) => <PixelartIcon name="article" {...p} />,
             // Trophy for achievements
             Trophy: (p) => <PixelartIcon name="trophy" {...p} />,
+            // Sound toggle icon (custom SVG for muted state)
+            Sound: ({ size = 16, muted = false, ...p }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ imageRendering: 'pixelated' }} {...p}>
+                    <rect x="4" y="8" width="4" height="8" fill="currentColor"/>
+                    <polygon points="8,8 14,4 14,20 8,16" fill="currentColor"/>
+                    {muted ? (
+                        <>
+                            <line x1="17" y1="9" x2="23" y2="15" stroke="currentColor" strokeWidth="2"/>
+                            <line x1="23" y1="9" x2="17" y2="15" stroke="currentColor" strokeWidth="2"/>
+                        </>
+                    ) : (
+                        <>
+                            <path d="M17 8c1 1 2 2.5 2 4s-1 3-2 4" stroke="currentColor" strokeWidth="2" fill="none"/>
+                            <path d="M19 6c2 1.5 3 4 3 6s-1 4.5-3 6" stroke="currentColor" strokeWidth="2" fill="none"/>
+                        </>
+                    )}
+                </svg>
+            ),
+            // Battery icon with level indicator
+            Battery: ({ size = 14, level = 100, charging = false, ...p }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="none" style={{ imageRendering: 'pixelated' }} {...p}>
+                    <rect x="2" y="6" width="18" height="12" rx="1" stroke="currentColor" strokeWidth="2" fill="none"/>
+                    <rect x="20" y="9" width="2" height="6" fill="currentColor"/>
+                    <rect x="4" y="8" width={Math.floor(level / 100 * 14)} height="8" fill={level < 20 ? 'var(--crimson)' : 'currentColor'}/>
+                    {charging && <path d="M12 5l-3 7h6l-3 7" stroke="var(--code-green)" strokeWidth="2" fill="none"/>}
+                </svg>
+            ),
         };
 
         // --- SHARED DOG SPRITE ---
@@ -2178,7 +2313,7 @@
             };
 
             return (
-                <div className="h-full flex flex-col bg-white select-none" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
+                <div className={`h-full flex flex-col bg-white select-none ${gameOver && !gameStarted ? 'animate-shake' : ''}`} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                     <div className="app-header">
                         <span className="app-header-title">SNEK.EXE</span>
                         <div className="flex gap-4 font-mono text-xs">
@@ -2193,17 +2328,25 @@
                         <div className="relative border-2 border-black" style={{ width: 'min(100%, 600px)', aspectRatio: '3/2' }}>
                             <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} />
                             {!gameStarted && (
-                                <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
-                                    <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
-                                    {gameOver && <p className="text-red-600 mb-4 font-mono text-sm">GAME OVER</p>}
-                                    <button
-                                        onClick={start}
-                                        className="btn-primary"
-                                    >
-                                        {gameOver ? 'RETRY' : 'START'}
-                                    </button>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 hidden md:block">ARROW KEYS TO MOVE</p>
-                                    <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 md:hidden">SWIPE TO MOVE</p>
+                                <div className={`absolute inset-0 flex flex-col items-center justify-center ${gameOver ? 'bg-black text-white' : 'bg-white/95'}`}>
+                                    {gameOver ? (
+                                        <>
+                                            <div className="text-6xl font-black mb-2 tracking-widest text-red-500 animate-pulse">DEAD</div>
+                                            <div className="text-2xl font-bold mb-4">SCORE: {score}</div>
+                                            {score > highScore && <div className="text-green-500 font-bold mb-4 animate-pulse">NEW HIGH SCORE!</div>}
+                                            <div className="text-sm text-gray-500 mb-6">Your snake reached {Math.floor(score / 10) + 3} segments</div>
+                                            <button onClick={start} className="btn-primary bg-red-600 border-red-600 hover:bg-red-500">
+                                                RETRY
+                                            </button>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
+                                            <button onClick={start} className="btn-primary">START</button>
+                                            <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 hidden md:block">ARROW KEYS TO MOVE</p>
+                                            <p className="mt-4 text-gray-500 font-mono text-xs text-center px-4 md:hidden">SWIPE TO MOVE</p>
+                                        </>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -6151,8 +6294,44 @@
         };
 
         // --- APPS Folder - Grid of all apps organized in folders ---
-        const AppsFolder = ({ onOpenApp, onDragStart, isMobile }) => {
+        // App progression system - apps unlock via achievements
+        const APP_UNLOCK_MAP = {
+            // Always unlocked (starter apps)
+            TERMINAL: null,
+            THIRD_EYE: null,
+            SNAKE: null,
+            SYSTEM: null,
+            TRASH: null,
+            // Unlocked by specific achievements
+            PAINT: 'SOCIAL_NETWORK', // ping mateus opens Paint
+            VOID: 'VOIDBORN',        // Type 1000 chars
+            LABYRINTH: 'OUROBOROS',  // Score 50+ in SNEK
+            MINESWEEPER: 'DAEDALUS', // Complete labyrinth level 10
+            STARSHIP: 'UNTOUCHABLE', // Win minesweeper without flags
+            DICE: 'ACE',             // Score 10,000 in Starship
+            BROWSER: 'IMPOSSIBLE',   // Three 20s in dice
+            WORDS: 'INCEPTION',      // Visit site in browser
+            SYNTH: 'NEO',            // Activate Matrix mode
+            TAROT: 'PHYSICS',        // Bounce window off 4 edges
+            POMODORO: 'COLLECTOR',   // Pull Tarot 10 days
+            MAP: 'MASTER',           // Grow 50 flowers in Pomodoro
+            GALLERY: 'TYCOON',       // 1 billion clicks
+            RADIO: null,             // Always unlocked for vibes
+            SCANNER: 'CENTURY',      // Visit 100 times
+            PERSONAL: 'LOCKSMITH',   // Unlock via terminal
+            DESTRUCTION: 'FORBIDDEN', // Fork bomb easter egg
+            END: null                 // Always visible to show progress
+        };
+
+        const AppsFolder = ({ onOpenApp, onDragStart, isMobile, achievements = {} }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
+
+            // Check if app is unlocked
+            const isAppUnlocked = (appId) => {
+                const requirement = APP_UNLOCK_MAP[appId];
+                if (requirement === null || requirement === undefined) return true;
+                return !!achievements[requirement];
+            };
 
             const folders = [
                 { key: 'GAMES', name: 'GAMES', icon: 'GamesFolder' },
@@ -6215,20 +6394,25 @@
                                 <tbody className="font-mono text-xs">
                                     {apps.map((app, idx) => {
                                         const AppIcon = Icons[app.icon];
+                                        const unlocked = isAppUnlocked(app.id);
+                                        const requiredAchievement = APP_UNLOCK_MAP[app.id];
                                         return (
                                             <tr key={idx}
-                                                onClick={() => onOpenApp(app.id)}
-                                                draggable
-                                                onDragStart={(e) => onDragStart?.(e, app.id, app.title, app.icon)}
-                                                className="border-b border-gray-200 hover:bg-yellow-100 cursor-grab active:cursor-grabbing"
+                                                onClick={() => unlocked && onOpenApp(app.id)}
+                                                draggable={unlocked}
+                                                onDragStart={(e) => unlocked && onDragStart?.(e, app.id, app.title, app.icon)}
+                                                className={`border-b border-gray-200 ${unlocked ? 'hover:bg-yellow-100 cursor-grab active:cursor-grabbing' : 'opacity-50 cursor-not-allowed'}`}
                                             >
                                                 <td className="p-2 font-bold flex items-center gap-2">
-                                                    <AppIcon size={20} />
-                                                    {app.title}
+                                                    {unlocked ? <AppIcon size={20} /> : <Icons.Lock size={20} />}
+                                                    <span className={unlocked ? '' : 'line-through'}>{app.title}</span>
                                                     {app.isShortcut && <span className="text-[8px] text-gray-400 ml-1">(SHORTCUT)</span>}
+                                                    {!unlocked && requiredAchievement && (
+                                                        <span className="text-[8px] text-gray-400 ml-auto">🔒 {requiredAchievement}</span>
+                                                    )}
                                                 </td>
                                                 <td className="p-2 border-l border-gray-200 text-gray-500">
-                                                    {app.title.split('.').pop()}
+                                                    {unlocked ? app.title.split('.').pop() : 'LOCKED'}
                                                 </td>
                                             </tr>
                                         );
@@ -6682,6 +6866,12 @@
         const OS = () => {
             const [booted, setBooted] = useState(false);
             const [bootPhase, setBootPhase] = useState(0); // 0: mobile notice (mobile only), 1: kernel, 2: ready
+            const [showWelcomeBack, setShowWelcomeBack] = useState(false);
+            const [soundEnabled, setSoundEnabled] = useState(() => {
+                const stored = localStorage.getItem('sound_enabled');
+                return stored !== 'false'; // Default to true
+            });
+            const [selectedIcon, setSelectedIcon] = useState(null); // For single-click select
             const [isMobile, setIsMobile] = useState(false);
             const [topZ, setTopZ] = useState(100);
             const topZRef = useRef(100);
@@ -7112,7 +7302,7 @@
                 switch (id) {
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
-                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} />;
+                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} achievements={achievements} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
@@ -7150,13 +7340,13 @@
             const windowBounces = useRef({}); // { windowId: { left: bool, right: bool, top: bool, bottom: bool } }
             const physicsAchievementUnlocked = useRef(false);
 
-            // Physics constants
-            const FRICTION = 0.95; // Velocity decay per frame (ice-like, slightly reduced friction)
-            const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
-            const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
+            // Physics constants - tuned for snappy, intentional feel
+            const FRICTION = 0.92; // Higher friction = snappier stops
+            const BOUNCE_DAMPING = 0.4; // Lower = less bouncy, more controlled
+            const MIN_VELOCITY = 0.25; // Stop threshold
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
             const EDGE_MAGNET_STRENGTH = 0.15; // Pull strength
-            const SQUASH_AMOUNT = 0.02; // 2% max squash/stretch
+            const SQUASH_AMOUNT = 0.03; // 3% max squash/stretch for more visible feedback
 
             // Initialize physics for a window
             const initWindowPhysics = (id) => {
@@ -7292,10 +7482,11 @@
                 return () => cancelAnimationFrame(animationId);
             }, [drag.id, isMobile]);
 
-            // Boot sequence with mobile detection
+            // Boot sequence with mobile detection - smart skip for return visitors
             useEffect(() => {
                 const checkMobile = window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
                 setIsMobile(checkMobile);
+                const isReturnVisitor = visitCount > 1;
 
                 // Close SYSTEM window on mobile by default
                 if (checkMobile) {
@@ -7318,23 +7509,37 @@
                     img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
                 });
 
-                if (checkMobile) {
-                    // Mobile: Show "best on desktop" notice first, then kernel boot
-                    setBootPhase(0);
-                    setTimeout(() => {
-                        setBootPhase(1); // kernel boot
+                // Smart boot: Return visitors skip to desktop instantly
+                if (isReturnVisitor && !checkMobile) {
+                    // Instant boot for return desktop visitors with subtle welcome
+                    setBootPhase(2);
+                    setBooted(true);
+                    setShowWelcomeBack(true);
+                    setTimeout(() => setShowWelcomeBack(false), 2000);
+                } else if (checkMobile) {
+                    // Mobile: Show "best on desktop" notice first, then kernel boot (only first visit)
+                    if (isReturnVisitor) {
+                        setBootPhase(2);
+                        setBooted(true);
+                        setShowWelcomeBack(true);
+                        setTimeout(() => setShowWelcomeBack(false), 2000);
+                    } else {
+                        setBootPhase(0);
                         setTimeout(() => {
-                            setBootPhase(2);
-                            setBooted(true);
+                            setBootPhase(1); // kernel boot
+                            setTimeout(() => {
+                                setBootPhase(2);
+                                setBooted(true);
+                            }, 2000);
                         }, 2000);
-                    }, 2000);
+                    }
                 } else {
-                    // Desktop: Go straight to kernel boot
+                    // First-time desktop visitors: Full boot sequence
                     setBootPhase(1);
                     setTimeout(() => {
                         setBootPhase(2);
                         setBooted(true);
-                    }, 2000);
+                    }, 2500);
                 }
 
                 // Handle resize
@@ -7542,6 +7747,19 @@
                 return iconPhysics.current[id];
             };
 
+            // Grid constants for magnetic snapping
+            const GRID_SIZE = 88; // 80px icon + 8px spacing
+            const GRID_MAGNET_STRENGTH = 0.6; // How strongly icons snap to grid
+
+            // Snap position to nearest grid point
+            const snapToGrid = (x, y) => {
+                const padding = 8;
+                const topOffset = isMobile ? 56 : 16;
+                const gridX = Math.round((x - padding) / GRID_SIZE) * GRID_SIZE + padding;
+                const gridY = Math.round((y - topOffset) / GRID_SIZE) * GRID_SIZE + topOffset;
+                return { x: gridX, y: gridY };
+            };
+
             // Check if position collides with other icons
             const checkIconCollision = (id, x, y, positions) => {
                 for (const otherId in positions) {
@@ -7556,22 +7774,45 @@
                 return null;
             };
 
-            // Find nearest non-colliding position
+            // Find nearest non-colliding position with grid snapping
             const findNonCollidingPosition = (id, x, y, positions) => {
-                if (!checkIconCollision(id, x, y, positions)) return { x, y };
+                // First try to snap to grid
+                const snapped = snapToGrid(x, y);
 
-                // Spiral outward to find free spot
-                for (let radius = ICON_SIZE; radius < 500; radius += ICON_SIZE / 2) {
-                    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
-                        const testX = x + Math.cos(angle) * radius;
-                        const testY = y + Math.sin(angle) * radius;
-                        if (!checkIconCollision(id, testX, testY, positions)) {
-                            return { x: testX, y: testY };
+                // Use snapped position if close enough (magnetic effect)
+                const distToGrid = Math.sqrt(Math.pow(x - snapped.x, 2) + Math.pow(y - snapped.y, 2));
+                const useSnapped = distToGrid < GRID_SIZE * GRID_MAGNET_STRENGTH;
+                const targetX = useSnapped ? snapped.x : x;
+                const targetY = useSnapped ? snapped.y : y;
+
+                if (!checkIconCollision(id, targetX, targetY, positions)) {
+                    return { x: targetX, y: targetY };
+                }
+
+                // If snapped position is occupied, spiral outward on grid to find free spot
+                const padding = 8;
+                const topOffset = isMobile ? 56 : 16;
+                for (let radius = 1; radius < 10; radius++) {
+                    for (let dx = -radius; dx <= radius; dx++) {
+                        for (let dy = -radius; dy <= radius; dy++) {
+                            if (Math.abs(dx) !== radius && Math.abs(dy) !== radius) continue; // Only check perimeter
+                            const testX = snapped.x + dx * GRID_SIZE;
+                            const testY = snapped.y + dy * GRID_SIZE;
+                            // Check bounds
+                            if (testX < padding || testY < topOffset) continue;
+                            if (testX > window.innerWidth - ICON_SIZE) continue;
+                            if (testY > window.innerHeight - ICON_SIZE - 60) continue;
+                            if (!checkIconCollision(id, testX, testY, positions)) {
+                                return { x: testX, y: testY };
+                            }
                         }
                     }
                 }
-                return { x, y }; // Fallback
+                return { x: targetX, y: targetY }; // Fallback
             };
+
+            // Double-click detection for icons
+            const lastIconClick = useRef({ id: null, time: 0 });
 
             const handleIconMouseDown = (e, id) => {
                 e.preventDefault();
@@ -7580,7 +7821,22 @@
                 const physics = initIconPhysics(id);
                 physics.velX = 0;
                 physics.velY = 0;
-                lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+                const now = Date.now();
+                lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
+
+                // Check for double-click (same icon, within 300ms)
+                if (lastIconClick.current.id === id && now - lastIconClick.current.time < 300) {
+                    // Double-click: open the app
+                    lastIconClick.current = { id: null, time: 0 };
+                    if (soundEnabled) sounds.windowOpen();
+                    open(id === 'CONTACT' ? 'CONTACT' : id);
+                    setSelectedIcon(null);
+                    return;
+                }
+
+                // Single click: select the icon
+                setSelectedIcon(id);
+                lastIconClick.current = { id, time: now };
 
                 // Store pending drag info
                 iconPendingDrag.current = {
@@ -7591,10 +7847,10 @@
                     startY: e.clientY
                 };
 
-                // Start hold timer - drag only activates after 0.1 seconds
+                // Start hold timer - drag only activates after 0.15 seconds (slightly longer for selection)
                 iconHoldTimer.current = setTimeout(() => {
                     if (iconPendingDrag.current) {
-                        sounds.dragStart();
+                        if (soundEnabled) sounds.dragStart();
                         setIconDrag({
                             id: iconPendingDrag.current.id,
                             offsetX: iconPendingDrag.current.offsetX,
@@ -7602,7 +7858,7 @@
                             active: true
                         });
                     }
-                }, 100);
+                }, 150);
             };
 
             const handleIconMouseMove = (e) => {
@@ -7640,9 +7896,9 @@
                     iconHoldTimer.current = null;
                 }
 
-                // If drag was active, finalize position
+                // If drag was active, finalize position with grid snapping
                 if (iconDrag.active && iconDrag.id) {
-                    sounds.dragStop();
+                    if (soundEnabled) sounds.dragStop();
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
@@ -7651,11 +7907,9 @@
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
                     });
-                } else if (iconPendingDrag.current) {
-                    // Drag wasn't active - this was a click, open the app
-                    const id = iconPendingDrag.current.id;
-                    if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
                 }
+                // Single click is now handled in mouseDown with double-click detection
+                // No longer opens on single click - that just selects
 
                 iconPendingDrag.current = null;
                 setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
@@ -8382,7 +8636,11 @@
                         handleWindowTouchEnd();
                         handleIconTouchEnd(open);
                     }}
-                    onClick={() => contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 })}
+                    onClick={(e) => {
+                        // Deselect icon if clicking on desktop background
+                        if (e.target === e.currentTarget) setSelectedIcon(null);
+                        if (contextMenu.show) setContextMenu({ show: false, x: 0, y: 0 });
+                    }}
                     onContextMenu={handleContextMenu}
                     onDrop={handleDesktopDrop}
                     onDragOver={handleDesktopDragOver}
@@ -8491,13 +8749,14 @@
                         </div>
                     )}
 
-                    {/* DESKTOP ICONS - Freely positionable */}
+                    {/* DESKTOP ICONS - With grid snapping, selection, and double-click */}
                     {desktopIcons.map(appId => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 70 : 16 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
+                        const isSelected = selectedIcon === app.id;
 
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
@@ -8505,7 +8764,7 @@
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''} ${isSelected ? 'icon-selected' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
@@ -8513,26 +8772,27 @@
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
-                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'} ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
+                                <div className={`icon-box bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all duration-50 ${isMobile ? 'p-2' : 'p-3'} ${isDragging ? 'translate-x-0 translate-y-0 icon-lifting' : ''} ${isSelected ? 'outline outline-3 outline-black outline-offset-2' : ''}`}>
                                     <IconCmp size={isMobile ? 24 : 32} />
                                 </div>
-                                <span className={`bg-white border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>{app.title}</span>
+                                <span className={`icon-label border border-black px-1.5 py-0.5 font-mono font-bold shadow-sm transition-all duration-50 ${isMobile ? 'text-[8px]' : 'text-[10px]'} ${isSelected ? 'bg-black text-white' : 'bg-white text-black'}`}>{app.title}</span>
                             </div>
                         );
                     })}
-                    {/* Extra desktop icons (dragged from folders) */}
+                    {/* Extra desktop icons (dragged from folders) - with same selection/double-click */}
                     {extraDesktopIcons.map(appId => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 200, y: 200 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
+                        const isSelected = selectedIcon === app.id;
                         if (carriedIcon === app.id) return null;
 
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''} ${isSelected ? 'icon-selected' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
@@ -8540,25 +8800,26 @@
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
-                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
+                                <div className={`icon-box bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all duration-50 p-3 ${isDragging ? 'translate-x-0 translate-y-0 icon-lifting' : ''} ${isSelected ? 'outline outline-3 outline-black outline-offset-2' : ''}`}>
                                     <IconCmp size={32} />
                                 </div>
-                                <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[10px]">{app.title}</span>
+                                <span className={`icon-label border border-black px-1.5 py-0.5 font-mono font-bold shadow-sm transition-all duration-50 text-[10px] ${isSelected ? 'bg-black text-white' : 'bg-white text-black'}`}>{app.title}</span>
                             </div>
                         );
                     })}
 
-                    {/* WINDOWS */}
+                    {/* WINDOWS - with inactive dimming and improved controls */}
                     {Object.values(windows).map(win => {
                         const physics = windowPhysics.current[win.id] || { scaleX: 1, scaleY: 1 };
                         const animState = windowAnimations[win.id];
                         const shouldRender = (win.isOpen || animState === 'closing') && !win.isMin;
+                        const isActive = win.z === topZ;
                         return shouldRender && (
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
                                 onTouchStart={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black absolute ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
+                                className={`flex flex-col bg-white border-2 border-black absolute transition-opacity duration-100 ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''} ${!isActive ? 'window-inactive' : ''}`}
                                 style={{
                                     left: isMobile ? 8 : win.x,
                                     top: isMobile ? 52 : win.y,
@@ -8571,56 +8832,109 @@
                                     maxHeight: isMobile ? 'calc(100% - 116px)' : undefined
                                 }}
                             >
-                                {/* HEADER (DRAG HANDLE) */}
+                                {/* HEADER (DRAG HANDLE) - unified height 40px */}
                                 <div
-                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                                    className={`flex justify-between items-center h-10 px-2 border-b-2 border-black select-none cursor-grab ${isActive ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
                                     onMouseDown={(e) => handleMouseDown(e, win.id)}
                                     onTouchStart={(e) => handleWindowTouchStart(e, win.id)}
                                 >
-                                    <div className="flex items-center gap-2 pl-2 pointer-events-none">
-                                        <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
+                                    <div className="flex items-center gap-2 pointer-events-none overflow-hidden">
+                                        {React.createElement(Icons[win.icon], { size: 16 })}
+                                        <span className="font-mono text-xs font-bold tracking-wider uppercase truncate">{win.title}</span>
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-                                        <button onClick={() => toggleMin(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center border border-transparent hover:bg-white/20 ${win.z === topZ ? 'invert' : ''}`}><Icons.Minus size={14} /></button>
-                                        <button onClick={() => close(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'invert hover:invert-0' : ''}`}><Icons.X size={20} /></button>
+                                        <button
+                                            onClick={() => toggleMin(win.id)}
+                                            className={`w-8 h-8 flex items-center justify-center border-2 transition-all duration-50 ${isActive ? 'border-white/30 hover:bg-white/20' : 'border-transparent hover:bg-black/10'} active:scale-90`}
+                                        >
+                                            <Icons.Minus size={16} />
+                                        </button>
+                                        <button
+                                            onClick={() => close(win.id)}
+                                            className={`w-8 h-8 flex items-center justify-center border-2 transition-all duration-50 hover:bg-red-500 hover:border-red-500 ${isActive ? 'border-white/30 hover:text-white' : 'border-transparent hover:text-white'} active:scale-90`}
+                                        >
+                                            <Icons.X size={18} />
+                                        </button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
-                                <div className="flex-grow overflow-auto relative bg-white" onMouseDown={() => focus(win.id)}>
+                                <div className={`flex-grow overflow-auto relative bg-white window-content ${!isActive ? 'opacity-95' : ''}`} onMouseDown={() => focus(win.id)}>
                                     {getWindowContent(win.id)}
                                 </div>
                             </div>
                         );
                     })}
 
-                    {/* TASKBAR */}
-                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
-                        <div className={`bg-black text-white py-1 font-black select-none tracking-wider ${isMobile ? 'px-1 text-[8px]' : 'px-2 text-xs mr-2'}`}>{isMobile ? 'MM.COM' : 'MATEUSMUSTE.COM'}</div>
+                    {/* TASKBAR - improved with separators, sound toggle, prominent clock */}
+                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
+                        {/* Logo */}
+                        <div className={`bg-black text-white py-1.5 font-black select-none tracking-wider flex-shrink-0 ${isMobile ? 'px-1.5 text-[8px]' : 'px-3 text-xs'}`}>{isMobile ? 'MM' : 'MATEUSMUSTE.COM'}</div>
+
+                        {/* Separator */}
+                        <div className="w-px h-8 bg-black mx-1 flex-shrink-0"></div>
+
+                        {/* Window buttons */}
                         <div className={`flex gap-1 ${isMobile ? 'overflow-x-auto flex-nowrap' : ''}`}>
                             {Object.values(windows).map(win => {
                                 const IconCmp = Icons[win.icon];
                                 return win.isOpen && (
                                     <button key={win.id}
                                         onClick={() => { if (win.isMin) toggleMin(win.id); focus(win.id) }}
-                                        className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 border-2 border-black font-mono text-xs font-bold transition-all flex-shrink-0 ${win.z === topZ && !win.isMin ? 'bg-black text-white btn-shadow' : 'bg-white hover:translate-y-[-2px]'}`}
+                                        className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1.5 border-2 border-black font-mono text-xs font-bold transition-all duration-50 flex-shrink-0 ${win.z === topZ && !win.isMin ? 'bg-black text-white translate-y-0' : 'bg-white hover:translate-y-[-2px] hover:shadow-md'}`}
                                     >
                                         <IconCmp size={14} />
-                                        <span className="uppercase hidden md:inline">{win.title}</span>
+                                        <span className="uppercase hidden md:inline truncate max-w-[80px]">{win.title}</span>
                                     </button>
                                 );
                             })}
                         </div>
+
                         <div className="flex-grow"></div>
-                        <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
+
+                        {/* System tray with separators */}
+                        <div className="flex items-center">
+                            {/* Sound toggle */}
+                            <button
+                                onClick={() => {
+                                    setSoundEnabled(prev => {
+                                        const newVal = !prev;
+                                        localStorage.setItem('sound_enabled', newVal.toString());
+                                        return newVal;
+                                    });
+                                }}
+                                className={`p-2 border-2 border-black transition-all duration-50 hover:bg-gray-100 active:translate-y-[1px] ${soundEnabled ? 'bg-white' : 'bg-gray-300'}`}
+                                title={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+                            >
+                                <Icons.Sound size={16} muted={!soundEnabled} />
+                            </button>
+
+                            {/* Separator */}
+                            <div className="w-px h-8 bg-black mx-2"></div>
+
+                            {/* Battery */}
                             {battery.level !== null && (
                                 <>
-                                    <span className="text-gray-500">BATTERY:</span>
-                                    <span className="font-bold flex items-center gap-1">{battery.charging && <Icons.Charging size={12} />}{battery.level}%</span>
+                                    <div className={`font-mono flex items-center gap-1.5 ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>
+                                        <Icons.Battery size={14} level={battery.level} charging={battery.charging} />
+                                        <span className="font-bold">{battery.level}%</span>
+                                    </div>
+                                    <div className="w-px h-8 bg-black mx-2"></div>
                                 </>
                             )}
+
+                            {/* Clock - prominent */}
+                            <div className={`font-mono font-black tracking-wide ${isMobile ? 'text-sm px-2' : 'text-base px-3'}`}>
+                                {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </div>
                         </div>
-                        <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
+
+                    {/* Welcome back indicator */}
+                    {showWelcomeBack && (
+                        <div className="fixed bottom-16 left-4 z-[99998] font-mono text-xs text-gray-500 animate-fade-in-out">
+                            {getVisitMessage(visitCount) || `VISIT #${visitCount}`}
+                        </div>
+                    )}
 
                     {/* DOG - Cute pixel dog with running animation */}
                     {dogReleased && (
