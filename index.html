@@ -2028,62 +2028,37 @@
 
             return (
                 <div className="h-full flex flex-col bg-black select-none overflow-hidden">
-                    {/* Minimal Header */}
-                    <div className="bg-black border-b border-white/20 px-4 py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-mono font-black text-xs">
-                                MM
-                            </div>
-                            <div>
-                                <div className="font-heading text-white text-sm tracking-wide">MATEUS MUSTE</div>
-                                <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
-                                    <span className={`w-1.5 h-1.5 ${isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
-                                    {isTyping ? 'COMPOSING' : 'ONLINE'}
-                                </div>
-                            </div>
+                    {/* Header */}
+                    <div className="bg-black border-b border-white/20 px-4 py-3 flex items-center gap-3">
+                        <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-mono font-black text-xs">
+                            MM
                         </div>
-                        <div className="font-mono text-[10px] text-white/30">
-                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div>
+                            <div className="font-mono text-white text-sm font-bold">MATEUS MUSTE</div>
+                            <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
+                                <span className={`w-1.5 h-1.5 ${isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
+                                {isTyping ? 'COMPOSING' : 'ONLINE'}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Messages area - dark terminal style */}
+                    {/* Messages */}
                     <div className="flex-grow overflow-auto p-6 space-y-4">
                         {messages.filter(msg => msg && msg.trim()).map((msg, i) => (
-                            <div key={i} className="flex items-start gap-3 animate-fade-in">
-                                <div className="w-1 h-full bg-white/20 flex-shrink-0 mt-1" style={{ minHeight: '20px' }}></div>
-                                <div className="flex-grow">
-                                    <p className="font-mono text-white text-sm leading-relaxed">{msg}</p>
-                                    <div className="font-mono text-[9px] text-white/30 mt-1">
-                                        {String(i).padStart(2, '0')}:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}
-                                    </div>
-                                </div>
+                            <div key={i} className="flex items-start gap-3">
+                                <div className="w-1 bg-white/30 flex-shrink-0 mt-1" style={{ minHeight: '16px' }}></div>
+                                <p className="font-mono text-white text-sm leading-relaxed">{msg}</p>
                             </div>
                         ))}
 
-                        {/* Typing indicator - minimal cursor blink */}
+                        {/* Typing indicator */}
                         {isTyping && (
                             <div className="flex items-start gap-3">
-                                <div className="w-1 bg-yellow-400 flex-shrink-0" style={{ minHeight: '20px' }}></div>
-                                <div className="flex items-center gap-1">
-                                    <span className="font-mono text-white/50 text-sm">_</span>
-                                    <span className="w-2 h-4 bg-white/80 animate-pulse"></span>
-                                </div>
+                                <div className="w-1 bg-white flex-shrink-0" style={{ minHeight: '16px' }}></div>
+                                <span className="w-2 h-4 bg-white animate-pulse"></span>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* Footer - system status bar */}
-                    <div className="bg-black border-t border-white/20 px-4 py-2 flex items-center justify-between">
-                        <div className="font-mono text-[10px] text-white/40 flex items-center gap-4">
-                            <span>MESSAGES.EXE</span>
-                            <span className="text-white/20">|</span>
-                            <span>{messages.length}/8 RECEIVED</span>
-                        </div>
-                        <div className="font-mono text-[10px] text-white/40">
-                            READ ONLY
-                        </div>
                     </div>
                 </div>
             );
