@@ -943,6 +943,20 @@
             Words: (p) => <PixelartIcon name="article" {...p} />,
             // Trophy for achievements
             Trophy: (p) => <PixelartIcon name="trophy" {...p} />,
+            // Achievement icons
+            Message: (p) => <PixelartIcon name="message" {...p} />,
+            RainAlt: (p) => <PixelartIcon name="drop-half" {...p} />,
+            Alert: (p) => <PixelartIcon name="alert" {...p} />,
+            Repeat: (p) => <PixelartIcon name="reload" {...p} />,
+            Sword: (p) => <PixelartIcon name="sword" {...p} />,
+            Expand: (p) => <PixelartIcon name="open" {...p} />,
+            Controller: (p) => <PixelartIcon name="gamepad" {...p} />,
+            Clock: (p) => <PixelartIcon name="clock" {...p} />,
+            Cursor: (p) => <PixelartIcon name="cursor" {...p} />,
+            Skull: (p) => <PixelartIcon name="mood-sad" {...p} />,
+            Fire: (p) => <PixelartIcon name="zap" {...p} />,
+            Bomb: (p) => <PixelartIcon name="close-box" {...p} />,
+            Badge: (p) => <PixelartIcon name="award" {...p} />,
         };
 
         // --- SHARED DOG SPRITE ---
@@ -1034,7 +1048,7 @@
 
         // --- APP COMPONENTS ---
 
-        const PaintApp = () => {
+        const PaintApp = ({ showHint }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const [tool, setTool] = useState('brush');
@@ -1128,6 +1142,17 @@
                     const ctx = canvas.getContext("2d");
                     ctx.fillStyle = "#ffffff";
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    // Draw hint text if showHint is true
+                    if (showHint) {
+                        ctx.save();
+                        ctx.globalAlpha = 0.15;
+                        ctx.fillStyle = "#000000";
+                        ctx.font = "24px 'Geist Mono', monospace";
+                        ctx.textAlign = "center";
+                        ctx.textBaseline = "middle";
+                        ctx.fillText("draw your message :)", canvas.width / 2, canvas.height / 2);
+                        ctx.restore();
+                    }
                     saveToHistory();
                 };
                 initCanvas();
@@ -6927,8 +6952,8 @@
             );
         };
 
-        // --- CONTACT - Simple email contact ---
-        const ContactApp = () => {
+        // --- CONTACT - Contact screen with email and direct draw option ---
+        const ContactApp = ({ onOpenPaint }) => {
             const [copied, setCopied] = useState(false);
             const email = 'mateusmuste9@gmail.com';
 
@@ -6937,6 +6962,11 @@
                 sounds.copy();
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
+            };
+
+            const openDrawMessage = () => {
+                sounds.click();
+                onOpenPaint?.();
             };
 
             return (
@@ -6950,14 +6980,27 @@
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
                         <Icons.Email size={48} />
                         <div className="font-mono text-lg font-bold mt-4 mb-1">GET IN TOUCH</div>
-                        <div className="font-mono text-xs text-gray-500 mb-4">{email}</div>
-                        <div className="flex gap-2">
-                            <button onClick={copyEmail} className="btn-primary">
-                                {copied ? 'COPIED!' : 'COPY EMAIL'}
+                        <div className="font-mono text-xs text-gray-500 mb-6">{email}</div>
+
+                        <div className="flex flex-col gap-3 w-full max-w-xs">
+                            <div className="flex gap-2">
+                                <button onClick={copyEmail} className="btn-primary flex-1">
+                                    {copied ? 'COPIED!' : 'COPY EMAIL'}
+                                </button>
+                                <a href={`mailto:${email}`} className="btn-secondary flex-1 text-center" onClick={() => sounds.click()}>
+                                    OPEN MAIL
+                                </a>
+                            </div>
+
+                            <div className="border-t-2 border-black my-2"></div>
+
+                            <button onClick={openDrawMessage} className="btn-secondary w-full flex items-center justify-center gap-2">
+                                <Icons.Palette size={16} />
+                                DIRECT CONTACT
                             </button>
-                            <a href={`mailto:${email}`} className="btn-secondary" onClick={() => sounds.click()}>
-                                OPEN MAIL
-                            </a>
+                            <div className="text-center font-mono text-[10px] text-gray-400">
+                                Draw me a message instead
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -6966,45 +7009,42 @@
 
         // --- END.EXE - 100% Completion Screen ---
         const EndApp = ({ achievements }) => {
-            // Full 29 achievement list for display
+            // Full 27 achievement list for display with icons and hints
             const ACHIEVEMENTS = {
                 // Pool A - Terminal
-                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'ping mateus in terminal' },
-                NEO: { name: 'NEO', desc: 'Enter cmatrix in terminal' },
-                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Run sudo chmod 777 /private' },
-                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb' },
+                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker' },
+                NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill' },
+                LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack' },
+                FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills' },
                 // Pool B - Games
-                OUROBOROS: { name: 'OUROBOROS', desc: 'Score 50+ in SNEK' },
-                FIRST_BLOOD: { name: 'FIRST BLOOD', desc: 'Win any game' },
-                DAEDALUS: { name: 'DAEDALUS', desc: 'Reach level 10 in Labyrinth' },
-                UNTOUCHABLE: { name: 'UNTOUCHABLE', desc: 'Win Minesweeper without flags' },
-                ACE: { name: 'ACE', desc: 'Score 10,000 in Starship' },
-                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in Dice' },
+                OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time' },
+                FIRST_BLOOD: { name: 'FIRST BLOOD', icon: 'Sword', hint: 'Everyone starts somewhere' },
+                DAEDALUS: { name: 'DAEDALUS', icon: 'Labyrinth', hint: 'Lost yet?' },
+                UNTOUCHABLE: { name: 'UNTOUCHABLE', icon: 'Minesweeper', hint: 'Big brain energy' },
+                ACE: { name: 'ACE', icon: 'Starship', hint: 'Pew pew pew' },
+                IMPOSSIBLE: { name: 'IMPOSSIBLE', icon: 'Dice', hint: 'RNGesus take the wheel' },
                 // Pool C - Exploration
-                DEEP_LISTENER: { name: 'DEEP LISTENER', desc: 'Browse all MEDIA_LIB folders' },
-                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot on 10 different days' },
-                VOIDBORN: { name: 'VOIDBORN', desc: 'Type 1000 chars into VOID.TXT' },
+                DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned' },
+                COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one' },
+                VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss' },
                 // Pool D - Meta
-                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Stack two THIRD_EYE windows' },
-                PHYSICS: { name: 'PHYSICS', desc: 'Bounce window off all 4 edges' },
-                KONAMI: { name: 'KONAMI', desc: 'Enter the Konami code' },
-                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com in BROWSER' },
+                FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision' },
+                PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy' },
+                KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool' },
+                INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper' },
                 // Pool E - Time
-                TIMEKEEPER: { name: 'TIMEKEEPER', desc: 'Spend 5 minutes on site' },
-                CLICKER: { name: 'CLICKER', desc: 'Click 100 times' },
-                MASTER: { name: 'MASTER', desc: 'Grow 50 Pomodoro flowers' },
-                TYCOON: { name: 'TYCOON', desc: 'Reach 1 billion in Planet Clicker' },
-                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE' },
+                TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies' },
+                CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: 'Click. Click. Click.' },
+                MASTER: { name: 'MASTER', icon: 'Pomodoro', hint: 'Grow your garden' },
+                TYCOON: { name: 'TYCOON', icon: 'Globe', hint: 'Money printer go brrr' },
+                ASCENDED: { name: 'ASCENDED', icon: 'Dog', hint: 'Who let the dog out?' },
                 // Pool F - Dark
-                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag dog to trash' },
-                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag dog to trash 3 times' },
-                OVERKILL: { name: 'OVERKILL', desc: 'Drag dog to trash 10 times' },
-                // Milestones
-                EXPLORER: { name: 'EXPLORER', desc: 'Unlock 10 apps' },
-                ARCHAEOLOGIST: { name: 'ARCHAEOLOGIST', desc: 'Unlock 15 apps' },
+                YOU_MONSTER: { name: 'YOU MONSTER', icon: 'Skull', hint: 'How could you' },
+                JOHN_WICK: { name: 'JOHN WICK', icon: 'Fire', hint: 'Baba Yaga approves' },
+                OVERKILL: { name: 'OVERKILL', icon: 'Bomb', hint: 'Therapy recommended' },
                 // Special
-                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times' },
-                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock all 28 other achievements' }
+                CENTURY: { name: 'CENTURY', icon: 'Badge', hint: 'Commitment issues' },
+                HUNDRED_PERCENT: { name: '100%', icon: 'Trophy', hint: 'You did it!' }
             };
 
             const unlockedCount = Object.keys(achievements).length;
@@ -7015,8 +7055,10 @@
                 <div className="h-full flex flex-col bg-black text-white select-none font-mono overflow-auto">
                     {/* Header */}
                     <div className="p-4 border-b border-white/20 text-center">
-                        <div className="text-2xl font-bold mb-2">
-                            {has100Percent ? '★ 100% COMPLETE ★' : 'ACHIEVEMENT LOG'}
+                        <div className="text-2xl font-bold mb-2 flex items-center justify-center gap-2">
+                            {has100Percent && <Icons.Trophy size={24} className="invert" />}
+                            {has100Percent ? '100% COMPLETE' : 'ACHIEVEMENT LOG'}
+                            {has100Percent && <Icons.Trophy size={24} className="invert" />}
                         </div>
                         <div className="text-sm text-gray-400">
                             {unlockedCount} / {totalCount} ACHIEVEMENTS
@@ -7027,19 +7069,22 @@
                     <div className="flex-grow p-4 space-y-2 overflow-auto">
                         {Object.entries(ACHIEVEMENTS).map(([id, ach]) => {
                             const unlocked = achievements[id];
+                            const IconCmp = Icons[ach.icon] || Icons.Badge;
                             return (
                                 <div
                                     key={id}
                                     className={`p-2 border ${unlocked ? 'border-white bg-white/10' : 'border-gray-700 opacity-50'}`}
                                 >
                                     <div className="flex items-center gap-2">
-                                        <span className="text-lg">{unlocked ? '★' : '☆'}</span>
+                                        <div className={`w-6 h-6 flex items-center justify-center ${unlocked ? '' : 'opacity-30'}`}>
+                                            <IconCmp size={20} className="invert" />
+                                        </div>
                                         <span className={`font-bold ${unlocked ? '' : 'text-gray-500'}`}>
                                             {ach.name}
                                         </span>
                                     </div>
-                                    <div className={`text-xs ${unlocked ? 'text-gray-300' : 'text-gray-600'}`}>
-                                        {ach.desc}
+                                    <div className={`text-xs ml-8 ${unlocked ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        {ach.hint}
                                     </div>
                                 </div>
                             );
@@ -7117,6 +7162,7 @@
             const [introComplete, setIntroComplete] = useState(() => localStorage.getItem('intro_complete') === 'true');
             const [revealingApps, setRevealingApps] = useState(false);
             const [revealedApps, setRevealedApps] = useState([]);
+            const [paintShowHint, setPaintShowHint] = useState(false);
             const [isMuted, setIsMuted] = useState(() => localStorage.getItem('sound_muted') === 'true');
             const handleToggleMute = () => setIsMuted(toggleMute());
             const [topZ, setTopZ] = useState(100);
@@ -7194,52 +7240,48 @@
             });
             const truthUnlocked = visitCount >= 100;
 
-            // Achievement system - 29 total achievements organized by pools
+            // Achievement system - 27 total achievements organized by pools
             const ACHIEVEMENTS = {
                 // Pool A - Terminal (unlocks: PAINT, VOID, PRIVATE, WORDS)
-                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'Use ping mateus in terminal', hint: 'Try reaching out', pool: 'A', visible: true },
-                NEO: { name: 'NEO', desc: 'Enter cmatrix in terminal', hint: 'Follow the white rabbit', pool: 'A', visible: true },
-                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Run sudo chmod 777 /private', hint: 'Elevation required', pool: 'A', visible: true },
-                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb', hint: "Don't do it", pool: 'A', visible: true },
+                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker', pool: 'A', visible: true },
+                NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill', pool: 'A', visible: true },
+                LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack', pool: 'A', visible: true },
+                FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills', pool: 'A', visible: true },
 
                 // Pool B - Games (unlocks: LABYRINTH, MINESWEEPER, STARSHIP, DICE)
-                OUROBOROS: { name: 'OUROBOROS', desc: 'Score 50+ in SNEK', hint: 'Eat yourself fifty times', pool: 'B', visible: true },
-                FIRST_BLOOD: { name: 'FIRST BLOOD', desc: 'Win any game', hint: 'Victory, any victory', pool: 'B', visible: true },
-                DAEDALUS: { name: 'DAEDALUS', desc: 'Reach level 10 in Labyrinth', hint: 'Go deeper', pool: 'B', requiresApp: 'LABYRINTH' },
-                UNTOUCHABLE: { name: 'UNTOUCHABLE', desc: 'Win Minesweeper without flags', hint: 'Pure logic', pool: 'B', requiresApp: 'MINESWEEPER' },
-                ACE: { name: 'ACE', desc: 'Score 10,000 in Starship', hint: 'Among the stars', pool: 'B', requiresApp: 'STARSHIP' },
-                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in Dice', hint: 'Defy probability', pool: 'B', requiresApp: 'DICE' },
+                OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time', pool: 'B', visible: true },
+                FIRST_BLOOD: { name: 'FIRST BLOOD', icon: 'Sword', hint: 'Everyone starts somewhere', pool: 'B', visible: true },
+                DAEDALUS: { name: 'DAEDALUS', icon: 'Labyrinth', hint: 'Lost yet?', pool: 'B', requiresApp: 'LABYRINTH' },
+                UNTOUCHABLE: { name: 'UNTOUCHABLE', icon: 'Minesweeper', hint: 'Big brain energy', pool: 'B', requiresApp: 'MINESWEEPER' },
+                ACE: { name: 'ACE', icon: 'Starship', hint: 'Pew pew pew', pool: 'B', requiresApp: 'STARSHIP' },
+                IMPOSSIBLE: { name: 'IMPOSSIBLE', icon: 'Dice', hint: 'RNGesus take the wheel', pool: 'B', requiresApp: 'DICE' },
 
                 // Pool C - Exploration (unlocks: RADIO, GALLERY, BROWSER)
-                DEEP_LISTENER: { name: 'DEEP LISTENER', desc: 'Browse all MEDIA_LIB folders', hint: 'Listen to everything', pool: 'C', visible: true },
-                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot on 10 different days', hint: 'Return daily', pool: 'C', requiresApp: 'TAROT' },
-                VOIDBORN: { name: 'VOIDBORN', desc: 'Type 1000 chars into VOID.TXT', hint: 'Fill the void', pool: 'C', requiresApp: 'VOID' },
+                DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned', pool: 'C', visible: true },
+                COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one', pool: 'C', requiresApp: 'TAROT' },
+                VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss', pool: 'C', requiresApp: 'VOID' },
 
                 // Pool D - Meta (unlocks: TAROT, SYNTH, DESTRUCTION, POMODORO)
-                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Stack two THIRD_EYE windows', hint: 'See double', pool: 'D', visible: true },
-                PHYSICS: { name: 'PHYSICS', desc: 'Bounce window off all 4 edges', hint: 'Walls exist to be hit', pool: 'D', visible: true },
-                KONAMI: { name: 'KONAMI', desc: 'Enter the Konami code', hint: 'The old code', pool: 'D', visible: true },
-                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com in BROWSER', hint: 'Go home', pool: 'D', requiresApp: 'BROWSER' },
+                FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision', pool: 'D', visible: true },
+                PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy', pool: 'D', visible: true },
+                KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool', pool: 'D', visible: true },
+                INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper', pool: 'D', requiresApp: 'BROWSER' },
 
                 // Pool E - Time (bragging rights only)
-                TIMEKEEPER: { name: 'TIMEKEEPER', desc: 'Spend 5 minutes on site', hint: 'Stay awhile', pool: 'E', visible: true },
-                CLICKER: { name: 'CLICKER', desc: 'Click 100 times', hint: 'Click', pool: 'E', visible: true },
-                MASTER: { name: 'MASTER', desc: 'Grow 50 Pomodoro flowers', hint: 'Patience blooms', pool: 'E', requiresApp: 'POMODORO' },
-                TYCOON: { name: 'TYCOON', desc: 'Reach 1 billion in Planet Clicker', hint: 'Greed', pool: 'E', requiresApp: 'MAP' },
-                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE', hint: 'Pet the dog', pool: 'E', visible: true },
+                TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies', pool: 'E', visible: true },
+                CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: 'Click. Click. Click.', pool: 'E', visible: true },
+                MASTER: { name: 'MASTER', icon: 'Pomodoro', hint: 'Grow your garden', pool: 'E', requiresApp: 'POMODORO' },
+                TYCOON: { name: 'TYCOON', icon: 'Globe', hint: 'Money printer go brrr', pool: 'E', requiresApp: 'MAP' },
+                ASCENDED: { name: 'ASCENDED', icon: 'Dog', hint: 'Who let the dog out?', pool: 'E', visible: true },
 
                 // Pool F - Dark (shame only)
-                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag dog to trash', hint: 'Why would you', pool: 'F', visible: true },
-                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag dog to trash 3 times', hint: "He's watching", pool: 'F', chain: 'YOU_MONSTER' },
-                OVERKILL: { name: 'OVERKILL', desc: 'Drag dog to trash 10 times', hint: 'Seek help', pool: 'F', chain: 'JOHN_WICK' },
-
-                // Milestones
-                EXPLORER: { name: 'EXPLORER', desc: 'Unlock 10 apps', hint: 'Keep discovering', pool: 'MILESTONE', visible: true },
-                ARCHAEOLOGIST: { name: 'ARCHAEOLOGIST', desc: 'Unlock 15 apps', hint: 'Dig deeper', pool: 'MILESTONE', chain: 'EXPLORER' },
+                YOU_MONSTER: { name: 'YOU MONSTER', icon: 'Skull', hint: 'How could you', pool: 'F', visible: true },
+                JOHN_WICK: { name: 'JOHN WICK', icon: 'Fire', hint: 'Baba Yaga approves', pool: 'F', chain: 'YOU_MONSTER' },
+                OVERKILL: { name: 'OVERKILL', icon: 'Bomb', hint: 'Therapy recommended', pool: 'F', chain: 'JOHN_WICK' },
 
                 // Special (mysterious placeholders)
-                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times', hint: '???', pool: 'SPECIAL', mysterious: true },
-                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock all 28 other achievements', hint: '???', pool: 'SPECIAL', mysterious: true }
+                CENTURY: { name: 'CENTURY', icon: 'Badge', hint: 'Commitment issues', pool: 'SPECIAL', mysterious: true },
+                HUNDRED_PERCENT: { name: '100%', icon: 'Trophy', hint: 'You did it!', pool: 'SPECIAL', mysterious: true }
             };
 
             // Pool-based app unlock system
@@ -7403,15 +7445,6 @@
 
                 // Auto-hide achievement notification after 3 seconds
                 setTimeout(() => setAchievementNotification(null), 3000);
-
-                // Check for milestones
-                const newUnlockedCount = unlockedAppCount + (pool && APP_POOLS[pool] ? 1 : 0);
-                if (newUnlockedCount >= 10 && !achievements.EXPLORER) {
-                    setTimeout(() => unlockAchievement('EXPLORER'), 4000);
-                }
-                if (newUnlockedCount >= 15 && !achievements.ARCHAEOLOGIST && achievements.EXPLORER) {
-                    setTimeout(() => unlockAchievement('ARCHAEOLOGIST'), 4000);
-                }
 
                 // Check for 100% after unlocking
                 if (id !== 'HUNDRED_PERCENT') {
@@ -7754,8 +7787,8 @@
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
-                    case "CONTACT": return <ContactApp />;
-                    case "PAINT": return <PaintApp />;
+                    case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
+                    case "PAINT": return <PaintApp showHint={paintShowHint} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
@@ -8301,21 +8334,10 @@
                         return newPositions;
                     });
                 } else if (iconPendingDrag.current) {
-                    // Drag wasn't active - this was a click
+                    // Drag wasn't active - this was a click - open app immediately
                     const id = iconPendingDrag.current.id;
-                    const now = Date.now();
-                    const isDoubleClick = lastIconClick.current.id === id && (now - lastIconClick.current.time) < 400;
-
-                    if (isDoubleClick) {
-                        // Double click - open app
-                        if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
-                        setSelectedIcon(null);
-                        lastIconClick.current = { id: null, time: 0 };
-                    } else {
-                        // Single click - select
-                        setSelectedIcon(id);
-                        lastIconClick.current = { id, time: now };
-                    }
+                    if (openCallback) openCallback(id);
+                    setSelectedIcon(null);
                 }
 
                 iconPendingDrag.current = null;
@@ -8401,7 +8423,7 @@
                     });
                 } else if (iconPendingDrag.current) {
                     const id = iconPendingDrag.current.id;
-                    if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
+                    if (openCallback) openCallback(id);
                 }
 
                 iconPendingDrag.current = null;
