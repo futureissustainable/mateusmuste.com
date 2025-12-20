@@ -1063,8 +1063,6 @@
             ThirdEye: (p) => <PixelartIcon name="bullseye" {...p} />,
             // Browser
             Browser: (p) => <PixelartIcon name="layout-sidebar-left" {...p} />,
-            // Words game
-            Words: (p) => <PixelartIcon name="article" {...p} />,
             // Trophy for achievements
             Trophy: (p) => <PixelartIcon name="trophy" {...p} />,
             // Achievement icons
@@ -6257,7 +6255,6 @@
                 POMODORO: `// TIME.LOOP\nwork(25); rest(5);`,
                 MAP: `// GLOBE.ROTATE\nrender_sphere(phi++);`,
                 BROWSER: `// EXPLORE.NET\nif (url === self) reboot();`,
-                WORDS: `// WORDLE.CLONE\n// 5 letters, 6 tries`,
                 GALLERY: `// IMAGES.VIEW\nphotos.forEach(display);`,
                 DESTRUCTION: `// CHAOS.EXE\nreality.invert();\ndog.release();`,
                 CONTACT: `// MAIL.SEND\nclipboard.copy(email);`,
@@ -6678,7 +6675,6 @@
                 { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
-                { id: 'WORDS', title: 'WORDS.EXE', icon: 'Words', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
 
                 // Pool B apps (Game achievements)
                 { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: 'Unlock through games' },
@@ -6781,7 +6777,6 @@
                 { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
                 { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
                 { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
-                { id: 'WORDS', title: 'WORDS.EXE', icon: 'Words' },
                 // Productivity
                 { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
@@ -6874,177 +6869,6 @@
                     </div>
                     <div className="app-footer">
                         <span className="app-footer-text">SEARCH • NAVIGATE • DISCOVER</span>
-                    </div>
-                </div>
-            );
-        };
-
-        // --- WORDS - Wordle clone ---
-        const WordsApp = ({ onAchievement }) => {
-            const WORD_LIST = ['PIXEL', 'CODES', 'STACK', 'MOUSE', 'CLICK', 'BYTES', 'LOOPS', 'ARRAY', 'BLOCK', 'CACHE', 'DEBUG', 'FRAME', 'GRAPH', 'INPUT', 'LOGIC', 'PARSE', 'QUERY', 'SHELL', 'TABLE', 'VIRUS'];
-            const [targetWord, setTargetWord] = useState(() => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]);
-            const [guesses, setGuesses] = useState([]);
-            const [currentGuess, setCurrentGuess] = useState('');
-            const [gameState, setGameState] = useState('playing'); // 'playing', 'won', 'lost'
-            const [shake, setShake] = useState(false);
-            const inputRef = useRef(null);
-
-            const KEYBOARD_ROWS = [
-                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-                ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
-            ];
-
-            const getLetterStatus = (letter, index, word) => {
-                if (word[index] === letter) return 'correct';
-                if (targetWord.includes(letter)) return 'present';
-                return 'absent';
-            };
-
-            const getKeyStatus = (key) => {
-                let status = 'unused';
-                for (const guess of guesses) {
-                    for (let i = 0; i < guess.length; i++) {
-                        if (guess[i] === key) {
-                            const letterStatus = getLetterStatus(key, i, guess);
-                            if (letterStatus === 'correct') return 'correct';
-                            if (letterStatus === 'present' && status !== 'correct') status = 'present';
-                            if (letterStatus === 'absent' && status === 'unused') status = 'absent';
-                        }
-                    }
-                }
-                return status;
-            };
-
-            const handleKey = (key) => {
-                if (gameState !== 'playing') return;
-
-                if (key === 'ENTER') {
-                    if (currentGuess.length !== 5) {
-                        setShake(true);
-                        sounds.error();
-                        setTimeout(() => setShake(false), 300);
-                        return;
-                    }
-                    const newGuesses = [...guesses, currentGuess];
-                    setGuesses(newGuesses);
-                    if (currentGuess === targetWord) {
-                        setGameState('won');
-                        sounds.success();
-                        onAchievement?.('FIRST_BLOOD');
-                    } else if (newGuesses.length >= 6) {
-                        setGameState('lost');
-                        sounds.gameOver();
-                    }
-                    setCurrentGuess('');
-                } else if (key === '⌫') {
-                    sounds.keyPress();
-                    setCurrentGuess(prev => prev.slice(0, -1));
-                } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
-                    sounds.keyPress();
-                    setCurrentGuess(prev => prev + key);
-                }
-            };
-
-            const resetGame = () => {
-                setTargetWord(WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]);
-                setGuesses([]);
-                setCurrentGuess('');
-                setGameState('playing');
-            };
-
-            // Keyboard handler
-            useEffect(() => {
-                const handleKeyDown = (e) => {
-                    if (e.key === 'Enter') handleKey('ENTER');
-                    else if (e.key === 'Backspace') handleKey('⌫');
-                    else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
-                };
-                window.addEventListener('keydown', handleKeyDown);
-                return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [currentGuess, gameState, guesses]);
-
-            const statusColors = {
-                correct: 'bg-green-500 text-white border-2 border-green-600',
-                present: 'bg-yellow-400 text-white border-2 border-yellow-500',
-                absent: 'bg-gray-400 text-white border-2 border-gray-500',
-                empty: 'bg-white border-2 border-black',
-                unused: 'bg-white border-2 border-black hover:bg-gray-100'
-            };
-
-            return (
-                <div className="h-full flex flex-col bg-white select-none">
-                    <div className="app-header">
-                        <div className="flex items-center gap-2">
-                            <Icons.Words size={16} />
-                            <span className="app-header-title">WORDS.EXE</span>
-                        </div>
-                        <button onClick={() => { sounds.click(); resetGame(); }} className="btn-secondary btn-xs">
-                            NEW GAME
-                        </button>
-                    </div>
-
-                    {/* Game board */}
-                    <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-50">
-                        <div className={`flex flex-col gap-1 ${shake ? 'animate-shake' : ''}`} style={{animation: shake ? 'shake 0.3s ease' : 'none'}}>
-                            {[...Array(6)].map((_, rowIndex) => {
-                                const guess = guesses[rowIndex];
-                                const isCurrentRow = rowIndex === guesses.length;
-                                return (
-                                    <div key={rowIndex} className="flex gap-1">
-                                        {[...Array(5)].map((_, colIndex) => {
-                                            let letter = '';
-                                            let status = 'empty';
-
-                                            if (guess) {
-                                                letter = guess[colIndex];
-                                                status = getLetterStatus(letter, colIndex, guess);
-                                            } else if (isCurrentRow && currentGuess[colIndex]) {
-                                                letter = currentGuess[colIndex];
-                                            }
-
-                                            return (
-                                                <div
-                                                    key={colIndex}
-                                                    className={`w-10 h-10 flex items-center justify-center font-mono text-lg font-bold ${statusColors[status]}`}
-                                                >
-                                                    {letter}
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                );
-                            })}
-                        </div>
-
-                        {/* Game over message */}
-                        {gameState !== 'playing' && (
-                            <div className="mt-4 text-center">
-                                <div className="font-mono text-sm font-bold">
-                                    {gameState === 'won' ? '🎉 YOU WIN!' : `GAME OVER - WORD: ${targetWord}`}
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Keyboard */}
-                    <div className="p-2 bg-white border-t-2 border-black">
-                        {KEYBOARD_ROWS.map((row, rowIndex) => (
-                            <div key={rowIndex} className="flex justify-center gap-1 mb-1">
-                                {row.map((key) => {
-                                    const keyStatus = key.length === 1 ? getKeyStatus(key) : 'unused';
-                                    return (
-                                        <button
-                                            key={key}
-                                            onClick={() => handleKey(key)}
-                                            className={`${key.length > 1 ? 'px-2' : 'w-7'} h-9 font-mono text-xs font-bold ${statusColors[keyStatus]}`}
-                                        >
-                                            {key}
-                                        </button>
-                                    );
-                                })}
-                            </div>
-                        ))}
                     </div>
                 </div>
             );
@@ -7340,7 +7164,7 @@
 
             // Achievement system - 27 total achievements organized by pools
             const ACHIEVEMENTS = {
-                // Pool A - Terminal (unlocks: PAINT, VOID, PRIVATE, WORDS)
+                // Pool A - Terminal (unlocks: PAINT, VOID, PRIVATE)
                 SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker', pool: 'A', visible: true },
                 NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill', pool: 'A', visible: true },
                 LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack', pool: 'A', visible: true },
@@ -7384,7 +7208,7 @@
 
             // Pool-based app unlock system
             const APP_POOLS = {
-                A: ['PAINT', 'VOID', 'PERSONAL', 'WORDS'],           // Terminal achievements
+                A: ['PAINT', 'VOID', 'PERSONAL'],                    // Terminal achievements
                 B: ['LABYRINTH', 'MINESWEEPER', 'STARSHIP', 'DICE'], // Game achievements
                 C: ['RADIO', 'GALLERY', 'BROWSER'],                   // Exploration achievements
                 D: ['TAROT', 'SYNTH', 'DESTRUCTION', 'POMODORO'],    // Meta achievements
@@ -7912,8 +7736,7 @@
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: 450, h: 400, isOpen: false, isMin: false, z: 36 },
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: 450, h: 400, isOpen: false, isMin: false, z: 37 },
                 "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
-                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: 320, h: 520, isOpen: false, isMin: false, z: 39 },
-                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 40 }
+                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 }
             });
 
             // Auto-scale windows based on viewport - designed for 1920x1080, scales down for smaller screens
@@ -8005,7 +7828,6 @@
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
-                    case "WORDS": return <WordsApp onAchievement={unlockAchievement} />;
                     case "END": return <EndApp achievements={achievements} />;
                     default: return null;
                 }
