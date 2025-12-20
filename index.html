@@ -1448,11 +1448,15 @@
         }
 
         // --- VOID.TXT - Text encrypts then fades into the void ---
-        const VoidApp = () => {
+        const VoidApp = ({ onAchievement }) => {
             // Each char: { id, char, timestamp, phase: 'visible'|'encrypting'|'fading', opacity }
             const [chars, setChars] = useState([]);
             const inputRef = useRef(null);
             const charIdRef = useRef(0);
+            const [totalChars, setTotalChars] = useState(() => {
+                const stored = localStorage.getItem('void_total_chars');
+                return stored ? parseInt(stored, 10) : 0;
+            });
 
             const encryptChar = () => {
                 const symbols = '▓▒░█▄▀■□●○◆◇★☆@#$%&*';
@@ -1515,6 +1519,11 @@
                         opacity: 1
                     };
                     setChars(prev => [...prev, newChar]);
+                    // Track total characters for VOIDBORN achievement
+                    const newTotal = totalChars + 1;
+                    setTotalChars(newTotal);
+                    localStorage.setItem('void_total_chars', newTotal.toString());
+                    if (newTotal >= 1000) onAchievement?.('VOIDBORN');
                     e.preventDefault();
                 }
             };
@@ -1719,7 +1728,7 @@
         };
 
         // --- DICE.EXE - D20 Roller with Three.js ---
-        const DiceApp = () => {
+        const DiceApp = ({ onAchievement }) => {
             const [result, setResult] = useState(null);
             const [isRolling, setIsRolling] = useState(false);
             const isRollingRef = useRef(false); // Ref to avoid stale closure
@@ -1727,6 +1736,7 @@
             const sceneRef = useRef(null);
             const diceRef = useRef(null);
             const animationRef = useRef(null);
+            const consecutiveTwenties = useRef(0);
 
             const getResultStyle = () => {
                 if (!result) return '';
@@ -1848,9 +1858,19 @@
                     if (progress < 1) {
                         requestAnimationFrame(animate);
                     } else {
-                        setResult(Math.floor(Math.random() * 20) + 1);
+                        const roll = Math.floor(Math.random() * 20) + 1;
+                        setResult(roll);
                         setIsRolling(false);
                         isRollingRef.current = false;
+                        // Track consecutive 20s for IMPOSSIBLE achievement
+                        if (roll === 20) {
+                            consecutiveTwenties.current++;
+                            if (consecutiveTwenties.current >= 3) {
+                                onAchievement?.('IMPOSSIBLE');
+                            }
+                        } else {
+                            consecutiveTwenties.current = 0;
+                        }
                     }
                 };
 
@@ -1889,9 +1909,10 @@
         };
 
         // --- SNEK.EXE ---
-        const SnakeAppNew = () => {
+        const SnakeAppNew = ({ onAchievement }) => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
+            const achievementTriggered = useRef(false);
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
@@ -1962,6 +1983,10 @@
                             HighScoreManager.saveHighScore('snake', newHigh);
                             return newHigh;
                         });
+                        if (newScore >= 50 && !achievementTriggered.current) {
+                            achievementTriggered.current = true;
+                            onAchievement?.('OUROBOROS');
+                        }
                         return newScore;
                     });
                     food.current = {
@@ -2134,7 +2159,7 @@
         };
 
         // --- LABYRINTH.EXE - Procedural Maze ---
-        const LabyrinthApp = () => {
+        const LabyrinthApp = ({ onAchievement }) => {
             const canvasRef = useRef(null);
             const [level, setLevel] = useState(1);
             const [score, setScore] = useState(0);
@@ -2268,6 +2293,9 @@
                         setWon(true);
                         sounds.success();
 
+                        // Check for DAEDALUS achievement
+                        if (level >= 10) onAchievement?.('DAEDALUS');
+
                         // Show full maze then start next level
                         setTimeout(() => {
                             setShowingMaze(true);
@@ -2358,7 +2386,7 @@
         };
 
         // --- MINESWEEPER.EXE - Ultra Clean Minesweeper ---
-        const MinesweeperApp = () => {
+        const MinesweeperApp = ({ onAchievement }) => {
             const [grid, setGrid] = useState([]);
             const [revealed, setRevealed] = useState([]);
             const [flagged, setFlagged] = useState([]);
@@ -2368,6 +2396,7 @@
             const [time, setTime] = useState(0);
             const [started, setStarted] = useState(false);
             const timerRef = useRef(null);
+            const usedFlags = useRef(false);
 
             const ROWS = 12;
             const COLS = 16;
@@ -2415,6 +2444,7 @@
                 setMineCount(MINES);
                 setTime(0);
                 setStarted(false);
+                usedFlags.current = false;
                 if (timerRef.current) clearInterval(timerRef.current);
             };
 
@@ -2473,13 +2503,17 @@
                         if (!newRevealed[i][j]) unrevealed++;
                     }
                 }
-                if (unrevealed === MINES) setWon(true);
+                if (unrevealed === MINES) {
+                    setWon(true);
+                    if (!usedFlags.current) onAchievement?.('UNTOUCHABLE');
+                }
             };
 
             const flag = (e, r, c) => {
                 e.preventDefault();
                 if (gameOver || won || revealed[r][c]) return;
                 if (!started) setStarted(true);
+                usedFlags.current = true;
 
                 const newFlagged = flagged.map(row => [...row]);
                 newFlagged[r][c] = !newFlagged[r][c];
@@ -2560,7 +2594,7 @@
         };
 
         // --- STARSHIP.EXE - Low Poly Star Fox Style Game ---
-        const StarshipApp = () => {
+        const StarshipApp = ({ onAchievement }) => {
             const containerRef = useRef(null);
             const gameRef = useRef(null);
             const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
@@ -2569,6 +2603,9 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('starship'));
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
+            const achievementTriggered = useRef(false);
+            const onAchievementRef = useRef(onAchievement);
+            onAchievementRef.current = onAchievement;
 
             // Load high score from storage when IP is ready
             useEffect(() => {
@@ -2839,6 +2876,10 @@
                             obstacles.splice(i, 1);
                             scoreVal += 10;
                             setScore(scoreVal);
+                            if (scoreVal >= 10000 && !achievementTriggered.current) {
+                                achievementTriggered.current = true;
+                                onAchievementRef.current?.('ACE');
+                            }
                         }
 
                         // Collision with ship
@@ -2879,6 +2920,10 @@
                                 sounds.explosion();
                                 scoreVal += 50;
                                 setScore(scoreVal);
+                                if (scoreVal >= 10000 && !achievementTriggered.current) {
+                                    achievementTriggered.current = true;
+                                    onAchievementRef.current?.('ACE');
+                                }
                                 break;
                             }
                         }
@@ -3308,12 +3353,16 @@
             );
         };
 
-        const TarotApp = () => {
+        const TarotApp = ({ onAchievement }) => {
             const [cards, setCards] = useState([]);
             const [revealed, setRevealed] = useState(false);
             const [alreadyPulled, setAlreadyPulled] = useState(false);
             const [isShuffling, setIsShuffling] = useState(false);
             const [shuffleFrame, setShuffleFrame] = useState(0);
+            const [uniqueDays, setUniqueDays] = useState(() => {
+                const stored = localStorage.getItem('tarot_unique_days');
+                return stored ? JSON.parse(stored) : [];
+            });
 
             const tarotCards = [
                 {
@@ -4214,6 +4263,17 @@
                         localStorage.setItem('tarot_cards_3', JSON.stringify(selectedCards));
                         setTimeout(() => setRevealed(true), 500);
                         setAlreadyPulled(true);
+
+                        // Track unique days for COLLECTOR achievement
+                        const today = new Date().toDateString();
+                        if (!uniqueDays.includes(today)) {
+                            const newDays = [...uniqueDays, today];
+                            setUniqueDays(newDays);
+                            localStorage.setItem('tarot_unique_days', JSON.stringify(newDays));
+                            if (newDays.length >= 10) {
+                                onAchievement?.('COLLECTOR');
+                            }
+                        }
                     }
                 }, 80);
             };
@@ -4431,7 +4491,7 @@
         };
 
         // --- MAP.EXE - Interactive COBE globe with Planet Clicker game ---
-        const MapApp = () => {
+        const MapApp = ({ onAchievement }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const globeRef = useRef(null);
@@ -4448,6 +4508,7 @@
             const [clickEffect, setClickEffect] = useState(null);
             const [globeReady, setGlobeReady] = useState(false);
             const [canvasSize, setCanvasSize] = useState(400);
+            const tycoonAchieved = useRef(false);
 
             // Game state with defaults
             const defaultGameState = {
@@ -4570,6 +4631,7 @@
                             dogModeMultiplier: gameState.dogModeMultiplier * 1000000,
                             upgrades: { ...defaultGameState.upgrades, dogMode: true }
                         });
+                        onAchievement?.('ASCENDED');
                         return;
                     }
                     const effectResult = item.effect ? item.effect() : {};
@@ -4594,11 +4656,19 @@
             const handleGlobeClick = () => {
                 if (!gameStarted) return;
                 const clickValue = gameState.clickPower * gameState.clickMultiplier * gameState.dogModeMultiplier;
-                setGameState(prev => ({
-                    ...prev,
-                    clicks: prev.clicks + clickValue,
-                    totalClicks: prev.totalClicks + clickValue
-                }));
+                setGameState(prev => {
+                    const newTotal = prev.totalClicks + clickValue;
+                    // Check for TYCOON achievement (1 billion clicks)
+                    if (newTotal >= 1e9 && !tycoonAchieved.current) {
+                        tycoonAchieved.current = true;
+                        onAchievement?.('TYCOON');
+                    }
+                    return {
+                        ...prev,
+                        clicks: prev.clicks + clickValue,
+                        totalClicks: newTotal
+                    };
+                });
                 setClickEffect({ value: clickValue, id: Date.now() });
                 setTimeout(() => setClickEffect(null), 500);
             };
@@ -4906,7 +4976,7 @@
         };
 
         // --- POMODORO.EXE - Timer with growing plant ---
-        const PomodoroApp = () => {
+        const PomodoroApp = ({ onAchievement }) => {
             const [mode, setMode] = useState('work'); // 'work' or 'break'
             const [timeLeft, setTimeLeft] = useState(25 * 60); // 25 minutes
             const [isRunning, setIsRunning] = useState(false);
@@ -4915,6 +4985,7 @@
             const [totalTime, setTotalTime] = useState(0); // total seconds spent
             const [flowers, setFlowers] = useState([]); // collected flowers
             const [currentFlower, setCurrentFlower] = useState(null); // flower for current session
+            const achievementTriggered = useRef(false);
 
             const WORK_TIME = 25 * 60;
             const BREAK_TIME = 5 * 60;
@@ -4983,7 +5054,15 @@
                                 setSessions(s => s + 1);
                                 // Add completed flower to collection
                                 if (currentFlower) {
-                                    setFlowers(f => [...f, { ...currentFlower, completedAt: Date.now() }]);
+                                    setFlowers(f => {
+                                        const newFlowers = [...f, { ...currentFlower, completedAt: Date.now() }];
+                                        // Check for MASTER achievement (50 flowers)
+                                        if (newFlowers.length >= 50 && !achievementTriggered.current) {
+                                            achievementTriggered.current = true;
+                                            onAchievement?.('MASTER');
+                                        }
+                                        return newFlowers;
+                                    });
                                     // Generate new flower for next session
                                     setCurrentFlower({
                                         pot: Math.floor(Math.random() * 5),
@@ -5379,7 +5458,7 @@
         };
 
         // --- TERMINAL.EXE - Command line interface ---
-        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate }) => {
+        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement }) => {
             const [history, setHistory] = useState([{ type: 'output', text: 'ULTRA_INT Terminal v1.0.0\nType "help" for available commands.\n' }]);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
@@ -5480,6 +5559,7 @@
                 } else if (trimmed === 'ping mateus') {
                     addOutput('PING mateus (127.0.0.1): 56 data bytes\n64 bytes: icmp_seq=0 ttl=64 time=0.042 ms\nOpening contact...');
                     setTimeout(() => onOpenApp?.('PAINT'), 500);
+                    onAchievement?.('SOCIAL_NETWORK');
                 } else if (trimmed.startsWith('kill ')) {
                     const proc = trimmed.replace('kill ', '').toUpperCase();
                     addOutput(`Attempting to terminate ${proc}...`);
@@ -5504,6 +5584,7 @@
                         setTimeout(() => addOutput('SYSTEM BREACH DETECTED'), i * 200);
                     }
                     setTimeout(() => addOutput('\n...nothing happens.'), 2500);
+                    onAchievement?.('FORBIDDEN');
                 } else if (trimmed === 'sudo dd if=/dev/zero of=/') {
                     addOutput("Permission denied. You're not that guy.");
                 } else if (trimmed === 'scp truth.txt ~/') {
@@ -5739,7 +5820,7 @@
         };
 
         // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
-        const TruthApp = () => {
+        const TruthApp = ({ onAchievement }) => {
             const [password, setPassword] = useState('');
             const [attempts, setAttempts] = useState(0);
             const [message, setMessage] = useState('');
@@ -5784,6 +5865,7 @@
                 setAttempts(newAttempts);
                 setMessage(responses[Math.min(newAttempts - 1, responses.length - 1)]);
                 setPassword('');
+                if (newAttempts === 1) onAchievement?.('SISYPHUS');
             };
 
             return (
@@ -6004,7 +6086,8 @@
                     { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
                     { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                     { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
-                    { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+                    { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
+                    { id: 'END', title: 'END.EXE', icon: 'Sparkling' }
                 ]
             };
 
@@ -6092,7 +6175,7 @@
         };
 
         // --- BROWSER - App search with autocomplete ---
-        const BrowserApp = ({ onOpenApp }) => {
+        const BrowserApp = ({ onOpenApp, onAchievement }) => {
             const [url, setUrl] = useState('');
             const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -6127,7 +6210,8 @@
                 { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
-                { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+                { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
+                { id: 'END', title: 'END.EXE', icon: 'Sparkling' }
             ];
 
             const filteredItems = url.trim()
@@ -6141,6 +6225,7 @@
                 e.preventDefault();
                 const normalized = url.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
                 if (normalized === 'mateusmuste.com' || normalized === 'www.mateusmuste.com') {
+                    onAchievement?.('INCEPTION');
                     window.location.reload();
                 }
             };
@@ -6396,6 +6481,84 @@
             );
         };
 
+        // --- END.EXE - 100% Completion Screen ---
+        const EndApp = ({ achievements }) => {
+            const ACHIEVEMENTS = {
+                NEO: { name: 'NEO', desc: 'Activate Matrix mode' },
+                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com inside BROWSER.EXE' },
+                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Crash the system with THIRD_EYE' },
+                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Unlock PRIVATE.EXE via terminal' },
+                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times' },
+                SISYPHUS: { name: 'SISYPHUS', desc: 'Enter wrong password in TRUTH.TXT' },
+                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag the dog to trash' },
+                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag the dog to trash 3 times' },
+                OVERKILL: { name: 'OVERKILL', desc: 'Drag the dog to trash 10 times' },
+                OUROBOROS: { name: 'OUROBOROS', desc: 'Score 50+ in SNEK' },
+                DAEDALUS: { name: 'DAEDALUS', desc: 'Complete labyrinth level 10' },
+                UNTOUCHABLE: { name: 'UNTOUCHABLE', desc: 'Win Minesweeper without flags' },
+                ACE: { name: 'ACE', desc: 'Score 10,000 in Starship' },
+                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in a row' },
+                TYCOON: { name: 'TYCOON', desc: 'Reach 1 BILLION clicks' },
+                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE' },
+                MASTER: { name: 'MASTER', desc: 'Grow 50 flowers' },
+                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot 10 different days' },
+                VOIDBORN: { name: 'VOIDBORN', desc: 'Type 1000 chars into VOID.TXT' },
+                PHYSICS: { name: 'PHYSICS', desc: 'Bounce window off all 4 edges' },
+                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb' },
+                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'ping mateus in terminal' },
+                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock every achievement' }
+            };
+
+            const unlockedCount = Object.keys(achievements).length;
+            const totalCount = Object.keys(ACHIEVEMENTS).length;
+            const has100Percent = achievements.HUNDRED_PERCENT;
+
+            return (
+                <div className="h-full flex flex-col bg-black text-white select-none font-mono overflow-auto">
+                    {/* Header */}
+                    <div className="p-4 border-b border-white/20 text-center">
+                        <div className="text-2xl font-bold mb-2">
+                            {has100Percent ? '★ 100% COMPLETE ★' : 'ACHIEVEMENT LOG'}
+                        </div>
+                        <div className="text-sm text-gray-400">
+                            {unlockedCount} / {totalCount} ACHIEVEMENTS
+                        </div>
+                    </div>
+
+                    {/* Achievement list */}
+                    <div className="flex-grow p-4 space-y-2 overflow-auto">
+                        {Object.entries(ACHIEVEMENTS).map(([id, ach]) => {
+                            const unlocked = achievements[id];
+                            return (
+                                <div
+                                    key={id}
+                                    className={`p-2 border ${unlocked ? 'border-white bg-white/10' : 'border-gray-700 opacity-50'}`}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-lg">{unlocked ? '★' : '☆'}</span>
+                                        <span className={`font-bold ${unlocked ? '' : 'text-gray-500'}`}>
+                                            {ach.name}
+                                        </span>
+                                    </div>
+                                    <div className={`text-xs ${unlocked ? 'text-gray-300' : 'text-gray-600'}`}>
+                                        {ach.desc}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    {/* Footer */}
+                    {has100Percent && (
+                        <div className="p-4 border-t border-white/20 text-center">
+                            <div className="text-sm text-gray-400">THANK YOU FOR PLAYING</div>
+                            <div className="text-xs text-gray-600 mt-1">— MATEUS MUSTE —</div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
         // --- OS SHELL ---
 
         const OS = () => {
@@ -6421,7 +6584,8 @@
                     FILES: { x: 16, y: 110 },
                     APPS: { x: 16, y: 204 },
                     CONTACT: { x: 16, y: 298 },
-                    TRUTH: { x: 16, y: 392 }
+                    TRUTH: { x: 16, y: 392 },
+                    TRASH: { x: window.innerWidth - 110, y: window.innerHeight - 140 }
                 };
             });
             const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
@@ -6456,6 +6620,88 @@
                 return count;
             });
             const truthUnlocked = visitCount >= 100;
+
+            // Achievement system
+            const ACHIEVEMENTS = {
+                NEO: { name: 'NEO', desc: 'Activate Matrix mode' },
+                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com inside BROWSER.EXE' },
+                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Crash the system by stacking two THIRD_EYE windows' },
+                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Unlock PRIVATE.EXE using terminal command' },
+                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times' },
+                SISYPHUS: { name: 'SISYPHUS', desc: 'Enter 1 wrong password in TRUTH.TXT' },
+                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag the dog to trash' },
+                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag the dog to trash 3 times' },
+                OVERKILL: { name: 'OVERKILL', desc: 'Drag the dog to trash 10 times' },
+                OUROBOROS: { name: 'OUROBOROS', desc: 'Score 50+ in SNEK' },
+                DAEDALUS: { name: 'DAEDALUS', desc: 'Complete labyrinth level 10' },
+                UNTOUCHABLE: { name: 'UNTOUCHABLE', desc: 'Win Minesweeper without using flags' },
+                ACE: { name: 'ACE', desc: 'Score 10,000 in Starship' },
+                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in a row in Dice' },
+                TYCOON: { name: 'TYCOON', desc: 'Reach 1 BILLION clicks in Planet Clicker' },
+                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE in Planet Clicker' },
+                MASTER: { name: 'MASTER', desc: 'Grow 50 different flowers in Pomodoro' },
+                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot cards on 10 different days' },
+                VOIDBORN: { name: 'VOIDBORN', desc: 'Type 1000 characters into VOID.TXT' },
+                PHYSICS: { name: 'PHYSICS', desc: 'Make a window bounce off all 4 edges in one throw' },
+                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb easter egg' },
+                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'Use ping mateus to open Paint' },
+                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock every other achievement' }
+            };
+
+            const [achievements, setAchievements] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_achievements');
+                return stored ? JSON.parse(stored) : {};
+            });
+            const [achievementNotification, setAchievementNotification] = useState(null);
+            const [dogTrashCount, setDogTrashCount] = useState(() => {
+                const stored = localStorage.getItem('dog_trash_count');
+                return stored ? parseInt(stored, 10) : 0;
+            });
+            const [dogDragging, setDogDragging] = useState(false);
+            const [dogDragOffset, setDogDragOffset] = useState({ x: 0, y: 0 });
+            const dogHoldTimer = useRef(null);
+            const [hasCompletedGame, setHasCompletedGame] = useState(() => {
+                return localStorage.getItem('ultra_int_completed') === 'true';
+            });
+
+            // Save achievements to localStorage
+            useEffect(() => {
+                localStorage.setItem('ultra_int_achievements', JSON.stringify(achievements));
+            }, [achievements]);
+
+            // Check for 100% completion
+            const achievementCount = Object.keys(achievements).filter(k => k !== 'HUNDRED_PERCENT').length;
+            const totalAchievements = Object.keys(ACHIEVEMENTS).length - 1; // Exclude 100% itself
+            const hasAllAchievements = achievementCount >= totalAchievements;
+
+            // Unlock achievement function
+            const unlockAchievement = (id) => {
+                if (achievements[id]) return; // Already unlocked
+                const achievement = ACHIEVEMENTS[id];
+                if (!achievement) return;
+
+                setAchievements(prev => ({ ...prev, [id]: { unlockedAt: Date.now() } }));
+                setAchievementNotification(achievement);
+                sounds.success();
+
+                // Auto-hide notification after 3 seconds
+                setTimeout(() => setAchievementNotification(null), 3000);
+
+                // Check for 100% after unlocking
+                if (id !== 'HUNDRED_PERCENT') {
+                    const newCount = achievementCount + 1;
+                    if (newCount >= totalAchievements && !achievements.HUNDRED_PERCENT) {
+                        setTimeout(() => unlockAchievement('HUNDRED_PERCENT'), 1500);
+                    }
+                }
+            };
+
+            // Check century achievement on mount
+            useEffect(() => {
+                if (visitCount >= 100 && !achievements.CENTURY) {
+                    setTimeout(() => unlockAchievement('CENTURY'), 2000);
+                }
+            }, []);
 
             // Current usage - exponential distribution favoring lower percentages
             const [currentUsage, setCurrentUsage] = useState(() => {
@@ -6499,8 +6745,16 @@
                 return () => clearInterval(interval);
             }, []);
 
-            const toggleMatrixMode = () => setMatrixMode(prev => !prev);
-            const unlockPrivate = () => setPrivateUnlocked(true);
+            const toggleMatrixMode = () => {
+                setMatrixMode(prev => {
+                    if (!prev) unlockAchievement('NEO');
+                    return !prev;
+                });
+            };
+            const unlockPrivate = () => {
+                setPrivateUnlocked(true);
+                unlockAchievement('LOCKSMITH');
+            };
             const openDogStory = () => {
                 setDogReleased(true);
                 setGoldDogReleased(true);
@@ -6526,7 +6780,7 @@
             const dogVelRef = useRef({ x: 4, y: 3 });
 
             useEffect(() => {
-                if (!dogReleased) return;
+                if (!dogReleased || dogDragging) return;
 
                 const dogInterval = setInterval(() => {
                     const vel = dogVelRef.current;
@@ -6609,10 +6863,93 @@
                 return () => clearInterval(goldDogInterval);
             }, [goldDogReleased, goldDogVisible]);
 
+            // Dog dragging handlers
+            const handleDogMouseDown = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const offsetX = e.clientX - dogPos.x;
+                const offsetY = e.clientY - dogPos.y;
+
+                // Start hold timer - need to hold for 300ms to start dragging
+                dogHoldTimer.current = setTimeout(() => {
+                    setDogDragging(true);
+                    setDogDragOffset({ x: offsetX, y: offsetY });
+                }, 300);
+            };
+
+            const handleDogMouseUp = (e) => {
+                if (dogHoldTimer.current) {
+                    clearTimeout(dogHoldTimer.current);
+                    dogHoldTimer.current = null;
+                }
+
+                if (dogDragging) {
+                    setDogDragging(false);
+
+                    // Check if dropped on trash
+                    const trashPos = iconPositions.TRASH || { x: window.innerWidth - 110, y: window.innerHeight - 140 };
+                    const trashLeft = trashPos.x;
+                    const trashTop = trashPos.y;
+                    const trashRight = trashLeft + 96; // ~w-24 = 96px
+                    const trashBottom = trashTop + 80;
+
+                    if (dogPos.x >= trashLeft - 30 && dogPos.x <= trashRight + 30 &&
+                        dogPos.y >= trashTop - 30 && dogPos.y <= trashBottom + 30) {
+                        // Dog was dropped on trash!
+                        sounds.error();
+                        setDogReleased(false);
+
+                        // Update trash count
+                        const newCount = dogTrashCount + 1;
+                        setDogTrashCount(newCount);
+                        localStorage.setItem('dog_trash_count', newCount.toString());
+
+                        // Trigger achievements
+                        if (newCount >= 1 && !achievements.YOU_MONSTER) {
+                            setTimeout(() => unlockAchievement('YOU_MONSTER'), 500);
+                        }
+                        if (newCount >= 3 && !achievements.JOHN_WICK) {
+                            setTimeout(() => unlockAchievement('JOHN_WICK'), 500);
+                        }
+                        if (newCount >= 10 && !achievements.OVERKILL) {
+                            setTimeout(() => unlockAchievement('OVERKILL'), 500);
+                        }
+                    }
+                } else {
+                    // Quick click - just bark and stop
+                    sounds.bark();
+                    setDogReleased(false);
+                }
+            };
+
+            // Global mouse move for dog dragging
+            useEffect(() => {
+                if (!dogDragging) return;
+
+                const handleMouseMove = (e) => {
+                    setDogPos({
+                        x: e.clientX - dogDragOffset.x,
+                        y: e.clientY - dogDragOffset.y
+                    });
+                };
+
+                const handleMouseUp = (e) => {
+                    handleDogMouseUp(e);
+                };
+
+                window.addEventListener('mousemove', handleMouseMove);
+                window.addEventListener('mouseup', handleMouseUp);
+
+                return () => {
+                    window.removeEventListener('mousemove', handleMouseMove);
+                    window.removeEventListener('mouseup', handleMouseUp);
+                };
+            }, [dogDragging, dogDragOffset]);
+
             // Desktop icons - only show main folders (plus TRUTH if unlocked at 100 visits)
             const desktopIcons = truthUnlocked
-                ? ["SYSTEM", "FILES", "APPS", "CONTACT", "TRUTH"]
-                : ["SYSTEM", "FILES", "APPS", "CONTACT"];
+                ? ["SYSTEM", "FILES", "APPS", "CONTACT", "TRUTH", "TRASH"]
+                : ["SYSTEM", "FILES", "APPS", "CONTACT", "TRASH"];
 
             // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
@@ -6644,7 +6981,8 @@
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: '450px', h: '400px', isOpen: false, isMin: false, z: 36 },
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 },
                 "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: '500px', h: '400px', isOpen: false, isMin: false, z: 38 },
-                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: '320px', h: '520px', isOpen: false, isMin: false, z: 39 }
+                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: '320px', h: '520px', isOpen: false, isMin: false, z: 39 },
+                "END": { id: "END", title: "END.EXE", icon: "Sparkling", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
             });
 
             // Render window content based on ID
@@ -6655,30 +6993,31 @@
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
-                    case "SNAKE": return <SnakeAppNew />;
+                    case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
-                    case "VOID": return <VoidApp />;
+                    case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
                     case "ORACLE": return <OracleApp />;
                     case "RADIO": return <RadioApp />;
-                    case "DICE": return <DiceApp />;
-                    case "LABYRINTH": return <LabyrinthApp />;
-                    case "MINESWEEPER": return <MinesweeperApp />;
-                    case "STARSHIP": return <StarshipApp />;
+                    case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
+                    case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
+                    case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
+                    case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} />;
                     case "SYNTH": return <SynthApp />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
-                    case "TAROT": return <TarotApp />;
+                    case "TAROT": return <TarotApp onAchievement={unlockAchievement} />;
                     case "GALLERY": return <GalleryApp />;
-                    case "MAP": return <MapApp />;
-                    case "POMODORO": return <PomodoroApp />;
+                    case "MAP": return <MapApp onAchievement={unlockAchievement} />;
+                    case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
-                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
-                    case "TRUTH": return <TruthApp />;
+                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} />;
+                    case "TRUTH": return <TruthApp onAchievement={unlockAchievement} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
-                    case "BROWSER": return <BrowserApp onOpenApp={open} />;
+                    case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} />;
                     case "WORDS": return <WordsApp />;
+                    case "END": return <EndApp achievements={achievements} />;
                     default: return null;
                 }
             };
@@ -6687,6 +7026,8 @@
             const [drag, setDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
             const lastMousePos = useRef({ x: 0, y: 0, time: Date.now() });
             const windowPhysics = useRef({}); // { windowId: { velX, velY, scaleX, scaleY } }
+            const windowBounces = useRef({}); // { windowId: { left: bool, right: bool, top: bool, bottom: bool } }
+            const physicsAchievementUnlocked = useRef(false);
 
             // Physics constants
             const FRICTION = 0.95; // Velocity decay per frame (ice-like, slightly reduced friction)
@@ -6769,18 +7110,26 @@
                             }
 
                             // Bounce off edges with squash/stretch
+                            // Track bounces for PHYSICS achievement
+                            if (!windowBounces.current[id]) {
+                                windowBounces.current[id] = { left: false, right: false, top: false, bottom: false };
+                            }
+                            const bounces = windowBounces.current[id];
+
                             if (newX <= 0) {
                                 newX = 0;
                                 physics.velX = -physics.velX * BOUNCE_DAMPING;
                                 physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 sounds.bounce(Math.abs(physics.velX));
+                                bounces.left = true;
                             } else if (newX >= maxX) {
                                 newX = maxX;
                                 physics.velX = -physics.velX * BOUNCE_DAMPING;
                                 physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 sounds.bounce(Math.abs(physics.velX));
+                                bounces.right = true;
                             }
 
                             if (newY <= minY) {
@@ -6789,12 +7138,20 @@
                                 physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 sounds.bounce(Math.abs(physics.velY));
+                                bounces.top = true;
                             } else if (newY >= maxY) {
                                 newY = maxY;
                                 physics.velY = -physics.velY * BOUNCE_DAMPING;
                                 physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 sounds.bounce(Math.abs(physics.velY));
+                                bounces.bottom = true;
+                            }
+
+                            // Check for PHYSICS achievement (all 4 edges in one throw)
+                            if (bounces.left && bounces.right && bounces.top && bounces.bottom && !physicsAchievementUnlocked.current) {
+                                physicsAchievementUnlocked.current = true;
+                                unlockAchievement('PHYSICS');
                             }
 
                             // Decay squash/stretch back to normal
@@ -6916,6 +7273,8 @@
                 // Stop any existing velocity
                 physics.velX = 0;
                 physics.velY = 0;
+                // Reset bounce tracking for PHYSICS achievement
+                windowBounces.current[id] = { left: false, right: false, top: false, bottom: false };
                 lastMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() };
                 setDrag({
                     id: id,
@@ -7220,6 +7579,7 @@
                     if (overlapArea > minArea * 0.3) {
                         if (!stackOverflow) {
                             setStackOverflow(true);
+                            unlockAchievement('FOURTH_DIMENSION');
                             // Accelerating errors and commands
                             const errors = [
                                 'FATAL: recursive observation detected',
@@ -7733,16 +8093,17 @@
                     {/* DOG - Cute pixel dog with running animation */}
                     {dogReleased && (
                         <div
-                            className="fixed z-[999999] cursor-pointer select-none"
+                            className={`fixed z-[999999] cursor-pointer select-none ${dogDragging ? 'dog-scared' : ''}`}
                             style={{
                                 left: dogPos.x,
                                 top: dogPos.y,
                                 transform: `scaleX(${dogFacingRight ? 1 : -1})`,
                             }}
-                            onClick={() => { sounds.bark(); setDogReleased(false); }}
+                            onMouseDown={handleDogMouseDown}
+                            onMouseUp={handleDogMouseUp}
                         >
                             <DogSprite animated />
-                            {carriedIcon && (
+                            {carriedIcon && !dogDragging && (
                                 <div
                                     className="absolute bg-white border-2 border-black p-1"
                                     style={{ top: -20, left: 8 }}
@@ -7770,6 +8131,15 @@
                     {/* CRT Static overlay for destruction */}
                     {destructionMode === true && (
                         <div className="fixed inset-0 z-[999998] pointer-events-none crt-static" />
+                    )}
+
+                    {/* Achievement notification */}
+                    {achievementNotification && (
+                        <div className="fixed top-4 right-4 z-[9999999] bg-black text-white border-2 border-white px-4 py-3 font-mono shadow-lg animate-slide-in-right">
+                            <div className="text-[10px] text-gray-400 uppercase tracking-widest">Achievement Unlocked</div>
+                            <div className="text-lg font-bold">{achievementNotification.name}</div>
+                            <div className="text-xs text-gray-300">{achievementNotification.desc}</div>
+                        </div>
                     )}
 
                     {/* Glitch animation styles */}
@@ -7802,6 +8172,22 @@
                             0% { opacity: 0.3; }
                             50% { opacity: 0.5; }
                             100% { opacity: 0.3; }
+                        }
+                        @keyframes dog-scared-float {
+                            0%, 100% { transform: translateY(0) rotate(-5deg); }
+                            25% { transform: translateY(-8px) rotate(5deg); }
+                            50% { transform: translateY(-3px) rotate(-3deg); }
+                            75% { transform: translateY(-10px) rotate(3deg); }
+                        }
+                        .dog-scared {
+                            animation: dog-scared-float 0.3s ease-in-out infinite;
+                        }
+                        @keyframes slide-in-right {
+                            from { transform: translateX(100%); opacity: 0; }
+                            to { transform: translateX(0); opacity: 1; }
+                        }
+                        .animate-slide-in-right {
+                            animation: slide-in-right 0.3s ease-out forwards;
                         }
                     `}</style>
 
