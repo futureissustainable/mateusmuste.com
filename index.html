@@ -925,7 +925,7 @@
             );
         }
 
-        const SystemInfo = ({ onMatrixMode }) => {
+        const SystemInfo = ({ onMatrixMode, totalVisitors }) => {
             const [konamiProgress, setKonamiProgress] = useState(0);
             const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
 
@@ -955,6 +955,9 @@
                         <span className="bg-black text-white px-2 py-1">DIGITAL DESIGNER</span>
                         <span className="bg-black text-white px-2 py-1">RADICAL OPTIMIST</span>
                         <span className="border border-black px-2 py-1">ROMANIA</span>
+                        {totalVisitors && (
+                            <span className="border border-black px-2 py-1 ml-auto">VISITORS: {totalVisitors.toLocaleString()}</span>
+                        )}
                     </div>
                 </header>
                 <div className="grid md:grid-cols-2 gap-12">
@@ -5613,6 +5616,45 @@
             });
             const truthUnlocked = visitCount >= 100;
 
+            // Parallel instances - exponential distribution favoring lower numbers
+            const [parallelInstances, setParallelInstances] = useState(() => {
+                // Exponential distribution: higher numbers exponentially less likely
+                const rand = Math.random();
+                // Use inverse exponential: -ln(rand) scaled to 1-64
+                const exp = Math.ceil(-Math.log(rand) * 8);
+                return Math.min(64, Math.max(1, exp));
+            });
+
+            // Total visitors counter (using CountAPI)
+            const [totalVisitors, setTotalVisitors] = useState(null);
+
+            // Fetch and increment total visitors
+            useEffect(() => {
+                fetch('https://api.countapi.xyz/hit/mateusmuste-com/visits')
+                    .then(res => res.json())
+                    .then(data => setTotalVisitors(data.value))
+                    .catch(() => {
+                        // Fallback to localStorage estimate
+                        const stored = parseInt(localStorage.getItem('visitor_estimate') || '340', 10);
+                        const newCount = stored + Math.floor(Math.random() * 3);
+                        localStorage.setItem('visitor_estimate', newCount.toString());
+                        setTotalVisitors(newCount);
+                    });
+            }, []);
+
+            // Random fluctuation of parallel instances every second
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    if (Math.random() < 0.01) { // 1% chance each second
+                        setParallelInstances(prev => {
+                            const change = Math.random() < 0.5 ? -1 : 1;
+                            return Math.min(64, Math.max(1, prev + change));
+                        });
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
             const toggleMatrixMode = () => setMatrixMode(prev => !prev);
             const unlockPrivate = () => setPrivateUnlocked(true);
             const openDogStory = () => {
@@ -5760,7 +5802,7 @@
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} />;
+                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} />;
                     case "CONTACT": return <ContactApp />;
@@ -6142,6 +6184,10 @@
                             })}
                         </div>
                         <div className="flex-grow"></div>
+                        <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
+                            <span className="text-gray-500">PARALLEL:</span>
+                            <span className="font-bold">{parallelInstances}</span>
+                        </div>
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
