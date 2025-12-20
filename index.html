@@ -269,6 +269,20 @@
             animation: shake 0.5s ease-in-out;
         }
 
+        /* ThirdEye stack overflow animations */
+        @keyframes flash {
+            0% { opacity: 0; background: rgba(255,0,0,0.1); }
+            100% { opacity: 1; background: rgba(255,0,0,0.4); }
+        }
+
+        @keyframes glitch {
+            0% { transform: translateX(0); }
+            25% { transform: translateX(-2px); }
+            50% { transform: translateX(2px); }
+            75% { transform: translateX(-1px); }
+            100% { transform: translateX(0); }
+        }
+
         /* Matrix Mode */
         .matrix-mode {
             background: #000 !important;
@@ -5561,277 +5575,76 @@
         };
 
         // --- THIRD_EYE.EXE - X-ray view of app code ---
-        const ThirdEyeApp = ({ windows, stackOverflow, stackErrors }) => {
+        const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions }) => {
             const [scanLine, setScanLine] = useState(0);
+            const thisWindow = windows[windowId];
+            const windowX = thisWindow?.x || 0;
+            const windowY = thisWindow?.y || 0;
+            // Account for window header height (approx 32px)
+            const headerHeight = 32;
 
             // Scan line animation
             useEffect(() => {
                 const interval = setInterval(() => {
-                    setScanLine(prev => (prev + 1) % 100);
-                }, 50);
+                    setScanLine(prev => (prev + 2) % 100);
+                }, 30);
                 return () => clearInterval(interval);
             }, []);
 
             const appCode = {
-                SNAKE: `// SNEK.JS
-function eat() {
-  grow();
-  hunger++;
-
-  // ouroboros.exe
-  if (head === tail) {
-    become(god);
-  }
-}
-
-// "the serpent eats itself"`,
-
-                MINESWEEPER: `// MINES.SYS
-bool click(x, y) {
-  if (bomb[x][y]) {
-    die();
-    // "I am become death"
-  }
-  return survive();
-}
-
-// luck is not a strategy`,
-
-                STARSHIP: `// STARFOX.ASM
-; DO A BARREL ROLL
-; Slippy: "Fox, help me!"
-; Fox: "No."
-
-laser.pewpew();
-asteroid.dodge();
-
-// use bombs wisely`,
-
-                DICE: `// RNG.GOD
-function roll() {
-  let fate = Math.random();
-
-  if (result === 20) {
-    critical_hit();
-  }
-  if (result === 1) {
-    // skill issue
-  }
-}`,
-
-                LABYRINTH: `// MAZE.RUNNER
-while (!escaped) {
-  if (wall_ahead()) {
-    turn_right();
-    // always right
-  }
-  move_forward();
-}
-
-// theseus had a thread
-// you have nothing`,
-
-                PAINT: `// ART.EXE
-let canvas = new Void();
-let color = BLACK;
-
-function draw(pos) {
-  canvas.soil(pos, color);
-  // art is destruction
-  // of empty space
-}`,
-
-                ORACLE: `// FORTUNE.SYS
-const wisdom = [
-  "perhaps",
-  "definitely maybe",
-  "ask again",
-];
-
-// it knows everything
-// but tells nothing useful
-
-return wisdom[void];`,
-
-                TAROT: `// CARDS.FATE
-deck.shuffle(∞);
-
-// the fool begins
-// the world ends
-// death is not ending
-// but transformation
-
-reveal(destiny);`,
-
-                VOID: `// VOID.NULL
-function void() {
-  // nothing here
-
-
-
-  return undefined;
-}
-
-// this space intentionally left meaningful`,
-
-                RADIO: `// STREAM.WAV
-while (true) {
-  frequency = tune();
-  audio.play(frequency);
-
-  // somewhere, someone
-  // is also listening
-}`,
-
-                SYNTH: `// SOUND.WAVE
-note.frequency = 440; // A
-note.oscillate();
-
-// music is math
-// math is music
-// this is neither`,
-
-                TERMINAL: `// CMD.EXE
-function execute(cmd) {
-  if (cmd === "sudo") {
-    check_worthiness();
-  }
-  if (cmd === "exit") {
-    print("no escape");
-  }
-}`,
-
-                SYSTEM: `// KERNEL.SYS
-let visitors = count++;
-let usage = rand(5, 100);
-
-while (true) {
-  display_stats();
-  if (konami_code()) {
-    enter_matrix();
-  }
-}`,
-
-                POMODORO: `// TIME.LOOP
-for (i = 0; i < ∞; i++) {
-  work(25 * MINUTE);
-  rest(5 * MINUTE);
-
-  // time is a flat circle
-  // productivity is a myth
-}`,
-
-                MAP: `// GLOBE.ROTATE
-let phi = 0;
-while (earth.exists) {
-  phi += 0.005;
-  render_sphere(phi);
-
-  // you are here
-  // you are everywhere
-}`,
-
-                BROWSER: `// EXPLORE.NET
-function navigate(url) {
-  if (url === self) {
-    reboot();
-    // infinite recursion
-  }
-  return new Tab(url);
-}`,
-
-                WORDS: `// WORDLE.CLONE
-for (guess of attempts) {
-  if (guess === secret) {
-    celebrate();
-  }
-  // 5 letters
-  // 6 tries
-  // infinite frustration
-}`,
-
-                GALLERY: `// IMAGES.VIEW
-photos.forEach(img => {
-  display(img);
-  // every picture
-  // hides a story
-  // you'll never know
-});`,
-
-                DESTRUCTION: `// CHAOS.EXE
-if (confirm("destroy?")) {
-  reality.invert();
-  dog.release();
-  // some men just want
-  // to watch the world
-  // hue-rotate(180deg)
-}`,
-
-                CONTACT: `// MAIL.SEND
-let email = "hidden";
-clipboard.copy(email);
-
-// connection is
-// one click away
-// or is it?`,
-
-                TRASH: `// RECYCLE.BIN
-items.forEach(item => {
-  delete item;
-  // gone but not
-  // forgotten
-  // until garbage_collect()
-});`,
-
-                SCANNER: `// HEALTH.CHK
-let health = random();
-diagnosis = "probably fine";
-
-// this is not
-// medical advice
-// trust no machine`,
-
-                THIRD_EYE: `// OBSERVE.SYS
-while (watching) {
-  see(all_things);
-  if (observer_observed) {
-    STACK_OVERFLOW();
-    // do not look at
-    // the eye looking
-    // at you looking at it
-  }
-}`,
+                SNAKE: `// SNEK.JS\nfunction eat() {\n  grow();\n  // ouroboros.exe\n  if (head === tail) become(god);\n}`,
+                MINESWEEPER: `// MINES.SYS\nbool click(x, y) {\n  if (bomb[x][y]) die();\n  // "I am become death"\n  return survive();\n}`,
+                STARSHIP: `// STARFOX.ASM\n; DO A BARREL ROLL\nlaser.pewpew();\nasteroid.dodge();`,
+                DICE: `// RNG.GOD\nlet fate = Math.random();\nif (result === 1) // skill issue`,
+                LABYRINTH: `// MAZE.RUNNER\nwhile (!escaped) {\n  turn_right();\n  move_forward();\n}`,
+                PAINT: `// ART.EXE\ncanvas.soil(pos, color);\n// art is destruction`,
+                ORACLE: `// FORTUNE.SYS\nreturn wisdom[void];\n// it knows everything`,
+                TAROT: `// CARDS.FATE\ndeck.shuffle(∞);\nreveal(destiny);`,
+                VOID: `// VOID.NULL\nreturn undefined;\n// intentionally left meaningful`,
+                RADIO: `// STREAM.WAV\naudio.play(frequency);`,
+                SYNTH: `// SOUND.WAVE\nnote.oscillate();`,
+                TERMINAL: `// CMD.EXE\nif (cmd === "exit") print("no escape");`,
+                SYSTEM: `// KERNEL.SYS\nif (konami_code()) enter_matrix();`,
+                POMODORO: `// TIME.LOOP\nwork(25); rest(5);`,
+                MAP: `// GLOBE.ROTATE\nrender_sphere(phi++);`,
+                BROWSER: `// EXPLORE.NET\nif (url === self) reboot();`,
+                WORDS: `// WORDLE.CLONE\n// 5 letters, 6 tries`,
+                GALLERY: `// IMAGES.VIEW\nphotos.forEach(display);`,
+                DESTRUCTION: `// CHAOS.EXE\nreality.invert();\ndog.release();`,
+                CONTACT: `// MAIL.SEND\nclipboard.copy(email);`,
+                TRASH: `// RECYCLE.BIN\ndelete item;`,
+                SCANNER: `// HEALTH.CHK\ndiagnosis = "probably fine";`,
+                THIRD_EYE: `// OBSERVE.SYS\nif (observer_observed)\n  STACK_OVERFLOW();`,
+                THIRD_EYE_2: `// OBSERVE.SYS\nif (observer_observed)\n  STACK_OVERFLOW();`,
+                FILES: `// EXPLORER.SYS\nlist(directories);`,
+                APPS: `// LAUNCHER.EXE\nopen(selected_app);`,
             };
 
-            const defaultCode = `// UNKNOWN.DAT
-// source: classified
-// author: [REDACTED]
-// purpose: ????
+            const defaultCode = `// UNKNOWN.DAT\nreturn mysterious();`;
 
-return mysterious();`;
+            // Desktop icons to show in portal
+            const desktopIconIds = ['SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH'];
 
-            // Stack overflow display with pulsing
+            // Stack overflow display with rapid flashing errors
             if (stackOverflow) {
                 return (
-                    <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden">
-                        <div className="flex-grow flex flex-col items-center justify-center p-4 animate-pulse">
-                            <pre className="text-red-500 text-center text-[8px] leading-tight whitespace-pre">{`
-███████╗████████╗ █████╗  ██████╗██╗  ██╗
-██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
-███████╗   ██║   ███████║██║     █████╔╝
-╚════██║   ██║   ██╔══██║██║     ██╔═██╗
-███████║   ██║   ██║  ██║╚██████╗██║  ██╗
-╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
- ██████╗ ██╗   ██╗███████╗██████╗ ███████╗██╗      ██████╗ ██╗    ██╗
-██╔═══██╗██║   ██║██╔════╝██╔══██╗██╔════╝██║     ██╔═══██╗██║    ██║
-██║   ██║██║   ██║█████╗  ██████╔╝█████╗  ██║     ██║   ██║██║ █╗ ██║
-██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗██╔══╝  ██║     ██║   ██║██║███╗██║
-╚██████╔╝ ╚████╔╝ ███████╗██║  ██║██║     ███████╗╚██████╔╝╚███╔███╔╝
- ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝
-`}</pre>
-                            <div className="mt-4 text-left w-full max-w-md overflow-auto max-h-32">
+                    <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative">
+                        {/* Rapid flash overlay */}
+                        <div className="absolute inset-0 pointer-events-none" style={{
+                            animation: `flash ${Math.max(0.05, 0.5 - stackErrors.length * 0.04)}s infinite alternate`,
+                            background: stackErrors.length > 8 ? 'rgba(255,0,0,0.3)' : 'transparent'
+                        }} />
+                        <div className="flex-grow flex flex-col items-center justify-center p-2 overflow-hidden">
+                            <pre className="text-red-500 text-center text-[6px] leading-tight whitespace-pre animate-pulse">{`
+█▀ ▀█▀ ▄▀█ █▀▀ █▄▀
+▄█ ░█░ █▀█ █▄▄ █░█
+█▀█ █░█ █▀▀ █▀█ █▀▀ █░░ █▀█ █░█░█
+█▄█ ▀▄▀ ██▄ █▀▄ █▀░ █▄▄ █▄█ ▀▄▀▄▀`}</pre>
+                            <div className="mt-2 text-left w-full max-w-md overflow-hidden max-h-40 text-[8px]">
                                 {stackErrors.map((err, i) => (
-                                    <div key={i} className="text-red-400 text-[10px]">{err}</div>
+                                    <div key={i} className="text-red-400" style={{
+                                        animation: `glitch ${0.1 + Math.random() * 0.2}s infinite`
+                                    }}>{err}</div>
                                 ))}
                             </div>
                         </div>
@@ -5839,71 +5652,88 @@ return mysterious();`;
                 );
             }
 
-            // Find windows under this scanner
-            const scannedApps = Object.entries(windows)
-                .filter(([id]) => id !== 'THIRD_EYE' && id !== 'THIRD_EYE_2' && id !== 'DOG_STORY' && id !== 'TRUTH')
-                .filter(([, win]) => win.isOpen && !win.isMin)
-                .map(([id]) => id);
-
             return (
-                <div className="h-full flex flex-col bg-black font-mono text-xs select-none overflow-hidden relative">
+                <div className="h-full w-full overflow-hidden relative bg-black">
                     {/* Scan line effect */}
                     <div
-                        className="absolute left-0 right-0 h-0.5 bg-green-400 opacity-50 pointer-events-none z-10"
-                        style={{ top: `${scanLine}%`, boxShadow: '0 0 10px #4ade80, 0 0 20px #4ade80' }}
+                        className="absolute left-0 right-0 h-1 pointer-events-none z-50"
+                        style={{
+                            top: `${scanLine}%`,
+                            background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.5), transparent)',
+                            boxShadow: '0 0 20px #0f0, 0 0 40px #0f0'
+                        }}
                     />
 
-                    {/* Header */}
-                    <div className="p-2 border-b border-green-900 bg-black flex items-center gap-2 relative z-20">
-                        <div className="w-3 h-3 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-green-400 font-bold">THIRD_EYE.EXE</span>
-                        <span className="text-green-700 text-[10px] ml-auto">◉ SCANNING</span>
-                    </div>
-
-                    {/* Scanner content */}
-                    <div className="flex-grow overflow-auto p-3 relative" style={{ background: 'linear-gradient(180deg, #000 0%, #001a00 100%)' }}>
-                        {/* Grid overlay */}
-                        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{
-                            backgroundImage: 'linear-gradient(#0f0 1px, transparent 1px), linear-gradient(90deg, #0f0 1px, transparent 1px)',
-                            backgroundSize: '20px 20px'
+                    {/* PORTAL VIEW - Alternate reality desktop */}
+                    <div
+                        className="absolute pointer-events-none"
+                        style={{
+                            width: '100vw',
+                            height: '100vh',
+                            left: -windowX,
+                            top: -(windowY + headerHeight),
+                            filter: 'invert(1) hue-rotate(180deg)',
+                            background: '#000'
+                        }}
+                    >
+                        {/* Wireframe grid background */}
+                        <div className="absolute inset-0" style={{
+                            backgroundImage: 'linear-gradient(rgba(0,255,0,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.1) 1px, transparent 1px)',
+                            backgroundSize: '40px 40px'
                         }} />
 
-                        {scannedApps.length > 0 ? (
-                            <div className="space-y-4 relative z-10">
-                                {scannedApps.slice(0, 3).map(id => (
-                                    <div key={id} className="border border-green-900 bg-black/50 p-2">
-                                        <div className="text-green-500 text-[10px] mb-2 flex items-center gap-2">
-                                            <span className="text-green-400">▶</span>
-                                            {windows[id].title}
-                                            <span className="text-green-700 ml-auto">[EXPOSED]</span>
-                                        </div>
-                                        <pre className="text-green-400 text-[9px] leading-relaxed whitespace-pre-wrap opacity-90">
+                        {/* Desktop icons in portal view */}
+                        {desktopIconIds.map(id => {
+                            const pos = iconPositions[id];
+                            if (!pos) return null;
+                            return (
+                                <div
+                                    key={id}
+                                    className="absolute flex flex-col items-center"
+                                    style={{ left: pos.x, top: pos.y, width: 80 }}
+                                >
+                                    <div className="w-12 h-12 border-2 border-green-500 flex items-center justify-center text-green-500 text-xs font-mono">
+                                        {'</>'}
+                                    </div>
+                                    <div className="text-green-500 text-[8px] font-mono mt-1 text-center">{id}</div>
+                                </div>
+                            );
+                        })}
+
+                        {/* Portal windows - show as wireframe with code */}
+                        {Object.entries(windows)
+                            .filter(([id]) => id !== windowId && id !== 'DOG_STORY' && id !== 'TRUTH')
+                            .filter(([, win]) => win.isOpen && !win.isMin)
+                            .map(([id, win]) => (
+                                <div
+                                    key={id}
+                                    className="absolute border-2 border-green-500 bg-black/80"
+                                    style={{
+                                        left: win.x,
+                                        top: win.y,
+                                        width: win.w,
+                                        height: win.h,
+                                    }}
+                                >
+                                    {/* Window header wireframe */}
+                                    <div className="border-b-2 border-green-500 px-2 py-1 flex items-center gap-2">
+                                        <div className="w-2 h-2 border border-green-500" />
+                                        <span className="text-green-500 text-[10px] font-mono">{win.title}</span>
+                                    </div>
+                                    {/* Code content */}
+                                    <div className="p-2 overflow-hidden h-full">
+                                        <pre className="text-green-400 text-[8px] font-mono leading-relaxed whitespace-pre-wrap opacity-80">
                                             {appCode[id] || defaultCode}
                                         </pre>
                                     </div>
-                                ))}
-                                {scannedApps.length > 3 && (
-                                    <div className="text-green-700 text-[10px] text-center">
-                                        +{scannedApps.length - 3} more targets detected...
-                                    </div>
-                                )}
-                            </div>
-                        ) : (
-                            <div className="h-full flex flex-col items-center justify-center text-green-700">
-                                <div className="text-4xl mb-4 opacity-30">◉</div>
-                                <div className="text-center">
-                                    <div className="text-green-500 mb-1">NO TARGETS</div>
-                                    <div className="text-[10px]">Open other windows to scan</div>
                                 </div>
-                            </div>
-                        )}
+                            ))
+                        }
                     </div>
 
-                    {/* Footer */}
-                    <div className="p-1 border-t border-green-900 bg-black text-green-700 text-[10px] flex justify-between">
-                        <span>TARGETS: {scannedApps.length}</span>
-                        <span>SYS.OBSERVER v3.0</span>
-                    </div>
+                    {/* Corner indicators */}
+                    <div className="absolute top-1 left-1 text-green-500 text-[8px] font-mono z-50 bg-black/50 px-1">◉ THIRD_EYE</div>
+                    <div className="absolute bottom-1 right-1 text-green-500 text-[8px] font-mono z-50 bg-black/50 px-1">SCANNING</div>
                 </div>
             );
         };
@@ -6845,8 +6675,8 @@ return mysterious();`;
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
                     case "TRUTH": return <TruthApp />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
-                    case "THIRD_EYE": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
-                    case "THIRD_EYE_2": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
+                    case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
+                    case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} />;
                     case "WORDS": return <WordsApp />;
                     default: return null;
@@ -7390,30 +7220,44 @@ return mysterious();`;
                     if (overlapArea > minArea * 0.3) {
                         if (!stackOverflow) {
                             setStackOverflow(true);
-                            // Start adding errors
+                            // Accelerating errors and commands
                             const errors = [
                                 'FATAL: recursive observation detected',
                                 'ERR: infinite loop in render_self()',
                                 'PANIC: stack depth exceeded',
                                 'SEGFAULT at 0xDEADBEEF',
                                 'kernel: observer paradox imminent',
+                                'sudo rm -rf /reality/*',
                                 'CRITICAL: reality buffer overflow',
+                                'malloc(): corrupted top size',
                                 'ERR: cannot observe the observer',
+                                'kill -9 consciousness',
                                 'FATAL: ego_death.exe initiated',
+                                'chmod 000 /dev/mind',
                                 'PANIC: consciousness stack corrupted',
+                                'dd if=/dev/null of=/self',
                                 'ABORT: meaning.dll not found',
+                                'fork(): resource temporarily unavailable',
+                                'ERR: too many open eyes',
+                                'grep -r "truth" /universe',
+                                'FATAL: perception recursion limit',
+                                'cat /dev/void > /dev/soul',
                             ];
                             let i = 0;
-                            const errorInterval = setInterval(() => {
-                                if (i < errors.length) {
-                                    setStackErrors(prev => [...prev, errors[i]]);
+                            let delay = 800; // Start slow
+                            const addError = () => {
+                                if (i < 50) { // Keep going with random errors
+                                    const err = i < errors.length ? errors[i] : errors[Math.floor(Math.random() * errors.length)];
+                                    setStackErrors(prev => [...prev.slice(-15), err]); // Keep last 15
                                     i++;
+                                    delay = Math.max(50, delay * 0.85); // Accelerate
+                                    setTimeout(addError, delay);
                                 }
-                            }, 800);
+                            };
+                            addError();
 
                             // Crash after 10 seconds
                             stackTimerRef.current = setTimeout(() => {
-                                clearInterval(errorInterval);
                                 setPyramidScreen(true);
                                 setTimeout(() => {
                                     setPyramidScreen(false);
@@ -7430,11 +7274,10 @@ return mysterious();`;
                                         setBootPhase(2);
                                         setBooted(true);
                                     }, 2000);
-                                }, 500);
+                                }, 1500);
                             }, 10000);
 
                             return () => {
-                                clearInterval(errorInterval);
                                 if (stackTimerRef.current) clearTimeout(stackTimerRef.current);
                             };
                         }
