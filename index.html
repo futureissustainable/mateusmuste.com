@@ -217,6 +217,41 @@
             touch-action: none;
         }
 
+        /* Window fold animations */
+        @keyframes window-fold-in {
+            0% {
+                opacity: 0;
+                transform: perspective(800px) rotateX(-90deg) scaleY(0);
+                transform-origin: top center;
+            }
+            100% {
+                opacity: 1;
+                transform: perspective(800px) rotateX(0deg) scaleY(1);
+                transform-origin: top center;
+            }
+        }
+
+        @keyframes window-fold-out {
+            0% {
+                opacity: 1;
+                transform: perspective(800px) rotateX(0deg) scaleY(1);
+                transform-origin: top center;
+            }
+            100% {
+                opacity: 0;
+                transform: perspective(800px) rotateX(-90deg) scaleY(0);
+                transform-origin: top center;
+            }
+        }
+
+        .window-opening {
+            animation: window-fold-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .window-closing {
+            animation: window-fold-out 0.15s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+        }
+
         @keyframes shake {
 
             0%,
@@ -6407,6 +6442,7 @@
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
             const [desktopBg, setDesktopBg] = useState(() => localStorage.getItem('desktop_bg') || 'grid');
             const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0 });
+            const [windowAnimations, setWindowAnimations] = useState({}); // { windowId: 'opening' | 'closing' }
             const [stackOverflow, setStackOverflow] = useState(false);
             const [stackErrors, setStackErrors] = useState([]);
             const [pyramidScreen, setPyramidScreen] = useState(false);
@@ -6846,10 +6882,11 @@
                 topZRef.current += 1;
                 const newZ = topZRef.current;
                 // THIRD_EYE can open multiple copies
+                let targetId = id;
                 if (id === 'THIRD_EYE') {
                     setWindows(p => {
                         if (p.THIRD_EYE.isOpen && !p.THIRD_EYE.isMin) {
-                            // First is open, open second
+                            targetId = 'THIRD_EYE_2';
                             return { ...p, THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: true, isMin: false, z: newZ } };
                         }
                         return { ...p, THIRD_EYE: { ...p.THIRD_EYE, isOpen: true, isMin: false, z: newZ } };
@@ -6857,11 +6894,19 @@
                 } else {
                     setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
                 }
+                // Trigger opening animation
+                setWindowAnimations(p => ({ ...p, [targetId]: 'opening' }));
+                setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n[targetId]; return n; }), 200);
                 setTopZ(newZ);
             }
             const close = (id) => {
                 sounds.windowClose();
-                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+                // Trigger closing animation
+                setWindowAnimations(p => ({ ...p, [id]: 'closing' }));
+                setTimeout(() => {
+                    setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+                    setWindowAnimations(p => { const n = {...p}; delete n[id]; return n; });
+                }, 150);
             };
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
 
@@ -7599,11 +7644,13 @@
                     {/* WINDOWS */}
                     {Object.values(windows).map(win => {
                         const physics = windowPhysics.current[win.id] || { scaleX: 1, scaleY: 1 };
-                        return win.isOpen && !win.isMin && (
+                        const animState = windowAnimations[win.id];
+                        const shouldRender = (win.isOpen || animState === 'closing') && !win.isMin;
+                        return shouldRender && (
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'}`}
+                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={isMobile ? {
                                     zIndex: win.z
                                 } : {
@@ -7612,8 +7659,8 @@
                                     width: win.w,
                                     height: win.h,
                                     zIndex: win.z,
-                                    transform: `scale(${physics.scaleX}, ${physics.scaleY})`,
-                                    transformOrigin: 'center center'
+                                    transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
+                                    transformOrigin: 'top center'
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
