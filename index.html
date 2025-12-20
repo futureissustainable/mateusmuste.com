@@ -1683,15 +1683,6 @@
             return (
                 <div className="h-full flex flex-col bg-white select-none overflow-auto">
                     <div className="p-6 md:p-8 space-y-8">
-                        {/* Intro text */}
-                        <p className="text-sm md:text-[13px] leading-relaxed max-w-md text-gray-600">
-                            This isn't a portfolio. It's a mind system.<br /><br />
-                            Most of what I've built, loved, and learned is here.
-                            Some on display, some buried deeper.<br /><br />
-                            You start with four apps.
-                            Explore. Break things. Have fun.
-                        </p>
-
                         {/* Name */}
                         <h1 className="font-black tracking-tighter leading-[0.85]" style={{ fontSize: 'clamp(4rem, 15vw, 10rem)' }}>
                             MATEUS<br />MUSTE
@@ -1731,13 +1722,6 @@
                             </div>
                         </div>
 
-                        {/* Invitation */}
-                        <div className="border-2 border-black p-4 bg-gray-50">
-                            <p className="font-mono text-[13px]">
-                                Open <span className="font-bold">APPS</span> to begin.<br />
-                                Most programs are hidden. Discover them.
-                            </p>
-                        </div>
                     </div>
                 </div>
             );
@@ -1755,6 +1739,7 @@
             onIntroCompleteRef.current = onIntroComplete;
 
             const introMessages = [
+                "Hi!",
                 "This isn't a portfolio. It's a mind system.",
                 "Most of what I've built, loved, and learned is here.",
                 "Some on display, some buried deeper.",
@@ -1811,10 +1796,10 @@
                 const sendNextMessage = () => {
                     if (cancelled) return;
                     if (messageIndex >= introMessages.length) {
-                        // All messages sent, wait 4 seconds then reveal apps
+                        // All messages sent, wait 2 seconds then reveal apps
                         setTimeout(() => {
                             if (!cancelled) onIntroCompleteRef.current?.();
-                        }, 4000);
+                        }, 2000);
                         return;
                     }
 
@@ -7722,7 +7707,7 @@
             // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
                 "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: '380px', h: '500px', isOpen: false, isMin: false, z: 8, isDesktop: true },
-                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: '700px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
@@ -7754,7 +7739,7 @@
                 "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
             });
 
-            // Handle intro complete - reveal apps one by one, then open ABOUT
+            // Handle intro complete - hide messages, reveal apps one by one, then open ABOUT
             const introCompleteCalledRef = useRef(false);
             const handleIntroComplete = () => {
                 // Guard against multiple calls
@@ -7762,6 +7747,9 @@
                 introCompleteCalledRef.current = true;
 
                 localStorage.setItem('intro_complete', 'true');
+
+                // Hide messages.exe first before revealing apps
+                close('MESSAGES');
                 setRevealingApps(true);
 
                 // Reveal apps one by one with 200ms delay
@@ -7779,7 +7767,6 @@
                     setRevealingApps(false);
                     setRevealedApps([]);
                     open('ABOUT');
-                    close('MESSAGES');
                 }, appsToReveal.length * 200 + 500);
             };
 
