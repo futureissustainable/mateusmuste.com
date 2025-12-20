@@ -188,12 +188,30 @@
             background: #333;
         }
 
-        /* Background Pattern */
-        .desktop-bg {
+        /* Background Patterns */
+        .desktop-bg-grid {
             background-color: #f0f0f0;
             background-image: radial-gradient(#aaa 1px, transparent 1px);
             background-size: 20px 20px;
         }
+        .desktop-bg-solid {
+            background-color: #e5e5e5;
+        }
+        .desktop-bg-ascii {
+            background-color: #f0f0f0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='monospace' font-size='10' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='monospace' font-size='10' fill='%23bbb'%3E//a%3C/text%3E%3Ctext x='5' y='35' font-family='monospace' font-size='10' fill='%23bbb'%3E%7B%7D%3C/text%3E%3Ctext x='35' y='35' font-family='monospace' font-size='10' fill='%23ccc'%3E%3C/%3E%3C/text%3E%3Ctext x='20' y='55' font-family='monospace' font-size='10' fill='%23bbb'%3E***%3C/text%3E%3C/svg%3E");
+            background-size: 60px 60px;
+        }
+
+        /* Custom Cursors */
+        .cursor-default { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M6 2h2v2H6zM8 4h2v2H8zm2 4h2v2h-2zm0-2h2v2h-2zm2 4h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zm0 2h2v2h-2zm-2 0h2v2h-2zm-6 2h2v2H8zm2-2h2v2h-2zm-4-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6z'/%3E%3C/svg%3E") 4 4, auto; }
+        .cursor-pointer { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M14 4h-2v2h-2v6H8v2H6v2h2v2h2v2h2v-2h4v-2h2v-2h2v-2h-4v-2h-2zM12 2h2v2h-2zm-2 4h2v2h-2zm-2 2h2v4H8z'/%3E%3C/svg%3E") 6 2, pointer; }
+        .cursor-grab { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M8 6h2v4H8zm4 0h2v4h-2zm4 0h2v4h-2zm2 4h2v2h-2v6h-2v2H8v-2H6v-6H4v-2h2V8h2v2h2V8h2v2h2V8h2v2h2z'/%3E%3C/svg%3E") 12 12, grab; }
+        .cursor-grabbing { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M18 11h2v2h-2v5h-2v2H8v-2H6v-5H4v-2h2V9h2v2h2V9h2v2h2V9h2v2h2z'/%3E%3C/svg%3E") 12 12, grabbing; }
+
+        /* Apply cursors globally */
+        body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M6 2h2v2H6zM8 4h2v2H8zm2 4h2v2h-2zm0-2h2v2h-2zm2 4h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zm0 2h2v2h-2zm-2 0h2v2h-2zm-6 2h2v2H8zm2-2h2v2h-2zm-4-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6z'/%3E%3C/svg%3E") 4 4, auto; }
+        button, a, [role="button"], .clickable { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M14 4h-2v2h-2v6H8v2H6v2h2v2h2v2h2v-2h4v-2h2v-2h2v-2h-4v-2h-2zM12 2h2v2h-2zm-2 4h2v2h-2zm-2 2h2v4H8z'/%3E%3C/svg%3E") 6 2, pointer; }
 
         canvas {
             touch-action: none;
@@ -6387,6 +6405,8 @@
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
+            const [desktopBg, setDesktopBg] = useState(() => localStorage.getItem('desktop_bg') || 'grid');
+            const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0 });
             const [stackOverflow, setStackOverflow] = useState(false);
             const [stackErrors, setStackErrors] = useState([]);
             const [pyramidScreen, setPyramidScreen] = useState(false);
@@ -7433,9 +7453,20 @@
                 return <canvas ref={canvasRef} className="matrix-rain" />;
             };
 
+            const handleContextMenu = (e) => {
+                    e.preventDefault();
+                    setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                };
+
+                const changeBackground = (bg) => {
+                    setDesktopBg(bg);
+                    localStorage.setItem('desktop_bg', bg);
+                    setContextMenu({ show: false, x: 0, y: 0 });
+                };
+
             return (
                 <div
-                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
+                    className={`h-screen w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         handleIconMouseMove(e);
@@ -7445,12 +7476,47 @@
                         handleMouseUp();
                         handleIconMouseUp(open);
                     }}
+                    onClick={() => contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 })}
+                    onContextMenu={handleContextMenu}
                     onDrop={handleDesktopDrop}
                     onDragOver={handleDesktopDragOver}
                     onDragEnd={() => setFolderDrag(null)}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
+
+                    {/* Context Menu */}
+                    {contextMenu.show && (
+                        <div
+                            className="fixed z-[9999] bg-white border-2 border-black shadow-lg font-mono text-xs"
+                            style={{ left: contextMenu.x, top: contextMenu.y }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="px-3 py-2 border-b border-gray-300 font-bold text-gray-500">BACKGROUND</div>
+                            <button
+                                onClick={() => changeBackground('grid')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'grid' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-100" style={{ backgroundImage: 'radial-gradient(#aaa 1px, transparent 1px)', backgroundSize: '4px 4px' }}></span>
+                                GRID {desktopBg === 'grid' && '✓'}
+                            </button>
+                            <button
+                                onClick={() => changeBackground('solid')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'solid' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-200"></span>
+                                SOLID {desktopBg === 'solid' && '✓'}
+                            </button>
+                            <button
+                                onClick={() => changeBackground('ascii')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'ascii' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-100 font-mono text-[6px] leading-none flex items-center justify-center">01</span>
+                                ASCII {desktopBg === 'ascii' && '✓'}
+                            </button>
+                        </div>
+                    )}
+
                     {/* DESKTOP ICONS - Freely positionable */}
                     {!isMobile && desktopIcons.map(appId => {
                         const app = windows[appId];
