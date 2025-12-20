@@ -6724,13 +6724,17 @@
                 if (stored) {
                     try { return JSON.parse(stored); } catch { }
                 }
+                const mobile = window.innerWidth < 768;
+                const iconSize = 80;
+                const padding = 8;
+                const topOffset = mobile ? 56 : 16; // Account for mobile taskbar at top
                 return {
-                    SYSTEM: { x: 16, y: 16 },
-                    FILES: { x: 16, y: 110 },
-                    APPS: { x: 16, y: 204 },
-                    CONTACT: { x: 16, y: 298 },
-                    TRUTH: { x: 16, y: 392 },
-                    TRASH: { x: window.innerWidth - 110, y: window.innerHeight - 140 }
+                    SYSTEM: { x: padding, y: topOffset },
+                    FILES: { x: padding, y: topOffset + iconSize },
+                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    CONTACT: { x: padding, y: topOffset + iconSize * 3 },
+                    TRUTH: { x: padding, y: topOffset + iconSize * 4 },
+                    TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
                 };
             });
             const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
@@ -7374,6 +7378,30 @@
                 return () => window.removeEventListener('resize', handleResize);
             }, []);
 
+            // Reposition icons that are off-screen on mobile
+            useEffect(() => {
+                if (isMobile) {
+                    const maxX = window.innerWidth - 80;
+                    const maxY = window.innerHeight - 96;
+                    const minY = 56;
+                    setIconPositions(prev => {
+                        const updated = { ...prev };
+                        let needsUpdate = false;
+                        Object.keys(prev).forEach(id => {
+                            const pos = prev[id];
+                            if (pos.x > maxX || pos.y > maxY || pos.y < minY) {
+                                needsUpdate = true;
+                                updated[id] = {
+                                    x: Math.max(8, Math.min(maxX, pos.x)),
+                                    y: Math.max(minY, Math.min(maxY, pos.y))
+                                };
+                            }
+                        });
+                        return needsUpdate ? updated : prev;
+                    });
+                }
+            }, [isMobile]);
+
             // Window Ops
             const focus = (id) => {
                 topZRef.current += 1;
@@ -7479,6 +7507,11 @@
             // Touch handlers for window dragging (mobile)
             const handleWindowTouchStart = (e, id) => {
                 if (e.touches.length !== 1) return;
+                // On mobile, windows are fixed fullscreen - no dragging
+                if (isMobile) {
+                    focus(id);
+                    return;
+                }
                 const touch = e.touches[0];
                 focus(id);
                 const win = windows[id];
@@ -7620,8 +7653,8 @@
 
                     // Constrain to screen bounds
                     const maxX = window.innerWidth - ICON_SIZE;
-                    const maxY = window.innerHeight - 60 - ICON_SIZE; // Account for taskbar
-                    const minY = isMobile ? 80 : 0;
+                    const maxY = window.innerHeight - ICON_SIZE - 16;
+                    const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                     const newX = Math.max(0, Math.min(maxX, e.clientX - iconDrag.offsetX));
                     const newY = Math.max(minY, Math.min(maxY, e.clientY - iconDrag.offsetY));
@@ -7710,8 +7743,8 @@
                 lastIconMousePos.current = { x: touch.clientX, y: touch.clientY, time: now };
 
                 const maxX = window.innerWidth - ICON_SIZE;
-                const maxY = window.innerHeight - 60 - ICON_SIZE;
-                const minY = isMobile ? 80 : 0;
+                const maxY = window.innerHeight - ICON_SIZE - 16;
+                const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                 const newX = Math.max(0, Math.min(maxX, touch.clientX - iconDrag.offsetX));
                 const newY = Math.max(minY, Math.min(maxY, touch.clientY - iconDrag.offsetY));
@@ -7813,8 +7846,8 @@
                             let newY = prev[id].y + physics.velY;
 
                             const maxX = window.innerWidth - ICON_SIZE;
-                            const maxY = window.innerHeight - 60 - ICON_SIZE;
-                            const minY = isMobile ? 80 : 0;
+                            const maxY = window.innerHeight - ICON_SIZE - 16;
+                            const minY = isMobile ? 56 : 0;
 
                             // Constrain to screen bounds
                             if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
@@ -8516,15 +8549,15 @@
                                 onTouchStart={() => focus(win.id)}
                                 className={`flex flex-col bg-white border-2 border-black absolute window-shadow ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={{
-                                    left: win.x,
-                                    top: win.y,
+                                    left: isMobile ? 8 : win.x,
+                                    top: isMobile ? 52 : win.y,
                                     width: isMobile ? 'calc(100% - 16px)' : win.w,
-                                    height: isMobile ? 'calc(100% - 80px)' : win.h,
+                                    height: isMobile ? 'calc(100% - 116px)' : win.h,
                                     zIndex: win.z,
                                     transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
                                     transformOrigin: 'top center',
                                     maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
-                                    maxHeight: isMobile ? 'calc(100% - 80px)' : undefined
+                                    maxHeight: isMobile ? 'calc(100% - 116px)' : undefined
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
