@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>MATEUSMUSTE // OS</title>
     <meta name="description" content="Interactive brutalist portfolio OS by Mateus Muste. A creative web experience featuring games, apps, and hidden easter eggs.">
     <meta name="author" content="Mateus Muste">
@@ -116,6 +116,14 @@
             padding: 0;
             user-select: none;
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Mobile safe area support */
+        @supports (padding: env(safe-area-inset-top)) {
+            .mobile-taskbar-top {
+                top: env(safe-area-inset-top, 0px) !important;
+                padding-top: 4px;
+            }
         }
 
         /* Global hover transitions */
@@ -7102,9 +7110,9 @@
                     try { return JSON.parse(stored); } catch { }
                 }
                 const mobile = window.innerWidth < 768;
-                const iconSize = 80;
-                const padding = 8;
-                const topOffset = mobile ? 56 : 16; // Account for mobile taskbar at top
+                const iconSize = 100; // Spacing between icons (doubled grid)
+                const padding = 16;
+                const topOffset = mobile ? 80 : 16; // Account for mobile taskbar + safe area at top
                 return {
                     MESSAGES: { x: padding, y: topOffset },
                     ABOUT: { x: padding, y: topOffset },
@@ -7124,9 +7132,9 @@
             const iconHoldTimer = useRef(null);
             const iconPendingDrag = useRef(null); // Stores pending drag info before hold completes
 
-            // Snap icon position to grid (80px grid)
+            // Snap icon position to grid (160px grid - double spacing)
             const snapToGrid = (x, y) => {
-                const gridSize = 80;
+                const gridSize = 160;
                 return {
                     x: Math.round(x / gridSize) * gridSize + 8,
                     y: Math.max(16, Math.round(y / gridSize) * gridSize)
@@ -8857,16 +8865,15 @@
                         onTouchStart={playBootSound}
                     >
                         <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{`
-██╗   ██╗██╗  ████████╗██████╗  █████╗     ██╗███╗   ██╗████████╗
-██║   ██║██║  ╚══██╔══╝██╔══██╗██╔══██╗    ██║████╗  ██║╚══██╔══╝
-██║   ██║██║     ██║   ██████╔╝███████║    ██║██╔██╗ ██║   ██║
-██║   ██║██║     ██║   ██╔══██╗██╔══██║    ██║██║╚██╗██║   ██║
-╚██████╔╝███████╗██║   ██║  ██║██║  ██║    ██║██║ ╚████║   ██║
- ╚═════╝ ╚══════╝╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝   ╚═╝
+ _   _ _    _____ ____    _       ___ _   _ _____
+| | | | |  |_   _|  _ \\  / \\     |_ _| \\ | |_   _|
+| | | | |    | | | |_) |/ _ \\     | ||  \\| | | |
+| |_| | |____| | |  _ </ ___ \\ _  | || |\\  | | |
+ \\___/|______|_| |_| \\_/_/   \\_(_)|___|_| \\_| |_|
 `}</pre>
-                        <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
+                        <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
                         {visitMessage && (
-                            <div className={`text-[10px] tracking-wider mt-3 mb-6 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
+                            <div className={`text-[10px] tracking-wider mt-3 mb-6 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
                         )}
                         {!visitMessage && <div className="mb-10" />}
                         <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -9144,7 +9151,7 @@
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
-                        const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 70 : 16 };
+                        const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 80 : 16 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
                         const isSelected = selectedIcon === app.id;
                         const isRevealing = revealingApps && revealedApps.includes(app.id);
@@ -9247,7 +9254,7 @@
                     })}
 
                     {/* TASKBAR */}
-                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
+                    <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black mobile-taskbar-top' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
                         <div className={`bg-black text-white py-1 font-black select-none tracking-wider ${isMobile ? 'px-1 text-[8px]' : 'px-2 text-xs mr-2'}`}>{isMobile ? 'MM.COM' : 'MATEUSMUSTE.COM'}</div>
                         <div className={`flex gap-1 ${isMobile ? 'overflow-x-auto flex-nowrap' : ''}`}>
                             {Object.values(windows).map(win => {
@@ -9257,7 +9264,7 @@
                                         onClick={() => { if (win.isMin) toggleMin(win.id); focus(win.id) }}
                                         className={`flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 border-2 border-black font-mono text-xs font-bold transition-all flex-shrink-0 ${win.z === topZ && !win.isMin ? 'bg-black text-white btn-shadow' : 'bg-white hover:translate-y-[-2px]'}`}
                                     >
-                                        <IconCmp size={14} />
+                                        <IconCmp size={14} className={win.z === topZ && !win.isMin ? 'invert' : ''} />
                                         <span className="uppercase hidden md:inline">{win.title}</span>
                                     </button>
                                 );
@@ -9272,10 +9279,15 @@
                             {isMuted ? <Icons.SpeakerOff size={16} /> : <Icons.Speaker size={16} />}
                         </button>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
-                            {battery.level !== null && (
+                            {battery.level !== null ? (
                                 <>
                                     <span className="text-gray-500">BATTERY:</span>
                                     <span className="font-bold flex items-center gap-1">{battery.charging && <Icons.Charging size={12} />}{battery.level}%</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span className="text-gray-500">POWER:</span>
+                                    <span className="font-bold">AC</span>
                                 </>
                             )}
                         </div>
