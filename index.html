@@ -188,15 +188,68 @@
             background: #333;
         }
 
-        /* Background Pattern */
-        .desktop-bg {
+        /* Background Patterns */
+        .desktop-bg-grid {
             background-color: #f0f0f0;
             background-image: radial-gradient(#aaa 1px, transparent 1px);
             background-size: 20px 20px;
         }
+        .desktop-bg-solid {
+            background-color: #e5e5e5;
+        }
+        .desktop-bg-ascii {
+            background-color: #f0f0f0;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='monospace' font-size='10' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='monospace' font-size='10' fill='%23bbb'%3E//a%3C/text%3E%3Ctext x='5' y='35' font-family='monospace' font-size='10' fill='%23bbb'%3E%7B%7D%3C/text%3E%3Ctext x='35' y='35' font-family='monospace' font-size='10' fill='%23ccc'%3E%3C/%3E%3C/text%3E%3Ctext x='20' y='55' font-family='monospace' font-size='10' fill='%23bbb'%3E***%3C/text%3E%3C/svg%3E");
+            background-size: 60px 60px;
+        }
+
+        /* Custom Cursors */
+        .cursor-default { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M6 2h2v2H6zM8 4h2v2H8zm2 4h2v2h-2zm0-2h2v2h-2zm2 4h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zm0 2h2v2h-2zm-2 0h2v2h-2zm-6 2h2v2H8zm2-2h2v2h-2zm-4-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6z'/%3E%3C/svg%3E") 4 4, auto; }
+        .cursor-pointer { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M14 4h-2v2h-2v6H8v2H6v2h2v2h2v2h2v-2h4v-2h2v-2h2v-2h-4v-2h-2zM12 2h2v2h-2zm-2 4h2v2h-2zm-2 2h2v4H8z'/%3E%3C/svg%3E") 6 2, pointer; }
+        .cursor-grab { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M8 6h2v4H8zm4 0h2v4h-2zm4 0h2v4h-2zm2 4h2v2h-2v6h-2v2H8v-2H6v-6H4v-2h2V8h2v2h2V8h2v2h2V8h2v2h2z'/%3E%3C/svg%3E") 12 12, grab; }
+        .cursor-grabbing { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M18 11h2v2h-2v5h-2v2H8v-2H6v-5H4v-2h2V9h2v2h2V9h2v2h2V9h2v2h2z'/%3E%3C/svg%3E") 12 12, grabbing; }
+
+        /* Apply cursors globally */
+        body { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M6 2h2v2H6zM8 4h2v2H8zm2 4h2v2h-2zm0-2h2v2h-2zm2 4h2v2h-2zm2 2h2v2h-2zm2 2h2v2h-2zm0 2h2v2h-2zm-2 0h2v2h-2zm-6 2h2v2H8zm2-2h2v2h-2zm-4-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6zm0-2h2v2H6z'/%3E%3C/svg%3E") 4 4, auto; }
+        button, a, [role="button"], .clickable { cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M14 4h-2v2h-2v6H8v2H6v2h2v2h2v2h2v-2h4v-2h2v-2h2v-2h-4v-2h-2zM12 2h2v2h-2zm-2 4h2v2h-2zm-2 2h2v4H8z'/%3E%3C/svg%3E") 6 2, pointer; }
 
         canvas {
             touch-action: none;
+        }
+
+        /* Window fold animations */
+        @keyframes window-fold-in {
+            0% {
+                opacity: 0;
+                transform: perspective(800px) rotateX(-90deg) scaleY(0);
+                transform-origin: top center;
+            }
+            100% {
+                opacity: 1;
+                transform: perspective(800px) rotateX(0deg) scaleY(1);
+                transform-origin: top center;
+            }
+        }
+
+        @keyframes window-fold-out {
+            0% {
+                opacity: 1;
+                transform: perspective(800px) rotateX(0deg) scaleY(1);
+                transform-origin: top center;
+            }
+            100% {
+                opacity: 0;
+                transform: perspective(800px) rotateX(-90deg) scaleY(0);
+                transform-origin: top center;
+            }
+        }
+
+        .window-opening {
+            animation: window-fold-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+
+        .window-closing {
+            animation: window-fold-out 0.15s cubic-bezier(0.55, 0, 1, 0.45) forwards;
         }
 
         @keyframes shake {
@@ -474,19 +527,17 @@
             bounceIcon: (vel = 1) => {
                 const ctx = getAudioCtx();
                 const now = ctx.currentTime;
-                const dist = makeDistortion(ctx, 8);
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(dist);
-                dist.connect(gain);
+                osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(500 + (vel * 200), now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-                gain.gain.setValueAtTime(0.25 * Math.min(vel, 1.2), now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.frequency.setValueAtTime(600 + (vel * 150), now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+                gain.gain.setValueAtTime(0.12 * Math.min(vel, 1), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.start(now);
-                osc.stop(now + 0.12);
+                osc.stop(now + 0.08);
             },
 
             bootSequence: () => {
@@ -722,6 +773,10 @@
             AboutFolder: (p) => <PixelartIcon name="user" {...p} />,
             // Third Eye - code viewer
             ThirdEye: (p) => <PixelartIcon name="bullseye" {...p} />,
+            // Browser
+            Browser: (p) => <PixelartIcon name="layout-sidebar-left" {...p} />,
+            // Words game
+            Words: (p) => <PixelartIcon name="article" {...p} />,
         };
 
         // --- SHARED DOG SPRITE ---
@@ -5930,9 +5985,11 @@
                     { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
                     { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
                     { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
-                    { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' }
+                    { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
+                    { id: 'WORDS', title: 'WORDS.EXE', icon: 'Words' }
                 ],
                 PRODUCTIVITY: [
+                    { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                     { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
                     { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
@@ -6037,6 +6094,281 @@
             );
         };
 
+        // --- BROWSER - App search with autocomplete ---
+        const BrowserApp = ({ onOpenApp }) => {
+            const [url, setUrl] = useState('');
+            const [showSuggestions, setShowSuggestions] = useState(false);
+
+            // All searchable items (apps from all categories + desktop items)
+            const allItems = [
+                // Desktop items
+                { id: 'SYSTEM', title: 'SYSTEM_INFO', icon: 'Terminal' },
+                { id: 'FILES', title: 'MEDIA_LIB', icon: 'Folder' },
+                { id: 'APPS', title: 'APPS', icon: 'Apps' },
+                { id: 'CONTACT', title: 'CONTACT', icon: 'Email' },
+                // Games
+                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
+                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
+                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' },
+                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' },
+                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' },
+                { id: 'WORDS', title: 'WORDS.EXE', icon: 'Words' },
+                // Productivity
+                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
+                { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
+                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
+                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
+                { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
+                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
+                { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
+                { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
+                // About
+                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
+                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
+                { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
+                { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' }
+            ];
+
+            const filteredItems = url.trim()
+                ? allItems.filter(item =>
+                    item.title.toLowerCase().includes(url.toLowerCase()) ||
+                    item.id.toLowerCase().includes(url.toLowerCase())
+                ).slice(0, 8)
+                : [];
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const normalized = url.toLowerCase().replace(/^https?:\/\//, '').replace(/\/$/, '');
+                if (normalized === 'mateusmuste.com' || normalized === 'www.mateusmuste.com') {
+                    window.location.reload();
+                }
+            };
+
+            const handleSelect = (item) => {
+                if (onOpenApp) onOpenApp(item.id);
+                setUrl('');
+                setShowSuggestions(false);
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    {/* Browser toolbar */}
+                    <div className="p-2 border-b-2 border-black bg-gray-100 flex items-center gap-2">
+                        <button className="p-1 border-2 border-black bg-white hover:bg-black hover:text-white" disabled>
+                            <Icons.Back size={16} />
+                        </button>
+                        <form onSubmit={handleSubmit} className="flex-grow relative">
+                            <input
+                                type="text"
+                                value={url}
+                                onChange={(e) => { setUrl(e.target.value); setShowSuggestions(true); }}
+                                onFocus={() => setShowSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                                placeholder="Search apps or enter mateusmuste.com..."
+                                className="w-full px-3 py-1 border-2 border-black font-mono text-sm focus:outline-none"
+                            />
+                            {showSuggestions && filteredItems.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 border-2 border-t-0 border-black bg-white z-50 max-h-64 overflow-y-auto">
+                                    {filteredItems.map((item) => {
+                                        const ItemIcon = Icons[item.icon] || Icons.FileDoc;
+                                        return (
+                                            <button
+                                                key={item.id}
+                                                onClick={() => handleSelect(item)}
+                                                className="w-full px-3 py-2 flex items-center gap-2 hover:bg-black hover:text-white border-b border-gray-200 last:border-b-0"
+                                            >
+                                                <ItemIcon size={16} />
+                                                <span className="font-mono text-xs">{item.title}</span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
+                        </form>
+                    </div>
+                    {/* Browser content */}
+                    <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
+                        <Icons.Browser size={64} />
+                        <div className="font-mono text-lg font-bold mt-4 mb-2">MUSTE://BROWSER</div>
+                        <div className="font-mono text-xs text-gray-500 text-center max-w-xs">
+                            Search for apps by name or type "mateusmuste.com" to reboot the system
+                        </div>
+                    </div>
+                    <div className="app-footer">
+                        <span className="app-footer-text">SEARCH • NAVIGATE • DISCOVER</span>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- WORDS - Wordle clone ---
+        const WordsApp = () => {
+            const WORD_LIST = ['PIXEL', 'CODES', 'STACK', 'MOUSE', 'CLICK', 'BYTES', 'LOOPS', 'ARRAY', 'BLOCK', 'CACHE', 'DEBUG', 'FRAME', 'GRAPH', 'INPUT', 'LOGIC', 'PARSE', 'QUERY', 'SHELL', 'TABLE', 'VIRUS'];
+            const [targetWord, setTargetWord] = useState(() => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]);
+            const [guesses, setGuesses] = useState([]);
+            const [currentGuess, setCurrentGuess] = useState('');
+            const [gameState, setGameState] = useState('playing'); // 'playing', 'won', 'lost'
+            const [shake, setShake] = useState(false);
+            const inputRef = useRef(null);
+
+            const KEYBOARD_ROWS = [
+                ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
+                ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
+                ['ENTER', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '⌫']
+            ];
+
+            const getLetterStatus = (letter, index, word) => {
+                if (word[index] === letter) return 'correct';
+                if (targetWord.includes(letter)) return 'present';
+                return 'absent';
+            };
+
+            const getKeyStatus = (key) => {
+                let status = 'unused';
+                for (const guess of guesses) {
+                    for (let i = 0; i < guess.length; i++) {
+                        if (guess[i] === key) {
+                            const letterStatus = getLetterStatus(key, i, guess);
+                            if (letterStatus === 'correct') return 'correct';
+                            if (letterStatus === 'present' && status !== 'correct') status = 'present';
+                            if (letterStatus === 'absent' && status === 'unused') status = 'absent';
+                        }
+                    }
+                }
+                return status;
+            };
+
+            const handleKey = (key) => {
+                if (gameState !== 'playing') return;
+
+                if (key === 'ENTER') {
+                    if (currentGuess.length !== 5) {
+                        setShake(true);
+                        setTimeout(() => setShake(false), 300);
+                        return;
+                    }
+                    const newGuesses = [...guesses, currentGuess];
+                    setGuesses(newGuesses);
+                    if (currentGuess === targetWord) {
+                        setGameState('won');
+                        sounds.success();
+                    } else if (newGuesses.length >= 6) {
+                        setGameState('lost');
+                        sounds.gameOver();
+                    }
+                    setCurrentGuess('');
+                } else if (key === '⌫') {
+                    setCurrentGuess(prev => prev.slice(0, -1));
+                } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
+                    setCurrentGuess(prev => prev + key);
+                }
+            };
+
+            const resetGame = () => {
+                setTargetWord(WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]);
+                setGuesses([]);
+                setCurrentGuess('');
+                setGameState('playing');
+            };
+
+            // Keyboard handler
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.key === 'Enter') handleKey('ENTER');
+                    else if (e.key === 'Backspace') handleKey('⌫');
+                    else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toUpperCase());
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [currentGuess, gameState, guesses]);
+
+            const statusColors = {
+                correct: 'bg-black text-white',
+                present: 'bg-gray-400 text-white',
+                absent: 'bg-gray-200 text-gray-500',
+                empty: 'bg-white border-2 border-black',
+                unused: 'bg-white border-2 border-black hover:bg-gray-100'
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="p-2 border-b-2 border-black bg-white flex items-center justify-between">
+                        <div className="font-mono text-xs font-bold">WORDS.EXE</div>
+                        <button onClick={resetGame} className="font-mono text-xs px-2 py-1 border-2 border-black hover:bg-black hover:text-white">
+                            NEW GAME
+                        </button>
+                    </div>
+
+                    {/* Game board */}
+                    <div className="flex-grow flex flex-col items-center justify-center p-4 bg-gray-50">
+                        <div className={`flex flex-col gap-1 ${shake ? 'animate-shake' : ''}`} style={{animation: shake ? 'shake 0.3s ease' : 'none'}}>
+                            {[...Array(6)].map((_, rowIndex) => {
+                                const guess = guesses[rowIndex];
+                                const isCurrentRow = rowIndex === guesses.length;
+                                return (
+                                    <div key={rowIndex} className="flex gap-1">
+                                        {[...Array(5)].map((_, colIndex) => {
+                                            let letter = '';
+                                            let status = 'empty';
+
+                                            if (guess) {
+                                                letter = guess[colIndex];
+                                                status = getLetterStatus(letter, colIndex, guess);
+                                            } else if (isCurrentRow && currentGuess[colIndex]) {
+                                                letter = currentGuess[colIndex];
+                                            }
+
+                                            return (
+                                                <div
+                                                    key={colIndex}
+                                                    className={`w-10 h-10 flex items-center justify-center font-mono text-lg font-bold ${statusColors[status]}`}
+                                                >
+                                                    {letter}
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Game over message */}
+                        {gameState !== 'playing' && (
+                            <div className="mt-4 text-center">
+                                <div className="font-mono text-sm font-bold">
+                                    {gameState === 'won' ? '🎉 YOU WIN!' : `GAME OVER - WORD: ${targetWord}`}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Keyboard */}
+                    <div className="p-2 bg-white border-t-2 border-black">
+                        {KEYBOARD_ROWS.map((row, rowIndex) => (
+                            <div key={rowIndex} className="flex justify-center gap-1 mb-1">
+                                {row.map((key) => {
+                                    const keyStatus = key.length === 1 ? getKeyStatus(key) : 'unused';
+                                    return (
+                                        <button
+                                            key={key}
+                                            onClick={() => handleKey(key)}
+                                            className={`${key.length > 1 ? 'px-2' : 'w-7'} h-9 font-mono text-xs font-bold ${statusColors[keyStatus]}`}
+                                        >
+                                            {key}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
         // --- CONTACT - Simple email contact ---
         const ContactApp = () => {
             const [copied, setCopied] = useState(false);
@@ -6108,6 +6440,9 @@
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
+            const [desktopBg, setDesktopBg] = useState(() => localStorage.getItem('desktop_bg') || 'grid');
+            const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0 });
+            const [windowAnimations, setWindowAnimations] = useState({}); // { windowId: 'opening' | 'closing' }
             const [stackOverflow, setStackOverflow] = useState(false);
             const [stackErrors, setStackErrors] = useState([]);
             const [pyramidScreen, setPyramidScreen] = useState(false);
@@ -6310,7 +6645,9 @@
                 "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
                 "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 },
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: '450px', h: '400px', isOpen: false, isMin: false, z: 36 },
-                "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 }
+                "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 },
+                "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: '500px', h: '400px', isOpen: false, isMin: false, z: 38 },
+                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: '320px', h: '520px', isOpen: false, isMin: false, z: 39 }
             });
 
             // Render window content based on ID
@@ -6343,6 +6680,8 @@
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
+                    case "BROWSER": return <BrowserApp onOpenApp={open} />;
+                    case "WORDS": return <WordsApp />;
                     default: return null;
                 }
             };
@@ -6353,7 +6692,7 @@
             const windowPhysics = useRef({}); // { windowId: { velX, velY, scaleX, scaleY } }
 
             // Physics constants
-            const FRICTION = 0.92; // Velocity decay per frame (ice-like)
+            const FRICTION = 0.95; // Velocity decay per frame (ice-like, slightly reduced friction)
             const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
             const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
@@ -6509,7 +6848,6 @@
                     setBootPhase(0);
                     setTimeout(() => {
                         setBootPhase(1); // kernel boot
-                        sounds.bootSequence();
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
@@ -6518,7 +6856,6 @@
                 } else {
                     // Desktop: Go straight to kernel boot
                     setBootPhase(1);
-                    sounds.bootSequence();
                     setTimeout(() => {
                         setBootPhase(2);
                         setBooted(true);
@@ -6545,10 +6882,11 @@
                 topZRef.current += 1;
                 const newZ = topZRef.current;
                 // THIRD_EYE can open multiple copies
+                let targetId = id;
                 if (id === 'THIRD_EYE') {
                     setWindows(p => {
                         if (p.THIRD_EYE.isOpen && !p.THIRD_EYE.isMin) {
-                            // First is open, open second
+                            targetId = 'THIRD_EYE_2';
                             return { ...p, THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: true, isMin: false, z: newZ } };
                         }
                         return { ...p, THIRD_EYE: { ...p.THIRD_EYE, isOpen: true, isMin: false, z: newZ } };
@@ -6556,11 +6894,19 @@
                 } else {
                     setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
                 }
+                // Trigger opening animation
+                setWindowAnimations(p => ({ ...p, [targetId]: 'opening' }));
+                setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n[targetId]; return n; }), 200);
                 setTopZ(newZ);
             }
             const close = (id) => {
                 sounds.windowClose();
-                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+                // Trigger closing animation
+                setWindowAnimations(p => ({ ...p, [id]: 'closing' }));
+                setTimeout(() => {
+                    setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+                    setWindowAnimations(p => { const n = {...p}; delete n[id]; return n; });
+                }, 150);
             };
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
 
@@ -6568,7 +6914,6 @@
             const handleMouseDown = (e, id) => {
                 e.preventDefault();
                 focus(id);
-                sounds.dragStart();
                 const win = windows[id];
                 const physics = initWindowPhysics(id);
                 // Stop any existing velocity
@@ -6622,7 +6967,6 @@
 
             const handleMouseUp = () => {
                 // Keep velocity for physics, just release the drag
-                sounds.dragStop();
                 setDrag({ id: null, offsetX: 0, offsetY: 0 });
             };
 
@@ -7154,9 +7498,20 @@
                 return <canvas ref={canvasRef} className="matrix-rain" />;
             };
 
+            const handleContextMenu = (e) => {
+                    e.preventDefault();
+                    setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                };
+
+                const changeBackground = (bg) => {
+                    setDesktopBg(bg);
+                    localStorage.setItem('desktop_bg', bg);
+                    setContextMenu({ show: false, x: 0, y: 0 });
+                };
+
             return (
                 <div
-                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
+                    className={`h-screen w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         handleIconMouseMove(e);
@@ -7166,12 +7521,47 @@
                         handleMouseUp();
                         handleIconMouseUp(open);
                     }}
+                    onClick={() => contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 })}
+                    onContextMenu={handleContextMenu}
                     onDrop={handleDesktopDrop}
                     onDragOver={handleDesktopDragOver}
                     onDragEnd={() => setFolderDrag(null)}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
+
+                    {/* Context Menu */}
+                    {contextMenu.show && (
+                        <div
+                            className="fixed z-[9999] bg-white border-2 border-black shadow-lg font-mono text-xs"
+                            style={{ left: contextMenu.x, top: contextMenu.y }}
+                            onClick={(e) => e.stopPropagation()}
+                        >
+                            <div className="px-3 py-2 border-b border-gray-300 font-bold text-gray-500">BACKGROUND</div>
+                            <button
+                                onClick={() => changeBackground('grid')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'grid' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-100" style={{ backgroundImage: 'radial-gradient(#aaa 1px, transparent 1px)', backgroundSize: '4px 4px' }}></span>
+                                GRID {desktopBg === 'grid' && '✓'}
+                            </button>
+                            <button
+                                onClick={() => changeBackground('solid')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'solid' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-200"></span>
+                                SOLID {desktopBg === 'solid' && '✓'}
+                            </button>
+                            <button
+                                onClick={() => changeBackground('ascii')}
+                                className={`w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2 ${desktopBg === 'ascii' ? 'bg-gray-100' : ''}`}
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-100 font-mono text-[6px] leading-none flex items-center justify-center">01</span>
+                                ASCII {desktopBg === 'ascii' && '✓'}
+                            </button>
+                        </div>
+                    )}
+
                     {/* DESKTOP ICONS - Freely positionable */}
                     {!isMobile && desktopIcons.map(appId => {
                         const app = windows[appId];
@@ -7254,11 +7644,13 @@
                     {/* WINDOWS */}
                     {Object.values(windows).map(win => {
                         const physics = windowPhysics.current[win.id] || { scaleX: 1, scaleY: 1 };
-                        return win.isOpen && !win.isMin && (
+                        const animState = windowAnimations[win.id];
+                        const shouldRender = (win.isOpen || animState === 'closing') && !win.isMin;
+                        return shouldRender && (
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'}`}
+                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={isMobile ? {
                                     zIndex: win.z
                                 } : {
@@ -7267,8 +7659,8 @@
                                     width: win.w,
                                     height: win.h,
                                     zIndex: win.z,
-                                    transform: `scale(${physics.scaleX}, ${physics.scaleY})`,
-                                    transformOrigin: 'center center'
+                                    transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
+                                    transformOrigin: 'top center'
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
