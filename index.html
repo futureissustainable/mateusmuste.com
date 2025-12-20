@@ -234,23 +234,20 @@
         .matrix-mode * {
             color: #0f0 !important;
             border-color: #0f0 !important;
-            background-color: transparent !important;
         }
         .matrix-mode .bg-white,
         .matrix-mode .bg-gray-50,
-        .matrix-mode .bg-gray-100,
-        .matrix-mode .bg-black {
-            background-color: transparent !important;
+        .matrix-mode .bg-gray-100 {
+            background-color: #000 !important;
         }
         .matrix-mode button,
         .matrix-mode .border,
         .matrix-mode .border-2,
         .matrix-mode .border-4 {
             border-color: #0f0 !important;
-            box-shadow: 0 0 5px #0f0 !important;
         }
         .matrix-mode svg {
-            filter: drop-shadow(0 0 2px #0f0) brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
+            filter: brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
         }
         .matrix-mode canvas {
             filter: hue-rotate(70deg) saturate(3) brightness(0.8);
@@ -4996,7 +4993,7 @@
             const historyRef = useRef(null);
 
             const commands = [
-                'help', 'make money', 'sudo make sandwich', 'exit', 'ping god', 'ping mateus',
+                'help', 'make money', 'sudo make sandwich', 'exit', 'exit matrix', 'ping god', 'ping mateus',
                 'kill', 'sudo shutdown', 'sudo reboot', 'cmatrix', 'systemctl start dog.exe',
                 'sudo chmod 777 /private', ':(){ :|:& };:', 'sudo dd if=/dev/zero of=/',
                 'scp truth.txt ~/', 'clear', 'whoami', 'pwd', 'ls'
@@ -5069,6 +5066,7 @@
   sudo shutdown               - Shutdown system
   sudo reboot                 - Reboot system
   cmatrix                     - Enter the Matrix
+  exit matrix                 - Exit the Matrix
   systemctl start dog.exe     - Start dog service
   sudo chmod 777 /private     - Change permissions
   scp truth.txt ~/            - Copy truth to home
@@ -5096,6 +5094,9 @@
                     setTimeout(() => window.location.reload(), 1500);
                 } else if (trimmed === 'cmatrix') {
                     addOutput('Entering the Matrix...');
+                    setTimeout(() => onMatrixMode?.(), 500);
+                } else if (trimmed === 'exit matrix') {
+                    addOutput('Exiting the Matrix...');
                     setTimeout(() => onMatrixMode?.(), 500);
                 } else if (trimmed === 'systemctl start dog.exe') {
                     addOutput('Starting dog.exe...\n[  OK  ] Started dog.exe');
