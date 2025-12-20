@@ -121,11 +121,28 @@
             -webkit-font-smoothing: antialiased;
         }
 
+        /* Mobile viewport height fix - accounts for browser chrome */
+        .mobile-safe-height {
+            height: 100vh; /* fallback */
+            height: 100svh; /* small viewport - always safe */
+        }
+
+        @supports (height: 100dvh) {
+            .mobile-safe-height {
+                height: 100dvh; /* dynamic viewport - adjusts with browser chrome */
+            }
+        }
+
         /* Mobile safe area support */
         @supports (padding: env(safe-area-inset-top)) {
             .mobile-taskbar-top {
                 top: env(safe-area-inset-top, 0px) !important;
                 padding-top: 4px;
+            }
+
+            /* Bottom safe area for home indicator */
+            .mobile-safe-bottom {
+                padding-bottom: env(safe-area-inset-bottom, 0px);
             }
         }
 
@@ -9008,7 +9025,7 @@
 
             return (
                 <div
-                    className={`h-screen w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
+                    className={`w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''} ${isMobile ? 'mobile-safe-height' : 'h-screen'}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         handleIconMouseMove(e);
