@@ -5280,8 +5280,8 @@
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
                     setRevealPhase(1);
-                    setTimeout(() => setRevealPhase(2), 1500);
-                    setTimeout(() => setRevealPhase(3), 4000);
+                    setTimeout(() => setRevealPhase(2), 3000); // File starts appearing at 3s
+                    setTimeout(() => setRevealPhase(3), 10000); // Fully revealed at 10s
                 }
             }, [unlocked]);
 
@@ -5310,81 +5310,50 @@
             // Unlocked reveal animation
             if (unlocked) {
                 return (
-                    <div className="h-full flex flex-col bg-black select-none overflow-hidden relative">
-                        {/* Light rays background */}
+                    <div className="h-full flex flex-col bg-white select-none overflow-hidden relative">
+                        {/* Sliding panels - 10 second animation */}
                         <div
-                            className="absolute inset-0 transition-opacity duration-1000"
-                            style={{
-                                opacity: revealPhase >= 1 ? 1 : 0,
-                                background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,255,200,0.6) 30%, rgba(255,255,255,0) 70%)',
-                            }}
-                        />
-                        {/* Light rays */}
-                        {revealPhase >= 1 && (
-                            <div className="absolute inset-0 overflow-hidden">
-                                {[...Array(12)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute top-1/2 left-1/2 bg-gradient-to-t from-transparent via-yellow-100/30 to-transparent"
-                                        style={{
-                                            width: '200%',
-                                            height: '4px',
-                                            transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
-                                            animation: 'pulse 2s ease-in-out infinite',
-                                            animationDelay: `${i * 0.1}s`
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Sliding panels */}
-                        <div
-                            className="absolute top-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-end justify-center"
+                            className="absolute top-0 left-0 right-0 bg-black z-10 flex items-end justify-center"
                             style={{
                                 height: '50%',
-                                transform: revealPhase >= 1 ? 'translateY(-100%)' : 'translateY(0)'
+                                transform: revealPhase >= 1 ? 'translateY(-100%)' : 'translateY(0)',
+                                transition: 'transform 10s ease-in-out'
                             }}
                         >
                             <div className="font-mono text-red-500 text-xs mb-4">DECRYPTING...</div>
                         </div>
                         <div
-                            className="absolute bottom-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-start justify-center"
+                            className="absolute bottom-0 left-0 right-0 bg-black z-10 flex items-start justify-center"
                             style={{
                                 height: '50%',
-                                transform: revealPhase >= 1 ? 'translateY(100%)' : 'translateY(0)'
+                                transform: revealPhase >= 1 ? 'translateY(100%)' : 'translateY(0)',
+                                transition: 'transform 10s ease-in-out'
                             }}
                         >
                             <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
                         </div>
 
-                        {/* Approaching file */}
+                        {/* DOG.TXT file - slowly grows and fades in */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
-                                className="transition-all ease-out"
                                 style={{
-                                    filter: revealPhase < 3 ? `blur(${Math.max(0, 20 - (revealPhase * 8))}px)` : 'blur(0px)',
-                                    transform: `scale(${revealPhase < 2 ? 0.3 : revealPhase < 3 ? 0.6 + ((revealPhase - 2) * 0.4) : 1})`,
-                                    opacity: revealPhase >= 2 ? 1 : 0,
-                                    transitionDuration: '2s'
+                                    transform: `scale(${revealPhase < 2 ? 0.2 : revealPhase < 3 ? 0.2 + ((revealPhase - 2) * 0.8) : 1})`,
+                                    opacity: revealPhase < 2 ? 0 : revealPhase < 3 ? 0.3 : 1,
+                                    transition: 'transform 7s ease-out, opacity 7s ease-out'
                                 }}
                             >
-                                {revealPhase < 3 ? (
-                                    // Silhouette
-                                    <div className="w-32 h-32 bg-black rounded-full" style={{ filter: 'blur(5px)' }} />
-                                ) : (
-                                    // DOG.TXT file icon
-                                    <button
-                                        onClick={() => onOpenDogStory?.()}
-                                        className="text-center cursor-pointer group"
-                                    >
-                                        <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
-                                            <Icons.FileDoc size={64} />
-                                        </div>
-                                        <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
-                                        <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600">Click to open</div>
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => onOpenDogStory?.()}
+                                    className="text-center cursor-pointer group"
+                                    disabled={revealPhase < 3}
+                                    style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
+                                >
+                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                        <Icons.FileDoc size={64} />
+                                    </div>
+                                    <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
+                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
+                                </button>
                             </div>
                         </div>
                     </div>
