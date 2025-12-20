@@ -648,6 +648,40 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            },
+
+            diceRoll: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                // Rapid clicks that slow down like a dice settling
+                for (let i = 0; i < 12; i++) {
+                    const delay = i * 0.05 + (i * i * 0.008);
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.value = 800 + Math.random() * 400;
+                    gain.gain.setValueAtTime(0.08 * (1 - i * 0.07), now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.03);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.03);
+                }
+            },
+
+            mineDing: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 1200;
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
             }
         };
 
@@ -781,6 +815,8 @@
             Browser: (p) => <PixelartIcon name="layout-sidebar-left" {...p} />,
             // Words game
             Words: (p) => <PixelartIcon name="article" {...p} />,
+            // Trophy for achievements
+            Trophy: (p) => <PixelartIcon name="trophy" {...p} />,
         };
 
         // --- SHARED DOG SPRITE ---
@@ -1826,6 +1862,7 @@
                 setIsRolling(true);
                 isRollingRef.current = true;
                 setResult(null);
+                sounds.diceRoll();
 
                 const dice = diceRef.current;
                 const { renderer, scene, camera } = sceneRef.current;
@@ -1887,7 +1924,7 @@
                         <div className="mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
                         {result && !isRolling && (
                             <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
-                                {result === 20 ? 'CRITICAL' : result === 1 ? 'FAIL' : `RESULT: ${result}`}
+                                {result === 20 ? '20 CRITICAL' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
                             </div>
                         )}
                         <button
@@ -1897,12 +1934,6 @@
                         >
                             {isRolling ? 'ROLLING' : 'ROLL'}
                         </button>
-                    </div>
-                    <div className="p-2 border-t border-gray-200 bg-white">
-                        <div className="flex justify-between font-mono text-[10px] text-gray-400">
-                            <span>20 = CRIT</span>
-                            <span>1 = FAIL</span>
-                        </div>
                     </div>
                 </div>
             );
@@ -2469,6 +2500,7 @@
 
                 if (grid[r][c] === -1) {
                     // Hit mine - reveal all mines
+                    sounds.explosion();
                     for (let i = 0; i < ROWS; i++) {
                         for (let j = 0; j < COLS; j++) {
                             if (grid[i][j] === -1) newRevealed[i][j] = true;
@@ -2478,6 +2510,9 @@
                     setGameOver(true);
                     return;
                 }
+
+                // Safe cell - play ding
+                sounds.mineDing();
 
                 // Flood fill for empty cells
                 const flood = (row, col) => {
@@ -2887,7 +2922,7 @@
                         if (dist < 1) {
                             isGameOver = true;
                             setGameOver(true);
-                            sounds.gameOver();
+                            sounds.explosion();
                             // Save high score on game over
                             setHighScore(h => {
                                 const newHigh = Math.max(h, scoreVal);
@@ -5706,26 +5741,22 @@
             // Desktop icons to show in portal
             const desktopIconIds = ['SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH'];
 
-            // Stack overflow display with rapid flashing errors
+            // Stack overflow display with rapid scrolling errors
             if (stackOverflow) {
                 return (
                     <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative">
-                        {/* Rapid flash overlay */}
-                        <div className="absolute inset-0 pointer-events-none" style={{
-                            animation: `flash ${Math.max(0.05, 0.5 - stackErrors.length * 0.04)}s infinite alternate`,
-                            background: stackErrors.length > 8 ? 'rgba(255,0,0,0.3)' : 'transparent'
-                        }} />
-                        <div className="flex-grow flex flex-col items-center justify-center p-2 overflow-hidden">
-                            <pre className="text-red-500 text-center text-[6px] leading-tight whitespace-pre animate-pulse">{`
-█▀ ▀█▀ ▄▀█ █▀▀ █▄▀
-▄█ ░█░ █▀█ █▄▄ █░█
-█▀█ █░█ █▀▀ █▀█ █▀▀ █░░ █▀█ █░█░█
-█▄█ ▀▄▀ ██▄ █▀▄ █▀░ █▄▄ █▄█ ▀▄▀▄▀`}</pre>
-                            <div className="mt-2 text-left w-full max-w-md overflow-hidden max-h-40 text-[8px]">
+                        {/* Subtle red overlay */}
+                        <div className="absolute inset-0 pointer-events-none bg-red-900/20" />
+                        <div className="flex-grow flex flex-col p-2 overflow-hidden">
+                            <div className="text-red-500 text-lg font-bold mb-2 text-center">
+                                STACK OVERFLOW
+                            </div>
+                            <div className="text-red-400 text-xs mb-2 text-center">
+                                recursive observation detected
+                            </div>
+                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight">
                                 {stackErrors.map((err, i) => (
-                                    <div key={i} className="text-red-400" style={{
-                                        animation: `glitch ${0.1 + Math.random() * 0.2}s infinite`
-                                    }}>{err}</div>
+                                    <div key={i} className="text-red-400">{err}</div>
                                 ))}
                             </div>
                         </div>
@@ -6087,7 +6118,7 @@
                     { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                     { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                     { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
-                    { id: 'END', title: 'END.EXE', icon: 'Sparkling' }
+                    { id: 'END', title: 'END.EXE', icon: 'Trophy' }
                 ]
             };
 
@@ -6211,7 +6242,7 @@
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                 { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
-                { id: 'END', title: 'END.EXE', icon: 'Sparkling' }
+                { id: 'END', title: 'END.EXE', icon: 'Trophy' }
             ];
 
             const filteredItems = url.trim()
@@ -6369,9 +6400,9 @@
             }, [currentGuess, gameState, guesses]);
 
             const statusColors = {
-                correct: 'bg-black text-white',
-                present: 'bg-gray-400 text-white',
-                absent: 'bg-gray-200 text-gray-500',
+                correct: 'bg-green-500 text-white border-2 border-green-600',
+                present: 'bg-yellow-400 text-white border-2 border-yellow-500',
+                absent: 'bg-gray-400 text-white border-2 border-gray-500',
                 empty: 'bg-white border-2 border-black',
                 unused: 'bg-white border-2 border-black hover:bg-gray-100'
             };
@@ -6608,6 +6639,7 @@
             const [stackErrors, setStackErrors] = useState([]);
             const [pyramidScreen, setPyramidScreen] = useState(false);
             const stackTimerRef = useRef(null);
+            const errorIntervalRef = useRef(null);
             const [goldDogReleased, setGoldDogReleased] = useState(false);
             const [goldDogVisible, setGoldDogVisible] = useState(true);
             const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
@@ -6982,7 +7014,7 @@
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 },
                 "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: '500px', h: '400px', isOpen: false, isMin: false, z: 38 },
                 "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: '320px', h: '520px', isOpen: false, isMin: false, z: 39 },
-                "END": { id: "END", title: "END.EXE", icon: "Sparkling", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
+                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
             });
 
             // Render window content based on ID
@@ -7580,7 +7612,7 @@
                         if (!stackOverflow) {
                             setStackOverflow(true);
                             unlockAchievement('FOURTH_DIMENSION');
-                            // Accelerating errors and commands
+                            // Rapid looping errors - tens per second
                             const errors = [
                                 'FATAL: recursive observation detected',
                                 'ERR: infinite loop in render_self()',
@@ -7602,22 +7634,22 @@
                                 'grep -r "truth" /universe',
                                 'FATAL: perception recursion limit',
                                 'cat /dev/void > /dev/soul',
+                                'ERR: reality.dll corrupted',
+                                'PANIC: void pointer dereference',
+                                'kill -SEGV $$',
+                                'ERR: universe out of memory',
+                                'FATAL: existence.so not found',
                             ];
-                            let i = 0;
-                            let delay = 800; // Start slow
-                            const addError = () => {
-                                if (i < 50) { // Keep going with random errors
-                                    const err = i < errors.length ? errors[i] : errors[Math.floor(Math.random() * errors.length)];
-                                    setStackErrors(prev => [...prev.slice(-15), err]); // Keep last 15
-                                    i++;
-                                    delay = Math.max(50, delay * 0.85); // Accelerate
-                                    setTimeout(addError, delay);
-                                }
-                            };
-                            addError();
+                            let errorIndex = 0;
+                            errorIntervalRef.current = setInterval(() => {
+                                const err = errors[errorIndex % errors.length];
+                                setStackErrors(prev => [...prev.slice(-20), err]); // Keep last 20
+                                errorIndex++;
+                            }, 30); // ~33 errors per second
 
                             // Crash after 10 seconds
                             stackTimerRef.current = setTimeout(() => {
+                                if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                 setPyramidScreen(true);
                                 setTimeout(() => {
                                     setPyramidScreen(false);
@@ -7639,6 +7671,7 @@
 
                             return () => {
                                 if (stackTimerRef.current) clearTimeout(stackTimerRef.current);
+                                if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                             };
                         }
                     } else {
@@ -7649,6 +7682,10 @@
                                 clearTimeout(stackTimerRef.current);
                                 stackTimerRef.current = null;
                             }
+                            if (errorIntervalRef.current) {
+                                clearInterval(errorIntervalRef.current);
+                                errorIntervalRef.current = null;
+                            }
                         }
                     }
                 } else {
@@ -7658,6 +7695,10 @@
                         if (stackTimerRef.current) {
                             clearTimeout(stackTimerRef.current);
                             stackTimerRef.current = null;
+                        }
+                        if (errorIntervalRef.current) {
+                            clearInterval(errorIntervalRef.current);
+                            errorIntervalRef.current = null;
                         }
                     }
                 }
