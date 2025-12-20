@@ -199,8 +199,6 @@
         }
         .desktop-bg-ascii {
             background-color: #f0f0f0;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E;%3C/text%3E%3Ctext x='5' y='35' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E[]%3C/text%3E%3Ctext x='35' y='35' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E10%3C/text%3E%3Ctext x='5' y='55' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E..%3C/text%3E%3Ctext x='35' y='55' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E00%3C/text%3E%3C/svg%3E");
-            background-size: 60px 60px;
         }
 
         canvas {
@@ -5731,20 +5729,11 @@
 
         // --- THIRD_EYE.EXE - X-ray view of app code ---
         const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions }) => {
-            const [scanLine, setScanLine] = useState(0);
             const thisWindow = windows[windowId];
             const windowX = thisWindow?.x || 0;
             const windowY = thisWindow?.y || 0;
             // Account for window header height (approx 32px)
             const headerHeight = 32;
-
-            // Scan line animation
-            useEffect(() => {
-                const interval = setInterval(() => {
-                    setScanLine(prev => (prev + 2) % 100);
-                }, 30);
-                return () => clearInterval(interval);
-            }, []);
 
             const appCode = {
                 SNAKE: `// SNEK.JS\nfunction eat() {\n  grow();\n  // ouroboros.exe\n  if (head === tail) become(god);\n}`,
@@ -5863,16 +5852,6 @@
 
             return (
                 <div className="h-full w-full overflow-hidden relative bg-black">
-                    {/* Scan line effect */}
-                    <div
-                        className="absolute left-0 right-0 h-1 pointer-events-none z-50"
-                        style={{
-                            top: `${scanLine}%`,
-                            background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.5), transparent)',
-                            boxShadow: '0 0 20px #0f0, 0 0 40px #0f0'
-                        }}
-                    />
-
                     {/* PORTAL VIEW - Alternate reality desktop */}
                     <div
                         className="absolute pointer-events-none"
@@ -8324,6 +8303,57 @@
                 return <canvas ref={canvasRef} className="matrix-rain" />;
             };
 
+            // Binary/Code Background for ASCII mode
+            const BinaryBackground = () => {
+                const canvasRef = useRef(null);
+                useEffect(() => {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    const chars = '01{}[]()<>;:=/\\|_-+*&^%$#@!?.~`';
+                    const fontSize = 12;
+                    const columns = Math.floor(canvas.width / fontSize);
+                    const drops = Array(columns).fill(0).map(() => Math.random() * -100);
+
+                    const draw = () => {
+                        ctx.fillStyle = 'rgba(240, 240, 240, 0.03)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.font = fontSize + 'px monospace';
+
+                        for (let i = 0; i < drops.length; i++) {
+                            const char = chars[Math.floor(Math.random() * chars.length)];
+                            const alpha = 0.08 + Math.random() * 0.08;
+                            ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                            ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                            if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
+                                drops[i] = 0;
+                            }
+                            drops[i] += 0.3 + Math.random() * 0.2;
+                        }
+                    };
+
+                    // Initial fill
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                    const interval = setInterval(draw, 80);
+                    const handleResize = () => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                        ctx.fillStyle = '#f0f0f0';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    };
+                    window.addEventListener('resize', handleResize);
+                    return () => {
+                        clearInterval(interval);
+                        window.removeEventListener('resize', handleResize);
+                    };
+                }, []);
+                return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />;
+            };
+
             const handleContextMenu = (e) => {
                     // Only show custom context menu when clicking directly on desktop background
                     if (e.target === e.currentTarget || e.target.classList.contains('desktop-bg-grid') || e.target.classList.contains('desktop-bg-solid') || e.target.classList.contains('desktop-bg-ascii')) {
@@ -8366,6 +8396,7 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
+                    {desktopBg === 'ascii' && !matrixMode && <BinaryBackground />}
 
                     {/* ThirdEye World Mode - Fullscreen portal view (like being inside ThirdEye) */}
                     {thirdEyeWorld && (
