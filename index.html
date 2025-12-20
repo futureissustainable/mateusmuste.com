@@ -5706,26 +5706,22 @@
             // Desktop icons to show in portal
             const desktopIconIds = ['SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH'];
 
-            // Stack overflow display with rapid flashing errors
+            // Stack overflow display with rapid scrolling errors
             if (stackOverflow) {
                 return (
                     <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative">
-                        {/* Rapid flash overlay */}
-                        <div className="absolute inset-0 pointer-events-none" style={{
-                            animation: `flash ${Math.max(0.05, 0.5 - stackErrors.length * 0.04)}s infinite alternate`,
-                            background: stackErrors.length > 8 ? 'rgba(255,0,0,0.3)' : 'transparent'
-                        }} />
-                        <div className="flex-grow flex flex-col items-center justify-center p-2 overflow-hidden">
-                            <pre className="text-red-500 text-center text-[6px] leading-tight whitespace-pre animate-pulse">{`
-█▀ ▀█▀ ▄▀█ █▀▀ █▄▀
-▄█ ░█░ █▀█ █▄▄ █░█
-█▀█ █░█ █▀▀ █▀█ █▀▀ █░░ █▀█ █░█░█
-█▄█ ▀▄▀ ██▄ █▀▄ █▀░ █▄▄ █▄█ ▀▄▀▄▀`}</pre>
-                            <div className="mt-2 text-left w-full max-w-md overflow-hidden max-h-40 text-[8px]">
+                        {/* Subtle red overlay */}
+                        <div className="absolute inset-0 pointer-events-none bg-red-900/20" />
+                        <div className="flex-grow flex flex-col p-2 overflow-hidden">
+                            <div className="text-red-500 text-lg font-bold mb-2 text-center">
+                                STACK OVERFLOW
+                            </div>
+                            <div className="text-red-400 text-xs mb-2 text-center">
+                                recursive observation detected
+                            </div>
+                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight">
                                 {stackErrors.map((err, i) => (
-                                    <div key={i} className="text-red-400" style={{
-                                        animation: `glitch ${0.1 + Math.random() * 0.2}s infinite`
-                                    }}>{err}</div>
+                                    <div key={i} className="text-red-400">{err}</div>
                                 ))}
                             </div>
                         </div>
@@ -6608,6 +6604,7 @@
             const [stackErrors, setStackErrors] = useState([]);
             const [pyramidScreen, setPyramidScreen] = useState(false);
             const stackTimerRef = useRef(null);
+            const errorIntervalRef = useRef(null);
             const [goldDogReleased, setGoldDogReleased] = useState(false);
             const [goldDogVisible, setGoldDogVisible] = useState(true);
             const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
@@ -7580,7 +7577,7 @@
                         if (!stackOverflow) {
                             setStackOverflow(true);
                             unlockAchievement('FOURTH_DIMENSION');
-                            // Accelerating errors and commands
+                            // Rapid looping errors - tens per second
                             const errors = [
                                 'FATAL: recursive observation detected',
                                 'ERR: infinite loop in render_self()',
@@ -7602,22 +7599,22 @@
                                 'grep -r "truth" /universe',
                                 'FATAL: perception recursion limit',
                                 'cat /dev/void > /dev/soul',
+                                'ERR: reality.dll corrupted',
+                                'PANIC: void pointer dereference',
+                                'kill -SEGV $$',
+                                'ERR: universe out of memory',
+                                'FATAL: existence.so not found',
                             ];
-                            let i = 0;
-                            let delay = 800; // Start slow
-                            const addError = () => {
-                                if (i < 50) { // Keep going with random errors
-                                    const err = i < errors.length ? errors[i] : errors[Math.floor(Math.random() * errors.length)];
-                                    setStackErrors(prev => [...prev.slice(-15), err]); // Keep last 15
-                                    i++;
-                                    delay = Math.max(50, delay * 0.85); // Accelerate
-                                    setTimeout(addError, delay);
-                                }
-                            };
-                            addError();
+                            let errorIndex = 0;
+                            errorIntervalRef.current = setInterval(() => {
+                                const err = errors[errorIndex % errors.length];
+                                setStackErrors(prev => [...prev.slice(-20), err]); // Keep last 20
+                                errorIndex++;
+                            }, 30); // ~33 errors per second
 
                             // Crash after 10 seconds
                             stackTimerRef.current = setTimeout(() => {
+                                if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                 setPyramidScreen(true);
                                 setTimeout(() => {
                                     setPyramidScreen(false);
@@ -7639,6 +7636,7 @@
 
                             return () => {
                                 if (stackTimerRef.current) clearTimeout(stackTimerRef.current);
+                                if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                             };
                         }
                     } else {
@@ -7649,6 +7647,10 @@
                                 clearTimeout(stackTimerRef.current);
                                 stackTimerRef.current = null;
                             }
+                            if (errorIntervalRef.current) {
+                                clearInterval(errorIntervalRef.current);
+                                errorIntervalRef.current = null;
+                            }
                         }
                     }
                 } else {
@@ -7658,6 +7660,10 @@
                         if (stackTimerRef.current) {
                             clearTimeout(stackTimerRef.current);
                             stackTimerRef.current = null;
+                        }
+                        if (errorIntervalRef.current) {
+                            clearInterval(errorIntervalRef.current);
+                            errorIntervalRef.current = null;
                         }
                     }
                 }
