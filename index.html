@@ -871,6 +871,8 @@
             Globe: (p) => <PixelartIcon name="map" {...p} />,
             // Pomodoro timer
             Pomodoro: (p) => <PixelartIcon name="clock" {...p} />,
+            // Charging/power
+            Charging: (p) => <PixelartIcon name="power" {...p} />,
             // Health scanner
             HealthScanner: (p) => <PixelartIcon name="heart" {...p} />,
             // Lock icon
@@ -8613,7 +8615,7 @@
                             {battery.level !== null && (
                                 <>
                                     <span className="text-gray-500">BATTERY:</span>
-                                    <span className="font-bold">{battery.charging ? '⚡' : ''}{battery.level}%</span>
+                                    <span className="font-bold flex items-center gap-1">{battery.charging && <Icons.Charging size={12} />}{battery.level}%</span>
                                 </>
                             )}
                         </div>
