@@ -5847,7 +5847,7 @@
             // Physics constants
             const FRICTION = 0.92; // Velocity decay per frame (ice-like)
             const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
-            const MIN_VELOCITY = 0.5; // Stop threshold
+            const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
             const EDGE_MAGNET_STRENGTH = 0.15; // Pull strength
             const SQUASH_AMOUNT = 0.02; // 2% max squash/stretch
@@ -6066,14 +6066,27 @@
 
                     lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
 
-                    setWindows(prev => ({
-                        ...prev,
-                        [drag.id]: {
-                            ...prev[drag.id],
-                            x: e.clientX - drag.offsetX,
-                            y: e.clientY - drag.offsetY
-                        }
-                    }));
+                    setWindows(prev => {
+                        const win = prev[drag.id];
+                        const winWidth = parseInt(win.w) || 400;
+                        const winHeight = parseInt(win.h) || 300;
+                        const maxX = window.innerWidth - winWidth;
+                        const maxY = window.innerHeight - 60 - winHeight; // Account for taskbar
+                        const minY = isMobile ? 60 : 0;
+
+                        // Clamp position to screen bounds
+                        const newX = Math.max(0, Math.min(maxX, e.clientX - drag.offsetX));
+                        const newY = Math.max(minY, Math.min(maxY, e.clientY - drag.offsetY));
+
+                        return {
+                            ...prev,
+                            [drag.id]: {
+                                ...win,
+                                x: newX,
+                                y: newY
+                            }
+                        };
+                    });
                 }
             };
 
