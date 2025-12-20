@@ -1906,15 +1906,24 @@
         };
 
         // MESSAGES.EXE - Messenger app for intro sequence
+        // Neo-Swiss Brutalist Design - Clean, Modern, Professional
         const MessagesApp = ({ onIntroComplete }) => {
-            const [messages, setMessages] = useState([]);
+            const [messages, setMessages] = useState([]); // {id, text, timestamp}
             const [isTyping, setIsTyping] = useState(false);
+            const [currentTime, setCurrentTime] = useState(new Date());
             const introStartedRef = useRef(false);
             const onIntroCompleteRef = useRef(onIntroComplete);
             const messagesEndRef = useRef(null);
+            const startTimeRef = useRef(Date.now());
 
             // Keep the callback ref updated
             onIntroCompleteRef.current = onIntroComplete;
+
+            // Update clock every second
+            useEffect(() => {
+                const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+                return () => clearInterval(timer);
+            }, []);
 
             // Typing sound effect
             const playTypingSound = () => {
@@ -1952,12 +1961,16 @@
                 osc.stop(now + 0.1);
             };
 
-            // Start intro sequence when component mounts - use ref to prevent double-run
+            // Format timestamp
+            const formatTime = (date) => {
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+            };
+
+            // Start intro sequence when component mounts
             useEffect(() => {
                 if (introStartedRef.current) return;
                 introStartedRef.current = true;
 
-                // Local copy of messages to avoid closure issues
                 const messagesToSend = [
                     "Hi!",
                     "This isn't a portfolio. It's a mind system.",
@@ -1974,27 +1987,23 @@
                 const sendNextMessage = () => {
                     if (cancelled) return;
 
-                    // Skip any empty messages
                     while (messageIndex < messagesToSend.length && !messagesToSend[messageIndex]?.trim()) {
                         messageIndex++;
                     }
 
                     if (messageIndex >= messagesToSend.length) {
-                        // All messages sent, wait 2 seconds then reveal apps
                         setTimeout(() => {
                             if (!cancelled) onIntroCompleteRef.current?.();
                         }, 2000);
                         return;
                     }
 
-                    // Capture the current message before async operations
                     const currentMessage = messagesToSend[messageIndex];
+                    const currentIdx = messageIndex;
                     messageIndex++;
 
-                    // Show typing indicator
                     setIsTyping(true);
 
-                    // Play typing sounds for 1.5 seconds
                     const typingDuration = 1500;
                     const typingSoundInterval = setInterval(() => {
                         if (!cancelled) playTypingSound();
@@ -2008,82 +2017,106 @@
                         clearInterval(typingSoundInterval);
                         setIsTyping(false);
                         playMessageSound();
-                        setMessages(prev => [...prev, currentMessage]);
+                        setMessages(prev => [...prev, {
+                            id: currentIdx,
+                            text: currentMessage,
+                            timestamp: new Date()
+                        }]);
 
-                        // Next message after 3 seconds
                         setTimeout(sendNextMessage, 3000);
                     }, typingDuration);
                 };
 
-                // Start after a brief delay
                 setTimeout(sendNextMessage, 1000);
 
                 return () => { cancelled = true; };
-            }, []); // Empty dependency array - run once only
+            }, []);
 
             // Auto-scroll to bottom
             useEffect(() => {
                 messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             }, [messages, isTyping]);
 
+            const totalMessages = 8;
+
             return (
-                <div className="h-full flex flex-col bg-black select-none overflow-hidden">
-                    {/* Minimal Header */}
-                    <div className="bg-black border-b border-white/20 px-4 py-3 flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-mono font-black text-xs">
+                <div className="h-full flex flex-col bg-neutral-950 select-none overflow-hidden">
+                    {/* Header - Neo-Swiss Brutalist */}
+                    <div className="border-b-2 border-white px-4 py-3 flex items-center justify-between bg-neutral-950">
+                        <div className="flex items-center gap-4">
+                            {/* Avatar - Hard edges, brutalist */}
+                            <div className="w-10 h-10 bg-white text-black flex items-center justify-center font-mono font-black text-sm border-2 border-white">
                                 MM
                             </div>
-                            <div>
-                                <div className="font-heading text-white text-sm tracking-wide">MATEUS MUSTE</div>
-                                <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
-                                    <span className={`w-1.5 h-1.5 ${isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
-                                    {isTyping ? 'COMPOSING' : 'ONLINE'}
+                            <div className="flex flex-col">
+                                <span className="font-mono text-white font-bold tracking-wider text-sm">MATEUS_MUSTE</span>
+                                <div className="flex items-center gap-2 mt-0.5">
+                                    <span className={`w-2 h-2 ${isTyping ? 'bg-yellow-400' : 'bg-green-400'}`}></span>
+                                    <span className="font-mono text-xs text-white/60 uppercase tracking-wide">
+                                        {isTyping ? 'Typing...' : 'Online'}
+                                    </span>
                                 </div>
                             </div>
                         </div>
-                        <div className="font-mono text-[10px] text-white/30">
-                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        <div className="font-mono text-xs text-white/40 tabular-nums">
+                            {formatTime(currentTime)}
                         </div>
                     </div>
 
-                    {/* Messages area - dark terminal style */}
-                    <div className="flex-grow overflow-auto p-6 space-y-4">
-                        {messages.filter(msg => msg && msg.trim()).map((msg, i) => (
-                            <div key={i} className="flex items-start gap-3 animate-fade-in">
-                                <div className="w-1 h-full bg-white/20 flex-shrink-0 mt-1" style={{ minHeight: '20px' }}></div>
-                                <div className="flex-grow">
-                                    <p className="font-mono text-white text-sm leading-relaxed">{msg}</p>
-                                    <div className="font-mono text-[9px] text-white/30 mt-1">
-                                        {String(i).padStart(2, '0')}:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}
+                    {/* Messages Area - Clean Grid Layout */}
+                    <div className="flex-grow overflow-auto p-4 space-y-3 bg-neutral-950">
+                        {messages.filter(msg => msg && msg.text?.trim()).map((msg) => (
+                            <div key={msg.id} className="animate-fade-in group">
+                                {/* Message Container */}
+                                <div className="flex items-stretch gap-3">
+                                    {/* Accent Bar */}
+                                    <div className="w-1 bg-white flex-shrink-0"></div>
+                                    {/* Content */}
+                                    <div className="flex-grow py-1">
+                                        <p className="font-mono text-white text-sm leading-relaxed">{msg.text}</p>
                                     </div>
+                                </div>
+                                {/* Metadata Row */}
+                                <div className="flex items-center gap-2 mt-1.5 ml-4 font-mono text-xs text-white/30">
+                                    <span className="tabular-nums">{formatTime(msg.timestamp)}</span>
+                                    <span className="text-white/20">·</span>
+                                    <span className="uppercase tracking-wider">MSG_{String(msg.id + 1).padStart(3, '0')}</span>
                                 </div>
                             </div>
                         ))}
 
-                        {/* Typing indicator - minimal cursor blink */}
+                        {/* Typing Indicator */}
                         {isTyping && (
-                            <div className="flex items-start gap-3">
-                                <div className="w-1 bg-yellow-400 flex-shrink-0" style={{ minHeight: '20px' }}></div>
-                                <div className="flex items-center gap-1">
-                                    <span className="font-mono text-white/50 text-sm">_</span>
-                                    <span className="w-2 h-4 bg-white/80 animate-pulse"></span>
+                            <div className="animate-fade-in">
+                                <div className="flex items-stretch gap-3">
+                                    <div className="w-1 bg-yellow-400 flex-shrink-0"></div>
+                                    <div className="flex items-center gap-1 py-2">
+                                        <span className="font-mono text-white/60 text-sm">▌</span>
+                                        <span className="w-2 h-4 bg-white/60 animate-pulse"></span>
+                                    </div>
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Footer - system status bar */}
-                    <div className="bg-black border-t border-white/20 px-4 py-2 flex items-center justify-between">
-                        <div className="font-mono text-[10px] text-white/40 flex items-center gap-4">
-                            <span>MESSAGES.EXE</span>
-                            <span className="text-white/20">|</span>
-                            <span>{messages.length}/8 RECEIVED</span>
+                    {/* Footer - Status Bar */}
+                    <div className="border-t-2 border-white px-4 py-2.5 flex items-center justify-between bg-neutral-950">
+                        <div className="flex items-center gap-3 font-mono text-xs text-white/50">
+                            <span className="text-white font-bold">MESSAGES.EXE</span>
+                            <span className="text-white/30">│</span>
+                            <span className="tabular-nums">{messages.length}/{totalMessages}</span>
+                            {/* Progress Bar */}
+                            <div className="flex items-center gap-0.5 ml-1">
+                                {Array.from({ length: totalMessages }).map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className={`w-2 h-2 ${i < messages.length ? 'bg-white' : 'bg-white/20'}`}
+                                    />
+                                ))}
+                            </div>
                         </div>
-                        <div className="font-mono text-[10px] text-white/40">
-                            READ ONLY
-                        </div>
+                        <span className="font-mono text-xs text-white/30 uppercase tracking-wider">Read Only</span>
                     </div>
                 </div>
             );
