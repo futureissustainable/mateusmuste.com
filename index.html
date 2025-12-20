@@ -5870,20 +5870,16 @@
                     addOutput('Desktop  Documents  Downloads  Pictures  Videos  .secrets');
                 } else if (trimmed === 'cd .secrets' || trimmed === 'cat .secrets') {
                     addOutput('Permission denied');
-                // Hidden commands - not shown in help or autocomplete
+                // Hidden commands - work but not shown in help or autocomplete
                 } else if (trimmed === 'sudo become god') {
                     setGodMode(true);
-                    addOutput('ELEVATION GRANTED.\n\nYou are now root.\nAll restrictions lifted.\nReality bends to your will.\n\nType "reset" to return to mortality.');
-                } else if (trimmed === 'reset' && godMode) {
-                    setGodMode(false);
-                    addOutput('Returning to guest mode...\nWiping consciousness...');
-                    // Full reset - clear all localStorage
+                    addOutput('ELEVATION GRANTED.\n\nYou are now root.\nAll restrictions lifted.\nReality bends to your will.');
+                } else if (trimmed === 'reset') {
+                    addOutput('Wiping consciousness...\nReturning to void...');
                     setTimeout(() => {
                         localStorage.clear();
                         window.location.reload();
                     }, 1500);
-                } else if (trimmed === 'reset' && !godMode) {
-                    addOutput('reset: permission denied (requires elevation)');
                 } else if (trimmed) {
                     sounds.error();
                     addOutput(`bash: ${trimmed.split(' ')[0]}: command not found`);
