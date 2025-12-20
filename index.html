@@ -677,7 +677,7 @@
                 osc.stop(now + 0.15);
             },
 
-            // Metallic ping for START.EXE reveals
+            // Metallic ping for ABOUT.EXE reveals
             ping: () => {
                 const ctx = getAudioCtx();
                 if (!ctx) return;
@@ -693,6 +693,47 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.5);
+            },
+
+            // Satisfying typing sound for messenger
+            messageType: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Soft mechanical keyboard-like click
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(600 + Math.random() * 200, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.02);
+                filter.type = 'lowpass';
+                filter.frequency.value = 1500;
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
+            },
+
+            // Message send whoosh
+            messageSend: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
             },
 
             diceRoll: () => {
@@ -904,6 +945,8 @@
             Dog: (p) => <PixelartIcon name="paw" {...p} />,
             // Email icon
             Email: (p) => <PixelartIcon name="mail" {...p} />,
+            // Message icon for messenger
+            Message: (p) => <PixelartIcon name="message" {...p} />,
             // Apps folder icon
             Apps: (p) => <PixelartIcon name="add-grid" {...p} />,
             // Gallery
@@ -1623,36 +1666,153 @@
             );
         };
 
-        // START.EXE - The grand portfolio reveal with phased animation
-        const StartApp = ({ onClose, isFirstVisit, onRevealComplete }) => {
-            const [phase, setPhase] = useState(0);
-            const [musicStarted, setMusicStarted] = useState(false);
-            const audioRef = useRef(null);
+        // MESSAGES.EXE - First-time visitor messenger experience
+        const MessagesApp = ({ onClose, onComplete }) => {
+            const [messages, setMessages] = useState([]);
+            const [isTyping, setIsTyping] = useState(false);
+            const [started, setStarted] = useState(false);
+            const [complete, setComplete] = useState(false);
+            const messagesEndRef = useRef(null);
 
-            // Phases:
-            // 0 - Initial blank, waiting for music
-            // 1 - Intro text (0.5s)
-            // 2 - Name reveal (3.5s)
-            // 3 - Badges (6.5s)
-            // 4 - Skills (9.5s)
-            // 5 - Projects (12.5s)
-            // 6 - Invitation (15.5s)
-            // 7 - Complete
+            const messageTexts = [
+                "This isn't a portfolio. It's a mind system.",
+                "Most of what I've built, loved, and learned is here.",
+                "Some on display, some buried deeper.",
+                "You start with four apps.",
+                "Explore.",
+                "Break things.",
+                "Have fun."
+            ];
 
-            const startMusic = () => {
-                if (musicStarted) return;
-                setMusicStarted(true);
-                sounds.bootSequence();
-
-                // Phase timing
-                setTimeout(() => setPhase(1), 500);
-                setTimeout(() => { setPhase(2); sounds.ping(); }, 3500);
-                setTimeout(() => { setPhase(3); sounds.ping(); }, 6500);
-                setTimeout(() => { setPhase(4); sounds.ping(); }, 9500);
-                setTimeout(() => { setPhase(5); sounds.ping(); }, 12500);
-                setTimeout(() => { setPhase(6); sounds.ping(); onRevealComplete?.(); }, 15500);
+            const scrollToBottom = () => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
             };
 
+            useEffect(() => {
+                scrollToBottom();
+            }, [messages, isTyping]);
+
+            const startTyping = () => {
+                if (started) return;
+                setStarted(true);
+
+                let msgIndex = 0;
+
+                const typeNextMessage = () => {
+                    if (msgIndex >= messageTexts.length) {
+                        // All messages sent
+                        setComplete(true);
+                        setTimeout(() => {
+                            onComplete?.();
+                        }, 4000);
+                        return;
+                    }
+
+                    // Show typing indicator
+                    setIsTyping(true);
+
+                    // Type sound during "typing"
+                    const typeDuration = 800 + messageTexts[msgIndex].length * 20;
+                    const typeInterval = setInterval(() => {
+                        sounds.messageType();
+                    }, 80 + Math.random() * 40);
+
+                    setTimeout(() => {
+                        clearInterval(typeInterval);
+                        setIsTyping(false);
+                        sounds.messageSend();
+
+                        // Add the message
+                        setMessages(prev => [...prev, messageTexts[msgIndex]]);
+                        msgIndex++;
+
+                        // Type next message after a pause
+                        setTimeout(typeNextMessage, 600 + Math.random() * 400);
+                    }, typeDuration);
+                };
+
+                // Start typing first message after short delay
+                setTimeout(typeNextMessage, 500);
+            };
+
+            return (
+                <div
+                    className="h-full flex flex-col bg-white select-none"
+                    onClick={!started ? startTyping : undefined}
+                >
+                    {/* Header */}
+                    <div className="border-b-2 border-black p-3 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-black rounded-full flex items-center justify-center">
+                            <span className="text-white font-bold text-sm">MM</span>
+                        </div>
+                        <div>
+                            <div className="font-bold text-sm">MATEUS MUSTE</div>
+                            <div className="font-mono text-[10px] text-gray-500">
+                                {isTyping ? 'typing...' : 'online'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Messages */}
+                    <div className="flex-grow overflow-y-auto p-4 space-y-3">
+                        {!started && (
+                            <div className="h-full flex items-center justify-center">
+                                <div className="text-center cursor-pointer">
+                                    <div className="font-mono text-xs text-gray-400 animate-pulse">CLICK TO START</div>
+                                </div>
+                            </div>
+                        )}
+
+                        {messages.map((msg, i) => (
+                            <div key={i} className="flex justify-start">
+                                <div
+                                    className="max-w-[80%] bg-gray-100 border-2 border-black p-3 relative"
+                                    style={{ animation: 'window-fold-in 0.2s ease-out' }}
+                                >
+                                    <div className="font-mono text-[13px]">{msg}</div>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Typing indicator */}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-gray-100 border-2 border-black px-4 py-3">
+                                    <div className="flex gap-1">
+                                        <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                                        <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                                        <div className="w-2 h-2 bg-black rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Completion message */}
+                        {complete && (
+                            <div className="text-center py-4">
+                                <div className="font-mono text-[10px] text-gray-400">
+                                    Desktop loading...
+                                </div>
+                            </div>
+                        )}
+
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input area (disabled, just for looks) */}
+                    <div className="border-t-2 border-black p-3">
+                        <div className="flex gap-2">
+                            <div className="flex-grow border-2 border-gray-300 bg-gray-50 px-3 py-2 font-mono text-xs text-gray-400">
+                                {complete ? 'Connection closed' : 'Read only...'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // ABOUT.EXE - Portfolio information display
+        const AboutApp = ({ onClose }) => {
             const skills = [
                 { name: 'PHOTOSHOP', yrs: 9 },
                 { name: 'PREMIERE', yrs: 8 },
@@ -1675,85 +1835,57 @@
             ];
 
             return (
-                <div
-                    className="h-full flex flex-col bg-white select-none overflow-auto"
-                    onClick={!musicStarted && isFirstVisit ? startMusic : undefined}
-                >
-                    {/* Initial state - click to begin */}
-                    {phase === 0 && isFirstVisit && (
-                        <div className="flex-grow flex items-center justify-center cursor-pointer">
-                            <div className="text-center">
-                                <div className="font-mono text-xs text-gray-400 animate-pulse">CLICK TO BEGIN</div>
+                <div className="h-full flex flex-col bg-white select-none overflow-auto">
+                    <div className="p-6 md:p-8 space-y-8">
+                        {/* Name */}
+                        <div>
+                            <h1 className="font-black tracking-tighter leading-[0.85]" style={{ fontSize: 'clamp(4rem, 15vw, 10rem)' }}>
+                                MATEUS<br />MUSTE
+                            </h1>
+                        </div>
+
+                        {/* Badges */}
+                        <div className="flex flex-wrap gap-2">
+                            <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">DIGITAL DESIGNER</span>
+                            <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">RADICAL OPTIMIST</span>
+                            <span className="border-2 border-black px-2 py-1 font-mono text-[10px] md:text-xs">ROMANIA</span>
+                        </div>
+
+                        {/* Skills */}
+                        <div>
+                            <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Skills</h3>
+                            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                                {skills.map((skill, i) => (
+                                    <div key={i} className="border-2 border-black p-2 text-center" style={{ opacity: 1 - (i / skills.length) * 0.5 }}>
+                                        <div className="font-bold text-[10px]">{skill.name}</div>
+                                        <div className="font-mono text-[10px] text-gray-500">{skill.yrs} YRS</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    )}
 
-                    {/* Skip first visit mode - show content immediately */}
-                    {(!isFirstVisit || phase > 0) && (
-                        <div className="p-6 md:p-8 space-y-8">
-                            {/* Phase 1: Intro text */}
-                            <div className={`transition-all duration-500 ${phase >= 1 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <p className="text-sm md:text-[13px] leading-relaxed max-w-md text-gray-600">
-                                    This isn't a portfolio. It's a mind system.<br /><br />
-                                    Most of what I've built, loved, and learned is here.
-                                    Some on display, some buried deeper.<br /><br />
-                                    You start with four apps.
-                                    Explore. Break things. Have fun.
-                                </p>
-                            </div>
-
-                            {/* Phase 2: Name reveal */}
-                            <div className={`transition-all duration-500 ${phase >= 2 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <h1 className="font-black tracking-tighter leading-[0.85]" style={{ fontSize: 'clamp(4rem, 15vw, 10rem)' }}>
-                                    MATEUS<br />MUSTE
-                                </h1>
-                            </div>
-
-                            {/* Phase 3: Badges */}
-                            <div className={`flex flex-wrap gap-2 transition-all duration-500 ${phase >= 3 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">DIGITAL DESIGNER</span>
-                                <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">RADICAL OPTIMIST</span>
-                                <span className="border-2 border-black px-2 py-1 font-mono text-[10px] md:text-xs">ROMANIA</span>
-                            </div>
-
-                            {/* Phase 4: Skills */}
-                            <div className={`transition-all duration-500 ${phase >= 4 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Skills</h3>
-                                <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                    {skills.map((skill, i) => (
-                                        <div key={i} className="border-2 border-black p-2 text-center" style={{ opacity: 1 - (i / skills.length) * 0.5 }}>
-                                            <div className="font-bold text-[10px]">{skill.name}</div>
-                                            <div className="font-mono text-[10px] text-gray-500">{skill.yrs} YRS</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Phase 5: Projects */}
-                            <div className={`transition-all duration-500 ${phase >= 5 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Projects</h3>
-                                <div className="space-y-2">
-                                    {projects.map((p, i) => (
-                                        <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer">
-                                            <div className="font-bold text-sm uppercase">{p.t}</div>
-                                            <div className="font-mono text-[10px] text-gray-500">{p.s}</div>
-                                            <div className="text-[13px] mt-1">{p.d}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Phase 6: Invitation */}
-                            <div className={`transition-all duration-500 ${phase >= 6 || !isFirstVisit ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
-                                <div className="border-2 border-black p-4 bg-gray-50">
-                                    <p className="font-mono text-[13px]">
-                                        Open <span className="font-bold">APPS</span> to begin.<br />
-                                        Most programs are hidden. Discover them.
-                                    </p>
-                                </div>
+                        {/* Projects */}
+                        <div>
+                            <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Projects</h3>
+                            <div className="space-y-2">
+                                {projects.map((p, i) => (
+                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer">
+                                        <div className="font-bold text-sm uppercase">{p.t}</div>
+                                        <div className="font-mono text-[10px] text-gray-500">{p.s}</div>
+                                        <div className="text-[13px] mt-1">{p.d}</div>
+                                    </div>
+                                ))}
                             </div>
                         </div>
-                    )}
+
+                        {/* Invitation */}
+                        <div className="border-2 border-black p-4 bg-gray-50">
+                            <p className="font-mono text-[13px]">
+                                Open <span className="font-bold">APPS</span> to begin.<br />
+                                Most programs are hidden. Discover them.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             );
         };
@@ -6918,9 +7050,9 @@
                 const padding = 8;
                 const topOffset = mobile ? 56 : 16; // Account for mobile taskbar at top
                 return {
-                    SYSTEM: { x: padding, y: topOffset },
-                    FILES: { x: padding, y: topOffset + iconSize },
-                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    ABOUT: { x: padding, y: topOffset },
+                    APPS: { x: padding, y: topOffset + iconSize },
+                    FILES: { x: padding, y: topOffset + iconSize * 2 },
                     CONTACT: { x: padding, y: topOffset + iconSize * 3 },
                     TRUTH: { x: padding, y: topOffset + iconSize * 4 },
                     TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
@@ -7054,7 +7186,7 @@
 
             // App progression system - pool-based unlocks
             // Starting apps: TERMINAL, THIRD_EYE, SNEK, ACHIEVEMENTS.EXE + desktop icons
-            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'START', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END'];
+            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
             // Special unlocks (not pool-based)
             const SPECIAL_UNLOCKS = {
@@ -7449,14 +7581,23 @@
                 };
             }, [dogDragging, dogDragOffset]);
 
-            // Desktop icons - START.EXE first, then APPS, MEDIA_LIB, CONTACT, TRASH (plus TRUTH if unlocked)
+            // Desktop icons - ABOUT.EXE first, then APPS, MEDIA_LIB, CONTACT, TRASH (plus TRUTH if unlocked)
+            // First visit: only MESSAGES visible until message sequence completes
+            const [firstVisitComplete, setFirstVisitComplete] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_visits');
+                return stored && parseInt(stored, 10) > 1;
+            });
+            const [iconsRevealed, setIconsRevealed] = useState(firstVisitComplete);
+            const [revealingIcons, setRevealingIcons] = useState(false);
+
             const desktopIcons = truthUnlocked
-                ? ["START", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"]
-                : ["START", "APPS", "FILES", "CONTACT", "TRASH"];
+                ? ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"]
+                : ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
 
             // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
-                "START": { id: "START", title: "START.EXE", icon: "Terminal", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Message", x: 150, y: 80, w: '400px', h: '500px', isOpen: false, isMin: false, z: 8 },
+                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
@@ -7488,16 +7629,39 @@
                 "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
             });
 
-            // Track if this is first visit (for START.EXE reveal)
+            // Track if this is first visit (for ABOUT.EXE reveal)
             const [isFirstVisit] = useState(() => {
                 const stored = localStorage.getItem('ultra_int_visits');
                 return !stored || parseInt(stored, 10) <= 1;
             });
 
+            // Handle message completion - reveal icons and open ABOUT.EXE
+            const handleMessageComplete = () => {
+                setRevealingIcons(true);
+                // Close the messages window
+                close('MESSAGES');
+
+                // Reveal icons one by one with delay
+                const iconsToReveal = desktopIcons;
+                iconsToReveal.forEach((iconId, index) => {
+                    setTimeout(() => {
+                        if (index === iconsToReveal.length - 1) {
+                            // Last icon revealed, mark complete
+                            setIconsRevealed(true);
+                            setRevealingIcons(false);
+                            setFirstVisitComplete(true);
+                            // Open ABOUT.EXE
+                            setTimeout(() => open('ABOUT'), 300);
+                        }
+                    }, index * 200);
+                });
+            };
+
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "START": return <StartApp isFirstVisit={isFirstVisit} onClose={() => close('START')} onRevealComplete={() => {}} />;
+                    case "MESSAGES": return <MessagesApp onClose={() => close('MESSAGES')} onComplete={handleMessageComplete} />;
+                    case "ABOUT": return <AboutApp onClose={() => close('ABOUT')} />;
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
@@ -7698,7 +7862,7 @@
                     'monitor', 'folder', 'fill', 'gamepad', 'trash', 'undo', 'redo', 'file',
                     'close', 'minus', 'checkbox', 'send', 'movie', 'book', 'music', 'arrow-left',
                     'code', 'book-open', 'radio-on', 'dice', 'layout-rows', 'table', 'arrow-up',
-                    'keyboard', 'power', 'card', 'paw', 'mail', 'add-grid', 'image', 'map',
+                    'keyboard', 'power', 'card', 'paw', 'mail', 'message', 'add-grid', 'image', 'map',
                     'clock', 'heart', 'lock', 'sliders', 'user'
                 ];
                 iconNames.forEach(name => {
@@ -7706,44 +7870,48 @@
                     img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
                 });
 
-                const isReturnVisitor = parseInt(localStorage.getItem('ultra_int_visits') || '0', 10) > 0;
+                const isReturnVisitor = parseInt(localStorage.getItem('ultra_int_visits') || '0', 10) > 1;
 
                 if (checkMobile) {
                     // Mobile: Show "best on desktop" notice first, then kernel boot
-                    if (isReturnVisitor) {
-                        // Return visitor: instant boot
-                        setBootPhase(2);
-                        setBooted(true);
-                    } else {
-                        setBootPhase(0);
-                        setTimeout(() => {
-                            setBootPhase(1); // kernel boot
-                            setTimeout(() => {
-                                setBootPhase(2);
-                                setBooted(true);
-                            }, 2000);
-                        }, 2000);
-                    }
-                } else {
-                    // Desktop
-                    if (isReturnVisitor) {
-                        // Return visitor: instant boot, SYSTEM opens
-                        setBootPhase(2);
-                        setBooted(true);
-                    } else {
-                        // First visit: full boot sequence, START.EXE opens instead of SYSTEM
-                        setBootPhase(1);
-                        // Close SYSTEM, open START for first visitors
-                        setWindows(prev => ({
-                            ...prev,
-                            SYSTEM: { ...prev.SYSTEM, isOpen: false },
-                            START: { ...prev.START, isOpen: true, z: 100 }
-                        }));
+                    setBootPhase(0);
+                    setTimeout(() => {
+                        setBootPhase(1); // kernel boot
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
+                            // First visit on mobile: open MESSAGES
+                            if (!isReturnVisitor) {
+                                setTimeout(() => {
+                                    setWindows(prev => ({
+                                        ...prev,
+                                        MESSAGES: { ...prev.MESSAGES, isOpen: true, z: 100 }
+                                    }));
+                                }, 300);
+                            }
                         }, 2000);
-                    }
+                    }, 2000);
+                } else {
+                    // Desktop: always show boot animation
+                    setBootPhase(1);
+                    // Close SYSTEM initially
+                    setWindows(prev => ({
+                        ...prev,
+                        SYSTEM: { ...prev.SYSTEM, isOpen: !isReturnVisitor ? false : true }
+                    }));
+                    setTimeout(() => {
+                        setBootPhase(2);
+                        setBooted(true);
+                        // After boot: first visit opens MESSAGES, return visitor opens SYSTEM
+                        if (!isReturnVisitor) {
+                            setTimeout(() => {
+                                setWindows(prev => ({
+                                    ...prev,
+                                    MESSAGES: { ...prev.MESSAGES, isOpen: true, z: 100 }
+                                }));
+                            }, 300);
+                        }
+                    }, 2000);
                 }
 
                 // Handle resize
@@ -8913,8 +9081,25 @@
                         </div>
                     )}
 
-                    {/* DESKTOP ICONS - Freely positionable */}
-                    {desktopIcons.map(appId => {
+                    {/* MESSAGES.EXE Icon - Only visible on first visit before message completion */}
+                    {!firstVisitComplete && (
+                        <div
+                            className="absolute z-10 group flex flex-col items-center gap-1 w-24 cursor-pointer select-none"
+                            style={{
+                                left: window.innerWidth / 2 - 48,
+                                top: window.innerHeight / 2 - 60,
+                            }}
+                            onClick={() => open('MESSAGES')}
+                        >
+                            <div className="border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 bg-white">
+                                <Icons.Message size={32} />
+                            </div>
+                            <span className="border border-black px-1 font-mono font-bold shadow-sm text-[10px] bg-white">MESSAGES.EXE</span>
+                        </div>
+                    )}
+
+                    {/* DESKTOP ICONS - Freely positionable, hidden until first visit complete */}
+                    {desktopIcons.map((appId, iconIndex) => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
@@ -8925,6 +9110,11 @@
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
 
+                        // On first visit, hide icons until reveal sequence
+                        const isRevealing = revealingIcons && iconIndex <= desktopIcons.indexOf(appId);
+                        const shouldShow = firstVisitComplete || iconsRevealed || isRevealing;
+                        if (!shouldShow && !revealingIcons) return null;
+
                         return (
                             <div
                                 key={app.id}
@@ -8932,6 +9122,8 @@
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
+                                    opacity: revealingIcons ? 0 : 1,
+                                    animation: revealingIcons ? `window-fold-in 0.3s ease-out ${iconIndex * 0.2}s forwards` : 'none',
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
