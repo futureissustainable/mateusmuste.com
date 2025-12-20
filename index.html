@@ -66,6 +66,9 @@
         loadCobe();
     </script>
 
+    <!-- ASCII Art definitions - edit ascii-art.js to customize -->
+    <script src="ascii-art.js"></script>
+
     <style>
         /* Local Font Definitions */
         @font-face {
@@ -8864,13 +8867,7 @@
                         onClick={playBootSound}
                         onTouchStart={playBootSound}
                     >
-                        <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{`
- _   _ _    _____ ____    _       ___ _   _ _____
-| | | | |  |_   _|  _ \\  / \\     |_ _| \\ | |_   _|
-| | | | |    | | | |_) |/ _ \\     | ||  \\| | | |
-| |_| | |____| | |  _ </ ___ \\ _  | || |\\  | | |
- \\___/|______|_| |_| \\_/_/   \\_(_)|___|_| \\_| |_|
-`}</pre>
+                        <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{ASCII_ART.BOOT_LOGO}</pre>
                         <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
                         {visitMessage && (
                             <div className={`text-[10px] tracking-wider mt-3 mb-6 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
