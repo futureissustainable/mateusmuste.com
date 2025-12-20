@@ -199,8 +199,8 @@
         }
         .desktop-bg-ascii {
             background-color: #f0f0f0;
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='4' y='14' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E01%3C/text%3E%3Ctext x='44' y='14' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E//%3C/text%3E%3Ctext x='4' y='34' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E%7B%7D%3C/text%3E%3Ctext x='44' y='34' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E10%3C/text%3E%3Ctext x='4' y='54' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E**%3C/text%3E%3Ctext x='44' y='54' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E()%3C/text%3E%3Ctext x='4' y='74' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E;%3C/text%3E%3Ctext x='44' y='74' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E%3C%3E%3C/text%3E%3C/svg%3E");
-            background-size: 80px 80px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E;%3C/text%3E%3Ctext x='5' y='35' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E[]%3C/text%3E%3Ctext x='35' y='35' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E10%3C/text%3E%3Ctext x='5' y='55' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E..%3C/text%3E%3Ctext x='35' y='55' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E00%3C/text%3E%3C/svg%3E");
+            background-size: 60px 60px;
         }
 
         canvas {
@@ -329,12 +329,6 @@
             animation: iconShake 0.15s ease-in-out infinite;
             transform: scale(1.1) translateY(-8px);
             z-index: 99999 !important;
-        }
-
-        /* ThirdEye scan animation */
-        @keyframes scan {
-            0% { top: 0%; }
-            100% { top: 100%; }
         }
 
         /* Stack overflow flash animation */
@@ -8331,8 +8325,11 @@
             };
 
             const handleContextMenu = (e) => {
-                    e.preventDefault();
-                    setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                    // Only show custom context menu when clicking directly on desktop background
+                    if (e.target === e.currentTarget || e.target.classList.contains('desktop-bg-grid') || e.target.classList.contains('desktop-bg-solid') || e.target.classList.contains('desktop-bg-ascii')) {
+                        e.preventDefault();
+                        setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                    }
                 };
 
                 const changeBackground = (bg) => {
@@ -8379,17 +8376,6 @@
                                 backgroundSize: '40px 40px',
                                 filter: 'invert(1) hue-rotate(180deg)'
                             }} />
-
-                            {/* Animated scan line */}
-                            <div
-                                className="absolute left-0 right-0 h-1 pointer-events-none z-50"
-                                style={{
-                                    background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.8), transparent)',
-                                    boxShadow: '0 0 20px #0f0, 0 0 40px #0f0',
-                                    animation: 'scan 2s linear infinite',
-                                    filter: 'invert(1) hue-rotate(180deg)'
-                                }}
-                            />
 
                             {/* Desktop icons as wireframes with code */}
                             {Object.entries(iconPositions).map(([id, pos]) => {
