@@ -6178,10 +6178,12 @@
                     { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                     { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
-                    ...(!isMobile ? [{ id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' }] : []),
+                    ...(!isMobile ? [
+                        { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
+                        { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
+                        { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' }
+                    ] : []),
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
-                    { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
-                    { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
                     { id: 'VOID', title: 'VOID.TXT', icon: 'Void' }
                 ],
                 ABOUT: [
@@ -6303,10 +6305,8 @@
                 { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
                 { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
-                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
                 { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
-                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
                 // About
@@ -6317,7 +6317,11 @@
                 { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
                 { id: 'END', title: 'END.EXE', icon: 'Trophy' },
                 // Desktop only
-                ...(!isMobile ? [{ id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' }] : [])
+                ...(!isMobile ? [
+                    { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
+                    { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
+                    { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' }
+                ] : [])
             ];
 
             const filteredItems = url.trim()
