@@ -16,9 +16,9 @@
         tailwind.config = {
             theme: {
                 fontFamily: {
-                    sans: ['Mondwest', 'sans-serif'],
-                    serif: ['Mondwest', 'sans-serif'],
-                    mono: ['Mondwest', 'sans-serif'],
+                    sans: ['PP Mondwest', 'sans-serif'],
+                    serif: ['PP Mondwest', 'sans-serif'],
+                    mono: ['PP Mondwest', 'sans-serif'],
                 },
             },
         }
@@ -47,9 +47,25 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.cdnfonts.com/css/mondwest" rel="stylesheet">
 
     <style>
+        /* Local Mondwest Bitmap Font */
+        @font-face {
+            font-family: 'PP Mondwest';
+            src: url('./fonts/PPMondwest-Regular.otf') format('opentype');
+            font-weight: 400;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'PP Mondwest';
+            src: url('./fonts/PPNeueBit-Bold.otf') format('opentype');
+            font-weight: 700;
+            font-style: normal;
+            font-display: swap;
+        }
+
         :root {
             --bg: #E8E8E8;
             --fg: #000000;
@@ -68,7 +84,7 @@
         body {
             background-color: var(--bg);
             color: var(--fg);
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             overflow: hidden;
             margin: 0;
             padding: 0;
@@ -82,15 +98,15 @@
         }
 
         .font-mono {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
         }
 
         .font-sans {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
         }
 
         .font-serif {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
         }
 
         /* Brutalist Styles */
@@ -113,7 +129,7 @@
             padding: 0.75rem 1.5rem;
             background: #000;
             color: #fff;
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 0.875rem;
             font-weight: 700;
             border: 2px solid #000;
@@ -128,7 +144,7 @@
             padding: 0.75rem 1.5rem;
             background: #fff;
             color: #000;
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 0.875rem;
             font-weight: 700;
             border: 2px solid #000;
@@ -155,7 +171,7 @@
         /* Toolbar Button (selectable toggle) */
         .btn-toolbar {
             padding: 0.25rem 0.5rem;
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 0.625rem;
             font-weight: 700;
             text-transform: uppercase;
@@ -176,12 +192,12 @@
             align-items: center;
         }
         .app-header-title {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 0.75rem;
             font-weight: 700;
         }
         .app-header-subtitle {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 10px;
             color: #6b7280;
         }
@@ -194,7 +210,7 @@
             text-align: center;
         }
         .app-footer-text {
-            font-family: 'Mondwest', sans-serif;
+            font-family: 'PP Mondwest', sans-serif;
             font-size: 10px;
             color: #6b7280;
         }
@@ -1164,7 +1180,7 @@
                         ctx.save();
                         ctx.globalAlpha = 0.15;
                         ctx.fillStyle = "#000000";
-                        ctx.font = "24px 'Mondwest', sans-serif";
+                        ctx.font = "24px 'PP Mondwest', sans-serif";
                         ctx.textAlign = "center";
                         ctx.textBaseline = "middle";
                         ctx.fillText("draw your message :)", canvas.width / 2, canvas.height / 2);
@@ -1287,7 +1303,7 @@
                 if (textInput.trim()) {
                     const ctx = canvasRef.current.getContext('2d');
                     ctx.fillStyle = color;
-                    ctx.font = `${size * 4}px 'Mondwest', sans-serif`;
+                    ctx.font = `${size * 4}px 'PP Mondwest', sans-serif`;
                     ctx.fillText(textInput, textPos.x, textPos.y);
                     setStatus("TEXT PLACED");
                     saveToHistory();
@@ -7080,7 +7096,7 @@
                 const draw = () => {
                     ctx.fillStyle = 'rgba(240, 240, 240, 0.03)';
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    ctx.font = fontSize + "px 'Mondwest', sans-serif";
+                    ctx.font = fontSize + "px 'PP Mondwest', sans-serif";
 
                     for (let i = 0; i < drops.length; i++) {
                         const char = chars[Math.floor(Math.random() * chars.length)];
@@ -8586,7 +8602,7 @@
                                 if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                 clearInterval(stackTimerRef.current);
                                 const crashScreen = document.createElement('div');
-                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Mondwest,sans-serif;color:#0f0;overflow:auto;';
+                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:PP Mondwest,sans-serif;color:#0f0;overflow:auto;';
                                 crashScreen.innerHTML = `
                                     <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
                                               ▲
@@ -8696,7 +8712,7 @@
                                     clearInterval(stackTimerRef.current);
                                     // Show fullscreen ASCII pyramid crash screen
                                     const crashScreen = document.createElement('div');
-                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:Mondwest,sans-serif;color:#0f0;overflow:auto;';
+                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:PP Mondwest,sans-serif;color:#0f0;overflow:auto;';
                                     crashScreen.innerHTML = `
                                         <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
                                               ▲
@@ -8971,7 +8987,7 @@
                         ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                         ctx.fillStyle = '#0f0';
-                        ctx.font = fontSize + "px 'Mondwest', sans-serif";
+                        ctx.font = fontSize + "px 'PP Mondwest', sans-serif";
 
                         for (let i = 0; i < drops.length; i++) {
                             const char = chars[Math.floor(Math.random() * chars.length)];

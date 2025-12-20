@@ -59,12 +59,13 @@ Pattern:        Radial gradient dots (#aaa, 1px, 20px spacing)
 
 ### Primary Font
 ```css
-font-family: 'Mondwest', sans-serif;
+font-family: 'PP Mondwest', sans-serif;
 ```
+Uses PPMondwest-Regular.otf (400) and PPNeueBit-Bold.otf (700)
 
 ### Monospace Font
 ```css
-font-family: 'Mondwest', sans-serif;
+font-family: 'PP Mondwest', sans-serif;
 ```
 
 ### Font Weights
@@ -451,7 +452,7 @@ z-[999999]  // Dog (always on top)
 ## Do's and Don'ts
 
 ### DO:
-- Use Mondwest font for all text (technical/data display included)
+- Use PP Mondwest font for all text (technical/data display included)
 - Keep UI elements chunky and visible
 - Use harsh shadows and solid borders
 - Make everything feel interactive and tangible
@@ -477,7 +478,7 @@ z-[999999]  // Dog (always on top)
 
 ### ORACLE.EXE
 - Dark gray/black theme
-- Mondwest font for quotes
+- PP Mondwest font for quotes
 - Mystical but not cheesy
 
 ### DESTRUCTION.EXE
