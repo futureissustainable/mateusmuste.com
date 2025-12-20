@@ -648,6 +648,40 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.15);
+            },
+
+            diceRoll: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                // Rapid clicks that slow down like a dice settling
+                for (let i = 0; i < 12; i++) {
+                    const delay = i * 0.05 + (i * i * 0.008);
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.value = 800 + Math.random() * 400;
+                    gain.gain.setValueAtTime(0.08 * (1 - i * 0.07), now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.03);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.03);
+                }
+            },
+
+            mineDing: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 1200;
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
             }
         };
 
@@ -1828,6 +1862,7 @@
                 setIsRolling(true);
                 isRollingRef.current = true;
                 setResult(null);
+                sounds.diceRoll();
 
                 const dice = diceRef.current;
                 const { renderer, scene, camera } = sceneRef.current;
@@ -1889,7 +1924,7 @@
                         <div className="mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
                         {result && !isRolling && (
                             <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
-                                {result === 20 ? 'CRITICAL' : result === 1 ? 'FAIL' : `RESULT: ${result}`}
+                                {result === 20 ? '20 CRITICAL' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
                             </div>
                         )}
                         <button
@@ -1899,12 +1934,6 @@
                         >
                             {isRolling ? 'ROLLING' : 'ROLL'}
                         </button>
-                    </div>
-                    <div className="p-2 border-t border-gray-200 bg-white">
-                        <div className="flex justify-between font-mono text-[10px] text-gray-400">
-                            <span>20 = CRIT</span>
-                            <span>1 = FAIL</span>
-                        </div>
                     </div>
                 </div>
             );
@@ -2471,6 +2500,7 @@
 
                 if (grid[r][c] === -1) {
                     // Hit mine - reveal all mines
+                    sounds.explosion();
                     for (let i = 0; i < ROWS; i++) {
                         for (let j = 0; j < COLS; j++) {
                             if (grid[i][j] === -1) newRevealed[i][j] = true;
@@ -2480,6 +2510,9 @@
                     setGameOver(true);
                     return;
                 }
+
+                // Safe cell - play ding
+                sounds.mineDing();
 
                 // Flood fill for empty cells
                 const flood = (row, col) => {
@@ -2889,7 +2922,7 @@
                         if (dist < 1) {
                             isGameOver = true;
                             setGameOver(true);
-                            sounds.gameOver();
+                            sounds.explosion();
                             // Save high score on game over
                             setHighScore(h => {
                                 const newHigh = Math.max(h, scoreVal);
@@ -6367,9 +6400,9 @@
             }, [currentGuess, gameState, guesses]);
 
             const statusColors = {
-                correct: 'bg-black text-white',
-                present: 'bg-gray-400 text-white',
-                absent: 'bg-gray-200 text-gray-500',
+                correct: 'bg-green-500 text-white border-2 border-green-600',
+                present: 'bg-yellow-400 text-white border-2 border-yellow-500',
+                absent: 'bg-gray-400 text-white border-2 border-gray-500',
                 empty: 'bg-white border-2 border-black',
                 unused: 'bg-white border-2 border-black hover:bg-gray-100'
             };
