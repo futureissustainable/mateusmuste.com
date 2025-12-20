@@ -948,7 +948,7 @@
             RainAlt: (p) => <PixelartIcon name="drop-half" {...p} />,
             Alert: (p) => <PixelartIcon name="alert" {...p} />,
             Repeat: (p) => <PixelartIcon name="reload" {...p} />,
-            Sword: (p) => <PixelartIcon name="sword" {...p} />,
+            Sword: (p) => <PixelartIcon name="sliders" {...p} />,
             Expand: (p) => <PixelartIcon name="open" {...p} />,
             Controller: (p) => <PixelartIcon name="gamepad" {...p} />,
             Clock: (p) => <PixelartIcon name="clock" {...p} />,
@@ -956,7 +956,7 @@
             Skull: (p) => <PixelartIcon name="mood-sad" {...p} />,
             Fire: (p) => <PixelartIcon name="zap" {...p} />,
             Bomb: (p) => <PixelartIcon name="close-box" {...p} />,
-            Badge: (p) => <PixelartIcon name="award" {...p} />,
+            Badge: (p) => <PixelartIcon name="calendar" {...p} />,
         };
 
         // --- SHARED DOG SPRITE ---
@@ -6611,19 +6611,7 @@
                         </div>
                     </div>
                     <div className="app-footer border-t-2 border-black p-2">
-                        <div className="flex justify-between items-center">
-                            <span className="app-footer-text">Earn achievements to unlock apps</span>
-                            <div className="flex gap-1">
-                                {Array.from({ length: 5 }).map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`w-3 h-3 border border-black ${
-                                            i < Math.floor(unlockedCount / (totalCount / 5)) ? 'bg-black' : 'bg-white'
-                                        }`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
+                        <span className="app-footer-text">Earn achievements to unlock apps</span>
                     </div>
                 </div>
             );
