@@ -5,6 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MATEUSMUSTE // OS</title>
+    <meta name="description" content="Interactive brutalist portfolio OS by Mateus Muste. A creative web experience featuring games, apps, and hidden easter eggs.">
+    <meta name="author" content="Mateus Muste">
+    <meta name="theme-color" content="#E8E8E8">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://mateusmuste.com/">
+    <meta property="og:title" content="MATEUSMUSTE // OS">
+    <meta property="og:description" content="Interactive brutalist portfolio OS. A creative web experience featuring games, apps, and hidden easter eggs.">
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:url" content="https://mateusmuste.com/">
+    <meta name="twitter:title" content="MATEUSMUSTE // OS">
+    <meta name="twitter:description" content="Interactive brutalist portfolio OS. A creative web experience featuring games, apps, and hidden easter eggs.">
 
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -44,9 +59,9 @@
                     const module = await import(cdn);
                     window.createGlobe = module.default;
                     return;
-                } catch (e) { console.warn('COBE CDN failed:', cdn); }
+                } catch (e) { /* CDN failed, try next */ }
             }
-            console.error('All COBE CDNs failed');
+            // All CDNs failed - globe feature will be unavailable
         }
         loadCobe();
     </script>
@@ -71,6 +86,8 @@
         :root {
             --bg: #E8E8E8;
             --fg: #000000;
+            --white: #ffffff;
+            --black: #000000;
             /* Warm neutral grays */
             --gray-50: #FAFAFA;
             --gray-100: #F0F0F0;
@@ -78,9 +95,16 @@
             --gray-300: #C0C0C0;
             --gray-400: #909090;
             --gray-500: #606060;
+            --gray-600: #333333;
             /* Accent colors */
             --crimson: #DC143C;
             --code-green: #00FF41;
+            /* Shadows */
+            --shadow-color: var(--black);
+            /* Font sizes */
+            --font-size-base: 16px;
+            --font-size-lg: 20px;
+            --font-size-xl: 24px;
         }
 
         body {
@@ -99,15 +123,8 @@
             transition: all 50ms ease-out;
         }
 
-        .font-mono {
-            font-family: 'PPNeueBit', sans-serif !important;
-        }
-
-        .font-sans {
-            font-family: 'PPNeueBit', sans-serif !important;
-        }
-
-        .font-serif {
+        /* Override Tailwind font utilities to use PPNeueBit */
+        .font-mono, .font-sans, .font-serif {
             font-family: 'PPNeueBit', sans-serif !important;
         }
 
@@ -170,15 +187,15 @@
 
         /* Brutalist Styles */
         .window-shadow {
-            box-shadow: 10px 10px 0px 0px #000000;
+            box-shadow: 10px 10px 0 0 var(--shadow-color);
         }
 
         .icon-shadow {
-            box-shadow: 4px 4px 0px 0px #000000;
+            box-shadow: 4px 4px 0 0 var(--shadow-color);
         }
 
         .btn-shadow {
-            box-shadow: 2px 2px 0px 0px #000000;
+            box-shadow: 2px 2px 0 0 var(--shadow-color);
         }
 
         /* Design System - Standardized Components */
@@ -186,12 +203,12 @@
         /* Primary Button: solid black */
         .btn-primary {
             padding: 0.75rem 1.5rem;
-            background: #000;
-            color: #fff;
+            background: var(--black);
+            color: var(--white);
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 16px;
+            font-size: var(--font-size-base);
             font-weight: 700;
-            border: 2px solid #000;
+            border: 2px solid var(--black);
             cursor: pointer;
             transition: filter 0.15s;
         }
@@ -201,77 +218,77 @@
         /* Secondary Button: outlined */
         .btn-secondary {
             padding: 0.75rem 1.5rem;
-            background: #fff;
-            color: #000;
+            background: var(--white);
+            color: var(--black);
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 16px;
+            font-size: var(--font-size-base);
             font-weight: 700;
-            border: 2px solid #000;
+            border: 2px solid var(--black);
             cursor: pointer;
             transition: all 0.15s;
         }
-        .btn-secondary:hover { background: #000; color: #fff; }
+        .btn-secondary:hover { background: var(--black); color: var(--white); }
 
         /* Button Sizes */
-        .btn-xs { padding: 0.25rem 0.5rem; font-size: 16px; }
-        .btn-sm { padding: 0.5rem 1rem; font-size: 16px; }
-        .btn-lg { padding: 1rem 2rem; font-size: 20px; }
+        .btn-xs { padding: 0.25rem 0.5rem; font-size: var(--font-size-base); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: var(--font-size-base); }
+        .btn-lg { padding: 1rem 2rem; font-size: var(--font-size-lg); }
         .btn-full { width: 100%; }
 
         /* Icon Button (square, compact) */
         .btn-icon {
             padding: 0.25rem;
-            background: #fff;
-            border: 1px solid #000;
+            background: var(--white);
+            border: 1px solid var(--black);
             cursor: pointer;
         }
-        .btn-icon:hover { background: #f3f3f3; }
+        .btn-icon:hover { background: var(--gray-100); }
 
         /* Toolbar Button (selectable toggle) */
         .btn-toolbar {
             padding: 0.25rem 0.5rem;
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 16px;
+            font-size: var(--font-size-base);
             font-weight: 700;
             text-transform: uppercase;
-            border: 1px solid #000;
+            border: 1px solid var(--black);
             cursor: pointer;
-            background: #fff;
+            background: var(--white);
         }
-        .btn-toolbar:hover { background: #f3f3f3; }
-        .btn-toolbar.active { background: #000; color: #fff; }
+        .btn-toolbar:hover { background: var(--gray-100); }
+        .btn-toolbar.active { background: var(--black); color: var(--white); }
 
         /* App Header */
         .app-header {
             padding: 0.5rem;
-            border-bottom: 2px solid #000;
-            background: #fff;
+            border-bottom: 2px solid var(--black);
+            background: var(--white);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
         .app-header-title {
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 16px;
+            font-size: var(--font-size-base);
             font-weight: 700;
         }
         .app-header-subtitle {
             font-family: 'PPNeueBit', sans-serif !important;
-            font-size: 16px;
-            color: #6b7280;
+            font-size: var(--font-size-base);
+            color: var(--gray-500);
         }
 
         /* App Footer/Status Bar */
         .app-footer {
             padding: 0.5rem;
-            border-top: 2px solid #000;
-            background: #fff;
+            border-top: 2px solid var(--black);
+            background: var(--white);
             text-align: center;
         }
         .app-footer-text {
             font-family: 'PPNeueBit', sans-serif !important;
-            font-size: 16px;
-            color: #6b7280;
+            font-size: var(--font-size-base);
+            color: var(--gray-500);
         }
 
         /* Scrollbar */
@@ -281,31 +298,31 @@
         }
 
         ::-webkit-scrollbar-track {
-            background: #fff;
-            border-left: 2px solid #000;
-            border-top: 2px solid #000;
+            background: var(--white);
+            border-left: 2px solid var(--black);
+            border-top: 2px solid var(--black);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #000;
-            border: 2px solid #fff;
+            background: var(--black);
+            border: 2px solid var(--white);
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #333;
+            background: var(--gray-600);
         }
 
         /* Background Patterns */
         .desktop-bg-grid {
-            background-color: #f0f0f0;
-            background-image: radial-gradient(#aaa 1px, transparent 1px);
+            background-color: var(--gray-100);
+            background-image: radial-gradient(var(--gray-300) 1px, transparent 1px);
             background-size: 20px 20px;
         }
         .desktop-bg-solid {
-            background-color: #e5e5e5;
+            background-color: var(--gray-200);
         }
         .desktop-bg-ascii {
-            background-color: #f0f0f0;
+            background-color: var(--gray-100);
         }
 
         canvas {
@@ -375,11 +392,6 @@
         }
 
         /* ThirdEye stack overflow animations */
-        @keyframes flash {
-            0% { opacity: 0; background: rgba(255,0,0,0.1); }
-            100% { opacity: 1; background: rgba(255,0,0,0.4); }
-        }
-
         @keyframes glitch {
             0% { transform: translateX(0); }
             25% { transform: translateX(-2px); }
@@ -388,25 +400,25 @@
             100% { transform: translateX(0); }
         }
 
-        /* Matrix Mode */
+        /* Matrix Mode - requires !important to override all theme colors */
         .matrix-mode {
-            background: #000 !important;
+            background: var(--black) !important;
             background-image: none !important;
         }
         .matrix-mode * {
-            color: #0f0 !important;
-            border-color: #0f0 !important;
+            color: var(--code-green) !important;
+            border-color: var(--code-green) !important;
         }
         .matrix-mode .bg-white,
         .matrix-mode .bg-gray-50,
         .matrix-mode .bg-gray-100 {
-            background-color: #000 !important;
+            background-color: var(--black) !important;
         }
         .matrix-mode button,
         .matrix-mode .border,
         .matrix-mode .border-2,
         .matrix-mode .border-4 {
-            border-color: #0f0 !important;
+            border-color: var(--code-green) !important;
         }
         .matrix-mode svg {
             filter: brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
@@ -438,8 +450,8 @@
 
         /* Stack overflow flash animation */
         @keyframes stackFlash {
-            0%, 100% { opacity: 1; background: #000; }
-            50% { opacity: 0.7; background: #300; }
+            0%, 100% { opacity: 1; background: var(--black); }
+            50% { opacity: 0.7; background: var(--crimson); }
         }
 
         /* Fade in animation for revealing apps */
@@ -491,6 +503,7 @@
         const sounds = {
             dragStart: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 if (activeDragNodes) return;
 
@@ -553,6 +566,7 @@
             dragStop: () => {
                 if (!activeDragNodes) return;
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const { noise, hapticOsc, lfo, mainGain } = activeDragNodes;
                 mainGain.gain.cancelScheduledValues(now);
@@ -566,6 +580,7 @@
 
             windowOpen: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -583,6 +598,7 @@
 
             windowClose: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -599,6 +615,7 @@
 
             success: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 [523.25, 659.25, 783.99, 987.77].forEach((freq, i) => {
                     const osc = ctx.createOscillator();
@@ -618,6 +635,7 @@
 
             error: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 [150, 154].forEach(freq => {
                     const osc = ctx.createOscillator();
@@ -640,6 +658,7 @@
 
             bounce: (vel = 1) => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const dist = makeDistortion(ctx, 12);
                 const osc = ctx.createOscillator();
@@ -658,6 +677,7 @@
 
             bounceIcon: (vel = 1) => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -674,6 +694,7 @@
 
             bootSequence: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const notes = [174.61, 220.00, 261.63, 329.63, 392.00];
                 notes.forEach((freq, i) => {
@@ -694,6 +715,7 @@
 
             laser: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -710,6 +732,7 @@
 
             explosion: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -728,6 +751,7 @@
 
             coin: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 [987.77, 1318.51].forEach((freq, i) => {
                     const osc = ctx.createOscillator();
@@ -746,6 +770,7 @@
 
             gameOver: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 [440, 311, 220, 155].forEach((freq, i) => {
                     const osc = ctx.createOscillator();
@@ -764,6 +789,7 @@
 
             bark: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -798,6 +824,7 @@
 
             diceRoll: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 // Rapid clicks that slow down like a dice settling
                 for (let i = 0; i < 12; i++) {
@@ -817,6 +844,7 @@
 
             mineDing: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -833,6 +861,7 @@
             // UI click sound - subtle, satisfying
             click: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -850,6 +879,7 @@
             // Copy to clipboard sound
             copy: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 [1000, 1200].forEach((freq, i) => {
                     const osc = ctx.createOscillator();
@@ -869,6 +899,7 @@
             // Key press sound for typing games
             keyPress: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -885,6 +916,7 @@
             // Note toggle for synth
             noteToggle: () => {
                 const ctx = getAudioCtx();
+                if (!ctx) return;
                 const now = ctx.currentTime;
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
@@ -1056,6 +1088,24 @@
             const color = gold ? '#DAA520' : '#000';
             const eyeColor = gold ? '#000' : '#fff';
             const pupilColor = gold ? '#fff' : '#000';
+            const [frame, setFrame] = useState(0);
+
+            // Use requestAnimationFrame for smooth animation without Date.now() in render
+            useEffect(() => {
+                if (!animated) return;
+                let animationId;
+                const animate = () => {
+                    setFrame(f => f + 1);
+                    animationId = requestAnimationFrame(animate);
+                };
+                animationId = requestAnimationFrame(animate);
+                return () => cancelAnimationFrame(animationId);
+            }, [animated]);
+
+            // Calculate animation values from frame count
+            const legPhase = Math.sin(frame * 0.1);
+            const tailPhase = Math.sin(frame * 0.067);
+
             return (
                 <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated', ...style }}>
                     <rect x="16" y="16" width="32" height="16" fill={color} />
@@ -1066,12 +1116,12 @@
                     <rect x="10" y="18" width="3" height="3" fill={pupilColor} />
                     <rect x="4" y="22" width="4" height="4" fill={color} />
                     {animated && <rect x="2" y="26" width="4" height="2" fill={color} />}
-                    <rect x="16" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
-                    <rect x="26" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
-                    <rect x="34" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
-                    <rect x="42" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
-                    <rect x="48" y={animated ? 12 + Math.sin(Date.now() / 150) * 4 : 12} width="12" height="4" fill={color} />
-                    <rect x="58" y={animated ? 8 + Math.sin(Date.now() / 150) * 4 : 8} width="4" height="6" fill={color} />
+                    <rect x="16" y="32" width="6" height={animated ? (legPhase > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="26" y="32" width="6" height={animated ? (legPhase > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="34" y="32" width="6" height={animated ? (legPhase > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="42" y="32" width="6" height={animated ? (legPhase > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="48" y={animated ? 12 + tailPhase * 4 : 12} width="12" height="4" fill={color} />
+                    <rect x="58" y={animated ? 8 + tailPhase * 4 : 8} width="4" height="6" fill={color} />
                 </svg>
             );
         };
@@ -1478,6 +1528,8 @@
                     <div className="flex-grow relative cursor-crosshair bg-gray-300 p-[2px] overflow-hidden" ref={containerRef}>
                         <canvas
                             ref={canvasRef}
+                            role="img"
+                            aria-label="Drawing canvas for Paint application"
                             onMouseDown={startDraw}
                             onMouseMove={draw}
                             onMouseUp={endDraw}
@@ -1492,6 +1544,7 @@
                             <div className="absolute top-2 left-2 bg-white border-2 border-black p-2 flex gap-2">
                                 <input
                                     type="text"
+                                    aria-label="Text to add to canvas"
                                     value={textInput}
                                     onChange={(e) => setTextInput(e.target.value)}
                                     onKeyDown={(e) => e.key === 'Enter' && placeText()}
@@ -1986,6 +2039,7 @@
                             <input
                                 type="text"
                                 disabled
+                                aria-label="Message input (disabled)"
                                 placeholder="..."
                                 className="flex-grow border-2 border-black px-3 py-2 font-mono text-sm bg-gray-50 cursor-not-allowed"
                             />
@@ -2187,7 +2241,7 @@
             }, [isPlaying]);
 
             const openPlaylist = () => {
-                window.open('https://music.youtube.com/playlist?list=PLeIQRsOWZUhKaD53FTvwZCxsNWzjq0lfO&si=92O5A6kAPjk8Vzmg', '_blank');
+                window.open('https://music.youtube.com/playlist?list=PLeIQRsOWZUhKaD53FTvwZCxsNWzjq0lfO&si=92O5A6kAPjk8Vzmg', '_blank', 'noopener,noreferrer');
                 setIsPlaying(true);
             };
 
@@ -2628,7 +2682,7 @@
                     </div>
                     <div className="flex-grow flex items-center justify-center p-2 md:p-4 bg-gray-50 overflow-hidden">
                         <div className="relative border-2 border-black" style={{ width: 'min(100%, 600px)', aspectRatio: '3/2' }}>
-                            <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} />
+                            <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} role="img" aria-label="Snake game canvas" />
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
                                     <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
@@ -2866,7 +2920,7 @@
                                 </div>
                             </div>
                         )}
-                        <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} />
+                        <canvas ref={canvasRef} className="block" style={{ imageRendering: 'pixelated' }} role="img" aria-label="Labyrinth maze game" />
                     </div>
                     <div className="h-8 px-3 flex justify-between items-center">
                         <span className="font-mono text-[10px] text-gray-300 hidden md:inline">↑↓←→</span>
@@ -3670,6 +3724,7 @@
                             <span className="app-footer-text">TEMPO</span>
                             <input
                                 type="range"
+                                aria-label="Tempo control"
                                 min="60"
                                 max="200"
                                 value={tempo}
@@ -3682,6 +3737,7 @@
                             <span className="app-footer-text">FILTER</span>
                             <input
                                 type="range"
+                                aria-label="Filter frequency control"
                                 min="100"
                                 max="5000"
                                 value={filter}
@@ -5392,6 +5448,8 @@
                         {/* Globe canvas */}
                         <canvas
                             ref={canvasRef}
+                            role="img"
+                            aria-label="Interactive 3D globe"
                             style={{
                                 width: canvasSize,
                                 height: canvasSize,
@@ -6159,6 +6217,7 @@
                             <input
                                 ref={inputRef}
                                 type="text"
+                                aria-label="Terminal command input"
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
@@ -6437,6 +6496,7 @@
                         <form onSubmit={handleSubmit} className="w-56">
                             <input
                                 type="password"
+                                aria-label="Enter password to unlock encrypted file"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="ENTER PASSWORD"
@@ -6572,6 +6632,7 @@
                         <form onSubmit={handleSubmit} className={`w-56 ${shaking ? 'animate-shake' : ''}`}>
                             <input
                                 type="password"
+                                aria-label="Enter password for secure area"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="PASSWORD"
@@ -6776,6 +6837,7 @@
                         <form onSubmit={handleSubmit} className="flex-grow relative">
                             <input
                                 type="text"
+                                aria-label="Browser address bar - search apps or enter URL"
                                 value={url}
                                 onChange={(e) => { setUrl(e.target.value); setShowSuggestions(true); }}
                                 onFocus={() => setShowSuggestions(true)}
@@ -7186,7 +7248,7 @@
                     window.removeEventListener('resize', handleResize);
                 };
             }, []);
-            return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />;
+            return <canvas ref={canvasRef} role="presentation" aria-hidden="true" style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />;
         });
 
         // --- OS SHELL ---
@@ -7559,34 +7621,47 @@
             // Total visitors counter (using CountAPI)
             const [totalVisitors, setTotalVisitors] = useState(null);
 
-            // Fetch and increment total visitors
+            // Fetch and increment total visitors with abort controller
             useEffect(() => {
-                fetch('https://api.countapi.xyz/hit/mateusmuste-com/visits')
+                const controller = new AbortController();
+                fetch('https://api.countapi.xyz/hit/mateusmuste-com/visits', { signal: controller.signal })
                     .then(res => res.json())
                     .then(data => setTotalVisitors(data.value))
-                    .catch(() => {
+                    .catch((err) => {
+                        if (err.name === 'AbortError') return; // Ignore abort errors
                         // Fallback to localStorage estimate
                         const stored = parseInt(localStorage.getItem('visitor_estimate') || '340', 10);
                         const newCount = stored + Math.floor(Math.random() * 3);
                         localStorage.setItem('visitor_estimate', newCount.toString());
                         setTotalVisitors(newCount);
                     });
+                return () => controller.abort();
             }, []);
 
-            // Battery API
+            // Battery API with proper cleanup
             useEffect(() => {
+                let batteryRef = null;
+                let updateBattery = null;
+
                 if ('getBattery' in navigator) {
                     navigator.getBattery().then(batt => {
-                        const updateBattery = () => setBattery({ level: Math.round(batt.level * 100), charging: batt.charging });
+                        batteryRef = batt;
+                        updateBattery = () => setBattery({ level: Math.round(batt.level * 100), charging: batt.charging });
                         updateBattery();
                         batt.addEventListener('levelchange', updateBattery);
                         batt.addEventListener('chargingchange', updateBattery);
-                        return () => {
-                            batt.removeEventListener('levelchange', updateBattery);
-                            batt.removeEventListener('chargingchange', updateBattery);
-                        };
+                    }).catch(() => {
+                        // Battery API not available or failed
+                        setBattery({ level: null, charging: false });
                     });
                 }
+
+                return () => {
+                    if (batteryRef && updateBattery) {
+                        batteryRef.removeEventListener('levelchange', updateBattery);
+                        batteryRef.removeEventListener('chargingchange', updateBattery);
+                    }
+                };
             }, []);
 
             const toggleMatrixMode = () => {
@@ -9096,7 +9171,7 @@
                         window.removeEventListener('resize', handleResize);
                     };
                 }, []);
-                return <canvas ref={canvasRef} className="matrix-rain" />;
+                return <canvas ref={canvasRef} className="matrix-rain" role="presentation" aria-hidden="true" />;
             };
 
             const handleContextMenu = (e) => {
