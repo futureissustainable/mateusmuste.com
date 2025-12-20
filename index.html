@@ -672,10 +672,29 @@
                 setTextInput('');
             };
 
-            const send = () => {
-                setStatus("ENCRYPTING...");
-                setTimeout(() => setStatus("UPLOADING..."), 500);
-                setTimeout(() => setStatus("SENT TO MATEUS"), 1200);
+            const send = async () => {
+                const canvas = canvasRef.current;
+                try {
+                    // Copy canvas to clipboard
+                    canvas.toBlob(async (blob) => {
+                        if (blob) {
+                            try {
+                                await navigator.clipboard.write([
+                                    new ClipboardItem({ 'image/png': blob })
+                                ]);
+                                setStatus("COPIED TO CLIPBOARD");
+                            } catch (e) {
+                                setStatus("COPY FAILED");
+                            }
+                        }
+                    }, 'image/png');
+                    // Open mailto
+                    setTimeout(() => {
+                        window.location.href = 'mailto:mateusmuste9@gmail.com';
+                    }, 500);
+                } catch (e) {
+                    setStatus("ERROR");
+                }
             };
 
             const clear = () => {
@@ -5298,7 +5317,7 @@
                     const iv = setInterval(() => {
                         if (i < msgs.length) { setLines(p => [...p, msgs[i]]); i++; }
                     }, 250);
-                    const inv = setTimeout(() => setInverted(true), 2500);
+                    const inv = setTimeout(() => setInverted(true), 1500);
                     return () => { clearInterval(iv); clearTimeout(inv); };
                 }, []);
                 return (
@@ -5311,7 +5330,7 @@
 ╚██████╔╝███████╗██║   ██║  ██║██║  ██║    ██║██║ ╚████║   ██║
  ╚═════╝ ╚══════╝╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝   ╚═╝
 `}</pre>
-                        <div className={`text-[10px] tracking-[0.3em] mt-2 mb-10 ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>no side industries</div>
+                        <div className={`text-[10px] tracking-[0.3em] mt-2 mb-10 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
                         <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
                             {lines.map((l, i) => <div key={i}>{l}</div>)}
                             {lines.length < msgs.length && <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />}
@@ -5367,7 +5386,7 @@
                             return (
                                 <button
                                     key={app.id}
-                                    onClick={() => open(app.id)}
+                                    onClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
                                     className={`group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24 gap-2'}`}
                                     style={{
                                         transform: isMobile ? 'none' : `translate(${iconOffset.x}px, ${iconOffset.y}px)`,
