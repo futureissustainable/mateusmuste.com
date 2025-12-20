@@ -330,6 +330,18 @@
             transform: scale(1.1) translateY(-8px);
             z-index: 99999 !important;
         }
+
+        /* ThirdEye scan animation */
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* Stack overflow flash animation */
+        @keyframes stackFlash {
+            0%, 100% { opacity: 1; background: #000; }
+            50% { opacity: 0.7; background: #300; }
+        }
     </style>
 </head>
 
@@ -1343,7 +1355,7 @@
             );
         }
 
-        const SystemInfo = ({ onMatrixMode, totalVisitors }) => {
+        const SystemInfo = ({ onThirdEyeWorld, totalVisitors }) => {
             const [konamiProgress, setKonamiProgress] = useState(0);
             const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
 
@@ -1354,7 +1366,7 @@
                         const newProgress = konamiProgress + 1;
                         setKonamiProgress(newProgress);
                         if (newProgress === konamiCode.length) {
-                            onMatrixMode?.();
+                            onThirdEyeWorld?.();
                             setKonamiProgress(0);
                         }
                     } else {
@@ -1363,7 +1375,7 @@
                 };
                 window.addEventListener('keydown', handleKeyDown);
                 return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [konamiProgress, onMatrixMode]);
+            }, [konamiProgress, onThirdEyeWorld]);
 
             return (
             <div className="p-6 md:p-12 font-sans select-text">
@@ -5720,7 +5732,7 @@
                 RADIO: `// STREAM.WAV\naudio.play(frequency);`,
                 SYNTH: `// SOUND.WAVE\nnote.oscillate();`,
                 TERMINAL: `// CMD.EXE\nif (cmd === "exit") print("no escape");`,
-                SYSTEM: `// KERNEL.SYS\nif (konami_code()) enter_matrix();`,
+                SYSTEM: `// KERNEL.SYS\nif (konami_code()) observe_all();`,
                 POMODORO: `// TIME.LOOP\nwork(25); rest(5);`,
                 MAP: `// GLOBE.ROTATE\nrender_sphere(phi++);`,
                 BROWSER: `// EXPLORE.NET\nif (url === self) reboot();`,
@@ -5741,22 +5753,43 @@
             // Desktop icons to show in portal
             const desktopIconIds = ['SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH'];
 
-            // Stack overflow display with rapid scrolling errors
+            // Stack overflow display with rapid scrolling errors and flashing
+            const [flashSpeed, setFlashSpeed] = useState(500);
+
+            useEffect(() => {
+                if (stackOverflow) {
+                    // Accelerate flash speed over time
+                    const accelerate = setInterval(() => {
+                        setFlashSpeed(prev => Math.max(50, prev - 30));
+                    }, 500);
+                    return () => clearInterval(accelerate);
+                }
+            }, [stackOverflow]);
+
             if (stackOverflow) {
                 return (
-                    <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative">
-                        {/* Subtle red overlay */}
-                        <div className="absolute inset-0 pointer-events-none bg-red-900/20" />
-                        <div className="flex-grow flex flex-col p-2 overflow-hidden">
-                            <div className="text-red-500 text-lg font-bold mb-2 text-center">
-                                STACK OVERFLOW
+                    <div
+                        className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative"
+                        style={{ animation: `stackFlash ${flashSpeed}ms infinite` }}
+                    >
+                        {/* Intense red flash overlay */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `rgba(255,0,0,${0.1 + (500 - flashSpeed) / 1000})`,
+                                animation: `stackFlash ${flashSpeed}ms infinite`
+                            }}
+                        />
+                        <div className="flex-grow flex flex-col p-2 overflow-hidden relative z-10">
+                            <div className="text-red-500 text-lg font-bold mb-1 text-center animate-pulse">
+                                ⚠ STACK OVERFLOW ⚠
                             </div>
-                            <div className="text-red-400 text-xs mb-2 text-center">
-                                recursive observation detected
+                            <div className="text-red-400 text-[10px] mb-2 text-center">
+                                recursive observation detected - SYSTEM CRASH IMMINENT
                             </div>
-                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight">
+                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight font-mono">
                                 {stackErrors.map((err, i) => (
-                                    <div key={i} className="text-red-400">{err}</div>
+                                    <div key={i} className="text-red-400 whitespace-nowrap">{`> ${err}`}</div>
                                 ))}
                             </div>
                         </div>
@@ -6631,6 +6664,7 @@
             });
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
+            const [thirdEyeWorld, setThirdEyeWorld] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
             const [desktopBg, setDesktopBg] = useState(() => localStorage.getItem('desktop_bg') || 'grid');
             const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0 });
@@ -6782,6 +6816,11 @@
                     if (!prev) unlockAchievement('NEO');
                     return !prev;
                 });
+            };
+
+            const activateThirdEyeWorld = () => {
+                setThirdEyeWorld(true);
+                unlockAchievement('NEO'); // Reuse NEO for now
             };
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
@@ -7020,7 +7059,7 @@
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} totalVisitors={totalVisitors} />;
+                    case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} />;
                     case "CONTACT": return <ContactApp />;
@@ -7647,26 +7686,39 @@
                                 errorIndex++;
                             }, 30); // ~33 errors per second
 
-                            // Crash after 10 seconds
+                            // Crash after 10 seconds - show ASCII eye then reload
                             stackTimerRef.current = setTimeout(() => {
                                 if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
-                                setPyramidScreen(true);
+                                // Show fullscreen ASCII eye crash screen
+                                const crashScreen = document.createElement('div');
+                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                crashScreen.innerHTML = `
+                                    <pre style="font-size:8px;line-height:1.1;color:#f00;text-shadow:0 0 10px #f00;">
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@              @@@@@@              @@@@@@
+        @@@@                  @@                  @@@@
+        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
+        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
+        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
+        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
+        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
+        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
+        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
+        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
+        @@@@                  @@                  @@@@
+        @@@@@@              @@@@@@              @@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                    </pre>
+                                    <div style="margin-top:20px;font-size:14px;letter-spacing:4px;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
+                                    <div style="margin-top:10px;font-size:10px;opacity:0.7;">reloading consciousness...</div>
+                                `;
+                                document.body.appendChild(crashScreen);
+                                // Reload after showing the eye
                                 setTimeout(() => {
-                                    setPyramidScreen(false);
-                                    setStackOverflow(false);
-                                    setStackErrors([]);
-                                    setBooted(false);
-                                    setBootPhase(1);
-                                    setWindows(p => ({
-                                        ...p,
-                                        THIRD_EYE: { ...p.THIRD_EYE, isOpen: false },
-                                        THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: false }
-                                    }));
-                                    setTimeout(() => {
-                                        setBootPhase(2);
-                                        setBooted(true);
-                                    }, 2000);
-                                }, 1500);
+                                    window.location.reload();
+                                }, 2000);
                             }, 10000);
 
                             return () => {
@@ -7951,6 +8003,63 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
+
+                    {/* ThirdEye World Mode - Fullscreen portal view */}
+                    {thirdEyeWorld && (
+                        <div className="fixed inset-0 z-[9998] bg-black pointer-events-none overflow-hidden">
+                            {/* Wireframe grid */}
+                            <div className="absolute inset-0" style={{
+                                backgroundImage: 'linear-gradient(rgba(0,255,0,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.15) 1px, transparent 1px)',
+                                backgroundSize: '40px 40px'
+                            }} />
+
+                            {/* Scan line */}
+                            <div
+                                className="absolute left-0 right-0 h-2 animate-pulse"
+                                style={{
+                                    top: '50%',
+                                    background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.8), transparent)',
+                                    boxShadow: '0 0 30px #0f0, 0 0 60px #0f0',
+                                    animation: 'scan 3s linear infinite'
+                                }}
+                            />
+
+                            {/* Code snippets floating around */}
+                            <div className="absolute inset-0 font-mono text-green-500 text-xs overflow-hidden opacity-80">
+                                {Object.entries(windows).filter(([,w]) => w.isOpen).map(([id, win]) => (
+                                    <div
+                                        key={id}
+                                        className="absolute border border-green-500/50 p-2 bg-black/80"
+                                        style={{ left: win.x, top: win.y, maxWidth: 200 }}
+                                    >
+                                        <div className="text-green-400 text-[10px] mb-1 border-b border-green-500/30 pb-1">{id}.EXE</div>
+                                        <pre className="text-[8px] text-green-500/70 whitespace-pre-wrap">
+                                            {`// ${id}.SYS\nprocess.observe();\nreality.decode();`}
+                                        </pre>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Center eye symbol */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-green-500 text-center animate-pulse">
+                                    <pre className="text-[10px] leading-tight opacity-60">{`
+      .-""""""-.
+    .'          '.
+   /   O      O   \\
+  :                :
+  |                |
+  : ',          ,' :
+   \\  '-......-'  /
+    '.          .'
+      '-......-'
+                                    `}</pre>
+                                    <div className="text-xs mt-2 tracking-widest">OBSERVER MODE ACTIVE</div>
+                                    <div className="text-[10px] mt-1 opacity-50">reload to exit</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Context Menu */}
                     {contextMenu.show && (
