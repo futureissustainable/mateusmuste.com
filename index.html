@@ -234,23 +234,20 @@
         .matrix-mode * {
             color: #0f0 !important;
             border-color: #0f0 !important;
-            background-color: transparent !important;
         }
         .matrix-mode .bg-white,
         .matrix-mode .bg-gray-50,
-        .matrix-mode .bg-gray-100,
-        .matrix-mode .bg-black {
-            background-color: transparent !important;
+        .matrix-mode .bg-gray-100 {
+            background-color: #000 !important;
         }
         .matrix-mode button,
         .matrix-mode .border,
         .matrix-mode .border-2,
         .matrix-mode .border-4 {
             border-color: #0f0 !important;
-            box-shadow: 0 0 5px #0f0 !important;
         }
         .matrix-mode svg {
-            filter: drop-shadow(0 0 2px #0f0) brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
+            filter: brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
         }
         .matrix-mode canvas {
             filter: hue-rotate(70deg) saturate(3) brightness(0.8);
@@ -4996,7 +4993,7 @@
             const historyRef = useRef(null);
 
             const commands = [
-                'help', 'make money', 'sudo make sandwich', 'exit', 'ping god', 'ping mateus',
+                'help', 'make money', 'sudo make sandwich', 'exit', 'exit matrix', 'ping god', 'ping mateus',
                 'kill', 'sudo shutdown', 'sudo reboot', 'cmatrix', 'systemctl start dog.exe',
                 'sudo chmod 777 /private', ':(){ :|:& };:', 'sudo dd if=/dev/zero of=/',
                 'scp truth.txt ~/', 'clear', 'whoami', 'pwd', 'ls'
@@ -5069,6 +5066,7 @@
   sudo shutdown               - Shutdown system
   sudo reboot                 - Reboot system
   cmatrix                     - Enter the Matrix
+  exit matrix                 - Exit the Matrix
   systemctl start dog.exe     - Start dog service
   sudo chmod 777 /private     - Change permissions
   scp truth.txt ~/            - Copy truth to home
@@ -5096,6 +5094,9 @@
                     setTimeout(() => window.location.reload(), 1500);
                 } else if (trimmed === 'cmatrix') {
                     addOutput('Entering the Matrix...');
+                    setTimeout(() => onMatrixMode?.(), 500);
+                } else if (trimmed === 'exit matrix') {
+                    addOutput('Exiting the Matrix...');
                     setTimeout(() => onMatrixMode?.(), 500);
                 } else if (trimmed === 'systemctl start dog.exe') {
                     addOutput('Starting dog.exe...\n[  OK  ] Started dog.exe');
@@ -5280,8 +5281,8 @@
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
                     setRevealPhase(1);
-                    setTimeout(() => setRevealPhase(2), 1500);
-                    setTimeout(() => setRevealPhase(3), 4000);
+                    setTimeout(() => setRevealPhase(2), 3000); // File starts appearing at 3s
+                    setTimeout(() => setRevealPhase(3), 10000); // Fully revealed at 10s
                 }
             }, [unlocked]);
 
@@ -5310,81 +5311,50 @@
             // Unlocked reveal animation
             if (unlocked) {
                 return (
-                    <div className="h-full flex flex-col bg-black select-none overflow-hidden relative">
-                        {/* Light rays background */}
+                    <div className="h-full flex flex-col bg-white select-none overflow-hidden relative">
+                        {/* Sliding panels - 10 second animation */}
                         <div
-                            className="absolute inset-0 transition-opacity duration-1000"
-                            style={{
-                                opacity: revealPhase >= 1 ? 1 : 0,
-                                background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,255,200,0.6) 30%, rgba(255,255,255,0) 70%)',
-                            }}
-                        />
-                        {/* Light rays */}
-                        {revealPhase >= 1 && (
-                            <div className="absolute inset-0 overflow-hidden">
-                                {[...Array(12)].map((_, i) => (
-                                    <div
-                                        key={i}
-                                        className="absolute top-1/2 left-1/2 bg-gradient-to-t from-transparent via-yellow-100/30 to-transparent"
-                                        style={{
-                                            width: '200%',
-                                            height: '4px',
-                                            transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
-                                            animation: 'pulse 2s ease-in-out infinite',
-                                            animationDelay: `${i * 0.1}s`
-                                        }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-
-                        {/* Sliding panels */}
-                        <div
-                            className="absolute top-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-end justify-center"
+                            className="absolute top-0 left-0 right-0 bg-black z-10 flex items-end justify-center"
                             style={{
                                 height: '50%',
-                                transform: revealPhase >= 1 ? 'translateY(-100%)' : 'translateY(0)'
+                                transform: revealPhase >= 1 ? 'translateY(-100%)' : 'translateY(0)',
+                                transition: 'transform 10s ease-in-out'
                             }}
                         >
                             <div className="font-mono text-red-500 text-xs mb-4">DECRYPTING...</div>
                         </div>
                         <div
-                            className="absolute bottom-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-start justify-center"
+                            className="absolute bottom-0 left-0 right-0 bg-black z-10 flex items-start justify-center"
                             style={{
                                 height: '50%',
-                                transform: revealPhase >= 1 ? 'translateY(100%)' : 'translateY(0)'
+                                transform: revealPhase >= 1 ? 'translateY(100%)' : 'translateY(0)',
+                                transition: 'transform 10s ease-in-out'
                             }}
                         >
                             <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
                         </div>
 
-                        {/* Approaching file */}
+                        {/* DOG.TXT file - slowly grows and fades in */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
-                                className="transition-all ease-out"
                                 style={{
-                                    filter: revealPhase < 3 ? `blur(${Math.max(0, 20 - (revealPhase * 8))}px)` : 'blur(0px)',
-                                    transform: `scale(${revealPhase < 2 ? 0.3 : revealPhase < 3 ? 0.6 + ((revealPhase - 2) * 0.4) : 1})`,
-                                    opacity: revealPhase >= 2 ? 1 : 0,
-                                    transitionDuration: '2s'
+                                    transform: `scale(${revealPhase < 2 ? 0.2 : revealPhase < 3 ? 0.2 + ((revealPhase - 2) * 0.8) : 1})`,
+                                    opacity: revealPhase < 2 ? 0 : revealPhase < 3 ? 0.3 : 1,
+                                    transition: 'transform 7s ease-out, opacity 7s ease-out'
                                 }}
                             >
-                                {revealPhase < 3 ? (
-                                    // Silhouette
-                                    <div className="w-32 h-32 bg-black rounded-full" style={{ filter: 'blur(5px)' }} />
-                                ) : (
-                                    // DOG.TXT file icon
-                                    <button
-                                        onClick={() => onOpenDogStory?.()}
-                                        className="text-center cursor-pointer group"
-                                    >
-                                        <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
-                                            <Icons.FileDoc size={64} />
-                                        </div>
-                                        <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
-                                        <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600">Click to open</div>
-                                    </button>
-                                )}
+                                <button
+                                    onClick={() => onOpenDogStory?.()}
+                                    className="text-center cursor-pointer group"
+                                    disabled={revealPhase < 3}
+                                    style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
+                                >
+                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                        <Icons.FileDoc size={64} />
+                                    </div>
+                                    <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
+                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -5616,13 +5586,15 @@
             });
             const truthUnlocked = visitCount >= 100;
 
-            // Parallel instances - exponential distribution favoring lower numbers
-            const [parallelInstances, setParallelInstances] = useState(() => {
-                // Exponential distribution: higher numbers exponentially less likely
+            // Current usage - exponential distribution favoring lower percentages
+            const [currentUsage, setCurrentUsage] = useState(() => {
+                // Exponential distribution: higher percentages exponentially less likely
                 const rand = Math.random();
-                // Use inverse exponential: -ln(rand) scaled to 1-64
-                const exp = Math.ceil(-Math.log(rand) * 8);
-                return Math.min(64, Math.max(1, exp));
+                // Use inverse exponential: -ln(rand) scaled to 5.0-100.0
+                // Lower values much more likely than higher
+                const exp = -Math.log(rand) * 15; // Scale factor
+                const percentage = 5.0 + Math.min(95.0, exp);
+                return Math.round(percentage * 10) / 10; // Round to 1 decimal
             });
 
             // Total visitors counter (using CountAPI)
@@ -5642,13 +5614,14 @@
                     });
             }, []);
 
-            // Random fluctuation of parallel instances every second
+            // Random fluctuation of current usage every second
             useEffect(() => {
                 const interval = setInterval(() => {
-                    if (Math.random() < 0.01) { // 1% chance each second
-                        setParallelInstances(prev => {
-                            const change = Math.random() < 0.5 ? -1 : 1;
-                            return Math.min(64, Math.max(1, prev + change));
+                    if (Math.random() < 0.5) { // 50% chance each second
+                        setCurrentUsage(prev => {
+                            const change = Math.random() < 0.5 ? -0.1 : 0.1;
+                            const newVal = Math.round((prev + change) * 10) / 10;
+                            return Math.min(100.0, Math.max(5.0, newVal));
                         });
                     }
                 }, 1000);
@@ -6328,8 +6301,8 @@
                         </div>
                         <div className="flex-grow"></div>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
-                            <span className="text-gray-500">PARALLEL:</span>
-                            <span className="font-bold">{parallelInstances}</span>
+                            <span className="text-gray-500">CURRENT USAGE:</span>
+                            <span className="font-bold">{currentUsage.toFixed(1)}%</span>
                         </div>
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
