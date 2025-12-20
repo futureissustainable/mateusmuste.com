@@ -860,7 +860,6 @@
             Back: (p) => <PixelartIcon name="arrow-left" {...p} />,
             // App Icons
             Void: (p) => <PixelartIcon name="code" {...p} />,
-            Oracle: (p) => <PixelartIcon name="book-open" {...p} />,
             Radio: (p) => <PixelartIcon name="radio-on" {...p} />,
             Dice: (p) => <PixelartIcon name="dice" {...p} />,
             Labyrinth: (p) => <PixelartIcon name="layout-rows" {...p} />,
@@ -1744,104 +1743,6 @@
                             onPaste={(e) => e.preventDefault()}
                             autoFocus
                         />
-                    </div>
-                </div>
-            );
-        };
-
-        // --- ORACLE.EXE - Philosophical quotes ---
-        const OracleApp = () => {
-            const quotes = [
-                "The soul is healed by being with children.",
-                "Man is condemned to be free.",
-                "He who has a why to live can bear almost any how.",
-                "The question isn't who is going to let me; it's who is going to stop me.",
-                "One must imagine Sisyphus happy.",
-                "Pain and suffering are always inevitable for a large intelligence and a deep heart.",
-                "God is dead. God remains dead. And we have killed him.",
-                "I swear by my life and my love of it that I will never live for the sake of another man.",
-                "In the depth of winter, I finally learned that within me there lay an invincible summer.",
-                "The higher we soar the smaller we appear to those who cannot fly.",
-                "The soul that sees beauty may sometimes walk alone.",
-                "Should I kill myself, or have a cup of coffee?",
-                "To live is to suffer, to survive is to find some meaning in the suffering.",
-                "The only thing I know is that I know nothing.",
-                "Beauty will save the world.",
-                "There is always some madness in love. But there is also always some reason in madness.",
-                "Man is the only creature who refuses to be what he is.",
-                "A is A. A thing is itself.",
-                "What does not kill me makes me stronger.",
-                "The absurd is born of the confrontation between the human call and the unreasonable silence of the world.",
-                "The best way to find yourself is to lose yourself in the service of others.",
-                "Every deep thinker is more afraid of being understood than of being misunderstood.",
-                "Money is only a tool. It will take you wherever you wish, but it will not replace you as the driver.",
-                "We are all in the gutter, but some of us are looking at the stars.",
-                "The only way to deal with an unfree world is to become so absolutely free that your very existence is an act of rebellion.",
-                "Above all, don't lie to yourself.",
-                "Whoever fights monsters should see to it that in the process he does not become a monster.",
-                "I rebel; therefore I exist.",
-                "The secret of happiness is freedom, the secret of freedom is courage.",
-                "There is but one truly serious philosophical problem, and that is suicide."
-            ];
-
-            const [question, setQuestion] = useState('');
-            const [answer, setAnswer] = useState(null);
-            const [isThinking, setIsThinking] = useState(false);
-
-            const askOracle = () => {
-                if (!question.trim()) return;
-                setIsThinking(true);
-                setAnswer(null);
-
-                setTimeout(() => {
-                    const randomQuote = quotes[Math.floor(Math.random() * quotes.length)];
-                    setAnswer(randomQuote);
-                    setIsThinking(false);
-                    setQuestion('');
-                }, 1500 + Math.random() * 1000);
-            };
-
-            return (
-                <div className="h-full flex flex-col bg-white select-none">
-                    <div className="app-header">
-                        <span className="app-header-title">ORACLE.EXE</span>
-                        <span className="app-footer-text">ASK THE DEAD</span>
-                    </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-8 bg-gray-50">
-                        {answer && (
-                            <div className="mb-8 text-center max-w-lg">
-                                <div className="text-xl font-serif italic leading-relaxed mb-4 text-black">"{answer}"</div>
-                                <div className="text-xs text-gray-500 font-mono">— THE ORACLE HAS SPOKEN</div>
-                            </div>
-                        )}
-                        {isThinking && (
-                            <div className="mb-8 text-center">
-                                <div className="font-mono text-sm text-gray-500 animate-pulse">
-                                    CONSULTING THE VOID...
-                                </div>
-                            </div>
-                        )}
-                        <div className="w-full max-w-md">
-                            <input
-                                type="text"
-                                value={question}
-                                onChange={(e) => setQuestion(e.target.value)}
-                                onKeyDown={(e) => e.key === 'Enter' && askOracle()}
-                                placeholder="ASK YOUR QUESTION..."
-                                className="w-full bg-white border-2 border-black px-4 py-3 font-mono text-sm text-black placeholder-gray-400 focus:ring-2 focus:ring-black outline-none"
-                                disabled={isThinking}
-                            />
-                            <button
-                                onClick={askOracle}
-                                disabled={isThinking}
-                                className="btn-primary btn-full mt-2"
-                            >
-                                SEEK TRUTH
-                            </button>
-                        </div>
-                    </div>
-                    <div className="app-footer">
-                        <span className="app-footer-text">DOSTOEVSKY • NIETZSCHE • RAND • CAMUS</span>
                     </div>
                 </div>
             );
@@ -5858,7 +5759,6 @@
                 DICE: `// RNG.GOD\nlet fate = Math.random();\nif (result === 1) // skill issue`,
                 LABYRINTH: `// MAZE.RUNNER\nwhile (!escaped) {\n  turn_right();\n  move_forward();\n}`,
                 PAINT: `// ART.EXE\ncanvas.soil(pos, color);\n// art is destruction`,
-                ORACLE: `// FORTUNE.SYS\nreturn wisdom[void];\n// it knows everything`,
                 TAROT: `// CARDS.FATE\ndeck.shuffle(∞);\nreveal(destiny);`,
                 VOID: `// VOID.NULL\nreturn undefined;\n// intentionally left meaningful`,
                 RADIO: `// STREAM.WAV\naudio.play(frequency);`,
@@ -6434,7 +6334,6 @@
                 { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
                 { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
-                { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
                 { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
@@ -7214,7 +7113,6 @@
                 "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 15 },
                 "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 16 },
                 "VOID": { id: "VOID", title: "VOID.TXT", icon: "Void", x: 300, y: 50, w: '500px', h: '400px', isOpen: false, isMin: false, z: 17 },
-                "ORACLE": { id: "ORACLE", title: "ORACLE.EXE", icon: "Oracle", x: 350, y: 80, w: '500px', h: '450px', isOpen: false, isMin: false, z: 18 },
                 "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 19 },
                 "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 20 },
                 "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 21 },
@@ -7249,7 +7147,6 @@
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
-                    case "ORACLE": return <OracleApp />;
                     case "RADIO": return <RadioApp />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
