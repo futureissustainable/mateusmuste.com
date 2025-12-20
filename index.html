@@ -407,6 +407,12 @@
             GamesFolder: (p) => <PixelartIcon name="gamepad" {...p} />,
             ProductivityFolder: (p) => <PixelartIcon name="sliders" {...p} />,
             AboutFolder: (p) => <PixelartIcon name="user" {...p} />,
+            // Third Eye - code viewer
+            ThirdEye: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4C7 4 3 8 2 12C3 16 7 20 12 20C17 20 21 16 22 12C21 8 17 4 12 4ZM12 17C9.2 17 7 14.8 7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12C17 14.8 14.8 17 12 17ZM12 9C10.3 9 9 10.3 9 12C9 13.7 10.3 15 12 15C13.7 15 15 13.7 15 12C15 10.3 13.7 9 12 9Z"/>
+                </svg>
+            ),
         };
 
         // --- SHARED DOG SPRITE ---
@@ -5189,6 +5195,154 @@
             );
         };
 
+        // --- THIRD_EYE.EXE - X-ray view of app code ---
+        const ThirdEyeApp = ({ windows, openApp }) => {
+            const [selected, setSelected] = useState(null);
+
+            const appCode = {
+                SYSTEM: `fn render_system() {
+  let visitors = fetch_count();
+  let usage = rand(5..100);
+  loop {
+    display(ascii_logo);
+    show_stats(visitors);
+    if konami_detected() {
+      toggle_matrix();
+    }
+  }
+}`,
+                SNAKE: `fn game_loop() {
+  let snake = [(5,5)];
+  let food = rand_pos();
+  loop {
+    dir = get_input();
+    snake.move(dir);
+    if snake.head == food {
+      snake.grow();
+      score += 10;
+    }
+    if snake.collides() {
+      game_over();
+    }
+    render(snake, food);
+    sleep(100ms);
+  }
+}`,
+                PAINT: `fn canvas_handler() {
+  let pixels = [];
+  let color = BLACK;
+  on_mouse_down(|pos| {
+    drawing = true;
+  });
+  on_mouse_move(|pos| {
+    if drawing {
+      pixels.push((pos, color));
+      draw_pixel(pos, color);
+    }
+  });
+}`,
+                TERMINAL: `fn execute(cmd) {
+  match cmd {
+    "help" => show_commands(),
+    "cmatrix" => enter_matrix(),
+    "exit" => print("no escape"),
+    "sudo" => check_permission(cmd),
+    _ => print("not found"),
+  }
+  add_to_history(cmd);
+}`,
+                ORACLE: `fn consult_oracle() {
+  let wisdom = [
+    "perhaps",
+    "in time",
+    "unclear",
+  ];
+  wait_for_question();
+  think(rand(1..3)s);
+  return wisdom.random();
+}`,
+                TAROT: `fn draw_cards() {
+  let deck = shuffle(78_cards);
+  let spread = deck.take(3);
+  for card in spread {
+    animate_flip(card);
+    reveal(card.meaning);
+  }
+}`,
+                DICE: `fn roll() {
+  let result = rand(1..6);
+  animate_tumble();
+  show_face(result);
+  history.push(result);
+}`,
+                MAP: `fn render_globe() {
+  let phi = 0;
+  loop {
+    phi += 0.005;
+    cobe.render({
+      phi: phi,
+      markers: locations,
+    });
+    frame();
+  }
+}`,
+                VOID: `fn void_loop() {
+  // nothing here
+  // or is there?
+
+
+
+  return undefined;
+}`,
+                RADIO: `fn stream_audio() {
+  let stations = load_streams();
+  let current = null;
+  on_select(|station| {
+    current?.stop();
+    current = play(station.url);
+  });
+}`,
+            };
+
+            const defaultCode = `fn unknown_app() {
+  // source hidden
+  // or not yet written
+  return mysterious();
+}`;
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.ThirdEye size={16} />
+                        <span className="font-bold">THIRD_EYE.EXE</span>
+                        <span className="text-green-700 text-[10px] ml-auto">SEE THE CODE</span>
+                    </div>
+                    <div className="flex flex-grow overflow-hidden">
+                        <div className="w-32 border-r border-green-900 overflow-auto">
+                            {Object.keys(windows).filter(id => !['DOG_STORY', 'TRUTH'].includes(id)).map(id => (
+                                <div
+                                    key={id}
+                                    onClick={() => setSelected(id)}
+                                    className={`px-2 py-1 cursor-pointer truncate ${selected === id ? 'bg-green-900 text-green-300' : 'hover:bg-green-950'}`}
+                                >
+                                    {windows[id].title.split('.')[0]}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex-grow p-3 overflow-auto">
+                            {selected ? (
+                                <pre className="text-green-500 whitespace-pre-wrap">{appCode[selected] || defaultCode}</pre>
+                            ) : (
+                                <div className="text-green-700 text-center mt-10">
+                                    SELECT AN APP<br/>TO VIEW SOURCE
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
         const TruthApp = () => {
             const [password, setPassword] = useState('');
@@ -5437,6 +5591,7 @@
                 PRODUCTIVITY: [
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                     { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
+                    { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                     { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                     { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -5805,7 +5960,8 @@
                 "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 },
                 "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: '500px', h: '400px', isOpen: false, isMin: false, z: 33 },
                 "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
-                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 }
+                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 },
+                "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: '450px', h: '400px', isOpen: false, isMin: false, z: 36 }
             });
 
             // Render window content based on ID
@@ -5836,6 +5992,7 @@
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
                     case "TRUTH": return <TruthApp />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
+                    case "THIRD_EYE": return <ThirdEyeApp windows={windows} />;
                     default: return null;
                 }
             };
