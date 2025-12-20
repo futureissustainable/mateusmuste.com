@@ -7791,27 +7791,58 @@
                             errorIndex++;
                         }, 30);
 
-                        // 10% chance per second to crash
+                        // 90% chance per second to crash
                         stackTimerRef.current = setInterval(() => {
-                            if (Math.random() < 0.1) {
+                            if (Math.random() < 0.9) {
                                 if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                 clearInterval(stackTimerRef.current);
                                 const crashScreen = document.createElement('div');
-                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#0f0;overflow:auto;';
                                 crashScreen.innerHTML = `
-                                    <pre style="font-size:12px;line-height:1.2;color:#0f0;text-shadow:0 0 10px #0f0;">
-    @@@@@@@@@@@@@@@@@@@@@@@@@@
-    @@    OBSERVER MODE    @@
-    @@      CORRUPTED      @@
-    @@@@@@@@@@@@@@@@@@@@@@@@@@
+                                    <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                              ▲
+                                             ╱█╲
+                                            ╱███╲
+                                           ╱█████╲
+                                          ╱███████╲
+                                         ╱█████████╲
+                                        ╱███████████╲
+                                       ╱█████████████╲
+                                      ╱██████▀▀▀██████╲
+                                     ╱█████▀     ▀█████╲
+                                    ╱█████  ▄███▄  █████╲
+                                   ╱█████  ███████  █████╲
+                                  ╱██████ ████▀████ ██████╲
+                                 ╱██████ ████ ◈ ████ ██████╲
+                                ╱███████ ████▄████ ███████╲
+                               ╱███████  ███████  ███████╲
+                              ╱████████   ▀███▀   ████████╲
+                             ╱█████████           █████████╲
+                            ╱██████████           ██████████╲
+                           ╱██████▀▀▀▀▀           ▀▀▀▀▀██████╲
+                          ╱█████▀                       ▀█████╲
+                         ╱█████   ▄███▄           ▄███▄   █████╲
+                        ╱█████   ███████         ███████   █████╲
+                       ╱██████  ████▀████       ████▀████  ██████╲
+                      ╱██████  ████ ◈ ████     ████ ◈ ████  ██████╲
+                     ╱███████  ████▄████       ████▄████  ███████╲
+                    ╱███████   ███████         ███████   ███████╲
+                   ╱████████    ▀███▀           ▀███▀    ████████╲
+                  ╱█████████                             █████████╲
+                 ╱██████████                             ██████████╲
+                ╱███████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄███████████╲
+               ╱█████████████████████████████████████████████████████╲
+              ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
+             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                     </pre>
-                                    <div style="margin-top:20px;font-size:14px;letter-spacing:4px;color:#f00;">FATAL: REALITY RECURSION</div>
-                                    <div style="margin-top:10px;font-size:10px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
+                                    <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                    <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL: REALITY RECURSION</div>
+                                    <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
                                 `;
                                 document.body.appendChild(crashScreen);
                                 setTimeout(() => {
                                     window.location.href = 'https://mateusmuste.com';
-                                }, 1500);
+                                }, 2000);
                             }
                         }, 1000);
                     }
@@ -7869,41 +7900,60 @@
                                 errorIndex++;
                             }, 30); // ~33 errors per second
 
-                            // 10% chance per second to crash and redirect
+                            // 90% chance per second to crash and redirect
                             stackTimerRef.current = setInterval(() => {
-                                if (Math.random() < 0.1) {
+                                if (Math.random() < 0.9) {
                                     if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                     clearInterval(stackTimerRef.current);
-                                    // Show fullscreen ASCII eye crash screen
+                                    // Show fullscreen ASCII pyramid crash screen
                                     const crashScreen = document.createElement('div');
-                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#0f0;overflow:auto;';
                                     crashScreen.innerHTML = `
-                                        <pre style="font-size:8px;line-height:1.1;color:#f00;text-shadow:0 0 10px #f00;">
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@              @@@@@@              @@@@@@
-        @@@@                  @@                  @@@@
-        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
-        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
-        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
-        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
-        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
-        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
-        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
-        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
-        @@@@                  @@                  @@@@
-        @@@@@@              @@@@@@              @@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                        <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                              ▲
+                                             ╱█╲
+                                            ╱███╲
+                                           ╱█████╲
+                                          ╱███████╲
+                                         ╱█████████╲
+                                        ╱███████████╲
+                                       ╱█████████████╲
+                                      ╱██████▀▀▀██████╲
+                                     ╱█████▀     ▀█████╲
+                                    ╱█████  ▄███▄  █████╲
+                                   ╱█████  ███████  █████╲
+                                  ╱██████ ████▀████ ██████╲
+                                 ╱██████ ████ ◈ ████ ██████╲
+                                ╱███████ ████▄████ ███████╲
+                               ╱███████  ███████  ███████╲
+                              ╱████████   ▀███▀   ████████╲
+                             ╱█████████           █████████╲
+                            ╱██████████           ██████████╲
+                           ╱██████▀▀▀▀▀           ▀▀▀▀▀██████╲
+                          ╱█████▀                       ▀█████╲
+                         ╱█████   ▄███▄           ▄███▄   █████╲
+                        ╱█████   ███████         ███████   █████╲
+                       ╱██████  ████▀████       ████▀████  ██████╲
+                      ╱██████  ████ ◈ ████     ████ ◈ ████  ██████╲
+                     ╱███████  ████▄████       ████▄████  ███████╲
+                    ╱███████   ███████         ███████   ███████╲
+                   ╱████████    ▀███▀           ▀███▀    ████████╲
+                  ╱█████████                             █████████╲
+                 ╱██████████                             ██████████╲
+                ╱███████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄███████████╲
+               ╱█████████████████████████████████████████████████████╲
+              ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
+             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                         </pre>
-                                        <div style="margin-top:20px;font-size:14px;letter-spacing:4px;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
-                                        <div style="margin-top:10px;font-size:10px;opacity:0.7;">redirecting consciousness...</div>
+                                        <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                        <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
+                                        <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting consciousness...</div>
                                     `;
                                     document.body.appendChild(crashScreen);
-                                    // Redirect to mateusmuste.com after showing the eye
+                                    // Redirect to mateusmuste.com after showing the pyramid
                                     setTimeout(() => {
                                         window.location.href = 'https://mateusmuste.com';
-                                    }, 1500);
+                                    }, 2000);
                                 }
                             }, 1000);
 
