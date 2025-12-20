@@ -283,6 +283,319 @@
     <script type="text/babel">
         const { useState, useEffect, useRef } = React;
 
+        // --- SOUND SYSTEM ---
+        let audioCtx = null;
+        let activeDragNodes = null;
+
+        const getAudioCtx = () => {
+            if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            return audioCtx;
+        };
+
+        const makeDistortion = (ctx, amount) => {
+            const dist = ctx.createWaveShaper();
+            const curve = new Float32Array(256);
+            for (let i = 0; i < 256; i++) {
+                const x = (i - 128) / 128;
+                curve[i] = Math.tanh(x * amount);
+            }
+            dist.curve = curve;
+            return dist;
+        };
+
+        const sounds = {
+            dragStart: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                if (activeDragNodes) return;
+
+                const bufferSize = ctx.sampleRate * 2.0;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    b0 = 0.99886 * b0 + white * 0.0555179;
+                    b1 = 0.99332 * b1 + white * 0.0750759;
+                    b2 = 0.96900 * b2 + white * 0.1538520;
+                    b3 = 0.86650 * b3 + white * 0.3104856;
+                    b4 = 0.55000 * b4 + white * 0.5329522;
+                    b5 = -0.7616 * b5 - white * 0.0168980;
+                    data[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+                    b6 = white * 0.115926;
+                }
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                noise.loop = true;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+                filter.Q.value = 0.5;
+                const hapticOsc = ctx.createOscillator();
+                hapticOsc.type = 'sine';
+                hapticOsc.frequency.value = 140;
+                const lfo = ctx.createOscillator();
+                lfo.type = 'sine';
+                lfo.frequency.value = 13;
+                const mainGain = ctx.createGain();
+                const noiseGain = ctx.createGain();
+                const hapticGain = ctx.createGain();
+                const lfoGain = ctx.createGain();
+
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(mainGain);
+                hapticOsc.connect(hapticGain);
+                hapticGain.connect(mainGain);
+                mainGain.connect(ctx.destination);
+                lfo.connect(lfoGain);
+                lfoGain.connect(mainGain.gain);
+
+                noiseGain.gain.value = 1.0;
+                hapticGain.gain.value = 0.4;
+                const baseVol = 0.012;
+                mainGain.gain.setValueAtTime(0, now);
+                mainGain.gain.linearRampToValueAtTime(baseVol, now + 0.15);
+                lfoGain.gain.value = 0.008;
+
+                noise.start(now);
+                hapticOsc.start(now);
+                lfo.start(now);
+                activeDragNodes = { noise, hapticOsc, lfo, mainGain };
+            },
+
+            dragStop: () => {
+                if (!activeDragNodes) return;
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const { noise, hapticOsc, lfo, mainGain } = activeDragNodes;
+                mainGain.gain.cancelScheduledValues(now);
+                mainGain.gain.setValueAtTime(mainGain.gain.value, now);
+                mainGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.1);
+                noise.stop(now + 0.1);
+                hapticOsc.stop(now + 0.1);
+                lfo.stop(now + 0.1);
+                activeDragNodes = null;
+            },
+
+            windowOpen: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(1200, now + 0.05);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.3, now + 0.005);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            },
+
+            windowClose: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(250, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            },
+
+            success: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [523.25, 659.25, 783.99, 987.77].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.04;
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.08, start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.4);
+                });
+            },
+
+            error: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [150, 154].forEach(freq => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    const filter = ctx.createBiquadFilter();
+                    osc.type = 'sawtooth';
+                    osc.frequency.value = freq;
+                    filter.type = 'lowpass';
+                    filter.frequency.setValueAtTime(400, now);
+                    filter.frequency.linearRampToValueAtTime(100, now + 0.3);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                    osc.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.3);
+                });
+            },
+
+            bounce: (vel = 1) => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const dist = makeDistortion(ctx, 12);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220 + (vel * 100), now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+                gain.gain.setValueAtTime(0.4 * Math.min(vel, 1.2), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            },
+
+            bounceIcon: (vel = 1) => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const dist = makeDistortion(ctx, 8);
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(500 + (vel * 200), now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
+                gain.gain.setValueAtTime(0.25 * Math.min(vel, 1.2), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            },
+
+            bootSequence: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const notes = [174.61, 220.00, 261.63, 329.63, 392.00];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.4;
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.15, start + 0.05);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
+                    osc.start(start);
+                    osc.stop(start + 0.6);
+                });
+            },
+
+            laser: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(2000, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            },
+
+            explosion: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const dist = makeDistortion(ctx, 20);
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(120, now);
+                osc.frequency.exponentialRampToValueAtTime(10, now + 0.5);
+                gain.gain.setValueAtTime(0.6, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.start(now);
+                osc.stop(now + 0.6);
+            },
+
+            coin: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [987.77, 1318.51].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = now + i * 0.08;
+                    gain.gain.setValueAtTime(0.05, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.5);
+                });
+            },
+
+            gameOver: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [440, 311, 220, 155].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'triangle';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.3;
+                    gain.gain.setValueAtTime(0.1, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.4);
+                });
+            },
+
+            bark: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.linearRampToValueAtTime(150, now + 0.15);
+                gain.gain.setValueAtTime(0.2, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            }
+        };
+
         // --- HIGH SCORE SYSTEM (local storage based) ---
         const HighScoreManager = {
             userIP: null,
@@ -408,11 +721,7 @@
             ProductivityFolder: (p) => <PixelartIcon name="sliders" {...p} />,
             AboutFolder: (p) => <PixelartIcon name="user" {...p} />,
             // Third Eye - code viewer
-            ThirdEye: ({ size = 24 }) => (
-                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 4C7 4 3 8 2 12C3 16 7 20 12 20C17 20 21 16 22 12C21 8 17 4 12 4ZM12 17C9.2 17 7 14.8 7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12C17 14.8 14.8 17 12 17ZM12 9C10.3 9 9 10.3 9 12C9 13.7 10.3 15 12 15C13.7 15 15 13.7 15 12C15 10.3 13.7 9 12 9Z"/>
-                </svg>
-            ),
+            ThirdEye: (p) => <PixelartIcon name="bullseye" {...p} />,
         };
 
         // --- SHARED DOG SPRITE ---
@@ -1586,6 +1895,7 @@
 
                 // Eat food
                 if (head.x === food.current.x && head.y === food.current.y) {
+                    sounds.coin();
                     setScore(s => {
                         const newScore = s + 10;
                         setHighScore(h => {
@@ -1637,6 +1947,7 @@
                 runningRef.current = false;
                 setGameOver(true);
                 setGameStarted(false);
+                sounds.gameOver();
             };
 
             // Game loop using requestAnimationFrame
@@ -1896,6 +2207,7 @@
                             return newScore;
                         });
                         setWon(true);
+                        sounds.success();
 
                         // Show full maze then start next level
                         setTimeout(() => {
@@ -2387,6 +2699,7 @@
 
                 const doShoot = () => {
                     if (canShoot && isStarted && !isGameOver) {
+                        sounds.laser();
                         createLaser();
                         canShoot = false;
                         setTimeout(() => canShoot = true, 150);
@@ -2474,6 +2787,7 @@
                         if (dist < 1) {
                             isGameOver = true;
                             setGameOver(true);
+                            sounds.gameOver();
                             // Save high score on game over
                             setHighScore(h => {
                                 const newHigh = Math.max(h, scoreVal);
@@ -2503,6 +2817,7 @@
                                 scene.remove(obs);
                                 lasers.splice(i, 1);
                                 obstacles.splice(j, 1);
+                                sounds.explosion();
                                 scoreVal += 50;
                                 setScore(scoreVal);
                                 break;
@@ -5196,7 +5511,7 @@
         };
 
         // --- THIRD_EYE.EXE - X-ray view of app code ---
-        const ThirdEyeApp = ({ windows, openApp }) => {
+        const ThirdEyeApp = ({ windows, stackOverflow, stackErrors }) => {
             const [selected, setSelected] = useState(null);
 
             const appCode = {
@@ -6123,11 +6438,13 @@
                                 physics.velX = -physics.velX * BOUNCE_DAMPING;
                                 physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                                sounds.bounce(Math.abs(physics.velX));
                             } else if (newX >= maxX) {
                                 newX = maxX;
                                 physics.velX = -physics.velX * BOUNCE_DAMPING;
                                 physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
                                 physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                                sounds.bounce(Math.abs(physics.velX));
                             }
 
                             if (newY <= minY) {
@@ -6135,11 +6452,13 @@
                                 physics.velY = -physics.velY * BOUNCE_DAMPING;
                                 physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                                sounds.bounce(Math.abs(physics.velY));
                             } else if (newY >= maxY) {
                                 newY = maxY;
                                 physics.velY = -physics.velY * BOUNCE_DAMPING;
                                 physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
                                 physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                                sounds.bounce(Math.abs(physics.velY));
                             }
 
                             // Decay squash/stretch back to normal
@@ -6190,6 +6509,7 @@
                     setBootPhase(0);
                     setTimeout(() => {
                         setBootPhase(1); // kernel boot
+                        sounds.bootSequence();
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
@@ -6198,6 +6518,7 @@
                 } else {
                     // Desktop: Go straight to kernel boot
                     setBootPhase(1);
+                    sounds.bootSequence();
                     setTimeout(() => {
                         setBootPhase(2);
                         setBooted(true);
@@ -6220,6 +6541,7 @@
                 setTopZ(newZ);
             }
             const open = (id) => {
+                sounds.windowOpen();
                 topZRef.current += 1;
                 const newZ = topZRef.current;
                 // THIRD_EYE can open multiple copies
@@ -6236,13 +6558,17 @@
                 }
                 setTopZ(newZ);
             }
-            const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+            const close = (id) => {
+                sounds.windowClose();
+                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
+            };
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
 
             // Drag Handlers with velocity tracking
             const handleMouseDown = (e, id) => {
                 e.preventDefault();
                 focus(id);
+                sounds.dragStart();
                 const win = windows[id];
                 const physics = initWindowPhysics(id);
                 // Stop any existing velocity
@@ -6296,6 +6622,7 @@
 
             const handleMouseUp = () => {
                 // Keep velocity for physics, just release the drag
+                sounds.dragStop();
                 setDrag({ id: null, offsetX: 0, offsetY: 0 });
             };
 
@@ -6362,6 +6689,7 @@
                 // Start hold timer - drag only activates after 0.1 seconds
                 iconHoldTimer.current = setTimeout(() => {
                     if (iconPendingDrag.current) {
+                        sounds.dragStart();
                         setIconDrag({
                             id: iconPendingDrag.current.id,
                             offsetX: iconPendingDrag.current.offsetX,
@@ -6409,6 +6737,7 @@
 
                 // If drag was active, finalize position
                 if (iconDrag.active && iconDrag.id) {
+                    sounds.dragStop();
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
@@ -6497,10 +6826,10 @@
                             const minY = isMobile ? 80 : 0;
 
                             // Constrain to screen bounds
-                            if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; }
-                            else if (newX >= maxX) { newX = maxX; physics.velX = -physics.velX * BOUNCE_DAMPING; }
-                            if (newY <= minY) { newY = minY; physics.velY = -physics.velY * BOUNCE_DAMPING; }
-                            else if (newY >= maxY) { newY = maxY; physics.velY = -physics.velY * BOUNCE_DAMPING; }
+                            if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
+                            else if (newX >= maxX) { newX = maxX; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
+                            if (newY <= minY) { newY = minY; physics.velY = -physics.velY * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velY)); }
+                            else if (newY >= maxY) { newY = maxY; physics.velY = -physics.velY * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velY)); }
 
                             // Bounce off other icons
                             const collider = checkIconCollision(id, newX, newY, updated);
@@ -6511,6 +6840,7 @@
                                 const len = Math.sqrt(dx * dx + dy * dy) || 1;
                                 physics.velX = (dx / len) * Math.abs(physics.velX) * BOUNCE_DAMPING;
                                 physics.velY = (dy / len) * Math.abs(physics.velY) * BOUNCE_DAMPING;
+                                sounds.bounceIcon(Math.max(Math.abs(physics.velX), Math.abs(physics.velY)));
                                 newX = prev[id].x;
                                 newY = prev[id].y;
                             }
@@ -6996,7 +7326,7 @@
                                 top: dogPos.y,
                                 transform: `scaleX(${dogFacingRight ? 1 : -1})`,
                             }}
-                            onClick={() => setDogReleased(false)}
+                            onClick={() => { sounds.bark(); setDogReleased(false); }}
                         >
                             <DogSprite animated />
                             {carriedIcon && (
