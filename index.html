@@ -1793,6 +1793,12 @@
 
                 const sendNextMessage = () => {
                     if (cancelled) return;
+
+                    // Skip any empty messages
+                    while (messageIndex < messagesToSend.length && !messagesToSend[messageIndex]?.trim()) {
+                        messageIndex++;
+                    }
+
                     if (messageIndex >= messagesToSend.length) {
                         // All messages sent, wait 2 seconds then reveal apps
                         setTimeout(() => {
