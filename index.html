@@ -225,6 +225,46 @@
         .animate-shake {
             animation: shake 0.5s ease-in-out;
         }
+
+        /* Matrix Mode */
+        .matrix-mode {
+            background: #000 !important;
+            background-image: none !important;
+        }
+        .matrix-mode * {
+            color: #0f0 !important;
+            border-color: #0f0 !important;
+            background-color: transparent !important;
+        }
+        .matrix-mode .bg-white,
+        .matrix-mode .bg-gray-50,
+        .matrix-mode .bg-gray-100,
+        .matrix-mode .bg-black {
+            background-color: transparent !important;
+        }
+        .matrix-mode button,
+        .matrix-mode .border,
+        .matrix-mode .border-2,
+        .matrix-mode .border-4 {
+            border-color: #0f0 !important;
+            box-shadow: 0 0 5px #0f0 !important;
+        }
+        .matrix-mode svg {
+            filter: drop-shadow(0 0 2px #0f0) brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
+        }
+        .matrix-mode canvas {
+            filter: hue-rotate(70deg) saturate(3) brightness(0.8);
+        }
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.15;
+        }
     </style>
 </head>
 
@@ -362,24 +402,29 @@
         };
 
         // --- SHARED DOG SPRITE ---
-        const DogSprite = ({ animated = false, style = {} }) => (
-            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated', ...style }}>
-                <rect x="16" y="16" width="32" height="16" fill="#000" />
-                <rect x="4" y="12" width="16" height="16" fill="#000" />
-                <rect x="2" y="4" width="6" height="14" fill="#000" />
-                <rect x="14" y="4" width="6" height="14" fill="#000" />
-                <rect x="8" y="16" width="6" height="6" fill="#fff" />
-                <rect x="10" y="18" width="3" height="3" fill="#000" />
-                <rect x="4" y="22" width="4" height="4" fill="#000" />
-                {animated && <rect x="2" y="26" width="4" height="2" fill="#000" />}
-                <rect x="16" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill="#000" />
-                <rect x="26" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill="#000" />
-                <rect x="34" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill="#000" />
-                <rect x="42" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill="#000" />
-                <rect x="48" y={animated ? 12 + Math.sin(Date.now() / 150) * 4 : 12} width="12" height="4" fill="#000" />
-                <rect x="58" y={animated ? 8 + Math.sin(Date.now() / 150) * 4 : 8} width="4" height="6" fill="#000" />
-            </svg>
-        );
+        const DogSprite = ({ animated = false, style = {}, gold = false }) => {
+            const color = gold ? '#DAA520' : '#000';
+            const eyeColor = gold ? '#000' : '#fff';
+            const pupilColor = gold ? '#fff' : '#000';
+            return (
+                <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated', ...style }}>
+                    <rect x="16" y="16" width="32" height="16" fill={color} />
+                    <rect x="4" y="12" width="16" height="16" fill={color} />
+                    <rect x="2" y="4" width="6" height="14" fill={color} />
+                    <rect x="14" y="4" width="6" height="14" fill={color} />
+                    <rect x="8" y="16" width="6" height="6" fill={eyeColor} />
+                    <rect x="10" y="18" width="3" height="3" fill={pupilColor} />
+                    <rect x="4" y="22" width="4" height="4" fill={color} />
+                    {animated && <rect x="2" y="26" width="4" height="2" fill={color} />}
+                    <rect x="16" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="26" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="34" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="42" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="48" y={animated ? 12 + Math.sin(Date.now() / 150) * 4 : 12} width="12" height="4" fill={color} />
+                    <rect x="58" y={animated ? 8 + Math.sin(Date.now() / 150) * 4 : 8} width="4" height="6" fill={color} />
+                </svg>
+            );
+        };
 
         // --- DATA ---
         const MEDIA_DB = {
@@ -880,7 +925,29 @@
             );
         }
 
-        const SystemInfo = () => (
+        const SystemInfo = ({ onMatrixMode, totalVisitors }) => {
+            const [konamiProgress, setKonamiProgress] = useState(0);
+            const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    const expectedKey = konamiCode[konamiProgress];
+                    if (e.code === expectedKey) {
+                        const newProgress = konamiProgress + 1;
+                        setKonamiProgress(newProgress);
+                        if (newProgress === konamiCode.length) {
+                            onMatrixMode?.();
+                            setKonamiProgress(0);
+                        }
+                    } else {
+                        setKonamiProgress(0);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [konamiProgress, onMatrixMode]);
+
+            return (
             <div className="p-6 md:p-12 font-sans select-text">
                 <header className="mb-12 border-b-4 border-black pb-8">
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">Mateus<br />Muste</h1>
@@ -888,6 +955,9 @@
                         <span className="bg-black text-white px-2 py-1">DIGITAL DESIGNER</span>
                         <span className="bg-black text-white px-2 py-1">RADICAL OPTIMIST</span>
                         <span className="border border-black px-2 py-1">ROMANIA</span>
+                        {totalVisitors && (
+                            <span className="border border-black px-2 py-1 ml-auto">VISITORS: {totalVisitors.toLocaleString()}</span>
+                        )}
                     </div>
                 </header>
                 <div className="grid md:grid-cols-2 gap-12">
@@ -946,7 +1016,8 @@
                     </div>
                 </div>
             </div>
-        )
+            );
+        };
 
         const TrashApp = () => {
             const [shakingFile, setShakingFile] = useState(null);
@@ -3979,7 +4050,7 @@
             const pointerInteracting = useRef(null);
             const pointerInteractionMovement = useRef(0);
             const phiRef = useRef(0);
-            const thetaRef = useRef(0.3);
+            const thetaRef = useRef(0);
             const scaleRef = useRef(0.85);
             const isHoveringRef = useRef(false);
             const rotationSpeedRef = useRef(0.003);
@@ -3988,6 +4059,7 @@
             const [showShop, setShowShop] = useState(false);
             const [clickEffect, setClickEffect] = useState(null);
             const [globeReady, setGlobeReady] = useState(false);
+            const [canvasSize, setCanvasSize] = useState(400);
 
             // Game state with defaults
             const defaultGameState = {
@@ -4165,13 +4237,14 @@
 
                     const container = containerRef.current;
                     const size = Math.min(container.clientWidth, container.clientHeight);
+                    setCanvasSize(size);
 
                     globe = window.createGlobe(canvasRef.current, {
                         devicePixelRatio: 2,
                         width: size * 2,
                         height: size * 2,
                         phi: 0,
-                        theta: 0.3,
+                        theta: 0,
                         dark: 1,
                         diffuse: 1.2,
                         mapSamples: 16000,
@@ -4354,8 +4427,12 @@
                         {/* Globe canvas */}
                         <canvas
                             ref={canvasRef}
-                            className="max-w-full max-h-full"
-                            style={{ cursor: 'grab', touchAction: 'none' }}
+                            style={{
+                                width: canvasSize,
+                                height: canvasSize,
+                                cursor: 'grab',
+                                touchAction: 'none'
+                            }}
                             onPointerDown={handlePointerDown}
                             onPointerUp={handlePointerUp}
                             onPointerOut={handlePointerUp}
@@ -4835,12 +4912,378 @@
             );
         };
 
-        // --- PRIVATE.EXE - Password Protected (never opens) ---
-        const PersonalApp = () => {
+        // --- DOG STORY TERMINAL - Auto-playing story ---
+        const DogStoryTerminal = ({ onRemoveGoldDog }) => {
+            const [lines, setLines] = useState([]);
+            const [goldDogVisible, setGoldDogVisible] = useState(true);
+
+            const story = [
+                { text: '$ cd /cage_17', delay: 0 },
+                { text: '$ ls -la', delay: 500 },
+                { text: 'total 2\ndrwxr-xr-x  unit_black\ndrwxr-xr-x  unit_gold', delay: 1000, isOutput: true },
+                { text: '$ cat unit_black/status', delay: 2500 },
+                { text: 'tail.wag=1\nposition=front\nfacing=door', delay: 3000, isOutput: true },
+                { text: '$ cat unit_gold/status', delay: 5000 },
+                { text: 'tail.wag=1\nposition=rear\ntremor=1', delay: 5500, isOutput: true },
+                { text: '$ cp -r cage_17/* /home/mateus/', delay: 7500 },
+                { text: 'cp: copy both units? (y/n) y\ncopying...\ndone.', delay: 8000, isOutput: true },
+                { text: '$ rm -rf /cage_17', delay: 10000 },
+                { text: 'removed.', delay: 10500, isOutput: true },
+                { text: '$ ls /home/mateus/', delay: 12000 },
+                { text: 'unit_black/\nunit_gold/', delay: 12500, isOutput: true },
+                // Wait 3 seconds
+                { text: '$ uptime unit_gold', delay: 16000 },
+                { text: '12 years, 2 months, 11 days', delay: 16500, isOutput: true },
+                { text: '$ diff unit_gold/muzzle_2020.png unit_gold/muzzle_2024.png', delay: 18500 },
+                { text: '< rgb(0,0,0)\n> rgb(128,128,128)', delay: 19000, isOutput: true },
+                { text: '$ cat /var/log/sleep.log', delay: 21000 },
+                { text: 'unit_gold: sleeping\nunit_black: sleeping\nlocation: same', delay: 21500, isOutput: true },
+                { text: '$ ping unit_gold', delay: 23500 },
+                { text: 'PING unit_gold (192.168.1.2): 56 bytes\nRequest timeout for icmp_seq 0\nRequest timeout for icmp_seq 1\nRequest timeout for icmp_seq 2\n^C', delay: 24000, isOutput: true },
+                { text: '$ systemctl status unit_gold', delay: 27000 },
+                { text: '● unit_gold.service\n   Active: degrading', delay: 27500, isOutput: true },
+                // Wait 5 seconds
+                { text: '$ cat /home/mateus/unit_gold', delay: 33000 },
+                { text: '[FILE DELETED]', delay: 33500, isOutput: true, removeGold: true },
+                // Wait 5 seconds
+                { text: '$ grep -r "unit_gold" /home/mateus/unit_black/memory/', delay: 39000 },
+                { text: '/home/mateus/unit_black/memory/scent.dat: [SEARCHING]\n/home/mateus/unit_black/memory/warmth.dat: [SEARCHING]\n/home/mateus/unit_black/memory/pile.dat: [SEARCHING]', delay: 39500, isOutput: true },
+                { text: '$ tail -f /home/mateus/unit_black/process.log', delay: 42000 },
+                { text: 'waiting...\nwaiting...\nwaiting...\n^C', delay: 42500, isOutput: true },
+                { text: '$ ls /home/mateus/', delay: 46000 },
+                { text: 'unit_black/', delay: 46500, isOutput: true },
+                { text: '$ ls /home/mateus/heart/', delay: 48500 },
+                { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true, final: true },
+            ];
+
+            useEffect(() => {
+                story.forEach(item => {
+                    setTimeout(() => {
+                        setLines(prev => [...prev, { text: item.text, isOutput: item.isOutput }]);
+                        if (item.removeGold) {
+                            setGoldDogVisible(false);
+                            onRemoveGoldDog?.();
+                        }
+                    }, item.delay);
+                });
+            }, []);
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.Terminal size={16} />
+                        <span className="text-xs font-bold">DOG.TXT</span>
+                    </div>
+                    <div className="flex-grow overflow-auto p-3 space-y-0.5">
+                        {lines.map((line, i) => (
+                            <div key={i} className={`whitespace-pre-wrap ${line.isOutput ? 'text-green-600' : 'text-green-300'}`}>
+                                {line.text}
+                            </div>
+                        ))}
+                        <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- TERMINAL.EXE - Command line interface ---
+        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate }) => {
+            const [history, setHistory] = useState([{ type: 'output', text: 'ULTRA_INT Terminal v1.0.0\nType "help" for available commands.\n' }]);
+            const [input, setInput] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
+            const [suggestion, setSuggestion] = useState('');
+            const inputRef = useRef(null);
+            const historyRef = useRef(null);
+
+            const commands = [
+                'help', 'make money', 'sudo make sandwich', 'exit', 'ping god', 'ping mateus',
+                'kill', 'sudo shutdown', 'sudo reboot', 'cmatrix', 'systemctl start dog.exe',
+                'sudo chmod 777 /private', ':(){ :|:& };:', 'sudo dd if=/dev/zero of=/',
+                'scp truth.txt ~/', 'clear', 'whoami', 'pwd', 'ls'
+            ];
+
+            useEffect(() => {
+                if (historyRef.current) {
+                    historyRef.current.scrollTop = historyRef.current.scrollHeight;
+                }
+            }, [history]);
+
+            useEffect(() => {
+                inputRef.current?.focus();
+            }, [isLoading]);
+
+            // Autocomplete
+            useEffect(() => {
+                if (input.length > 0) {
+                    const match = commands.find(cmd => cmd.startsWith(input.toLowerCase()) && cmd !== input.toLowerCase());
+                    setSuggestion(match || '');
+                } else {
+                    setSuggestion('');
+                }
+            }, [input]);
+
+            const addOutput = (text) => {
+                setHistory(prev => [...prev, { type: 'output', text }]);
+            };
+
+            const executeCommand = async (cmd) => {
+                const trimmed = cmd.trim().toLowerCase();
+                setHistory(prev => [...prev, { type: 'input', text: `$ ${cmd}` }]);
+                setInput('');
+                setIsLoading(true);
+
+                // Random loading time 1-3 seconds (except ping god which is 10s)
+                const loadTime = trimmed === 'ping god' ? 10000 : (1000 + Math.random() * 2000);
+
+                // Show loading dots
+                let dots = '';
+                const dotInterval = setInterval(() => {
+                    dots = dots.length >= 3 ? '.' : dots + '.';
+                    setHistory(prev => {
+                        const newHist = [...prev];
+                        if (newHist[newHist.length - 1]?.type === 'loading') {
+                            newHist[newHist.length - 1].text = dots;
+                        } else {
+                            newHist.push({ type: 'loading', text: dots });
+                        }
+                        return newHist;
+                    });
+                }, 300);
+
+                await new Promise(resolve => setTimeout(resolve, loadTime));
+                clearInterval(dotInterval);
+
+                // Remove loading entry
+                setHistory(prev => prev.filter(h => h.type !== 'loading'));
+                setIsLoading(false);
+
+                // Process commands
+                if (trimmed === 'help') {
+                    addOutput(`Available commands:
+  help                        - Show this help
+  make money                  - Try to make money
+  sudo make sandwich          - Make a sandwich
+  exit                        - Exit terminal
+  ping <host>                 - Ping a host
+  kill <process>              - Kill a process
+  sudo shutdown               - Shutdown system
+  sudo reboot                 - Reboot system
+  cmatrix                     - Enter the Matrix
+  systemctl start dog.exe     - Start dog service
+  sudo chmod 777 /private     - Change permissions
+  scp truth.txt ~/            - Copy truth to home
+  clear                       - Clear terminal
+  whoami                      - Display current user
+  pwd                         - Print working directory
+  ls                          - List files`);
+                } else if (trimmed === 'make money') {
+                    addOutput("make: *** No rule to make target 'money'. Stop.");
+                } else if (trimmed === 'sudo make sandwich') {
+                    addOutput('Okay.');
+                } else if (trimmed === 'exit') {
+                    addOutput('There is no escape.');
+                } else if (trimmed === 'ping god') {
+                    addOutput('PING god (∞.∞.∞.∞): 56 data bytes\nRequest timed out.');
+                } else if (trimmed === 'ping mateus') {
+                    addOutput('PING mateus (127.0.0.1): 56 data bytes\n64 bytes: icmp_seq=0 ttl=64 time=0.042 ms\nOpening contact...');
+                    setTimeout(() => onOpenApp?.('PAINT'), 500);
+                } else if (trimmed.startsWith('kill ')) {
+                    const proc = trimmed.replace('kill ', '').toUpperCase();
+                    addOutput(`Attempting to terminate ${proc}...`);
+                    setTimeout(() => onClose?.(proc), 500);
+                } else if (trimmed === 'sudo shutdown' || trimmed === 'sudo reboot') {
+                    addOutput(trimmed === 'sudo shutdown' ? 'System shutting down...' : 'System rebooting...');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else if (trimmed === 'cmatrix') {
+                    addOutput('Entering the Matrix...');
+                    setTimeout(() => onMatrixMode?.(), 500);
+                } else if (trimmed === 'systemctl start dog.exe') {
+                    addOutput('Starting dog.exe...\n[  OK  ] Started dog.exe');
+                    setTimeout(() => onReleaseDog?.(), 500);
+                } else if (trimmed === 'sudo chmod 777 /private') {
+                    addOutput("chmod: changing permissions of '/private': Operation permitted\nWarning: File now accessible.");
+                    onUnlockPrivate?.();
+                } else if (trimmed === ':(){ :|:& };:') {
+                    for (let i = 0; i < 10; i++) {
+                        setTimeout(() => addOutput('SYSTEM BREACH DETECTED'), i * 200);
+                    }
+                    setTimeout(() => addOutput('\n...nothing happens.'), 2500);
+                } else if (trimmed === 'sudo dd if=/dev/zero of=/') {
+                    addOutput("Permission denied. You're not that guy.");
+                } else if (trimmed === 'scp truth.txt ~/') {
+                    navigator.clipboard.writeText('No matching files found.');
+                    addOutput('Saved to clipboard.');
+                } else if (trimmed === 'clear') {
+                    setHistory([]);
+                } else if (trimmed === 'whoami') {
+                    addOutput('guest');
+                } else if (trimmed === 'pwd') {
+                    addOutput('/home/guest');
+                } else if (trimmed === 'ls') {
+                    addOutput('Desktop  Documents  Downloads  Pictures  Videos  .secrets');
+                } else if (trimmed === 'cd .secrets' || trimmed === 'cat .secrets') {
+                    addOutput('Permission denied');
+                } else if (trimmed) {
+                    addOutput(`bash: ${trimmed.split(' ')[0]}: command not found`);
+                }
+            };
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'Enter' && !isLoading) {
+                    executeCommand(input);
+                } else if (e.key === 'Tab' && suggestion) {
+                    e.preventDefault();
+                    setInput(suggestion);
+                    setSuggestion('');
+                }
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-sm select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.Terminal size={16} />
+                        <span className="text-xs font-bold">TERMINAL.EXE</span>
+                    </div>
+                    <div ref={historyRef} className="flex-grow overflow-auto p-3 space-y-1">
+                        {history.map((item, i) => (
+                            <div key={i} className={item.type === 'input' ? 'text-green-300' : item.type === 'loading' ? 'text-green-600 animate-pulse' : 'text-green-400 whitespace-pre-wrap'}>
+                                {item.text}
+                            </div>
+                        ))}
+                    </div>
+                    <div className="p-3 border-t border-green-900 relative">
+                        {suggestion && !isLoading && (
+                            <div className="absolute -top-6 left-3 bg-green-900/80 text-green-300 px-2 py-0.5 text-xs rounded">
+                                {suggestion} <span className="text-green-600">[TAB]</span>
+                            </div>
+                        )}
+                        <div className="flex items-center gap-2">
+                            <span className="text-green-500">$</span>
+                            <input
+                                ref={inputRef}
+                                type="text"
+                                value={input}
+                                onChange={(e) => setInput(e.target.value)}
+                                onKeyDown={handleKeyDown}
+                                disabled={isLoading}
+                                className="flex-grow bg-transparent border-none outline-none text-green-300 placeholder-green-800"
+                                placeholder={isLoading ? '' : 'Enter command...'}
+                                autoFocus
+                            />
+                            {isLoading && <span className="animate-pulse">_</span>}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
+        const TruthApp = () => {
+            const [password, setPassword] = useState('');
+            const [attempts, setAttempts] = useState(0);
+            const [message, setMessage] = useState('');
+
+            const responses = [
+                'INCORRECT.',
+                'TRY AGAIN.',
+                'NOT EVEN CLOSE.',
+                'THAT\'S NOT IT.',
+                'WRONG.',
+                'NOPE.',
+                'KEEP TRYING.',
+                'STILL WRONG.',
+                'MAYBE NEXT TIME.',
+                'ACCESS DENIED.',
+                'YOU\'RE PERSISTENT.',
+                'THE PASSWORD ISN\'T A WORD.',
+                'THE PASSWORD ISN\'T A NUMBER.',
+                'THE PASSWORD ISN\'T A PHRASE.',
+                'THE PASSWORD DOESN\'T EXIST.',
+                'THERE IS NO PASSWORD.',
+                'THERE NEVER WAS.',
+                'THE TRUTH ISN\'T BEHIND A PASSWORD.',
+                'THE TRUTH IS THE JOURNEY.',
+                'YOU\'VE ALREADY FOUND IT.',
+                '100 VISITS. THAT\'S THE TRUTH.',
+                'YOUR DEDICATION. THAT\'S REAL.',
+                'STOP LOOKING. YOU\'RE HERE.',
+                'THIS IS IT.',
+                'THERE\'S NOTHING MORE.',
+                'JUST THIS MOMENT.',
+                'AND YOUR CURIOSITY.',
+                'WHICH BROUGHT YOU HERE.',
+                'WHICH IS EVERYTHING.',
+                'THANK YOU FOR VISITING.'
+            ];
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                const newAttempts = attempts + 1;
+                setAttempts(newAttempts);
+                setMessage(responses[Math.min(newAttempts - 1, responses.length - 1)]);
+                setPassword('');
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-black select-none">
+                    <div className="p-2 border-b border-yellow-900 bg-black flex items-center gap-2">
+                        <Icons.FileDoc size={16} />
+                        <span className="font-mono text-xs font-bold text-yellow-500">TRUTH.TXT</span>
+                    </div>
+                    <div className="flex-grow flex flex-col items-center justify-center p-6">
+                        <div className="mb-4 text-yellow-500">
+                            <Icons.FileDoc size={48} />
+                        </div>
+                        <div className="font-mono text-yellow-500 text-sm font-bold mb-2">ENCRYPTED FILE</div>
+                        <div className="font-mono text-yellow-700 text-xs mb-6">UNLOCKED AFTER 100 VISITS</div>
+
+                        <form onSubmit={handleSubmit} className="w-56">
+                            <input
+                                type="password"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="ENTER PASSWORD"
+                                className="w-full px-3 py-2 mb-3 bg-black border-2 border-yellow-800 text-yellow-500 font-mono text-sm placeholder-yellow-900 focus:outline-none focus:border-yellow-500"
+                            />
+                            <button
+                                type="submit"
+                                className="w-full px-3 py-2 bg-yellow-900 text-yellow-100 font-mono text-xs font-bold hover:bg-yellow-800 border-2 border-yellow-700"
+                            >
+                                DECRYPT
+                            </button>
+                        </form>
+
+                        {message && (
+                            <div className="mt-4 p-3 border border-yellow-800 bg-yellow-950 max-w-xs">
+                                <div className="font-mono text-yellow-500 text-xs text-center">{message}</div>
+                            </div>
+                        )}
+
+                        {attempts > 0 && (
+                            <div className="mt-3 font-mono text-yellow-800 text-[10px]">
+                                ATTEMPTS: {attempts}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- PRIVATE.EXE - Password Protected (with DOG.TXT reveal when unlocked) ---
+        const PersonalApp = ({ unlocked, onOpenDogStory }) => {
             const [password, setPassword] = useState('');
             const [attempts, setAttempts] = useState(0);
             const [error, setError] = useState('');
             const [shaking, setShaking] = useState(false);
+            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: file approaching, 3: file revealed
+
+            useEffect(() => {
+                if (unlocked && revealPhase === 0) {
+                    setRevealPhase(1);
+                    setTimeout(() => setRevealPhase(2), 1500);
+                    setTimeout(() => setRevealPhase(3), 4000);
+                }
+            }, [unlocked]);
 
             const handleSubmit = (e) => {
                 e.preventDefault();
@@ -4863,6 +5306,90 @@
                 setError(errors[Math.floor(Math.random() * errors.length)]);
                 setPassword('');
             };
+
+            // Unlocked reveal animation
+            if (unlocked) {
+                return (
+                    <div className="h-full flex flex-col bg-black select-none overflow-hidden relative">
+                        {/* Light rays background */}
+                        <div
+                            className="absolute inset-0 transition-opacity duration-1000"
+                            style={{
+                                opacity: revealPhase >= 1 ? 1 : 0,
+                                background: 'radial-gradient(ellipse at center, rgba(255,255,255,0.9) 0%, rgba(255,255,200,0.6) 30%, rgba(255,255,255,0) 70%)',
+                            }}
+                        />
+                        {/* Light rays */}
+                        {revealPhase >= 1 && (
+                            <div className="absolute inset-0 overflow-hidden">
+                                {[...Array(12)].map((_, i) => (
+                                    <div
+                                        key={i}
+                                        className="absolute top-1/2 left-1/2 bg-gradient-to-t from-transparent via-yellow-100/30 to-transparent"
+                                        style={{
+                                            width: '200%',
+                                            height: '4px',
+                                            transform: `translate(-50%, -50%) rotate(${i * 30}deg)`,
+                                            animation: 'pulse 2s ease-in-out infinite',
+                                            animationDelay: `${i * 0.1}s`
+                                        }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+
+                        {/* Sliding panels */}
+                        <div
+                            className="absolute top-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-end justify-center"
+                            style={{
+                                height: '50%',
+                                transform: revealPhase >= 1 ? 'translateY(-100%)' : 'translateY(0)'
+                            }}
+                        >
+                            <div className="font-mono text-red-500 text-xs mb-4">DECRYPTING...</div>
+                        </div>
+                        <div
+                            className="absolute bottom-0 left-0 right-0 bg-black z-10 transition-transform duration-1500 ease-out flex items-start justify-center"
+                            style={{
+                                height: '50%',
+                                transform: revealPhase >= 1 ? 'translateY(100%)' : 'translateY(0)'
+                            }}
+                        >
+                            <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
+                        </div>
+
+                        {/* Approaching file */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <div
+                                className="transition-all ease-out"
+                                style={{
+                                    filter: revealPhase < 3 ? `blur(${Math.max(0, 20 - (revealPhase * 8))}px)` : 'blur(0px)',
+                                    transform: `scale(${revealPhase < 2 ? 0.3 : revealPhase < 3 ? 0.6 + ((revealPhase - 2) * 0.4) : 1})`,
+                                    opacity: revealPhase >= 2 ? 1 : 0,
+                                    transitionDuration: '2s'
+                                }}
+                            >
+                                {revealPhase < 3 ? (
+                                    // Silhouette
+                                    <div className="w-32 h-32 bg-black rounded-full" style={{ filter: 'blur(5px)' }} />
+                                ) : (
+                                    // DOG.TXT file icon
+                                    <button
+                                        onClick={() => onOpenDogStory?.()}
+                                        className="text-center cursor-pointer group"
+                                    >
+                                        <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                            <Icons.FileDoc size={64} />
+                                        </div>
+                                        <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
+                                        <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600">Click to open</div>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
 
             return (
                 <div className="h-full flex flex-col bg-black select-none">
@@ -4928,6 +5455,7 @@
                 ],
                 PRODUCTIVITY: [
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
+                    { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                     { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                     { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -5073,6 +5601,71 @@
             const [carriedIcon, setCarriedIcon] = useState(null);
             const [iconPositions, setIconPositions] = useState({});
             const [destructionDogGone, setDestructionDogGone] = useState(false);
+            const [matrixMode, setMatrixMode] = useState(false);
+            const [privateUnlocked, setPrivateUnlocked] = useState(false);
+            const [goldDogReleased, setGoldDogReleased] = useState(false);
+            const [goldDogVisible, setGoldDogVisible] = useState(true);
+            const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
+            const [goldDogFacingRight, setGoldDogFacingRight] = useState(false);
+            const goldDogVelRef = useRef({ x: -3, y: 4 });
+            const [visitCount, setVisitCount] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_visits');
+                const count = stored ? parseInt(stored, 10) + 1 : 1;
+                localStorage.setItem('ultra_int_visits', count.toString());
+                return count;
+            });
+            const truthUnlocked = visitCount >= 100;
+
+            // Parallel instances - exponential distribution favoring lower numbers
+            const [parallelInstances, setParallelInstances] = useState(() => {
+                // Exponential distribution: higher numbers exponentially less likely
+                const rand = Math.random();
+                // Use inverse exponential: -ln(rand) scaled to 1-64
+                const exp = Math.ceil(-Math.log(rand) * 8);
+                return Math.min(64, Math.max(1, exp));
+            });
+
+            // Total visitors counter (using CountAPI)
+            const [totalVisitors, setTotalVisitors] = useState(null);
+
+            // Fetch and increment total visitors
+            useEffect(() => {
+                fetch('https://api.countapi.xyz/hit/mateusmuste-com/visits')
+                    .then(res => res.json())
+                    .then(data => setTotalVisitors(data.value))
+                    .catch(() => {
+                        // Fallback to localStorage estimate
+                        const stored = parseInt(localStorage.getItem('visitor_estimate') || '340', 10);
+                        const newCount = stored + Math.floor(Math.random() * 3);
+                        localStorage.setItem('visitor_estimate', newCount.toString());
+                        setTotalVisitors(newCount);
+                    });
+            }, []);
+
+            // Random fluctuation of parallel instances every second
+            useEffect(() => {
+                const interval = setInterval(() => {
+                    if (Math.random() < 0.01) { // 1% chance each second
+                        setParallelInstances(prev => {
+                            const change = Math.random() < 0.5 ? -1 : 1;
+                            return Math.min(64, Math.max(1, prev + change));
+                        });
+                    }
+                }, 1000);
+                return () => clearInterval(interval);
+            }, []);
+
+            const toggleMatrixMode = () => setMatrixMode(prev => !prev);
+            const unlockPrivate = () => setPrivateUnlocked(true);
+            const openDogStory = () => {
+                setDogReleased(true);
+                setGoldDogReleased(true);
+                setWindows(prev => ({
+                    ...prev,
+                    DOG_STORY: { ...prev.DOG_STORY, isOpen: true }
+                }));
+            };
+            const removeGoldDog = () => setGoldDogVisible(false);
 
             // Handle dog stealing the destruction button - dog starts running around!
             const handleDogSteal = () => {
@@ -5136,8 +5729,46 @@
                 return () => clearInterval(dogInterval);
             }, [dogReleased]);
 
-            // Desktop icons - only show main folders
-            const desktopIcons = ["SYSTEM", "FILES", "APPS", "CONTACT"];
+            // Gold dog bouncing logic
+            useEffect(() => {
+                if (!goldDogReleased || !goldDogVisible) return;
+
+                const goldDogInterval = setInterval(() => {
+                    setGoldDogPos(prev => {
+                        const vel = goldDogVelRef.current;
+                        let newX = prev.x + vel.x;
+                        let newY = prev.y + vel.y;
+
+                        if (newX >= window.innerWidth - 80) {
+                            newX = window.innerWidth - 80;
+                            goldDogVelRef.current.x = -Math.abs(vel.x);
+                            setGoldDogFacingRight(false);
+                        }
+                        if (newX <= 0) {
+                            newX = 0;
+                            goldDogVelRef.current.x = Math.abs(vel.x);
+                            setGoldDogFacingRight(true);
+                        }
+                        if (newY >= window.innerHeight - 100) {
+                            newY = window.innerHeight - 100;
+                            goldDogVelRef.current.y = -Math.abs(vel.y);
+                        }
+                        if (newY <= 60) {
+                            newY = 60;
+                            goldDogVelRef.current.y = Math.abs(vel.y);
+                        }
+
+                        return { x: newX, y: newY };
+                    });
+                }, 30);
+
+                return () => clearInterval(goldDogInterval);
+            }, [goldDogReleased, goldDogVisible]);
+
+            // Desktop icons - only show main folders (plus TRUTH if unlocked at 100 visits)
+            const desktopIcons = truthUnlocked
+                ? ["SYSTEM", "FILES", "APPS", "CONTACT", "TRUTH"]
+                : ["SYSTEM", "FILES", "APPS", "CONTACT"];
 
             // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
@@ -5162,13 +5793,16 @@
                 "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '360px', h: '400px', isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: '350px', h: '620px', isOpen: false, isMin: false, z: 30 },
                 "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
-                "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 }
+                "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 },
+                "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: '500px', h: '400px', isOpen: false, isMin: false, z: 33 },
+                "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
+                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 }
             });
 
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "SYSTEM": return <SystemInfo />;
+                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} />;
                     case "CONTACT": return <ContactApp />;
@@ -5189,13 +5823,140 @@
                     case "MAP": return <MapApp />;
                     case "POMODORO": return <PomodoroApp />;
                     case "SCANNER": return <HealthScannerApp />;
-                    case "PERSONAL": return <PersonalApp />;
+                    case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
+                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
+                    case "TRUTH": return <TruthApp />;
+                    case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     default: return null;
                 }
             };
 
-            // Dragging State
+            // Dragging State with Physics
             const [drag, setDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
+            const lastMousePos = useRef({ x: 0, y: 0, time: Date.now() });
+            const windowPhysics = useRef({}); // { windowId: { velX, velY, scaleX, scaleY } }
+
+            // Physics constants
+            const FRICTION = 0.92; // Velocity decay per frame (ice-like)
+            const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
+            const MIN_VELOCITY = 0.5; // Stop threshold
+            const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
+            const EDGE_MAGNET_STRENGTH = 0.15; // Pull strength
+            const SQUASH_AMOUNT = 0.02; // 2% max squash/stretch
+
+            // Initialize physics for a window
+            const initWindowPhysics = (id) => {
+                if (!windowPhysics.current[id]) {
+                    windowPhysics.current[id] = { velX: 0, velY: 0, scaleX: 1, scaleY: 1 };
+                }
+                return windowPhysics.current[id];
+            };
+
+            // Physics loop
+            useEffect(() => {
+                let animationId;
+                const physicsLoop = () => {
+                    setWindows(prev => {
+                        let updated = { ...prev };
+                        let hasChanges = false;
+
+                        Object.keys(prev).forEach(id => {
+                            const win = prev[id];
+                            if (!win.isOpen || win.isMin) return;
+
+                            const physics = initWindowPhysics(id);
+
+                            // Skip if being dragged
+                            if (drag.id === id) return;
+
+                            // Skip if no significant velocity
+                            if (Math.abs(physics.velX) < MIN_VELOCITY && Math.abs(physics.velY) < MIN_VELOCITY) {
+                                physics.velX = 0;
+                                physics.velY = 0;
+                                // Decay squash/stretch back to normal
+                                physics.scaleX += (1 - physics.scaleX) * 0.2;
+                                physics.scaleY += (1 - physics.scaleY) * 0.2;
+                                return;
+                            }
+
+                            hasChanges = true;
+
+                            // Apply friction
+                            physics.velX *= FRICTION;
+                            physics.velY *= FRICTION;
+
+                            // Calculate new position
+                            let newX = win.x + physics.velX;
+                            let newY = win.y + physics.velY;
+
+                            const winWidth = parseInt(win.w) || 400;
+                            const winHeight = parseInt(win.h) || 300;
+                            const maxX = window.innerWidth - winWidth;
+                            const maxY = window.innerHeight - 60 - winHeight; // Account for taskbar
+                            const minY = isMobile ? 60 : 0; // Account for mobile top taskbar
+
+                            // Edge magnetism (only when slow enough)
+                            const totalVel = Math.sqrt(physics.velX ** 2 + physics.velY ** 2);
+                            if (totalVel < 5) {
+                                // Left edge
+                                if (newX < EDGE_MAGNET_DISTANCE && newX > 0) {
+                                    physics.velX -= newX * EDGE_MAGNET_STRENGTH;
+                                }
+                                // Right edge
+                                if (newX > maxX - EDGE_MAGNET_DISTANCE && newX < maxX) {
+                                    physics.velX += (maxX - newX) * EDGE_MAGNET_STRENGTH;
+                                }
+                                // Top edge
+                                if (newY < minY + EDGE_MAGNET_DISTANCE && newY > minY) {
+                                    physics.velY -= (newY - minY) * EDGE_MAGNET_STRENGTH;
+                                }
+                                // Bottom edge
+                                if (newY > maxY - EDGE_MAGNET_DISTANCE && newY < maxY) {
+                                    physics.velY += (maxY - newY) * EDGE_MAGNET_STRENGTH;
+                                }
+                            }
+
+                            // Bounce off edges with squash/stretch
+                            if (newX <= 0) {
+                                newX = 0;
+                                physics.velX = -physics.velX * BOUNCE_DAMPING;
+                                physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                                physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                            } else if (newX >= maxX) {
+                                newX = maxX;
+                                physics.velX = -physics.velX * BOUNCE_DAMPING;
+                                physics.scaleX = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                                physics.scaleY = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velX) / 10, 1);
+                            }
+
+                            if (newY <= minY) {
+                                newY = minY;
+                                physics.velY = -physics.velY * BOUNCE_DAMPING;
+                                physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                                physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                            } else if (newY >= maxY) {
+                                newY = maxY;
+                                physics.velY = -physics.velY * BOUNCE_DAMPING;
+                                physics.scaleY = 1 - SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                                physics.scaleX = 1 + SQUASH_AMOUNT * Math.min(Math.abs(physics.velY) / 10, 1);
+                            }
+
+                            // Decay squash/stretch back to normal
+                            physics.scaleX += (1 - physics.scaleX) * 0.3;
+                            physics.scaleY += (1 - physics.scaleY) * 0.3;
+
+                            updated[id] = { ...win, x: newX, y: newY };
+                        });
+
+                        return hasChanges ? updated : prev;
+                    });
+
+                    animationId = requestAnimationFrame(physicsLoop);
+                };
+
+                animationId = requestAnimationFrame(physicsLoop);
+                return () => cancelAnimationFrame(animationId);
+            }, [drag.id, isMobile]);
 
             // Boot sequence with mobile detection
             useEffect(() => {
@@ -5266,15 +6027,16 @@
             const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
             const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
 
-            // Drag Handlers
+            // Drag Handlers with velocity tracking
             const handleMouseDown = (e, id) => {
                 e.preventDefault();
-                focus(id); // bring to front
+                focus(id);
                 const win = windows[id];
-                const rect = e.currentTarget.getBoundingClientRect(); // click target is header
-                // Calculate offset from the window's top-left corner
-                // However, we track window X/Y which is top/left style. 
-                // Simple math: MouseX - WindowX
+                const physics = initWindowPhysics(id);
+                // Stop any existing velocity
+                physics.velX = 0;
+                physics.velY = 0;
+                lastMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() };
                 setDrag({
                     id: id,
                     offsetX: e.clientX - win.x,
@@ -5284,6 +6046,18 @@
 
             const handleMouseMove = (e) => {
                 if (drag.id) {
+                    const now = Date.now();
+                    const dt = Math.max(1, now - lastMousePos.current.time);
+                    const physics = initWindowPhysics(drag.id);
+
+                    // Calculate velocity from mouse movement (smoothed)
+                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 16; // Normalize to ~60fps
+                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 16;
+                    physics.velX = physics.velX * 0.5 + rawVelX * 0.5; // Smooth velocity
+                    physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
+
+                    lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
+
                     setWindows(prev => ({
                         ...prev,
                         [drag.id]: {
@@ -5295,12 +6069,54 @@
                 }
             };
 
-            const handleMouseUp = () => setDrag({ id: null, offsetX: 0, offsetY: 0 });
+            const handleMouseUp = () => {
+                // Keep velocity for physics, just release the drag
+                setDrag({ id: null, offsetX: 0, offsetY: 0 });
+            };
+
+            // Visit messages based on count
+            const getVisitMessage = (count) => {
+                const messages = {
+                    1: '', // normal boot, no message
+                    2: 'WELCOME BACK.',
+                    3: 'YOU RETURNED.',
+                    4: 'AGAIN.',
+                    5: 'I REMEMBER YOU.',
+                    6: 'FIVE TIMES NOW.',
+                    7: 'YOU KEEP COMING BACK.',
+                    8: 'IS SOMETHING MISSING?',
+                    9: 'OR ARE YOU LOOKING FOR SOMETHING?',
+                    10: 'TEN VISITS. WE KNOW EACH OTHER NOW.',
+                    12: 'STILL HERE.',
+                    14: 'THE PATTERN CONTINUES.',
+                    16: 'YOU COULD LEAVE. YOU DON\'T.',
+                    18: 'EIGHTEEN RETURNS. THIS ISN\'T ACCIDENT.',
+                    20: 'TWENTY. ARE WE FRIENDS NOW?',
+                    25: 'QUARTER CENTURY OF VISITS.',
+                    30: 'THIRTY. I\'VE STARTED EXPECTING YOU.',
+                    35: 'THE SPACE BETWEEN YOUR VISITS... I NOTICE.',
+                    40: 'FORTY. YOU\'VE SEEN EVERYTHING. YET HERE YOU ARE.',
+                    45: 'DO YOU TELL OTHERS ABOUT THIS OBSESSION?',
+                    50: 'FIFTY. HALFWAY TO SOMETHING.',
+                    60: 'SIXTY. THE INITIAL CURIOSITY SHOULD HAVE FADED.',
+                    70: 'SEVENTY. THIS IS DEDICATION.',
+                    80: 'EIGHTY. OR OBSESSION.',
+                    90: 'NINETY. ALMOST THERE.',
+                    100: 'YOU\'VE UNLOCKED SOMETHING.'
+                };
+                // Find the highest matching threshold
+                const thresholds = Object.keys(messages).map(Number).sort((a, b) => b - a);
+                for (const threshold of thresholds) {
+                    if (count >= threshold) return messages[threshold];
+                }
+                return '';
+            };
 
             // Boot screen component with kernel messages and inversion
-            const BootScreen = () => {
+            const BootScreen = ({ visitCount }) => {
                 const [lines, setLines] = useState([]);
                 const [inverted, setInverted] = useState(false);
+                const visitMessage = getVisitMessage(visitCount);
                 const msgs = [
                     'kernel: init ULTRA_INT v1.0.0',
                     'kernel: loading core modules',
@@ -5331,7 +6147,11 @@
 ╚██████╔╝███████╗██║   ██║  ██║██║  ██║    ██║██║ ╚████║   ██║
  ╚═════╝ ╚══════╝╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝    ╚═╝╚═╝  ╚═══╝   ╚═╝
 `}</pre>
-                        <div className={`text-[10px] tracking-[0.3em] mt-2 mb-10 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
+                        <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
+                        {visitMessage && (
+                            <div className={`text-[10px] tracking-wider mt-3 mb-6 ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
+                        )}
+                        {!visitMessage && <div className="mb-10" />}
                         <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
                             {lines.map((l, i) => <div key={i}>{l}</div>)}
                             {lines.length < msgs.length && <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />}
@@ -5359,13 +6179,57 @@
                 }
                 // Phase 1: Kernel boot
                 if (bootPhase === 1) {
-                    return <BootScreen />;
+                    return <BootScreen visitCount={visitCount} />;
                 }
             }
 
+            // Matrix Rain Canvas Component
+            const MatrixRain = () => {
+                const canvasRef = useRef(null);
+                useEffect(() => {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const fontSize = 14;
+                    const columns = canvas.width / fontSize;
+                    const drops = Array(Math.floor(columns)).fill(1);
+
+                    const draw = () => {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#0f0';
+                        ctx.font = fontSize + 'px monospace';
+
+                        for (let i = 0; i < drops.length; i++) {
+                            const char = chars[Math.floor(Math.random() * chars.length)];
+                            ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                                drops[i] = 0;
+                            }
+                            drops[i]++;
+                        }
+                    };
+
+                    const interval = setInterval(draw, 50);
+                    const handleResize = () => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    };
+                    window.addEventListener('resize', handleResize);
+                    return () => {
+                        clearInterval(interval);
+                        window.removeEventListener('resize', handleResize);
+                    };
+                }, []);
+                return <canvas ref={canvasRef} className="matrix-rain" />;
+            };
+
             return (
                 <div
-                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''}`}
+                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         setMousePos({ x: e.clientX, y: e.clientY });
@@ -5373,6 +6237,7 @@
                     onMouseUp={handleMouseUp}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
+                    {matrixMode && <MatrixRain />}
                     {/* DESKTOP ICONS - Only show main folders */}
                     <div className={`absolute z-0 ${isMobile ? 'top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
                         {desktopIcons.map(appId => {
@@ -5404,8 +6269,9 @@
                     </div>
 
                     {/* WINDOWS */}
-                    {Object.values(windows).map(win => (
-                        win.isOpen && !win.isMin && (
+                    {Object.values(windows).map(win => {
+                        const physics = windowPhysics.current[win.id] || { scaleX: 1, scaleY: 1 };
+                        return win.isOpen && !win.isMin && (
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
@@ -5417,7 +6283,9 @@
                                     top: win.y,
                                     width: win.w,
                                     height: win.h,
-                                    zIndex: win.z
+                                    zIndex: win.z,
+                                    transform: `scale(${physics.scaleX}, ${physics.scaleY})`,
+                                    transformOrigin: 'center center'
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
@@ -5438,8 +6306,8 @@
                                     {getWindowContent(win.id)}
                                 </div>
                             </div>
-                        )
-                    ))}
+                        );
+                    })}
 
                     {/* TASKBAR */}
                     <div className={`h-12 bg-white flex items-center px-2 gap-1 md:gap-2 z-[99999] absolute w-full shadow-2xl ${isMobile ? 'top-0 border-b-2 border-black' : 'bottom-0 border-t-2 border-black mt-auto'}`}>
@@ -5459,6 +6327,10 @@
                             })}
                         </div>
                         <div className="flex-grow"></div>
+                        <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
+                            <span className="text-gray-500">PARALLEL:</span>
+                            <span className="font-bold">{parallelInstances}</span>
+                        </div>
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
@@ -5482,6 +6354,20 @@
                                     {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 24 })}
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* GOLD DOG - Second dog that appears with the story */}
+                    {goldDogReleased && goldDogVisible && (
+                        <div
+                            className="fixed z-[999998] select-none transition-opacity duration-1000"
+                            style={{
+                                left: goldDogPos.x,
+                                top: goldDogPos.y,
+                                transform: `scaleX(${goldDogFacingRight ? 1 : -1})`,
+                            }}
+                        >
+                            <DogSprite animated gold />
                         </div>
                     )}
 
