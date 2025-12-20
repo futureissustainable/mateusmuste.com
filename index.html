@@ -1570,9 +1570,9 @@
             const [shakingFile, setShakingFile] = useState(null);
 
             const trashFiles = [
-                { name: 'MY_BITCOIN_WALLET.txt', icon: 'FileDoc' },
-                { name: 'sleep_schedule.ics', icon: 'FileDoc' },
-                { name: 'NYU_acceptance_letter.pdf', icon: 'FileDoc' }
+                { name: 'BITCOIN_WALLET.txt', icon: 'FileDoc' },
+                { name: 'ACCEPTANCE_LETTER.pdf', icon: 'FileDoc' },
+                { name: 'SCHEDULE.ics', icon: 'FileDoc' }
             ];
 
             const handleFileClick = (fileName) => {
@@ -6156,7 +6156,7 @@
         };
 
         // --- APPS Folder - Grid of all apps organized in folders ---
-        const AppsFolder = ({ onOpenApp, onDragStart }) => {
+        const AppsFolder = ({ onOpenApp, onDragStart, isMobile }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
@@ -6178,7 +6178,7 @@
                     { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                     { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
-                    { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
+                    ...(!isMobile ? [{ id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' }] : []),
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                     { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                     { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
@@ -6281,7 +6281,7 @@
         };
 
         // --- BROWSER - App search with autocomplete ---
-        const BrowserApp = ({ onOpenApp, onAchievement }) => {
+        const BrowserApp = ({ onOpenApp, onAchievement, isMobile }) => {
             const [url, setUrl] = useState('');
             const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -6302,7 +6302,6 @@
                 // Productivity
                 { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
-                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
                 { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                 { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -6316,7 +6315,9 @@
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                 { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
-                { id: 'END', title: 'END.EXE', icon: 'Trophy' }
+                { id: 'END', title: 'END.EXE', icon: 'Trophy' },
+                // Desktop only
+                ...(!isMobile ? [{ id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' }] : [])
             ];
 
             const filteredItems = url.trim()
@@ -7118,7 +7119,7 @@
                 switch (id) {
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
-                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} />;
+                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
@@ -7142,7 +7143,7 @@
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
-                    case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} />;
+                    case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
                     case "WORDS": return <WordsApp />;
                     case "END": return <EndApp achievements={achievements} />;
                     default: return null;
