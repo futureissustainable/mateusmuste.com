@@ -1287,12 +1287,12 @@
 
             return (
                 <div className="h-full flex flex-col bg-gray-100 select-none">
-                    <div className="app-header">
-                        <div className="flex items-center gap-2">
-                            <Icons.Palette size={16} />
-                            <span className="app-header-title">PAINT.EXE</span>
+                    <div className="app-header flex-shrink-0">
+                        <div className="flex items-center gap-2 min-w-0">
+                            <Icons.Palette size={16} className="flex-shrink-0" />
+                            <span className="app-header-title truncate">PAINT.EXE</span>
                         </div>
-                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex items-center gap-1">
+                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex items-center gap-1 flex-shrink-0">
                             <Icons.Send size={12} /> SEND
                         </button>
                     </div>
@@ -1433,6 +1433,57 @@
         const SystemInfo = ({ onThirdEyeWorld, totalVisitors }) => {
             const [konamiProgress, setKonamiProgress] = useState(0);
             const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+            // Mobile: swipe up, up, down, down, left, right, left, right, tap, tap
+            const mobileKonamiCode = ['up', 'up', 'down', 'down', 'left', 'right', 'left', 'right', 'tap', 'tap'];
+            const touchStartRef = useRef({ x: 0, y: 0, time: 0 });
+            const konamiTimeoutRef = useRef(null);
+
+            const handleKonamiGesture = (gesture) => {
+                const expectedGesture = mobileKonamiCode[konamiProgress];
+                if (gesture === expectedGesture) {
+                    const newProgress = konamiProgress + 1;
+                    setKonamiProgress(newProgress);
+                    // Reset after 3 seconds of inactivity
+                    clearTimeout(konamiTimeoutRef.current);
+                    konamiTimeoutRef.current = setTimeout(() => setKonamiProgress(0), 3000);
+                    if (newProgress === mobileKonamiCode.length) {
+                        onThirdEyeWorld?.();
+                        setKonamiProgress(0);
+                        clearTimeout(konamiTimeoutRef.current);
+                    }
+                } else {
+                    setKonamiProgress(0);
+                }
+            };
+
+            const handleTouchStart = (e) => {
+                touchStartRef.current = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY,
+                    time: Date.now()
+                };
+            };
+
+            const handleTouchEnd = (e) => {
+                const dx = e.changedTouches[0].clientX - touchStartRef.current.x;
+                const dy = e.changedTouches[0].clientY - touchStartRef.current.y;
+                const elapsed = Date.now() - touchStartRef.current.time;
+                const threshold = 50;
+
+                // Detect gesture
+                if (Math.abs(dx) < 20 && Math.abs(dy) < 20 && elapsed < 300) {
+                    // Tap
+                    handleKonamiGesture('tap');
+                } else if (Math.abs(dx) > Math.abs(dy)) {
+                    // Horizontal swipe
+                    if (dx > threshold) handleKonamiGesture('right');
+                    else if (dx < -threshold) handleKonamiGesture('left');
+                } else {
+                    // Vertical swipe
+                    if (dy > threshold) handleKonamiGesture('down');
+                    else if (dy < -threshold) handleKonamiGesture('up');
+                }
+            };
 
             useEffect(() => {
                 const handleKeyDown = (e) => {
@@ -1453,7 +1504,7 @@
             }, [konamiProgress, onThirdEyeWorld]);
 
             return (
-            <div className="p-6 md:p-12 font-sans select-text">
+            <div className="p-6 md:p-12 font-sans select-text" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
                 <header className="mb-12 border-b-4 border-black pb-8">
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">Mateus<br />Muste</h1>
                     <div className="mt-4 flex flex-wrap gap-4 font-mono text-sm">
@@ -2329,9 +2380,10 @@
             };
 
             const startLevel = (lvl) => {
-                // Start big and get MUCH harder - exponential growth
-                const size = 31 + Math.floor(lvl * lvl * 4);
-                const cappedSize = Math.min(size, 151); // Cap at 151 for performance
+                // Start tiny and get exponentially harder with each level
+                // Level 1: 9x9, Level 2: 11x11, Level 3: 15x15, Level 5: 27x27, Level 10: 99x99
+                const size = 7 + Math.floor(Math.pow(1.5, lvl) * 2);
+                const cappedSize = Math.min(size | 1, 151); // Ensure odd, cap at 151
                 const maze = generateMaze(cappedSize | 1, cappedSize | 1);
                 mazeRef.current = maze;
                 playerRef.current = { x: 1, y: 1 };
@@ -4836,7 +4888,8 @@
                         baseColor: [0.4, 0.4, 0.4],
                         markerColor: [1, 0.5, 0.5],
                         glowColor: [0.3, 0.3, 0.3],
-                        scale: 0.85,
+                        scale: 1,
+                        offset: [0, 0],
                         markers: [
                             { location: [44.4268, 26.1025], size: 0.05 },
                         ],
@@ -6255,9 +6308,6 @@
                     { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                     { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
-                    { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
-                    { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
-                    { id: 'ORACLE', title: 'ORACLE.EXE', icon: 'Oracle' },
                     { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' },
                     { id: 'VOID', title: 'VOID.TXT', icon: 'Void' }
                 ],
@@ -6265,6 +6315,8 @@
                     { id: 'SYSTEM', title: 'ABOUT_SHORTCUT.EXE', icon: 'Terminal', isShortcut: true },
                     { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
                     { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
+                    { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
+                    { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner' },
                     { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                     { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                     { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
@@ -7527,6 +7579,61 @@
                 setDrag({ id: null, offsetX: 0, offsetY: 0 });
             };
 
+            // Touch handlers for window dragging (mobile)
+            const handleWindowTouchStart = (e, id) => {
+                if (e.touches.length !== 1) return;
+                const touch = e.touches[0];
+                focus(id);
+                const win = windows[id];
+                const physics = initWindowPhysics(id);
+                physics.velX = 0;
+                physics.velY = 0;
+                windowBounces.current[id] = { left: false, right: false, top: false, bottom: false };
+                lastMousePos.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+                setDrag({
+                    id: id,
+                    offsetX: touch.clientX - win.x,
+                    offsetY: touch.clientY - win.y
+                });
+            };
+
+            const handleWindowTouchMove = (e) => {
+                if (!drag.id || e.touches.length !== 1) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const now = Date.now();
+                const dt = Math.max(1, now - lastMousePos.current.time);
+                const physics = initWindowPhysics(drag.id);
+
+                const rawVelX = (touch.clientX - lastMousePos.current.x) / dt * 8;
+                const rawVelY = (touch.clientY - lastMousePos.current.y) / dt * 8;
+                physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
+                physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
+
+                lastMousePos.current = { x: touch.clientX, y: touch.clientY, time: now };
+
+                setWindows(prev => {
+                    const win = prev[drag.id];
+                    const winWidth = parseInt(win.w) || 400;
+                    const winHeight = parseInt(win.h) || 300;
+                    const maxX = window.innerWidth - winWidth;
+                    const maxY = window.innerHeight - 60 - winHeight;
+                    const minY = isMobile ? 60 : 0;
+
+                    const newX = Math.max(0, Math.min(maxX, touch.clientX - drag.offsetX));
+                    const newY = Math.max(minY, Math.min(maxY, touch.clientY - drag.offsetY));
+
+                    return {
+                        ...prev,
+                        [drag.id]: { ...win, x: newX, y: newY }
+                    };
+                });
+            };
+
+            const handleWindowTouchEnd = () => {
+                setDrag({ id: null, offsetX: 0, offsetY: 0 });
+            };
+
             // === ICON PHYSICS AND DRAG HANDLERS ===
             const ICON_SIZE = 80; // Approximate icon size for collision
             const ICON_SPACING = 10; // Minimum spacing between icons
@@ -7649,6 +7756,92 @@
                     });
                 } else if (iconPendingDrag.current) {
                     // Drag wasn't active - this was a click, open the app
+                    const id = iconPendingDrag.current.id;
+                    if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
+                }
+
+                iconPendingDrag.current = null;
+                setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
+            };
+
+            // Touch handlers for icon dragging (mobile)
+            const handleIconTouchStart = (e, id) => {
+                if (e.touches.length !== 1) return;
+                e.preventDefault();
+                e.stopPropagation();
+                const touch = e.touches[0];
+                const pos = iconPositions[id] || { x: 0, y: 0 };
+                const physics = initIconPhysics(id);
+                physics.velX = 0;
+                physics.velY = 0;
+                lastIconMousePos.current = { x: touch.clientX, y: touch.clientY, time: Date.now() };
+
+                iconPendingDrag.current = {
+                    id: id,
+                    offsetX: touch.clientX - pos.x,
+                    offsetY: touch.clientY - pos.y,
+                    startX: touch.clientX,
+                    startY: touch.clientY
+                };
+
+                iconHoldTimer.current = setTimeout(() => {
+                    if (iconPendingDrag.current) {
+                        sounds.dragStart();
+                        setIconDrag({
+                            id: iconPendingDrag.current.id,
+                            offsetX: iconPendingDrag.current.offsetX,
+                            offsetY: iconPendingDrag.current.offsetY,
+                            active: true
+                        });
+                    }
+                }, 150); // Slightly longer for touch
+            };
+
+            const handleIconTouchMove = (e) => {
+                if (!iconDrag.active || !iconDrag.id || e.touches.length !== 1) return;
+                e.preventDefault();
+                const touch = e.touches[0];
+                const now = Date.now();
+                const dt = Math.max(1, now - lastIconMousePos.current.time);
+                const physics = initIconPhysics(iconDrag.id);
+
+                const rawVelX = (touch.clientX - lastIconMousePos.current.x) / dt * 8;
+                const rawVelY = (touch.clientY - lastIconMousePos.current.y) / dt * 8;
+                physics.velX = physics.velX * 0.3 + rawVelX * 0.7;
+                physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
+
+                lastIconMousePos.current = { x: touch.clientX, y: touch.clientY, time: now };
+
+                const maxX = window.innerWidth - ICON_SIZE;
+                const maxY = window.innerHeight - 60 - ICON_SIZE;
+                const minY = isMobile ? 80 : 0;
+
+                const newX = Math.max(0, Math.min(maxX, touch.clientX - iconDrag.offsetX));
+                const newY = Math.max(minY, Math.min(maxY, touch.clientY - iconDrag.offsetY));
+
+                setIconPositions(prev => ({
+                    ...prev,
+                    [iconDrag.id]: { x: newX, y: newY }
+                }));
+            };
+
+            const handleIconTouchEnd = (openCallback) => {
+                if (iconHoldTimer.current) {
+                    clearTimeout(iconHoldTimer.current);
+                    iconHoldTimer.current = null;
+                }
+
+                if (iconDrag.active && iconDrag.id) {
+                    sounds.dragStop();
+                    setIconPositions(prev => {
+                        const current = prev[iconDrag.id];
+                        if (!current) return prev;
+                        const adjusted = findNonCollidingPosition(iconDrag.id, current.x, current.y, prev);
+                        const newPositions = { ...prev, [iconDrag.id]: adjusted };
+                        localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
+                        return newPositions;
+                    });
+                } else if (iconPendingDrag.current) {
                     const id = iconPendingDrag.current.id;
                     if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
                 }
@@ -7790,27 +7983,58 @@
                             errorIndex++;
                         }, 30);
 
-                        // 10% chance per second to crash
+                        // 90% chance per second to crash
                         stackTimerRef.current = setInterval(() => {
-                            if (Math.random() < 0.1) {
+                            if (Math.random() < 0.9) {
                                 if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                 clearInterval(stackTimerRef.current);
                                 const crashScreen = document.createElement('div');
-                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#0f0;overflow:auto;';
                                 crashScreen.innerHTML = `
-                                    <pre style="font-size:12px;line-height:1.2;color:#0f0;text-shadow:0 0 10px #0f0;">
-    @@@@@@@@@@@@@@@@@@@@@@@@@@
-    @@    OBSERVER MODE    @@
-    @@      CORRUPTED      @@
-    @@@@@@@@@@@@@@@@@@@@@@@@@@
+                                    <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                              ▲
+                                             ╱█╲
+                                            ╱███╲
+                                           ╱█████╲
+                                          ╱███████╲
+                                         ╱█████████╲
+                                        ╱███████████╲
+                                       ╱█████████████╲
+                                      ╱██████▀▀▀██████╲
+                                     ╱█████▀     ▀█████╲
+                                    ╱█████  ▄███▄  █████╲
+                                   ╱█████  ███████  █████╲
+                                  ╱██████ ████▀████ ██████╲
+                                 ╱██████ ████ ◈ ████ ██████╲
+                                ╱███████ ████▄████ ███████╲
+                               ╱███████  ███████  ███████╲
+                              ╱████████   ▀███▀   ████████╲
+                             ╱█████████           █████████╲
+                            ╱██████████           ██████████╲
+                           ╱██████▀▀▀▀▀           ▀▀▀▀▀██████╲
+                          ╱█████▀                       ▀█████╲
+                         ╱█████   ▄███▄           ▄███▄   █████╲
+                        ╱█████   ███████         ███████   █████╲
+                       ╱██████  ████▀████       ████▀████  ██████╲
+                      ╱██████  ████ ◈ ████     ████ ◈ ████  ██████╲
+                     ╱███████  ████▄████       ████▄████  ███████╲
+                    ╱███████   ███████         ███████   ███████╲
+                   ╱████████    ▀███▀           ▀███▀    ████████╲
+                  ╱█████████                             █████████╲
+                 ╱██████████                             ██████████╲
+                ╱███████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄███████████╲
+               ╱█████████████████████████████████████████████████████╲
+              ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
+             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                     </pre>
-                                    <div style="margin-top:20px;font-size:14px;letter-spacing:4px;color:#f00;">FATAL: REALITY RECURSION</div>
-                                    <div style="margin-top:10px;font-size:10px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
+                                    <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                    <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL: REALITY RECURSION</div>
+                                    <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
                                 `;
                                 document.body.appendChild(crashScreen);
                                 setTimeout(() => {
                                     window.location.href = 'https://mateusmuste.com';
-                                }, 1500);
+                                }, 2000);
                             }
                         }, 1000);
                     }
@@ -7868,41 +8092,60 @@
                                 errorIndex++;
                             }, 30); // ~33 errors per second
 
-                            // 10% chance per second to crash and redirect
+                            // 90% chance per second to crash and redirect
                             stackTimerRef.current = setInterval(() => {
-                                if (Math.random() < 0.1) {
+                                if (Math.random() < 0.9) {
                                     if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
                                     clearInterval(stackTimerRef.current);
-                                    // Show fullscreen ASCII eye crash screen
+                                    // Show fullscreen ASCII pyramid crash screen
                                     const crashScreen = document.createElement('div');
-                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                    crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#0f0;overflow:auto;';
                                     crashScreen.innerHTML = `
-                                        <pre style="font-size:8px;line-height:1.1;color:#f00;text-shadow:0 0 10px #f00;">
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@              @@@@@@              @@@@@@
-        @@@@                  @@                  @@@@
-        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
-        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
-        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
-        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
-        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
-        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
-        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
-        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
-        @@@@                  @@                  @@@@
-        @@@@@@              @@@@@@              @@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                        <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                              ▲
+                                             ╱█╲
+                                            ╱███╲
+                                           ╱█████╲
+                                          ╱███████╲
+                                         ╱█████████╲
+                                        ╱███████████╲
+                                       ╱█████████████╲
+                                      ╱██████▀▀▀██████╲
+                                     ╱█████▀     ▀█████╲
+                                    ╱█████  ▄███▄  █████╲
+                                   ╱█████  ███████  █████╲
+                                  ╱██████ ████▀████ ██████╲
+                                 ╱██████ ████ ◈ ████ ██████╲
+                                ╱███████ ████▄████ ███████╲
+                               ╱███████  ███████  ███████╲
+                              ╱████████   ▀███▀   ████████╲
+                             ╱█████████           █████████╲
+                            ╱██████████           ██████████╲
+                           ╱██████▀▀▀▀▀           ▀▀▀▀▀██████╲
+                          ╱█████▀                       ▀█████╲
+                         ╱█████   ▄███▄           ▄███▄   █████╲
+                        ╱█████   ███████         ███████   █████╲
+                       ╱██████  ████▀████       ████▀████  ██████╲
+                      ╱██████  ████ ◈ ████     ████ ◈ ████  ██████╲
+                     ╱███████  ████▄████       ████▄████  ███████╲
+                    ╱███████   ███████         ███████   ███████╲
+                   ╱████████    ▀███▀           ▀███▀    ████████╲
+                  ╱█████████                             █████████╲
+                 ╱██████████                             ██████████╲
+                ╱███████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄███████████╲
+               ╱█████████████████████████████████████████████████████╲
+              ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
+             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                         </pre>
-                                        <div style="margin-top:20px;font-size:14px;letter-spacing:4px;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
-                                        <div style="margin-top:10px;font-size:10px;opacity:0.7;">redirecting consciousness...</div>
+                                        <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                        <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
+                                        <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting consciousness...</div>
                                     `;
                                     document.body.appendChild(crashScreen);
-                                    // Redirect to mateusmuste.com after showing the eye
+                                    // Redirect to mateusmuste.com after showing the pyramid
                                     setTimeout(() => {
                                         window.location.href = 'https://mateusmuste.com';
-                                    }, 1500);
+                                    }, 2000);
                                 }
                             }, 1000);
 
@@ -8180,6 +8423,14 @@
                         handleMouseUp();
                         handleIconMouseUp(open);
                     }}
+                    onTouchMove={(e) => {
+                        handleWindowTouchMove(e);
+                        handleIconTouchMove(e);
+                    }}
+                    onTouchEnd={() => {
+                        handleWindowTouchEnd();
+                        handleIconTouchEnd(open);
+                    }}
                     onClick={() => contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 })}
                     onContextMenu={handleContextMenu}
                     onDrop={handleDesktopDrop}
@@ -8300,11 +8551,11 @@
                     )}
 
                     {/* DESKTOP ICONS - Freely positionable */}
-                    {!isMobile && desktopIcons.map(appId => {
+                    {desktopIcons.map(appId => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
-                        const pos = iconPositions[app.id] || { x: 16, y: 16 };
+                        const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 70 : 16 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
 
                         // Skip icon if dog is carrying it
@@ -8313,22 +8564,23 @@
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
+                                onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
-                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
-                                    <IconCmp size={32} />
+                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'} ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
+                                    <IconCmp size={isMobile ? 24 : 32} />
                                 </div>
-                                <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[10px]">{app.title}</span>
+                                <span className={`bg-white border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>{app.title}</span>
                             </div>
                         );
                     })}
                     {/* Extra desktop icons (dragged from folders) */}
-                    {!isMobile && extraDesktopIcons.map(appId => {
+                    {extraDesktopIcons.map(appId => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
@@ -8339,12 +8591,13 @@
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
+                                onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
                                 <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
                                     <IconCmp size={32} />
@@ -8353,30 +8606,6 @@
                             </div>
                         );
                     })}
-                    {/* Mobile icons - fixed position */}
-                    {isMobile && (
-                        <div className="absolute z-0 top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2">
-                            {desktopIcons.map(appId => {
-                                const app = windows[appId];
-                                if (!app) return null;
-                                const IconCmp = Icons[app.icon];
-                                if (carriedIcon === app.id) return null;
-
-                                return (
-                                    <button
-                                        key={app.id}
-                                        onClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
-                                        className="group flex flex-col items-center gap-1 w-16"
-                                    >
-                                        <div className="bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-2">
-                                            <IconCmp size={24} />
-                                        </div>
-                                        <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[8px]">{app.title.split('_')[0]}</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    )}
 
                     {/* WINDOWS */}
                     {Object.values(windows).map(win => {
@@ -8387,30 +8616,32 @@
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black ${isMobile ? 'fixed inset-0 top-12 bottom-0' : 'absolute window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
-                                style={isMobile ? {
-                                    zIndex: win.z
-                                } : {
+                                onTouchStart={() => focus(win.id)}
+                                className={`flex flex-col bg-white border-2 border-black absolute window-shadow ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
+                                style={{
                                     left: win.x,
                                     top: win.y,
-                                    width: win.w,
-                                    height: win.h,
+                                    width: isMobile ? 'calc(100% - 16px)' : win.w,
+                                    height: isMobile ? 'calc(100% - 80px)' : win.h,
                                     zIndex: win.z,
                                     transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
-                                    transformOrigin: 'top center'
+                                    transformOrigin: 'top center',
+                                    maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
+                                    maxHeight: isMobile ? 'calc(100% - 80px)' : undefined
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
                                 <div
-                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none ${isMobile ? '' : 'cursor-move'} ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
-                                    onMouseDown={(e) => !isMobile && handleMouseDown(e, win.id)}
+                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                                    onMouseDown={(e) => handleMouseDown(e, win.id)}
+                                    onTouchStart={(e) => handleWindowTouchStart(e, win.id)}
                                 >
                                     <div className="flex items-center gap-2 pl-2 pointer-events-none">
                                         <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-                                        {!isMobile && <button onClick={() => toggleMin(win.id)} className={`w-6 h-6 flex items-center justify-center border border-transparent hover:bg-white/20 ${win.z === topZ ? 'invert' : ''}`}><Icons.Minus size={14} /></button>}
-                                        <button onClick={() => close(win.id)} className={`w-10 h-10 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'invert hover:invert-0' : ''}`}><Icons.X size={24} /></button>
+                                        <button onClick={() => toggleMin(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center border border-transparent hover:bg-white/20 ${win.z === topZ ? 'invert' : ''}`}><Icons.Minus size={14} /></button>
+                                        <button onClick={() => close(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'invert hover:invert-0' : ''}`}><Icons.X size={20} /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
