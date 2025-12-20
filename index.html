@@ -1382,8 +1382,12 @@
             )
         }
 
-        const FileExplorer = () => {
+        const FileExplorer = ({ onAchievement }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
+            const [visitedFolders, setVisitedFolders] = useState(() => {
+                const stored = localStorage.getItem('media_lib_visited');
+                return stored ? JSON.parse(stored) : [];
+            });
 
             const folders = [
                 { key: 'CINEMA_TV', name: 'TV', icon: 'Movies' },
@@ -1391,6 +1395,19 @@
                 { key: 'GAMES', name: 'GAMES', icon: 'Games' },
                 { key: 'AUDIO', name: 'MUSIC', icon: 'Music' }
             ];
+
+            const handleFolderSelect = (key) => {
+                setSelectedFolder(key);
+                if (!visitedFolders.includes(key)) {
+                    const newVisited = [...visitedFolders, key];
+                    setVisitedFolders(newVisited);
+                    localStorage.setItem('media_lib_visited', JSON.stringify(newVisited));
+                    // Check if all folders visited
+                    if (newVisited.length >= folders.length) {
+                        onAchievement?.('DEEP_LISTENER');
+                    }
+                }
+            };
 
             if (selectedFolder) {
                 const FolderIcon = Icons[folders.find(f => f.key === selectedFolder)?.icon || 'Folder'];
@@ -1437,13 +1454,14 @@
                         <div className="grid grid-cols-4 gap-8">
                             {folders.map(folder => {
                                 const FolderIcon = Icons[folder.icon];
+                                const isVisited = visitedFolders.includes(folder.key);
                                 return (
                                     <button
                                         key={folder.key}
-                                        onClick={() => setSelectedFolder(folder.key)}
+                                        onClick={() => handleFolderSelect(folder.key)}
                                         className="group flex flex-col items-center gap-2 p-4 hover:bg-white border-2 border-transparent hover:border-black transition-all"
                                     >
-                                        <div className="bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all">
+                                        <div className={`bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isVisited ? 'opacity-100' : 'opacity-70'}`}>
                                             <FolderIcon size={48} />
                                         </div>
                                         <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
@@ -2530,6 +2548,8 @@
                         setWon(true);
                         sounds.success();
 
+                        // FIRST_BLOOD - win any game
+                        onAchievement?.('FIRST_BLOOD');
                         // Check for DAEDALUS achievement
                         if (level >= 10) onAchievement?.('DAEDALUS');
 
@@ -2746,6 +2766,7 @@
                 }
                 if (unrevealed === MINES) {
                     setWon(true);
+                    onAchievement?.('FIRST_BLOOD');
                     if (!usedFlags.current) onAchievement?.('UNTOUCHABLE');
                 }
             };
@@ -5709,15 +5730,18 @@
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const [suggestion, setSuggestion] = useState('');
+            const [godMode, setGodMode] = useState(false);
             const inputRef = useRef(null);
             const historyRef = useRef(null);
 
+            // Public commands shown in help and autocomplete
             const commands = [
                 'help', 'make money', 'sudo make sandwich', 'exit', 'exit matrix', 'ping god', 'ping mateus',
                 'kill', 'sudo shutdown', 'sudo reboot', 'cmatrix', 'systemctl start dog.exe',
                 'sudo chmod 777 /private', ':(){ :|:& };:', 'sudo dd if=/dev/zero of=/',
                 'scp truth.txt ~/', 'clear', 'whoami', 'pwd', 'ls'
             ];
+            // Hidden commands - work but don't appear in help or autocomplete
 
             useEffect(() => {
                 if (historyRef.current) {
@@ -5846,6 +5870,20 @@
                     addOutput('Desktop  Documents  Downloads  Pictures  Videos  .secrets');
                 } else if (trimmed === 'cd .secrets' || trimmed === 'cat .secrets') {
                     addOutput('Permission denied');
+                // Hidden commands - not shown in help or autocomplete
+                } else if (trimmed === 'sudo become god') {
+                    setGodMode(true);
+                    addOutput('ELEVATION GRANTED.\n\nYou are now root.\nAll restrictions lifted.\nReality bends to your will.\n\nType "reset" to return to mortality.');
+                } else if (trimmed === 'reset' && godMode) {
+                    setGodMode(false);
+                    addOutput('Returning to guest mode...\nWiping consciousness...');
+                    // Full reset - clear all localStorage
+                    setTimeout(() => {
+                        localStorage.clear();
+                        window.location.reload();
+                    }, 1500);
+                } else if (trimmed === 'reset' && !godMode) {
+                    addOutput('reset: permission denied (requires elevation)');
                 } else if (trimmed) {
                     sounds.error();
                     addOutput(`bash: ${trimmed.split(' ')[0]}: command not found`);
@@ -6146,7 +6184,6 @@
                 setAttempts(newAttempts);
                 setMessage(responses[Math.min(newAttempts - 1, responses.length - 1)]);
                 setPassword('');
-                if (newAttempts === 1) onAchievement?.('SISYPHUS');
             };
 
             return (
@@ -6558,7 +6595,7 @@
         };
 
         // --- WORDS - Wordle clone ---
-        const WordsApp = () => {
+        const WordsApp = ({ onAchievement }) => {
             const WORD_LIST = ['PIXEL', 'CODES', 'STACK', 'MOUSE', 'CLICK', 'BYTES', 'LOOPS', 'ARRAY', 'BLOCK', 'CACHE', 'DEBUG', 'FRAME', 'GRAPH', 'INPUT', 'LOGIC', 'PARSE', 'QUERY', 'SHELL', 'TABLE', 'VIRUS'];
             const [targetWord, setTargetWord] = useState(() => WORD_LIST[Math.floor(Math.random() * WORD_LIST.length)]);
             const [guesses, setGuesses] = useState([]);
@@ -6609,6 +6646,7 @@
                     if (currentGuess === targetWord) {
                         setGameState('won');
                         sounds.success();
+                        onAchievement?.('FIRST_BLOOD');
                     } else if (newGuesses.length >= 6) {
                         setGameState('lost');
                         sounds.gameOver();
@@ -6766,30 +6804,45 @@
 
         // --- END.EXE - 100% Completion Screen ---
         const EndApp = ({ achievements }) => {
+            // Full 29 achievement list for display
             const ACHIEVEMENTS = {
-                NEO: { name: 'NEO', desc: 'Activate Matrix mode' },
-                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com inside BROWSER.EXE' },
-                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Crash the system with THIRD_EYE' },
-                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Unlock PRIVATE.EXE via terminal' },
-                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times' },
-                SISYPHUS: { name: 'SISYPHUS', desc: 'Enter wrong password in TRUTH.TXT' },
-                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag the dog to trash' },
-                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag the dog to trash 3 times' },
-                OVERKILL: { name: 'OVERKILL', desc: 'Drag the dog to trash 10 times' },
+                // Pool A - Terminal
+                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'ping mateus in terminal' },
+                NEO: { name: 'NEO', desc: 'Enter cmatrix in terminal' },
+                LOCKSMITH: { name: 'LOCKSMITH', desc: 'Run sudo chmod 777 /private' },
+                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb' },
+                // Pool B - Games
                 OUROBOROS: { name: 'OUROBOROS', desc: 'Score 50+ in SNEK' },
-                DAEDALUS: { name: 'DAEDALUS', desc: 'Complete labyrinth level 10' },
+                FIRST_BLOOD: { name: 'FIRST BLOOD', desc: 'Win any game' },
+                DAEDALUS: { name: 'DAEDALUS', desc: 'Reach level 10 in Labyrinth' },
                 UNTOUCHABLE: { name: 'UNTOUCHABLE', desc: 'Win Minesweeper without flags' },
                 ACE: { name: 'ACE', desc: 'Score 10,000 in Starship' },
-                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in a row' },
-                TYCOON: { name: 'TYCOON', desc: 'Reach 1 BILLION clicks' },
-                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE' },
-                MASTER: { name: 'MASTER', desc: 'Grow 50 flowers' },
-                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot 10 different days' },
+                IMPOSSIBLE: { name: 'IMPOSSIBLE', desc: 'Roll three 20s in Dice' },
+                // Pool C - Exploration
+                DEEP_LISTENER: { name: 'DEEP LISTENER', desc: 'Browse all MEDIA_LIB folders' },
+                COLLECTOR: { name: 'COLLECTOR', desc: 'Pull Tarot on 10 different days' },
                 VOIDBORN: { name: 'VOIDBORN', desc: 'Type 1000 chars into VOID.TXT' },
+                // Pool D - Meta
+                FOURTH_DIMENSION: { name: '4TH DIMENSION', desc: 'Stack two THIRD_EYE windows' },
                 PHYSICS: { name: 'PHYSICS', desc: 'Bounce window off all 4 edges' },
-                FORBIDDEN: { name: 'FORBIDDEN', desc: 'Trigger the fork bomb' },
-                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', desc: 'ping mateus in terminal' },
-                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock every achievement' }
+                KONAMI: { name: 'KONAMI', desc: 'Enter the Konami code' },
+                INCEPTION: { name: 'INCEPTION', desc: 'Visit mateusmuste.com in BROWSER' },
+                // Pool E - Time
+                TIMEKEEPER: { name: 'TIMEKEEPER', desc: 'Spend 5 minutes on site' },
+                CLICKER: { name: 'CLICKER', desc: 'Click 100 times' },
+                MASTER: { name: 'MASTER', desc: 'Grow 50 Pomodoro flowers' },
+                TYCOON: { name: 'TYCOON', desc: 'Reach 1 billion in Planet Clicker' },
+                ASCENDED: { name: 'ASCENDED', desc: 'Activate DOG MODE' },
+                // Pool F - Dark
+                YOU_MONSTER: { name: 'YOU MONSTER', desc: 'Drag dog to trash' },
+                JOHN_WICK: { name: 'JOHN WICK', desc: 'Drag dog to trash 3 times' },
+                OVERKILL: { name: 'OVERKILL', desc: 'Drag dog to trash 10 times' },
+                // Milestones
+                EXPLORER: { name: 'EXPLORER', desc: 'Unlock 10 apps' },
+                ARCHAEOLOGIST: { name: 'ARCHAEOLOGIST', desc: 'Unlock 15 apps' },
+                // Special
+                CENTURY: { name: 'CENTURY', desc: 'Visit 100 times' },
+                HUNDRED_PERCENT: { name: '100%', desc: 'Unlock all 28 other achievements' }
             };
 
             const unlockedCount = Object.keys(achievements).length;
@@ -7203,7 +7256,7 @@
 
             const activateThirdEyeWorld = () => {
                 setThirdEyeWorld(true);
-                unlockAchievement('NEO'); // Reuse NEO for now
+                unlockAchievement('KONAMI');
             };
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
@@ -7450,7 +7503,7 @@
                 switch (id) {
                     case "START": return <StartApp isFirstVisit={isFirstVisit} onClose={() => close('START')} onRevealComplete={() => {}} />;
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
-                    case "FILES": return <FileExplorer />;
+                    case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
@@ -7476,7 +7529,7 @@
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
-                    case "WORDS": return <WordsApp />;
+                    case "WORDS": return <WordsApp onAchievement={unlockAchievement} />;
                     case "END": return <EndApp achievements={achievements} />;
                     default: return null;
                 }
@@ -7490,8 +7543,8 @@
             const physicsAchievementUnlocked = useRef(false);
 
             // Physics constants
-            const FRICTION = 0.92; // Velocity decay per frame (snappier, less floaty)
-            const BOUNCE_DAMPING = 0.4; // Energy loss on bounce (more dampening)
+            const FRICTION = 0.94; // Velocity decay per frame (2x faster momentum)
+            const BOUNCE_DAMPING = 0.6; // Energy loss on bounce (more bounce)
             const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
             const EDGE_MAGNET_STRENGTH = 0.15; // Pull strength
@@ -7794,10 +7847,10 @@
                     const dt = Math.max(1, now - lastMousePos.current.time);
                     const physics = initWindowPhysics(drag.id);
 
-                    // Calculate velocity from mouse movement (smoothed)
-                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 8;
-                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 8;
-                    physics.velX = physics.velX * 0.5 + rawVelX * 0.5; // Smooth velocity
+                    // Calculate velocity from mouse movement (2x speed)
+                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 16;
+                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 16;
+                    physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
                     physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
 
                     lastMousePos.current = { x: e.clientX, y: e.clientY, time: now };
@@ -7862,8 +7915,8 @@
                 const dt = Math.max(1, now - lastMousePos.current.time);
                 const physics = initWindowPhysics(drag.id);
 
-                const rawVelX = (touch.clientX - lastMousePos.current.x) / dt * 8;
-                const rawVelY = (touch.clientY - lastMousePos.current.y) / dt * 8;
+                const rawVelX = (touch.clientX - lastMousePos.current.x) / dt * 16;
+                const rawVelY = (touch.clientY - lastMousePos.current.y) / dt * 16;
                 physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
                 physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
 
@@ -7971,9 +8024,9 @@
                     const dt = Math.max(1, now - lastIconMousePos.current.time);
                     const physics = initIconPhysics(iconDrag.id);
 
-                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 8;
-                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 8;
-                    physics.velX = physics.velX * 0.3 + rawVelX * 0.7; // Less momentum carry
+                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 16;
+                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 16;
+                    physics.velX = physics.velX * 0.3 + rawVelX * 0.7;
                     physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
                     lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
@@ -8075,8 +8128,8 @@
                 const dt = Math.max(1, now - lastIconMousePos.current.time);
                 const physics = initIconPhysics(iconDrag.id);
 
-                const rawVelX = (touch.clientX - lastIconMousePos.current.x) / dt * 8;
-                const rawVelY = (touch.clientY - lastIconMousePos.current.y) / dt * 8;
+                const rawVelX = (touch.clientX - lastIconMousePos.current.x) / dt * 16;
+                const rawVelY = (touch.clientY - lastIconMousePos.current.y) / dt * 16;
                 physics.velX = physics.velX * 0.3 + rawVelX * 0.7;
                 physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
@@ -8159,7 +8212,7 @@
             };
 
             // Icon physics loop (reduced motion compared to windows)
-            const ICON_FRICTION = 0.94; // Snappier icon physics
+            const ICON_FRICTION = 0.96; // 2x faster icon momentum
             const ICON_MIN_VELOCITY = MIN_VELOCITY / 2; // Half of window threshold
 
             useEffect(() => {
@@ -8945,7 +8998,7 @@
                                     transformOrigin: 'top center',
                                     maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
                                     maxHeight: isMobile ? 'calc(100% - 116px)' : undefined,
-                                    opacity: isActive ? 1 : 0.85
+                                    opacity: 1
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
