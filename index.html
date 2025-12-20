@@ -272,7 +272,6 @@
             animation: iconShake 0.15s ease-in-out infinite;
             transform: scale(1.1) translateY(-8px);
             z-index: 99999 !important;
-            filter: drop-shadow(4px 8px 4px rgba(0,0,0,0.3));
         }
     </style>
 </head>
@@ -5597,9 +5596,11 @@
                     TRUTH: { x: 16, y: 392 }
                 };
             });
-            const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
+            const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
             const iconPhysics = useRef({});
             const lastIconMousePos = useRef({ x: 0, y: 0, time: Date.now() });
+            const iconHoldTimer = useRef(null);
+            const iconPendingDrag = useRef(null); // Stores pending drag info before hold completes
             const [folderDrag, setFolderDrag] = useState(null); // { id, title, icon, startX, startY }
             const [extraDesktopIcons, setExtraDesktopIcons] = useState(() => {
                 const stored = localStorage.getItem('extra_desktop_icons');
@@ -6145,15 +6146,31 @@
                 physics.velX = 0;
                 physics.velY = 0;
                 lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() };
-                setIconDrag({
+
+                // Store pending drag info
+                iconPendingDrag.current = {
                     id: id,
                     offsetX: e.clientX - pos.x,
-                    offsetY: e.clientY - pos.y
-                });
+                    offsetY: e.clientY - pos.y,
+                    startX: e.clientX,
+                    startY: e.clientY
+                };
+
+                // Start hold timer - drag only activates after 0.5 seconds
+                iconHoldTimer.current = setTimeout(() => {
+                    if (iconPendingDrag.current) {
+                        setIconDrag({
+                            id: iconPendingDrag.current.id,
+                            offsetX: iconPendingDrag.current.offsetX,
+                            offsetY: iconPendingDrag.current.offsetY,
+                            active: true
+                        });
+                    }
+                }, 500);
             };
 
             const handleIconMouseMove = (e) => {
-                if (iconDrag.id) {
+                if (iconDrag.active && iconDrag.id) {
                     const now = Date.now();
                     const dt = Math.max(1, now - lastIconMousePos.current.time);
                     const physics = initIconPhysics(iconDrag.id);
@@ -6165,28 +6182,46 @@
 
                     lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
 
+                    // Constrain to screen bounds
+                    const maxX = window.innerWidth - ICON_SIZE;
+                    const maxY = window.innerHeight - 60 - ICON_SIZE; // Account for taskbar
+                    const minY = isMobile ? 80 : 0;
+
+                    const newX = Math.max(0, Math.min(maxX, e.clientX - iconDrag.offsetX));
+                    const newY = Math.max(minY, Math.min(maxY, e.clientY - iconDrag.offsetY));
+
                     setIconPositions(prev => ({
                         ...prev,
-                        [iconDrag.id]: {
-                            x: e.clientX - iconDrag.offsetX,
-                            y: e.clientY - iconDrag.offsetY
-                        }
+                        [iconDrag.id]: { x: newX, y: newY }
                     }));
                 }
             };
 
-            const handleIconMouseUp = () => {
-                if (iconDrag.id) {
-                    // Check for collision and adjust if needed
+            const handleIconMouseUp = (openCallback) => {
+                // Clear hold timer
+                if (iconHoldTimer.current) {
+                    clearTimeout(iconHoldTimer.current);
+                    iconHoldTimer.current = null;
+                }
+
+                // If drag was active, finalize position
+                if (iconDrag.active && iconDrag.id) {
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
+                        if (!current) return prev;
                         const adjusted = findNonCollidingPosition(iconDrag.id, current.x, current.y, prev);
                         const newPositions = { ...prev, [iconDrag.id]: adjusted };
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
                     });
+                } else if (iconPendingDrag.current) {
+                    // Drag wasn't active - this was a click, open the app
+                    const id = iconPendingDrag.current.id;
+                    if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
                 }
-                setIconDrag({ id: null, offsetX: 0, offsetY: 0 });
+
+                iconPendingDrag.current = null;
+                setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
             };
 
             // Folder item drag to desktop handlers
@@ -6227,7 +6262,10 @@
                 e.dataTransfer.dropEffect = 'copy';
             };
 
-            // Icon physics loop
+            // Icon physics loop (reduced motion compared to windows)
+            const ICON_FRICTION = 0.96; // Higher = slower deceleration
+            const ICON_MIN_VELOCITY = MIN_VELOCITY / 2; // Half of window threshold
+
             useEffect(() => {
                 let animationId;
                 const iconPhysicsLoop = () => {
@@ -6237,16 +6275,16 @@
 
                         Object.keys(prev).forEach(id => {
                             const physics = initIconPhysics(id);
-                            if (iconDrag.id === id) return;
-                            if (Math.abs(physics.velX) < MIN_VELOCITY && Math.abs(physics.velY) < MIN_VELOCITY) {
+                            if (iconDrag.active && iconDrag.id === id) return;
+                            if (Math.abs(physics.velX) < ICON_MIN_VELOCITY && Math.abs(physics.velY) < ICON_MIN_VELOCITY) {
                                 physics.velX = 0;
                                 physics.velY = 0;
                                 return;
                             }
 
                             hasChanges = true;
-                            physics.velX *= FRICTION;
-                            physics.velY *= FRICTION;
+                            physics.velX *= ICON_FRICTION;
+                            physics.velY *= ICON_FRICTION;
 
                             let newX = prev[id].x + physics.velX;
                             let newY = prev[id].y + physics.velY;
@@ -6255,7 +6293,7 @@
                             const maxY = window.innerHeight - 60 - ICON_SIZE;
                             const minY = isMobile ? 80 : 0;
 
-                            // Bounce off edges
+                            // Constrain to screen bounds
                             if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; }
                             else if (newX >= maxX) { newX = maxX; physics.velX = -physics.velX * BOUNCE_DAMPING; }
                             if (newY <= minY) { newY = minY; physics.velY = -physics.velY * BOUNCE_DAMPING; }
@@ -6286,7 +6324,7 @@
                 };
                 animationId = requestAnimationFrame(iconPhysicsLoop);
                 return () => cancelAnimationFrame(animationId);
-            }, [iconDrag.id, isMobile]);
+            }, [iconDrag.active, iconDrag.id, isMobile]);
 
             // Visit messages based on count
             const getVisitMessage = (count) => {
@@ -6363,7 +6401,7 @@
 `}</pre>
                         <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
                         {visitMessage && (
-                            <div className={`text-[10px] tracking-wider mt-3 mb-6 ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
+                            <div className={`text-[10px] tracking-wider mt-3 mb-6 self-start ml-[calc(50%-144px)] ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
                         )}
                         {!visitMessage && <div className="mb-10" />}
                         <div className={`w-72 max-w-[85vw] text-[8px] ${inverted ? 'text-gray-400' : 'text-gray-600'}`}>
@@ -6451,7 +6489,7 @@
                     }}
                     onMouseUp={() => {
                         handleMouseUp();
-                        handleIconMouseUp();
+                        handleIconMouseUp(open);
                     }}
                     onDrop={handleDesktopDrop}
                     onDragOver={handleDesktopDragOver}
@@ -6465,7 +6503,7 @@
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 16, y: 16 };
-                        const isDragging = iconDrag.id === app.id;
+                        const isDragging = iconDrag.active && iconDrag.id === app.id;
 
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
@@ -6473,13 +6511,12 @@
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-grab select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
-                                onDoubleClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
                             >
                                 <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
                                     <IconCmp size={32} />
@@ -6494,19 +6531,18 @@
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 200, y: 200 };
-                        const isDragging = iconDrag.id === app.id;
+                        const isDragging = iconDrag.active && iconDrag.id === app.id;
                         if (carriedIcon === app.id) return null;
 
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-grab select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
-                                onDoubleClick={() => open(app.id)}
                             >
                                 <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
                                     <IconCmp size={32} />
