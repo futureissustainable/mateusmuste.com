@@ -199,8 +199,8 @@
         }
         .desktop-bg-ascii {
             background-color: #f0f0f0;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='monospace' font-size='10' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='monospace' font-size='10' fill='%23bbb'%3E//a%3C/text%3E%3Ctext x='5' y='35' font-family='monospace' font-size='10' fill='%23bbb'%3E%7B%7D%3C/text%3E%3Ctext x='35' y='35' font-family='monospace' font-size='10' fill='%23ccc'%3E%3C/%3E%3C/text%3E%3Ctext x='20' y='55' font-family='monospace' font-size='10' fill='%23bbb'%3E***%3C/text%3E%3C/svg%3E");
-            background-size: 60px 60px;
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='4' y='14' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E01%3C/text%3E%3Ctext x='44' y='14' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E//%3C/text%3E%3Ctext x='4' y='34' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E%7B%7D%3C/text%3E%3Ctext x='44' y='34' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E10%3C/text%3E%3Ctext x='4' y='54' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E**%3C/text%3E%3Ctext x='44' y='54' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E()%3C/text%3E%3Ctext x='4' y='74' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E;%3C/text%3E%3Ctext x='44' y='74' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E%3C%3E%3C/text%3E%3C/svg%3E");
+            background-size: 80px 80px;
         }
 
         canvas {
@@ -329,6 +329,18 @@
             animation: iconShake 0.15s ease-in-out infinite;
             transform: scale(1.1) translateY(-8px);
             z-index: 99999 !important;
+        }
+
+        /* ThirdEye scan animation */
+        @keyframes scan {
+            0% { top: 0%; }
+            100% { top: 100%; }
+        }
+
+        /* Stack overflow flash animation */
+        @keyframes stackFlash {
+            0%, 100% { opacity: 1; background: #000; }
+            50% { opacity: 0.7; background: #300; }
         }
     </style>
 </head>
@@ -682,6 +694,74 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.1);
+            },
+
+            // UI click sound - subtle, satisfying
+            click: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            },
+
+            // Copy to clipboard sound
+            copy: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [1000, 1200].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.05;
+                    gain.gain.setValueAtTime(0.06, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.08);
+                });
+            },
+
+            // Key press sound for typing games
+            keyPress: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 400 + Math.random() * 100;
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            },
+
+            // Note toggle for synth
+            noteToggle: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
             }
         };
 
@@ -1207,21 +1287,30 @@
 
             return (
                 <div className="h-full flex flex-col bg-gray-100 select-none">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Palette size={16} />
+                            <span className="app-header-title">PAINT.EXE</span>
+                        </div>
+                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex items-center gap-1">
+                            <Icons.Send size={12} /> SEND
+                        </button>
+                    </div>
                     <div className="p-2 border-b-2 border-black bg-white flex flex-wrap gap-2 items-center">
                         <div className="flex gap-1">
-                            <button onClick={undo} className="btn-icon" title="Undo"><Icons.Undo size={16} /></button>
-                            <button onClick={redo} className="btn-icon" title="Redo"><Icons.Redo size={16} /></button>
+                            <button onClick={() => { sounds.click(); undo(); }} className="btn-icon" title="Undo"><Icons.Undo size={16} /></button>
+                            <button onClick={() => { sounds.click(); redo(); }} className="btn-icon" title="Redo"><Icons.Redo size={16} /></button>
                         </div>
                         <div className="w-px h-4 bg-black"></div>
                         <div className="flex gap-1 flex-wrap">
                             {tools.map(t => (
-                                <button key={t} onClick={() => setTool(t)} className={`btn-toolbar ${tool === t ? 'active' : ''}`}>{t}</button>
+                                <button key={t} onClick={() => { sounds.click(); setTool(t); }} className={`btn-toolbar ${tool === t ? 'active' : ''}`}>{t}</button>
                             ))}
                         </div>
                         <div className="w-px h-4 bg-black"></div>
                         <div className="flex gap-1 flex-wrap">
                             {colors.map(c => (
-                                <button key={c} onClick={() => setColor(c)} className={`w-5 h-5 border border-black ${color === c ? 'ring-2 ring-offset-1 ring-black' : ''}`} style={{ backgroundColor: c }} />
+                                <button key={c} onClick={() => { sounds.click(); setColor(c); }} className={`w-5 h-5 border border-black ${color === c ? 'ring-2 ring-offset-1 ring-black' : ''}`} style={{ backgroundColor: c }} />
                             ))}
                         </div>
                         <div className="w-px h-4 bg-black"></div>
@@ -1229,8 +1318,6 @@
                             <PixelKnob value={size} onChange={setSize} min={1} max={20} />
                             <span className="text-[10px] font-mono w-4">{size}</span>
                         </div>
-                        <div className="flex-grow"></div>
-                        <button onClick={send} className="btn-primary btn-sm flex items-center gap-1"><Icons.Send size={12} /> SEND</button>
                     </div>
                     <div className="flex-grow relative cursor-crosshair bg-gray-300 p-[2px] overflow-hidden" ref={containerRef}>
                         <canvas
@@ -1343,7 +1430,7 @@
             );
         }
 
-        const SystemInfo = ({ onMatrixMode, totalVisitors }) => {
+        const SystemInfo = ({ onThirdEyeWorld, totalVisitors }) => {
             const [konamiProgress, setKonamiProgress] = useState(0);
             const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
 
@@ -1354,7 +1441,7 @@
                         const newProgress = konamiProgress + 1;
                         setKonamiProgress(newProgress);
                         if (newProgress === konamiCode.length) {
-                            onMatrixMode?.();
+                            onThirdEyeWorld?.();
                             setKonamiProgress(0);
                         }
                     } else {
@@ -1363,7 +1450,7 @@
                 };
                 window.addEventListener('keydown', handleKeyDown);
                 return () => window.removeEventListener('keydown', handleKeyDown);
-            }, [konamiProgress, onMatrixMode]);
+            }, [konamiProgress, onThirdEyeWorld]);
 
             return (
             <div className="p-6 md:p-12 font-sans select-text">
@@ -3087,6 +3174,7 @@
             const oscillators = ['sine', 'square', 'saw', 'noise'];
 
             const toggleNote = (osc, step) => {
+                sounds.noteToggle();
                 setGrid(prev => ({
                     ...prev,
                     [osc]: prev[osc].map((v, i) => i === step ? !v : v)
@@ -3165,10 +3253,13 @@
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="app-header">
-                        <span className="app-header-title">SYNTH_001.WAV</span>
+                        <div className="flex items-center gap-2">
+                            <Icons.Synth size={16} />
+                            <span className="app-header-title">SYNTH_001.WAV</span>
+                        </div>
                         <button
-                            onClick={togglePlay}
-                            className={`px-4 py-1 font-mono text-xs font-bold border-2 border-black ${isPlaying ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                            onClick={() => { sounds.click(); togglePlay(); }}
+                            className={isPlaying ? 'btn-primary btn-xs' : 'btn-secondary btn-xs'}
                         >
                             {isPlaying ? '■ STOP' : '► PLAY'}
                         </button>
@@ -5720,7 +5811,7 @@
                 RADIO: `// STREAM.WAV\naudio.play(frequency);`,
                 SYNTH: `// SOUND.WAVE\nnote.oscillate();`,
                 TERMINAL: `// CMD.EXE\nif (cmd === "exit") print("no escape");`,
-                SYSTEM: `// KERNEL.SYS\nif (konami_code()) enter_matrix();`,
+                SYSTEM: `// KERNEL.SYS\nif (konami_code()) observe_all();`,
                 POMODORO: `// TIME.LOOP\nwork(25); rest(5);`,
                 MAP: `// GLOBE.ROTATE\nrender_sphere(phi++);`,
                 BROWSER: `// EXPLORE.NET\nif (url === self) reboot();`,
@@ -5741,22 +5832,43 @@
             // Desktop icons to show in portal
             const desktopIconIds = ['SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH'];
 
-            // Stack overflow display with rapid scrolling errors
+            // Stack overflow display with rapid scrolling errors and flashing
+            const [flashSpeed, setFlashSpeed] = useState(500);
+
+            useEffect(() => {
+                if (stackOverflow) {
+                    // Accelerate flash speed over time
+                    const accelerate = setInterval(() => {
+                        setFlashSpeed(prev => Math.max(50, prev - 30));
+                    }, 500);
+                    return () => clearInterval(accelerate);
+                }
+            }, [stackOverflow]);
+
             if (stackOverflow) {
                 return (
-                    <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative">
-                        {/* Subtle red overlay */}
-                        <div className="absolute inset-0 pointer-events-none bg-red-900/20" />
-                        <div className="flex-grow flex flex-col p-2 overflow-hidden">
-                            <div className="text-red-500 text-lg font-bold mb-2 text-center">
-                                STACK OVERFLOW
+                    <div
+                        className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden relative"
+                        style={{ animation: `stackFlash ${flashSpeed}ms infinite` }}
+                    >
+                        {/* Intense red flash overlay */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: `rgba(255,0,0,${0.1 + (500 - flashSpeed) / 1000})`,
+                                animation: `stackFlash ${flashSpeed}ms infinite`
+                            }}
+                        />
+                        <div className="flex-grow flex flex-col p-2 overflow-hidden relative z-10">
+                            <div className="text-red-500 text-lg font-bold mb-1 text-center animate-pulse">
+                                ⚠ STACK OVERFLOW ⚠
                             </div>
-                            <div className="text-red-400 text-xs mb-2 text-center">
-                                recursive observation detected
+                            <div className="text-red-400 text-[10px] mb-2 text-center">
+                                recursive observation detected - SYSTEM CRASH IMMINENT
                             </div>
-                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight">
+                            <div className="flex-grow text-left w-full overflow-hidden text-[9px] leading-tight font-mono">
                                 {stackErrors.map((err, i) => (
-                                    <div key={i} className="text-red-400">{err}</div>
+                                    <div key={i} className="text-red-400 whitespace-nowrap">{`> ${err}`}</div>
                                 ))}
                             </div>
                         </div>
@@ -6361,6 +6473,7 @@
                 if (key === 'ENTER') {
                     if (currentGuess.length !== 5) {
                         setShake(true);
+                        sounds.error();
                         setTimeout(() => setShake(false), 300);
                         return;
                     }
@@ -6375,8 +6488,10 @@
                     }
                     setCurrentGuess('');
                 } else if (key === '⌫') {
+                    sounds.keyPress();
                     setCurrentGuess(prev => prev.slice(0, -1));
                 } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
+                    sounds.keyPress();
                     setCurrentGuess(prev => prev + key);
                 }
             };
@@ -6409,9 +6524,12 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex items-center justify-between">
-                        <div className="font-mono text-xs font-bold">WORDS.EXE</div>
-                        <button onClick={resetGame} className="font-mono text-xs px-2 py-1 border-2 border-black hover:bg-black hover:text-white">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Words size={16} />
+                            <span className="app-header-title">WORDS.EXE</span>
+                        </div>
+                        <button onClick={() => { sounds.click(); resetGame(); }} className="btn-secondary btn-xs">
                             NEW GAME
                         </button>
                     </div>
@@ -6489,12 +6607,19 @@
 
             const copyEmail = () => {
                 navigator.clipboard.writeText(email);
+                sounds.copy();
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             };
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Email size={16} />
+                            <span className="app-header-title">CONTACT</span>
+                        </div>
+                    </div>
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
                         <Icons.Email size={48} />
                         <div className="font-mono text-lg font-bold mt-4 mb-1">GET IN TOUCH</div>
@@ -6503,7 +6628,7 @@
                             <button onClick={copyEmail} className="btn-primary">
                                 {copied ? 'COPIED!' : 'COPY EMAIL'}
                             </button>
-                            <a href={`mailto:${email}`} className="btn-primary">
+                            <a href={`mailto:${email}`} className="btn-secondary" onClick={() => sounds.click()}>
                                 OPEN MAIL
                             </a>
                         </div>
@@ -6631,6 +6756,7 @@
             });
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
+            const [thirdEyeWorld, setThirdEyeWorld] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
             const [desktopBg, setDesktopBg] = useState(() => localStorage.getItem('desktop_bg') || 'grid');
             const [contextMenu, setContextMenu] = useState({ show: false, x: 0, y: 0 });
@@ -6782,6 +6908,11 @@
                     if (!prev) unlockAchievement('NEO');
                     return !prev;
                 });
+            };
+
+            const activateThirdEyeWorld = () => {
+                setThirdEyeWorld(true);
+                unlockAchievement('NEO'); // Reuse NEO for now
             };
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
@@ -7020,7 +7151,7 @@
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} totalVisitors={totalVisitors} />;
+                    case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} />;
                     case "CONTACT": return <ContactApp />;
@@ -7647,26 +7778,39 @@
                                 errorIndex++;
                             }, 30); // ~33 errors per second
 
-                            // Crash after 10 seconds
+                            // Crash after 10 seconds - show ASCII eye then reload
                             stackTimerRef.current = setTimeout(() => {
                                 if (errorIntervalRef.current) clearInterval(errorIntervalRef.current);
-                                setPyramidScreen(true);
+                                // Show fullscreen ASCII eye crash screen
+                                const crashScreen = document.createElement('div');
+                                crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:monospace;color:#f00;';
+                                crashScreen.innerHTML = `
+                                    <pre style="font-size:8px;line-height:1.1;color:#f00;text-shadow:0 0 10px #f00;">
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@              @@@@@@              @@@@@@
+        @@@@                  @@                  @@@@
+        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
+        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
+        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
+        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
+        @@   @@@@@      @@@@@  @@  @@@@@      @@@@@   @@
+        @@   @@@@@@    @@@@@@  @@  @@@@@@    @@@@@@   @@
+        @@    @@@@@@@@@@@@@@   @@   @@@@@@@@@@@@@@    @@
+        @@@     @@@@@@@@@@     @@     @@@@@@@@@@     @@@
+        @@@@                  @@                  @@@@
+        @@@@@@              @@@@@@              @@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                                    </pre>
+                                    <div style="margin-top:20px;font-size:14px;letter-spacing:4px;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
+                                    <div style="margin-top:10px;font-size:10px;opacity:0.7;">reloading consciousness...</div>
+                                `;
+                                document.body.appendChild(crashScreen);
+                                // Reload after showing the eye
                                 setTimeout(() => {
-                                    setPyramidScreen(false);
-                                    setStackOverflow(false);
-                                    setStackErrors([]);
-                                    setBooted(false);
-                                    setBootPhase(1);
-                                    setWindows(p => ({
-                                        ...p,
-                                        THIRD_EYE: { ...p.THIRD_EYE, isOpen: false },
-                                        THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: false }
-                                    }));
-                                    setTimeout(() => {
-                                        setBootPhase(2);
-                                        setBooted(true);
-                                    }, 2000);
-                                }, 1500);
+                                    window.location.reload();
+                                }, 2000);
                             }, 10000);
 
                             return () => {
@@ -7951,6 +8095,63 @@
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
+
+                    {/* ThirdEye World Mode - Fullscreen portal view */}
+                    {thirdEyeWorld && (
+                        <div className="fixed inset-0 z-[9998] bg-black pointer-events-none overflow-hidden">
+                            {/* Wireframe grid */}
+                            <div className="absolute inset-0" style={{
+                                backgroundImage: 'linear-gradient(rgba(0,255,0,0.15) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,0,0.15) 1px, transparent 1px)',
+                                backgroundSize: '40px 40px'
+                            }} />
+
+                            {/* Scan line */}
+                            <div
+                                className="absolute left-0 right-0 h-2 animate-pulse"
+                                style={{
+                                    top: '50%',
+                                    background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.8), transparent)',
+                                    boxShadow: '0 0 30px #0f0, 0 0 60px #0f0',
+                                    animation: 'scan 3s linear infinite'
+                                }}
+                            />
+
+                            {/* Code snippets floating around */}
+                            <div className="absolute inset-0 font-mono text-green-500 text-xs overflow-hidden opacity-80">
+                                {Object.entries(windows).filter(([,w]) => w.isOpen).map(([id, win]) => (
+                                    <div
+                                        key={id}
+                                        className="absolute border border-green-500/50 p-2 bg-black/80"
+                                        style={{ left: win.x, top: win.y, maxWidth: 200 }}
+                                    >
+                                        <div className="text-green-400 text-[10px] mb-1 border-b border-green-500/30 pb-1">{id}.EXE</div>
+                                        <pre className="text-[8px] text-green-500/70 whitespace-pre-wrap">
+                                            {`// ${id}.SYS\nprocess.observe();\nreality.decode();`}
+                                        </pre>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Center eye symbol */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="text-green-500 text-center animate-pulse">
+                                    <pre className="text-[10px] leading-tight opacity-60">{`
+      .-""""""-.
+    .'          '.
+   /   O      O   \\
+  :                :
+  |                |
+  : ',          ,' :
+   \\  '-......-'  /
+    '.          .'
+      '-......-'
+                                    `}</pre>
+                                    <div className="text-xs mt-2 tracking-widest">OBSERVER MODE ACTIVE</div>
+                                    <div className="text-[10px] mt-1 opacity-50">reload to exit</div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Context Menu */}
                     {contextMenu.show && (
