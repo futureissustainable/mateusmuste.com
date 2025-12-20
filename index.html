@@ -21,6 +21,11 @@
     <meta name="twitter:title" content="MATEUSMUSTE // OS">
     <meta name="twitter:description" content="Interactive brutalist portfolio OS. A creative web experience featuring games, apps, and hidden easter eggs.">
 
+    <!-- Monospace pixel font for ASCII art -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 
@@ -175,17 +180,23 @@
             font-family: 'PPNeueBit', sans-serif !important;
         }
 
+        /* ASCII art font - TRUE monospace for proper character alignment */
+        .ascii-art {
+            font-family: 'VT323', 'Courier New', 'Consolas', monospace !important;
+            letter-spacing: 0 !important;
+        }
+
         /* Minimum font size enforcement - 16px minimum for all text */
         html {
             font-size: 16px;
         }
 
-        /* Override all small Tailwind text sizes to minimum 16px */
-        .text-xs, .text-sm,
-        [class*="text-[6px]"], [class*="text-[7px]"], [class*="text-[8px]"],
-        [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"],
-        [class*="text-[12px]"], [class*="text-[13px]"], [class*="text-[14px]"],
-        [class*="text-[15px]"] {
+        /* Override all small Tailwind text sizes to minimum 16px (except ASCII art) */
+        .text-xs:not(.ascii-art), .text-sm:not(.ascii-art),
+        [class*="text-[6px]"]:not(.ascii-art), [class*="text-[7px]"]:not(.ascii-art), [class*="text-[8px]"]:not(.ascii-art),
+        [class*="text-[9px]"]:not(.ascii-art), [class*="text-[10px]"]:not(.ascii-art), [class*="text-[11px]"]:not(.ascii-art),
+        [class*="text-[12px]"]:not(.ascii-art), [class*="text-[13px]"]:not(.ascii-art), [class*="text-[14px]"]:not(.ascii-art),
+        [class*="text-[15px]"]:not(.ascii-art) {
             font-size: 16px !important;
         }
 
@@ -204,7 +215,12 @@
         }
 
         /* Force PPNeueBit on all form elements and inputs */
-        input, textarea, select, button, code, pre, kbd, samp {
+        input, textarea, select, button, code, kbd, samp {
+            font-family: 'PPNeueBit', sans-serif !important;
+        }
+
+        /* Pre elements use PPNeueBit unless they have .ascii-art class */
+        pre:not(.ascii-art) {
             font-family: 'PPNeueBit', sans-serif !important;
         }
 
@@ -8878,7 +8894,7 @@
                         onClick={playBootSound}
                         onTouchStart={playBootSound}
                     >
-                        <pre className="text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{ASCII_ART.BOOT_LOGO}</pre>
+                        <pre className="ascii-art text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{ASCII_ART.BOOT_LOGO}</pre>
                         <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
                         {visitMessage && (
                             <div className={`text-[10px] tracking-wider mt-3 mb-6 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-400' : 'text-gray-500'}`}>{visitMessage}</div>
@@ -8896,7 +8912,7 @@
             if (pyramidScreen) {
                 return (
                     <div className="h-screen w-screen bg-black text-green-500 font-mono flex items-center justify-center overflow-hidden">
-                        <pre className="text-[4px] md:text-[6px] leading-none whitespace-pre">{`
+                        <pre className="ascii-art text-[4px] md:text-[6px] leading-none whitespace-pre">{`
 ╔══════════════════════════════════════════════════════════════════════════════════════════╗
 ║                                                                                          ║
 ║                                              ▲                                           ║
