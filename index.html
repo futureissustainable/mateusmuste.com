@@ -474,19 +474,17 @@
             bounceIcon: (vel = 1) => {
                 const ctx = getAudioCtx();
                 const now = ctx.currentTime;
-                const dist = makeDistortion(ctx, 8);
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(dist);
-                dist.connect(gain);
+                osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(500 + (vel * 200), now);
-                osc.frequency.exponentialRampToValueAtTime(100, now + 0.1);
-                gain.gain.setValueAtTime(0.25 * Math.min(vel, 1.2), now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                osc.frequency.setValueAtTime(600 + (vel * 150), now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.06);
+                gain.gain.setValueAtTime(0.12 * Math.min(vel, 1), now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.start(now);
-                osc.stop(now + 0.12);
+                osc.stop(now + 0.08);
             },
 
             bootSequence: () => {
@@ -6638,7 +6636,7 @@
             const windowPhysics = useRef({}); // { windowId: { velX, velY, scaleX, scaleY } }
 
             // Physics constants
-            const FRICTION = 0.92; // Velocity decay per frame (ice-like)
+            const FRICTION = 0.95; // Velocity decay per frame (ice-like, slightly reduced friction)
             const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
             const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
@@ -6794,7 +6792,6 @@
                     setBootPhase(0);
                     setTimeout(() => {
                         setBootPhase(1); // kernel boot
-                        sounds.bootSequence();
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
@@ -6803,7 +6800,6 @@
                 } else {
                     // Desktop: Go straight to kernel boot
                     setBootPhase(1);
-                    sounds.bootSequence();
                     setTimeout(() => {
                         setBootPhase(2);
                         setBooted(true);
@@ -6853,7 +6849,6 @@
             const handleMouseDown = (e, id) => {
                 e.preventDefault();
                 focus(id);
-                sounds.dragStart();
                 const win = windows[id];
                 const physics = initWindowPhysics(id);
                 // Stop any existing velocity
@@ -6907,7 +6902,6 @@
 
             const handleMouseUp = () => {
                 // Keep velocity for physics, just release the drag
-                sounds.dragStop();
                 setDrag({ id: null, offsetX: 0, offsetY: 0 });
             };
 
