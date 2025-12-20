@@ -199,8 +199,8 @@
         }
         .desktop-bg-ascii {
             background-color: #f0f0f0;
-            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='4' y='14' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E01%3C/text%3E%3Ctext x='44' y='14' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E//%3C/text%3E%3Ctext x='4' y='34' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E%7B%7D%3C/text%3E%3Ctext x='44' y='34' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E10%3C/text%3E%3Ctext x='4' y='54' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E**%3C/text%3E%3Ctext x='44' y='54' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E()%3C/text%3E%3Ctext x='4' y='74' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E;%3C/text%3E%3Ctext x='44' y='74' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E%3C%3E%3C/text%3E%3C/svg%3E");
-            background-size: 80px 80px;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E;%3C/text%3E%3Ctext x='5' y='35' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E[]%3C/text%3E%3Ctext x='35' y='35' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E10%3C/text%3E%3Ctext x='5' y='55' font-family='Courier,monospace' font-size='12' fill='%23ccc'%3E..%3C/text%3E%3Ctext x='35' y='55' font-family='Courier,monospace' font-size='12' fill='%23bbb'%3E00%3C/text%3E%3C/svg%3E");
+            background-size: 60px 60px;
         }
 
         canvas {
@@ -329,12 +329,6 @@
             animation: iconShake 0.15s ease-in-out infinite;
             transform: scale(1.1) translateY(-8px);
             z-index: 99999 !important;
-        }
-
-        /* ThirdEye scan animation */
-        @keyframes scan {
-            0% { top: 0%; }
-            100% { top: 100%; }
         }
 
         /* Stack overflow flash animation */
@@ -6724,13 +6718,17 @@
                 if (stored) {
                     try { return JSON.parse(stored); } catch { }
                 }
+                const mobile = window.innerWidth < 768;
+                const iconSize = 80;
+                const padding = 8;
+                const topOffset = mobile ? 56 : 16; // Account for mobile taskbar at top
                 return {
-                    SYSTEM: { x: 16, y: 16 },
-                    FILES: { x: 16, y: 110 },
-                    APPS: { x: 16, y: 204 },
-                    CONTACT: { x: 16, y: 298 },
-                    TRUTH: { x: 16, y: 392 },
-                    TRASH: { x: window.innerWidth - 110, y: window.innerHeight - 140 }
+                    SYSTEM: { x: padding, y: topOffset },
+                    FILES: { x: padding, y: topOffset + iconSize },
+                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    CONTACT: { x: padding, y: topOffset + iconSize * 3 },
+                    TRUTH: { x: padding, y: topOffset + iconSize * 4 },
+                    TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
                 };
             });
             const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
@@ -7374,6 +7372,30 @@
                 return () => window.removeEventListener('resize', handleResize);
             }, []);
 
+            // Reposition icons that are off-screen on mobile
+            useEffect(() => {
+                if (isMobile) {
+                    const maxX = window.innerWidth - 80;
+                    const maxY = window.innerHeight - 96;
+                    const minY = 56;
+                    setIconPositions(prev => {
+                        const updated = { ...prev };
+                        let needsUpdate = false;
+                        Object.keys(prev).forEach(id => {
+                            const pos = prev[id];
+                            if (pos.x > maxX || pos.y > maxY || pos.y < minY) {
+                                needsUpdate = true;
+                                updated[id] = {
+                                    x: Math.max(8, Math.min(maxX, pos.x)),
+                                    y: Math.max(minY, Math.min(maxY, pos.y))
+                                };
+                            }
+                        });
+                        return needsUpdate ? updated : prev;
+                    });
+                }
+            }, [isMobile]);
+
             // Window Ops
             const focus = (id) => {
                 topZRef.current += 1;
@@ -7479,6 +7501,11 @@
             // Touch handlers for window dragging (mobile)
             const handleWindowTouchStart = (e, id) => {
                 if (e.touches.length !== 1) return;
+                // On mobile, windows are fixed fullscreen - no dragging
+                if (isMobile) {
+                    focus(id);
+                    return;
+                }
                 const touch = e.touches[0];
                 focus(id);
                 const win = windows[id];
@@ -7620,8 +7647,8 @@
 
                     // Constrain to screen bounds
                     const maxX = window.innerWidth - ICON_SIZE;
-                    const maxY = window.innerHeight - 60 - ICON_SIZE; // Account for taskbar
-                    const minY = isMobile ? 80 : 0;
+                    const maxY = window.innerHeight - ICON_SIZE - 16;
+                    const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                     const newX = Math.max(0, Math.min(maxX, e.clientX - iconDrag.offsetX));
                     const newY = Math.max(minY, Math.min(maxY, e.clientY - iconDrag.offsetY));
@@ -7710,8 +7737,8 @@
                 lastIconMousePos.current = { x: touch.clientX, y: touch.clientY, time: now };
 
                 const maxX = window.innerWidth - ICON_SIZE;
-                const maxY = window.innerHeight - 60 - ICON_SIZE;
-                const minY = isMobile ? 80 : 0;
+                const maxY = window.innerHeight - ICON_SIZE - 16;
+                const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                 const newX = Math.max(0, Math.min(maxX, touch.clientX - iconDrag.offsetX));
                 const newY = Math.max(minY, Math.min(maxY, touch.clientY - iconDrag.offsetY));
@@ -7813,8 +7840,8 @@
                             let newY = prev[id].y + physics.velY;
 
                             const maxX = window.innerWidth - ICON_SIZE;
-                            const maxY = window.innerHeight - 60 - ICON_SIZE;
-                            const minY = isMobile ? 80 : 0;
+                            const maxY = window.innerHeight - ICON_SIZE - 16;
+                            const minY = isMobile ? 56 : 0;
 
                             // Constrain to screen bounds
                             if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
@@ -8298,8 +8325,11 @@
             };
 
             const handleContextMenu = (e) => {
-                    e.preventDefault();
-                    setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                    // Only show custom context menu when clicking directly on desktop background
+                    if (e.target === e.currentTarget || e.target.classList.contains('desktop-bg-grid') || e.target.classList.contains('desktop-bg-solid') || e.target.classList.contains('desktop-bg-ascii')) {
+                        e.preventDefault();
+                        setContextMenu({ show: true, x: e.clientX, y: e.clientY });
+                    }
                 };
 
                 const changeBackground = (bg) => {
@@ -8346,17 +8376,6 @@
                                 backgroundSize: '40px 40px',
                                 filter: 'invert(1) hue-rotate(180deg)'
                             }} />
-
-                            {/* Animated scan line */}
-                            <div
-                                className="absolute left-0 right-0 h-1 pointer-events-none z-50"
-                                style={{
-                                    background: 'linear-gradient(180deg, transparent, rgba(0,255,0,0.8), transparent)',
-                                    boxShadow: '0 0 20px #0f0, 0 0 40px #0f0',
-                                    animation: 'scan 2s linear infinite',
-                                    filter: 'invert(1) hue-rotate(180deg)'
-                                }}
-                            />
 
                             {/* Desktop icons as wireframes with code */}
                             {Object.entries(iconPositions).map(([id, pos]) => {
@@ -8516,15 +8535,15 @@
                                 onTouchStart={() => focus(win.id)}
                                 className={`flex flex-col bg-white border-2 border-black absolute window-shadow ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={{
-                                    left: win.x,
-                                    top: win.y,
+                                    left: isMobile ? 8 : win.x,
+                                    top: isMobile ? 52 : win.y,
                                     width: isMobile ? 'calc(100% - 16px)' : win.w,
-                                    height: isMobile ? 'calc(100% - 80px)' : win.h,
+                                    height: isMobile ? 'calc(100% - 116px)' : win.h,
                                     zIndex: win.z,
                                     transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
                                     transformOrigin: 'top center',
                                     maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
-                                    maxHeight: isMobile ? 'calc(100% - 80px)' : undefined
+                                    maxHeight: isMobile ? 'calc(100% - 116px)' : undefined
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
