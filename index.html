@@ -402,24 +402,29 @@
         };
 
         // --- SHARED DOG SPRITE ---
-        const DogSprite = ({ animated = false, style = {} }) => (
-            <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated', ...style }}>
-                <rect x="16" y="16" width="32" height="16" fill="#000" />
-                <rect x="4" y="12" width="16" height="16" fill="#000" />
-                <rect x="2" y="4" width="6" height="14" fill="#000" />
-                <rect x="14" y="4" width="6" height="14" fill="#000" />
-                <rect x="8" y="16" width="6" height="6" fill="#fff" />
-                <rect x="10" y="18" width="3" height="3" fill="#000" />
-                <rect x="4" y="22" width="4" height="4" fill="#000" />
-                {animated && <rect x="2" y="26" width="4" height="2" fill="#000" />}
-                <rect x="16" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill="#000" />
-                <rect x="26" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill="#000" />
-                <rect x="34" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill="#000" />
-                <rect x="42" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill="#000" />
-                <rect x="48" y={animated ? 12 + Math.sin(Date.now() / 150) * 4 : 12} width="12" height="4" fill="#000" />
-                <rect x="58" y={animated ? 8 + Math.sin(Date.now() / 150) * 4 : 8} width="4" height="6" fill="#000" />
-            </svg>
-        );
+        const DogSprite = ({ animated = false, style = {}, gold = false }) => {
+            const color = gold ? '#DAA520' : '#000';
+            const eyeColor = gold ? '#000' : '#fff';
+            const pupilColor = gold ? '#fff' : '#000';
+            return (
+                <svg width="64" height="48" viewBox="0 0 64 48" style={{ imageRendering: 'pixelated', ...style }}>
+                    <rect x="16" y="16" width="32" height="16" fill={color} />
+                    <rect x="4" y="12" width="16" height="16" fill={color} />
+                    <rect x="2" y="4" width="6" height="14" fill={color} />
+                    <rect x="14" y="4" width="6" height="14" fill={color} />
+                    <rect x="8" y="16" width="6" height="6" fill={eyeColor} />
+                    <rect x="10" y="18" width="3" height="3" fill={pupilColor} />
+                    <rect x="4" y="22" width="4" height="4" fill={color} />
+                    {animated && <rect x="2" y="26" width="4" height="2" fill={color} />}
+                    <rect x="16" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="26" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="34" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 10 : 14) : 12} fill={color} />
+                    <rect x="42" y="32" width="6" height={animated ? (Math.sin(Date.now() / 100) > 0 ? 14 : 10) : 10} fill={color} />
+                    <rect x="48" y={animated ? 12 + Math.sin(Date.now() / 150) * 4 : 12} width="12" height="4" fill={color} />
+                    <rect x="58" y={animated ? 8 + Math.sin(Date.now() / 150) * 4 : 8} width="4" height="6" fill={color} />
+                </svg>
+            );
+        };
 
         // --- DATA ---
         const MEDIA_DB = {
@@ -4904,6 +4909,80 @@
             );
         };
 
+        // --- DOG STORY TERMINAL - Auto-playing story ---
+        const DogStoryTerminal = ({ onRemoveGoldDog }) => {
+            const [lines, setLines] = useState([]);
+            const [goldDogVisible, setGoldDogVisible] = useState(true);
+
+            const story = [
+                { text: '$ cd /cage_17', delay: 0 },
+                { text: '$ ls -la', delay: 500 },
+                { text: 'total 2\ndrwxr-xr-x  unit_black\ndrwxr-xr-x  unit_gold', delay: 1000, isOutput: true },
+                { text: '$ cat unit_black/status', delay: 2500 },
+                { text: 'tail.wag=1\nposition=front\nfacing=door', delay: 3000, isOutput: true },
+                { text: '$ cat unit_gold/status', delay: 5000 },
+                { text: 'tail.wag=1\nposition=rear\ntremor=1', delay: 5500, isOutput: true },
+                { text: '$ cp -r cage_17/* /home/mateus/', delay: 7500 },
+                { text: 'cp: copy both units? (y/n) y\ncopying...\ndone.', delay: 8000, isOutput: true },
+                { text: '$ rm -rf /cage_17', delay: 10000 },
+                { text: 'removed.', delay: 10500, isOutput: true },
+                { text: '$ ls /home/mateus/', delay: 12000 },
+                { text: 'unit_black/\nunit_gold/', delay: 12500, isOutput: true },
+                // Wait 3 seconds
+                { text: '$ uptime unit_gold', delay: 16000 },
+                { text: '12 years, 2 months, 11 days', delay: 16500, isOutput: true },
+                { text: '$ diff unit_gold/muzzle_2020.png unit_gold/muzzle_2024.png', delay: 18500 },
+                { text: '< rgb(0,0,0)\n> rgb(128,128,128)', delay: 19000, isOutput: true },
+                { text: '$ cat /var/log/sleep.log', delay: 21000 },
+                { text: 'unit_gold: sleeping\nunit_black: sleeping\nlocation: same', delay: 21500, isOutput: true },
+                { text: '$ ping unit_gold', delay: 23500 },
+                { text: 'PING unit_gold (192.168.1.2): 56 bytes\nRequest timeout for icmp_seq 0\nRequest timeout for icmp_seq 1\nRequest timeout for icmp_seq 2\n^C', delay: 24000, isOutput: true },
+                { text: '$ systemctl status unit_gold', delay: 27000 },
+                { text: '● unit_gold.service\n   Active: degrading', delay: 27500, isOutput: true },
+                // Wait 5 seconds
+                { text: '$ cat /home/mateus/unit_gold', delay: 33000 },
+                { text: '[FILE DELETED]', delay: 33500, isOutput: true, removeGold: true },
+                // Wait 5 seconds
+                { text: '$ grep -r "unit_gold" /home/mateus/unit_black/memory/', delay: 39000 },
+                { text: '/home/mateus/unit_black/memory/scent.dat: [SEARCHING]\n/home/mateus/unit_black/memory/warmth.dat: [SEARCHING]\n/home/mateus/unit_black/memory/pile.dat: [SEARCHING]', delay: 39500, isOutput: true },
+                { text: '$ tail -f /home/mateus/unit_black/process.log', delay: 42000 },
+                { text: 'waiting...\nwaiting...\nwaiting...\n^C', delay: 42500, isOutput: true },
+                { text: '$ ls /home/mateus/', delay: 46000 },
+                { text: 'unit_black/', delay: 46500, isOutput: true },
+                { text: '$ ls /home/mateus/heart/', delay: 48500 },
+                { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true, final: true },
+            ];
+
+            useEffect(() => {
+                story.forEach(item => {
+                    setTimeout(() => {
+                        setLines(prev => [...prev, { text: item.text, isOutput: item.isOutput }]);
+                        if (item.removeGold) {
+                            setGoldDogVisible(false);
+                            onRemoveGoldDog?.();
+                        }
+                    }, item.delay);
+                });
+            }, []);
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.Terminal size={16} />
+                        <span className="text-xs font-bold">DOG.TXT</span>
+                    </div>
+                    <div className="flex-grow overflow-auto p-3 space-y-0.5">
+                        {lines.map((line, i) => (
+                            <div key={i} className={`whitespace-pre-wrap ${line.isOutput ? 'text-green-600' : 'text-green-300'}`}>
+                                {line.text}
+                            </div>
+                        ))}
+                        <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />
+                    </div>
+                </div>
+            );
+        };
+
         // --- TERMINAL.EXE - Command line interface ---
         const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate }) => {
             const [history, setHistory] = useState([{ type: 'output', text: 'ULTRA_INT Terminal v1.0.0\nType "help" for available commands.\n' }]);
@@ -5187,13 +5266,13 @@
             );
         };
 
-        // --- PRIVATE.EXE - Password Protected (with dog reveal when unlocked) ---
-        const PersonalApp = ({ unlocked }) => {
+        // --- PRIVATE.EXE - Password Protected (with DOG.TXT reveal when unlocked) ---
+        const PersonalApp = ({ unlocked, onOpenDogStory }) => {
             const [password, setPassword] = useState('');
             const [attempts, setAttempts] = useState(0);
             const [error, setError] = useState('');
             const [shaking, setShaking] = useState(false);
-            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: figure approaching, 3: dog revealed
+            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: file approaching, 3: file revealed
 
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
@@ -5276,7 +5355,7 @@
                             <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
                         </div>
 
-                        {/* Approaching figure */}
+                        {/* Approaching file */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
                                 className="transition-all ease-out"
@@ -5291,12 +5370,17 @@
                                     // Silhouette
                                     <div className="w-32 h-32 bg-black rounded-full" style={{ filter: 'blur(5px)' }} />
                                 ) : (
-                                    // The dog!
-                                    <div className="text-center">
-                                        <DogSprite animated style={{ width: 128, height: 96 }} />
-                                        <div className="font-mono text-black text-lg font-bold mt-4 animate-bounce">WOOF!</div>
-                                        <div className="font-mono text-gray-600 text-xs mt-2">That's it. That's the secret.</div>
-                                    </div>
+                                    // DOG.TXT file icon
+                                    <button
+                                        onClick={() => onOpenDogStory?.()}
+                                        className="text-center cursor-pointer group"
+                                    >
+                                        <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                            <Icons.FileDoc size={64} />
+                                        </div>
+                                        <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
+                                        <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600">Click to open</div>
+                                    </button>
                                 )}
                             </div>
                         </div>
@@ -5516,6 +5600,11 @@
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
+            const [goldDogReleased, setGoldDogReleased] = useState(false);
+            const [goldDogVisible, setGoldDogVisible] = useState(true);
+            const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
+            const [goldDogFacingRight, setGoldDogFacingRight] = useState(false);
+            const goldDogVelRef = useRef({ x: -3, y: 4 });
             const [visitCount, setVisitCount] = useState(() => {
                 const stored = localStorage.getItem('ultra_int_visits');
                 const count = stored ? parseInt(stored, 10) + 1 : 1;
@@ -5526,6 +5615,15 @@
 
             const toggleMatrixMode = () => setMatrixMode(prev => !prev);
             const unlockPrivate = () => setPrivateUnlocked(true);
+            const openDogStory = () => {
+                setDogReleased(true);
+                setGoldDogReleased(true);
+                setWindows(prev => ({
+                    ...prev,
+                    DOG_STORY: { ...prev.DOG_STORY, isOpen: true }
+                }));
+            };
+            const removeGoldDog = () => setGoldDogVisible(false);
 
             // Handle dog stealing the destruction button - dog starts running around!
             const handleDogSteal = () => {
@@ -5589,6 +5687,42 @@
                 return () => clearInterval(dogInterval);
             }, [dogReleased]);
 
+            // Gold dog bouncing logic
+            useEffect(() => {
+                if (!goldDogReleased || !goldDogVisible) return;
+
+                const goldDogInterval = setInterval(() => {
+                    setGoldDogPos(prev => {
+                        const vel = goldDogVelRef.current;
+                        let newX = prev.x + vel.x;
+                        let newY = prev.y + vel.y;
+
+                        if (newX >= window.innerWidth - 80) {
+                            newX = window.innerWidth - 80;
+                            goldDogVelRef.current.x = -Math.abs(vel.x);
+                            setGoldDogFacingRight(false);
+                        }
+                        if (newX <= 0) {
+                            newX = 0;
+                            goldDogVelRef.current.x = Math.abs(vel.x);
+                            setGoldDogFacingRight(true);
+                        }
+                        if (newY >= window.innerHeight - 100) {
+                            newY = window.innerHeight - 100;
+                            goldDogVelRef.current.y = -Math.abs(vel.y);
+                        }
+                        if (newY <= 60) {
+                            newY = 60;
+                            goldDogVelRef.current.y = Math.abs(vel.y);
+                        }
+
+                        return { x: newX, y: newY };
+                    });
+                }, 30);
+
+                return () => clearInterval(goldDogInterval);
+            }, [goldDogReleased, goldDogVisible]);
+
             // Desktop icons - only show main folders (plus TRUTH if unlocked at 100 visits)
             const desktopIcons = truthUnlocked
                 ? ["SYSTEM", "FILES", "APPS", "CONTACT", "TRUTH"]
@@ -5619,7 +5753,8 @@
                 "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
                 "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 },
                 "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: '500px', h: '400px', isOpen: false, isMin: false, z: 33 },
-                "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true }
+                "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
+                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 }
             });
 
             // Render window content based on ID
@@ -5646,9 +5781,10 @@
                     case "MAP": return <MapApp />;
                     case "POMODORO": return <PomodoroApp />;
                     case "SCANNER": return <HealthScannerApp />;
-                    case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} />;
+                    case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
                     case "TRUTH": return <TruthApp />;
+                    case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     default: return null;
                 }
             };
@@ -6029,6 +6165,20 @@
                                     {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 24 })}
                                 </div>
                             )}
+                        </div>
+                    )}
+
+                    {/* GOLD DOG - Second dog that appears with the story */}
+                    {goldDogReleased && goldDogVisible && (
+                        <div
+                            className="fixed z-[999998] select-none transition-opacity duration-1000"
+                            style={{
+                                left: goldDogPos.x,
+                                top: goldDogPos.y,
+                                transform: `scaleX(${goldDogFacingRight ? 1 : -1})`,
+                            }}
+                        >
+                            <DogSprite animated gold />
                         </div>
                     )}
 
