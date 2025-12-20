@@ -6741,36 +6741,63 @@
                         <span className="app-footer-text ml-auto">{unlockedCount}/{totalCount} UNLOCKED</span>
                     </div>
                     <div className="flex-grow overflow-auto">
-                        <div className="grid grid-cols-4 md:grid-cols-5 gap-2 p-4">
-                            {visibleApps.map((app) => {
-                                const AppIcon = Icons[app.icon];
-                                const isUnlocked = unlockedApps?.has(app.id);
-                                const isHovered = hoveredApp === app.id;
-
-                                return (
-                                    <div
-                                        key={app.id}
-                                        className={`relative flex flex-col items-center gap-1 p-2 border-2 transition-all cursor-pointer ${
-                                            isUnlocked
-                                                ? 'border-black hover:bg-yellow-100 hover:translate-y-[-2px]'
-                                                : 'border-gray-300 bg-gray-100 opacity-50'
-                                        }`}
-                                        onClick={() => isUnlocked && onOpenApp(app.id)}
-                                        onMouseEnter={() => setHoveredApp(app.id)}
-                                        onMouseLeave={() => setHoveredApp(null)}
-                                        draggable={isUnlocked}
-                                        onDragStart={(e) => isUnlocked && onDragStart?.(e, app.id, app.title, app.icon)}
-                                    >
-                                        <div className={`p-2 ${isUnlocked ? '' : 'grayscale'}`}>
-                                            <AppIcon size={32} />
+                        {isMobile ? (
+                            /* Mobile: Simple list layout - no grid, no drag */
+                            <div className="flex flex-col p-2 gap-1">
+                                {visibleApps.map((app) => {
+                                    const AppIcon = Icons[app.icon];
+                                    const isUnlocked = unlockedApps?.has(app.id);
+                                    return (
+                                        <div
+                                            key={app.id}
+                                            className={`flex items-center gap-3 p-2 border-2 cursor-pointer ${
+                                                isUnlocked
+                                                    ? 'border-black active:bg-yellow-100'
+                                                    : 'border-gray-300 bg-gray-100 opacity-50'
+                                            }`}
+                                            onClick={() => isUnlocked && onOpenApp(app.id)}
+                                        >
+                                            <div className={isUnlocked ? '' : 'grayscale'}>
+                                                <AppIcon size={24} />
+                                            </div>
+                                            <span className={`font-mono text-sm font-bold ${!isUnlocked && 'text-gray-400'}`}>
+                                                {isUnlocked ? app.title : '???'}
+                                            </span>
                                         </div>
-                                        <span className={`font-mono text-[8px] text-center font-bold truncate w-full ${!isUnlocked && 'text-gray-400'}`}>
-                                            {isUnlocked ? app.title : '???'}
-                                        </span>
-                                    </div>
-                                );
-                            })}
-                        </div>
+                                    );
+                                })}
+                            </div>
+                        ) : (
+                            /* Desktop: Grid layout with drag */
+                            <div className="grid grid-cols-5 gap-2 p-4">
+                                {visibleApps.map((app) => {
+                                    const AppIcon = Icons[app.icon];
+                                    const isUnlocked = unlockedApps?.has(app.id);
+                                    return (
+                                        <div
+                                            key={app.id}
+                                            className={`relative flex flex-col items-center gap-1 p-2 border-2 transition-all cursor-pointer ${
+                                                isUnlocked
+                                                    ? 'border-black hover:bg-yellow-100 hover:translate-y-[-2px]'
+                                                    : 'border-gray-300 bg-gray-100 opacity-50'
+                                            }`}
+                                            onClick={() => isUnlocked && onOpenApp(app.id)}
+                                            onMouseEnter={() => setHoveredApp(app.id)}
+                                            onMouseLeave={() => setHoveredApp(null)}
+                                            draggable={isUnlocked}
+                                            onDragStart={(e) => isUnlocked && onDragStart?.(e, app.id, app.title, app.icon)}
+                                        >
+                                            <div className={`p-2 ${isUnlocked ? '' : 'grayscale'}`}>
+                                                <AppIcon size={32} />
+                                            </div>
+                                            <span className={`font-mono text-[8px] text-center font-bold truncate w-full ${!isUnlocked && 'text-gray-400'}`}>
+                                                {isUnlocked ? app.title : '???'}
+                                            </span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
                     <div className="app-footer border-t-2 border-black p-2">
                         <span className="app-footer-text">Earn achievements to unlock apps</span>
