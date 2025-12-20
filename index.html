@@ -114,17 +114,44 @@
         /* Headings use PPMondwest */
         h1, h2, h3, h4, h5, h6 {
             font-family: 'PPMondwest', sans-serif !important;
+            line-height: 0.6 !important;
+            letter-spacing: normal !important;
         }
 
         /* Heading font utility class */
         .font-heading {
             font-family: 'PPMondwest', sans-serif !important;
+            line-height: 0.6 !important;
+            letter-spacing: normal !important;
         }
 
         /* Body font utility class */
         .font-body {
             font-family: 'PPNeueBit', sans-serif !important;
         }
+
+        /* Minimum font size enforcement - 16px minimum for all text */
+        html {
+            font-size: 16px;
+        }
+
+        /* Override all small Tailwind text sizes to minimum 16px */
+        .text-xs, .text-sm,
+        [class*="text-[6px]"], [class*="text-[7px]"], [class*="text-[8px]"],
+        [class*="text-[9px]"], [class*="text-[10px]"], [class*="text-[11px]"],
+        [class*="text-[12px]"], [class*="text-[13px]"], [class*="text-[14px]"],
+        [class*="text-[15px]"] {
+            font-size: 16px !important;
+        }
+
+        /* Standardized font sizes - multiples of 4 */
+        .text-base { font-size: 16px !important; }
+        .text-lg { font-size: 20px !important; }
+        .text-xl { font-size: 24px !important; }
+        .text-2xl { font-size: 28px !important; }
+        .text-3xl { font-size: 32px !important; }
+        .text-4xl { font-size: 36px !important; }
+        .text-5xl { font-size: 40px !important; }
 
         /* Universal font fallback - ensure ALL text uses our fonts */
         *, *::before, *::after {
@@ -162,7 +189,7 @@
             background: #000;
             color: #fff;
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 0.875rem;
+            font-size: 16px;
             font-weight: 700;
             border: 2px solid #000;
             cursor: pointer;
@@ -177,7 +204,7 @@
             background: #fff;
             color: #000;
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 0.875rem;
+            font-size: 16px;
             font-weight: 700;
             border: 2px solid #000;
             cursor: pointer;
@@ -186,9 +213,9 @@
         .btn-secondary:hover { background: #000; color: #fff; }
 
         /* Button Sizes */
-        .btn-xs { padding: 0.25rem 0.5rem; font-size: 0.625rem; }
-        .btn-sm { padding: 0.5rem 1rem; font-size: 0.75rem; }
-        .btn-lg { padding: 1rem 2rem; font-size: 1.125rem; }
+        .btn-xs { padding: 0.25rem 0.5rem; font-size: 16px; }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 16px; }
+        .btn-lg { padding: 1rem 2rem; font-size: 20px; }
         .btn-full { width: 100%; }
 
         /* Icon Button (square, compact) */
@@ -204,7 +231,7 @@
         .btn-toolbar {
             padding: 0.25rem 0.5rem;
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 0.625rem;
+            font-size: 16px;
             font-weight: 700;
             text-transform: uppercase;
             border: 1px solid #000;
@@ -225,12 +252,12 @@
         }
         .app-header-title {
             font-family: 'PPMondwest', sans-serif !important;
-            font-size: 0.75rem;
+            font-size: 16px;
             font-weight: 700;
         }
         .app-header-subtitle {
             font-family: 'PPNeueBit', sans-serif !important;
-            font-size: 10px;
+            font-size: 16px;
             color: #6b7280;
         }
 
@@ -243,7 +270,7 @@
         }
         .app-footer-text {
             font-family: 'PPNeueBit', sans-serif !important;
-            font-size: 10px;
+            font-size: 16px;
             color: #6b7280;
         }
 
@@ -1749,7 +1776,7 @@
                 <div className="h-full flex flex-col bg-white select-none overflow-auto">
                     <div className="p-6 md:p-8 space-y-8">
                         {/* Name */}
-                        <h1 className="font-black tracking-tighter leading-[0.85]" style={{ fontSize: 'clamp(4rem, 15vw, 10rem)' }}>
+                        <h1 className="font-black" style={{ fontSize: 'clamp(6rem, 22.5vw, 15rem)' }}>
                             MATEUS<br />MUSTE
                         </h1>
 
@@ -7779,39 +7806,66 @@
                 : allDesktopIcons;
 
             // Window State (Position x/y added for dragging) - content rendered separately
+            // Base sizes are for 1920x1080, will be scaled for smaller screens
             const [windows, setWindows] = useState({
-                "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: '380px', h: '500px', isOpen: false, isMin: false, z: 8, isDesktop: true },
-                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: '700px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
-                "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
-                "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
-                "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
-                "CONTACT": { id: "CONTACT", title: "CONTACT", icon: "Email", x: 200, y: 140, w: '320px', h: '220px', isOpen: false, isMin: false, z: 13, isDesktop: true },
-                "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: '700px', h: '600px', isOpen: false, isMin: false, z: 14 },
-                "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: '640px', h: '520px', isOpen: false, isMin: false, z: 15 },
-                "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: '500px', h: '400px', isOpen: false, isMin: false, z: 16 },
-                "VOID": { id: "VOID", title: "VOID.TXT", icon: "Void", x: 300, y: 50, w: '500px', h: '400px', isOpen: false, isMin: false, z: 17 },
-                "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 19 },
-                "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: '350px', h: '450px', isOpen: false, isMin: false, z: 20 },
-                "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: '600px', h: '500px', isOpen: false, isMin: false, z: 21 },
-                "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 40, w: '500px', h: '560px', isOpen: false, isMin: false, z: 26 },
-                "STARSHIP": { id: "STARSHIP", title: "STARSHIP.EXE", icon: "Starship", x: 80, y: 40, w: '540px', h: '480px', isOpen: false, isMin: false, z: 27 },
-                "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: '500px', h: '350px', isOpen: false, isMin: false, z: 22 },
-                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: '400px', h: '400px', isOpen: false, isMin: false, z: 23 },
-                "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 100, y: 60, w: '520px', h: '550px', isOpen: false, isMin: false, z: 24 },
-                "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: '500px', h: '500px', isOpen: false, isMin: false, z: 28 },
-                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: '360px', h: '400px', isOpen: false, isMin: false, z: 29 },
-                "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: '350px', h: '620px', isOpen: false, isMin: false, z: 30 },
-                "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 31 },
-                "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 },
-                "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: '500px', h: '400px', isOpen: false, isMin: false, z: 33 },
-                "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
-                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 },
-                "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: '450px', h: '400px', isOpen: false, isMin: false, z: 36 },
-                "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 },
-                "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: '500px', h: '400px', isOpen: false, isMin: false, z: 38 },
-                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: '320px', h: '520px', isOpen: false, isMin: false, z: 39 },
-                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: '400px', h: '350px', isOpen: false, isMin: false, z: 40 }
+                "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 8, isDesktop: true },
+                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: 700, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: 1000, h: 800, isOpen: true, isMin: false, z: 10, isDesktop: true },
+                "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: 800, h: 500, isOpen: false, isMin: false, z: 11, isDesktop: true },
+                "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
+                "CONTACT": { id: "CONTACT", title: "CONTACT", icon: "Email", x: 200, y: 140, w: 320, h: 220, isOpen: false, isMin: false, z: 13, isDesktop: true },
+                "PAINT": { id: "PAINT", title: "PAINT.EXE", icon: "Palette", x: 150, y: 110, w: 700, h: 600, isOpen: false, isMin: false, z: 14 },
+                "SNAKE": { id: "SNAKE", title: "SNEK.EXE", icon: "Snek", x: 200, y: 140, w: 640, h: 520, isOpen: false, isMin: false, z: 15 },
+                "TRASH": { id: "TRASH", title: "TRASH.BIN", icon: "TrashCan", x: 250, y: 170, w: 500, h: 400, isOpen: false, isMin: false, z: 16 },
+                "VOID": { id: "VOID", title: "VOID.TXT", icon: "Void", x: 300, y: 50, w: 500, h: 400, isOpen: false, isMin: false, z: 17 },
+                "RADIO": { id: "RADIO", title: "RADIO.WAV", icon: "Radio", x: 400, y: 110, w: 400, h: 400, isOpen: false, isMin: false, z: 19 },
+                "DICE": { id: "DICE", title: "DICE.EXE", icon: "Dice", x: 450, y: 140, w: 350, h: 450, isOpen: false, isMin: false, z: 20 },
+                "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: 600, h: 500, isOpen: false, isMin: false, z: 21 },
+                "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 40, w: 500, h: 560, isOpen: false, isMin: false, z: 26 },
+                "STARSHIP": { id: "STARSHIP", title: "STARSHIP.EXE", icon: "Starship", x: 80, y: 40, w: 540, h: 480, isOpen: false, isMin: false, z: 27 },
+                "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: 500, h: 350, isOpen: false, isMin: false, z: 22 },
+                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: 400, h: 400, isOpen: false, isMin: false, z: 23 },
+                "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 100, y: 60, w: 520, h: 550, isOpen: false, isMin: false, z: 24 },
+                "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: 500, h: 500, isOpen: false, isMin: false, z: 28 },
+                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: 360, h: 400, isOpen: false, isMin: false, z: 29 },
+                "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: 350, h: 620, isOpen: false, isMin: false, z: 30 },
+                "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: 600, h: 700, isOpen: false, isMin: false, z: 31 },
+                "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: 320, h: 340, isOpen: false, isMin: false, z: 32 },
+                "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: 500, h: 400, isOpen: false, isMin: false, z: 33 },
+                "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: 320, h: 380, isOpen: false, isMin: false, z: 34, isDesktop: true },
+                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 35 },
+                "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: 450, h: 400, isOpen: false, isMin: false, z: 36 },
+                "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: 450, h: 400, isOpen: false, isMin: false, z: 37 },
+                "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
+                "WORDS": { id: "WORDS", title: "WORDS.EXE", icon: "Words", x: 180, y: 90, w: 320, h: 520, isOpen: false, isMin: false, z: 39 },
+                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 40 }
             });
+
+            // Auto-scale windows based on viewport - designed for 1920x1080, scales down for smaller screens
+            const getScaledSize = (baseW, baseH) => {
+                const vw = window.innerWidth;
+                const vh = window.innerHeight;
+                const baseWidth = 1920;
+                const baseHeight = 1080;
+
+                // Calculate scale factor (use the smaller of width/height ratios)
+                const scaleX = vw / baseWidth;
+                const scaleY = vh / baseHeight;
+                const scale = Math.min(scaleX, scaleY, 1); // Never scale up, only down
+
+                // Apply scale with minimum sizes
+                const scaledW = Math.max(280, Math.round(baseW * scale));
+                const scaledH = Math.max(200, Math.round(baseH * scale));
+
+                // Ensure it fits in viewport with padding
+                const maxW = vw - 40;
+                const maxH = vh - 80;
+
+                return {
+                    w: Math.min(scaledW, maxW),
+                    h: Math.min(scaledH, maxH)
+                };
+            };
 
             // Handle intro complete - hide messages, reveal apps one by one, then open ABOUT
             const introCompleteCalledRef = useRef(false);
@@ -8636,7 +8690,7 @@
                                 const crashScreen = document.createElement('div');
                                 crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:PPNeueBit,sans-serif;color:#0f0;overflow:auto;';
                                 crashScreen.innerHTML = `
-                                    <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                    <pre style="font-size:16px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
                                               ▲
                                              ╱█╲
                                             ╱███╲
@@ -8672,9 +8726,9 @@
               ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                     </pre>
-                                    <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
-                                    <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL: REALITY RECURSION</div>
-                                    <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
+                                    <div style="margin-top:10px;font-size:16px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                    <div style="margin-top:15px;font-size:16px;color:#f00;animation:blink 0.3s infinite;">FATAL: REALITY RECURSION</div>
+                                    <div style="margin-top:5px;font-size:16px;opacity:0.7;color:#0f0;">redirecting to origin...</div>
                                 `;
                                 document.body.appendChild(crashScreen);
                                 setTimeout(() => {
@@ -8746,7 +8800,7 @@
                                     const crashScreen = document.createElement('div');
                                     crashScreen.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:PPNeueBit,sans-serif;color:#0f0;overflow:auto;';
                                     crashScreen.innerHTML = `
-                                        <pre style="font-size:6px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
+                                        <pre style="font-size:16px;line-height:1.1;color:#0f0;text-shadow:0 0 5px #0f0;white-space:pre;">
                                               ▲
                                              ╱█╲
                                             ╱███╲
@@ -8782,9 +8836,9 @@
               ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲
              ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
                                         </pre>
-                                        <div style="margin-top:10px;font-size:12px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
-                                        <div style="margin-top:15px;font-size:10px;color:#f00;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
-                                        <div style="margin-top:5px;font-size:8px;opacity:0.7;color:#0f0;">redirecting consciousness...</div>
+                                        <div style="margin-top:10px;font-size:16px;letter-spacing:6px;color:#0f0;">T H I R D _ E Y E . E X E</div>
+                                        <div style="margin-top:15px;font-size:16px;color:#f00;animation:blink 0.3s infinite;">FATAL ERROR: REALITY STACK OVERFLOW</div>
+                                        <div style="margin-top:5px;font-size:16px;opacity:0.7;color:#0f0;">redirecting consciousness...</div>
                                     `;
                                     document.body.appendChild(crashScreen);
                                     // Redirect to mateusmuste.com after showing the pyramid
@@ -9255,6 +9309,7 @@
                         const animState = windowAnimations[win.id];
                         const shouldRender = (win.isOpen || animState === 'closing') && !win.isMin;
                         const isActive = win.z === topZ;
+                        const scaled = getScaledSize(win.w, win.h);
                         return shouldRender && (
                             <div
                                 key={win.id}
@@ -9262,15 +9317,13 @@
                                 onTouchStart={() => focus(win.id)}
                                 className={`flex flex-col bg-white border-2 border-black absolute transition-opacity duration-150 ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={{
-                                    left: isMobile ? 8 : win.x,
-                                    top: isMobile ? 52 : win.y,
-                                    width: isMobile ? 'calc(100% - 16px)' : win.w,
-                                    height: isMobile ? 'calc(100% - 116px)' : win.h,
+                                    left: isMobile ? 8 : Math.min(win.x, window.innerWidth - scaled.w - 20),
+                                    top: isMobile ? 52 : Math.min(win.y, window.innerHeight - scaled.h - 60),
+                                    width: isMobile ? 'calc(100% - 16px)' : scaled.w,
+                                    height: isMobile ? 'calc(100% - 116px)' : scaled.h,
                                     zIndex: win.z,
                                     transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
                                     transformOrigin: 'top center',
-                                    maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
-                                    maxHeight: isMobile ? 'calc(100% - 116px)' : undefined,
                                     opacity: 1
                                 }}
                             >
