@@ -1216,7 +1216,7 @@
 
         // --- APP COMPONENTS ---
 
-        const PaintApp = ({ showHint }) => {
+        const PaintApp = ({ showHint, onAchievement }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const [tool, setTool] = useState('brush');
@@ -1458,6 +1458,7 @@
                                     new ClipboardItem({ 'image/png': blob })
                                 ]);
                                 setStatus("COPIED TO CLIPBOARD");
+                                onAchievement?.('MESSENGER');
                             } catch (e) {
                                 setStatus("COPY FAILED");
                             }
@@ -1829,7 +1830,8 @@
         };
 
         // ABOUT.EXE - Static portfolio page (no animations)
-        const AboutApp = () => {
+        const AboutApp = ({ onAchievement }) => {
+            const achievementTriggered = useRef(false);
             const skills = [
                 { name: 'PHOTOSHOP', yrs: 9 },
                 { name: 'PREMIERE', yrs: 8 },
@@ -1884,7 +1886,12 @@
                             <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Projects</h3>
                             <div className="space-y-2">
                                 {projects.map((p, i) => (
-                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer">
+                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer" onClick={() => {
+                                        if (!achievementTriggered.current) {
+                                            achievementTriggered.current = true;
+                                            onAchievement?.('WORK_IN_PROGRESS');
+                                        }
+                                    }}>
                                         <div className="font-bold text-sm uppercase">{p.t}</div>
                                         <div className="font-mono text-[10px] text-gray-500">{p.s}</div>
                                         <div className="text-[13px] mt-1">{p.d}</div>
@@ -2253,7 +2260,7 @@
         };
 
         // --- RADIO.WAV - Playlist link ---
-        const RadioApp = () => {
+        const RadioApp = ({ onAchievement }) => {
             const [isPlaying, setIsPlaying] = useState(false);
             const [visualizer, setVisualizer] = useState([]);
 
@@ -2269,6 +2276,7 @@
             const openPlaylist = () => {
                 window.open('https://music.youtube.com/playlist?list=PLeIQRsOWZUhKaD53FTvwZCxsNWzjq0lfO&si=92O5A6kAPjk8Vzmg', '_blank', 'noopener,noreferrer');
                 setIsPlaying(true);
+                onAchievement?.('TUNED_IN');
             };
 
             return (
@@ -3610,7 +3618,7 @@
         };
 
         // --- SYNTH_001.WAV - Brutalist Synthesizer ---
-        const SynthApp = () => {
+        const SynthApp = ({ onAchievement }) => {
             const [tempo, setTempo] = useState(120);
             const [filter, setFilter] = useState(1000);
             const [isPlaying, setIsPlaying] = useState(false);
@@ -3623,6 +3631,7 @@
                     noise: Array(16).fill(false)
                 };
             });
+            const symphonyTriggered = useRef(false);
             const audioCtxRef = useRef(null);
             const intervalRef = useRef(null);
             // Refs to avoid stale closures in interval
@@ -3685,6 +3694,12 @@
                     setCurrentStep(0);
                 } else {
                     setIsPlaying(true);
+                    // Check if entire grid is filled for SYMPHONY achievement
+                    const allFilled = oscillators.every(osc => grid[osc].every(note => note));
+                    if (allFilled && !symphonyTriggered.current) {
+                        symphonyTriggered.current = true;
+                        onAchievement?.('SYMPHONY');
+                    }
                     // Interval is started by the useEffect when isPlaying changes
                 }
             };
@@ -6949,13 +6964,15 @@
 
         // --- END.EXE - 100% Completion Screen ---
         const EndApp = ({ achievements }) => {
-            // Full 27 achievement list for display with icons and hints
+            // Full achievement list for display with icons and hints
             const ACHIEVEMENTS = {
                 // Pool A - Terminal
                 SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker' },
                 NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill' },
                 LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack' },
                 FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills' },
+                MESSENGER: { name: 'MESSENGER', icon: 'Palette', hint: 'A picture is worth a thousand words' },
+                WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'The art behind the artist' },
                 // Pool B - Games
                 OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time' },
                 FIRST_BLOOD: { name: 'FIRST BLOOD', icon: 'Sword', hint: 'Everyone starts somewhere' },
@@ -6967,11 +6984,13 @@
                 DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned' },
                 COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one' },
                 VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss' },
+                TUNED_IN: { name: 'TUNED IN', icon: 'Radio', hint: 'Broadcasting from the void' },
                 // Pool D - Meta
                 FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision' },
                 PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy' },
                 KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool' },
                 INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper' },
+                SYMPHONY: { name: 'SYMPHONY', icon: 'Synth', hint: 'Go all out' },
                 // Pool E - Time
                 TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies' },
                 CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: 'Click. Click. Click.' },
@@ -7187,6 +7206,8 @@
                 NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill', pool: 'A', visible: true },
                 LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack', pool: 'A', visible: true },
                 FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills', pool: 'A', visible: true },
+                MESSENGER: { name: 'MESSENGER', icon: 'Palette', hint: 'A picture is worth a thousand words', pool: 'A', requiresApp: 'PAINT' },
+                WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'The art behind the artist', pool: 'A', visible: true },
 
                 // Pool B - Games (unlocks: LABYRINTH, MINESWEEPER, STARSHIP, DICE)
                 OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time', pool: 'B', visible: true },
@@ -7200,12 +7221,14 @@
                 DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned', pool: 'C', visible: true },
                 COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one', pool: 'C', requiresApp: 'TAROT' },
                 VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss', pool: 'C', requiresApp: 'VOID' },
+                TUNED_IN: { name: 'TUNED IN', icon: 'Radio', hint: 'Broadcasting from the void', pool: 'C', requiresApp: 'RADIO' },
 
                 // Pool D - Meta (unlocks: TAROT, SYNTH, DESTRUCTION, POMODORO)
                 FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision', pool: 'D', visible: true },
                 PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy', pool: 'D', visible: true },
                 KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool', pool: 'D', visible: true },
                 INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper', pool: 'D', requiresApp: 'BROWSER' },
+                SYMPHONY: { name: 'SYMPHONY', icon: 'Synth', hint: 'Go all out', pool: 'D', requiresApp: 'SYNTH' },
 
                 // Pool E - Time (bragging rights only)
                 TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies', pool: 'E', visible: true },
@@ -7818,21 +7841,21 @@
             const getWindowContent = (id) => {
                 switch (id) {
                     case "MESSAGES": return <MessagesApp onIntroComplete={handleIntroComplete} />;
-                    case "ABOUT": return <AboutApp />;
+                    case "ABOUT": return <AboutApp onAchievement={unlockAchievement} />;
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
-                    case "PAINT": return <PaintApp showHint={paintShowHint} />;
+                    case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
-                    case "RADIO": return <RadioApp />;
+                    case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} />;
-                    case "SYNTH": return <SynthApp />;
+                    case "SYNTH": return <SynthApp onAchievement={unlockAchievement} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} />;
                     case "GALLERY": return <GalleryApp />;
