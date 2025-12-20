@@ -42,8 +42,18 @@
 
     <style>
         :root {
-            --bg: #e5e5e5;
+            --bg: #E8E8E8;
             --fg: #000000;
+            /* Warm neutral grays */
+            --gray-50: #FAFAFA;
+            --gray-100: #F0F0F0;
+            --gray-200: #E0E0E0;
+            --gray-300: #C0C0C0;
+            --gray-400: #909090;
+            --gray-500: #606060;
+            /* Accent colors */
+            --crimson: #DC143C;
+            --code-green: #00FF41;
         }
 
         body {
@@ -55,6 +65,11 @@
             padding: 0;
             user-select: none;
             -webkit-font-smoothing: antialiased;
+        }
+
+        /* Global hover transitions */
+        button, a, [role="button"], .cursor-pointer {
+            transition: all 50ms ease-out;
         }
 
         .font-mono {
