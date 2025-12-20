@@ -199,8 +199,8 @@
         }
         .desktop-bg-ascii {
             background-color: #f0f0f0;
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ctext x='5' y='15' font-family='monospace' font-size='10' fill='%23ccc'%3E01%3C/text%3E%3Ctext x='35' y='15' font-family='monospace' font-size='10' fill='%23bbb'%3E//a%3C/text%3E%3Ctext x='5' y='35' font-family='monospace' font-size='10' fill='%23bbb'%3E%7B%7D%3C/text%3E%3Ctext x='35' y='35' font-family='monospace' font-size='10' fill='%23ccc'%3E%3C/%3E%3C/text%3E%3Ctext x='20' y='55' font-family='monospace' font-size='10' fill='%23bbb'%3E***%3C/text%3E%3C/svg%3E");
-            background-size: 60px 60px;
+            background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='4' y='14' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E01%3C/text%3E%3Ctext x='44' y='14' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E//%3C/text%3E%3Ctext x='4' y='34' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E%7B%7D%3C/text%3E%3Ctext x='44' y='34' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E10%3C/text%3E%3Ctext x='4' y='54' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E**%3C/text%3E%3Ctext x='44' y='54' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E()%3C/text%3E%3Ctext x='4' y='74' font-family='monospace' font-size='11' fill='%23b8b8b8'%3E;%3C/text%3E%3Ctext x='44' y='74' font-family='monospace' font-size='11' fill='%23c0c0c0'%3E%3C%3E%3C/text%3E%3C/svg%3E");
+            background-size: 80px 80px;
         }
 
         canvas {
@@ -694,6 +694,74 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.1);
+            },
+
+            // UI click sound - subtle, satisfying
+            click: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            },
+
+            // Copy to clipboard sound
+            copy: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                [1000, 1200].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.05;
+                    gain.gain.setValueAtTime(0.06, start);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.08);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.08);
+                });
+            },
+
+            // Key press sound for typing games
+            keyPress: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 400 + Math.random() * 100;
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            },
+
+            // Note toggle for synth
+            noteToggle: () => {
+                const ctx = getAudioCtx();
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = 880;
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.04);
             }
         };
 
@@ -1219,21 +1287,30 @@
 
             return (
                 <div className="h-full flex flex-col bg-gray-100 select-none">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Palette size={16} />
+                            <span className="app-header-title">PAINT.EXE</span>
+                        </div>
+                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex items-center gap-1">
+                            <Icons.Send size={12} /> SEND
+                        </button>
+                    </div>
                     <div className="p-2 border-b-2 border-black bg-white flex flex-wrap gap-2 items-center">
                         <div className="flex gap-1">
-                            <button onClick={undo} className="btn-icon" title="Undo"><Icons.Undo size={16} /></button>
-                            <button onClick={redo} className="btn-icon" title="Redo"><Icons.Redo size={16} /></button>
+                            <button onClick={() => { sounds.click(); undo(); }} className="btn-icon" title="Undo"><Icons.Undo size={16} /></button>
+                            <button onClick={() => { sounds.click(); redo(); }} className="btn-icon" title="Redo"><Icons.Redo size={16} /></button>
                         </div>
                         <div className="w-px h-4 bg-black"></div>
                         <div className="flex gap-1 flex-wrap">
                             {tools.map(t => (
-                                <button key={t} onClick={() => setTool(t)} className={`btn-toolbar ${tool === t ? 'active' : ''}`}>{t}</button>
+                                <button key={t} onClick={() => { sounds.click(); setTool(t); }} className={`btn-toolbar ${tool === t ? 'active' : ''}`}>{t}</button>
                             ))}
                         </div>
                         <div className="w-px h-4 bg-black"></div>
                         <div className="flex gap-1 flex-wrap">
                             {colors.map(c => (
-                                <button key={c} onClick={() => setColor(c)} className={`w-5 h-5 border border-black ${color === c ? 'ring-2 ring-offset-1 ring-black' : ''}`} style={{ backgroundColor: c }} />
+                                <button key={c} onClick={() => { sounds.click(); setColor(c); }} className={`w-5 h-5 border border-black ${color === c ? 'ring-2 ring-offset-1 ring-black' : ''}`} style={{ backgroundColor: c }} />
                             ))}
                         </div>
                         <div className="w-px h-4 bg-black"></div>
@@ -1241,8 +1318,6 @@
                             <PixelKnob value={size} onChange={setSize} min={1} max={20} />
                             <span className="text-[10px] font-mono w-4">{size}</span>
                         </div>
-                        <div className="flex-grow"></div>
-                        <button onClick={send} className="btn-primary btn-sm flex items-center gap-1"><Icons.Send size={12} /> SEND</button>
                     </div>
                     <div className="flex-grow relative cursor-crosshair bg-gray-300 p-[2px] overflow-hidden" ref={containerRef}>
                         <canvas
@@ -3099,6 +3174,7 @@
             const oscillators = ['sine', 'square', 'saw', 'noise'];
 
             const toggleNote = (osc, step) => {
+                sounds.noteToggle();
                 setGrid(prev => ({
                     ...prev,
                     [osc]: prev[osc].map((v, i) => i === step ? !v : v)
@@ -3177,10 +3253,13 @@
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="app-header">
-                        <span className="app-header-title">SYNTH_001.WAV</span>
+                        <div className="flex items-center gap-2">
+                            <Icons.Synth size={16} />
+                            <span className="app-header-title">SYNTH_001.WAV</span>
+                        </div>
                         <button
-                            onClick={togglePlay}
-                            className={`px-4 py-1 font-mono text-xs font-bold border-2 border-black ${isPlaying ? 'bg-black text-white' : 'bg-white text-black hover:bg-black hover:text-white'}`}
+                            onClick={() => { sounds.click(); togglePlay(); }}
+                            className={isPlaying ? 'btn-primary btn-xs' : 'btn-secondary btn-xs'}
                         >
                             {isPlaying ? '■ STOP' : '► PLAY'}
                         </button>
@@ -6394,6 +6473,7 @@
                 if (key === 'ENTER') {
                     if (currentGuess.length !== 5) {
                         setShake(true);
+                        sounds.error();
                         setTimeout(() => setShake(false), 300);
                         return;
                     }
@@ -6408,8 +6488,10 @@
                     }
                     setCurrentGuess('');
                 } else if (key === '⌫') {
+                    sounds.keyPress();
                     setCurrentGuess(prev => prev.slice(0, -1));
                 } else if (currentGuess.length < 5 && /^[A-Z]$/.test(key)) {
+                    sounds.keyPress();
                     setCurrentGuess(prev => prev + key);
                 }
             };
@@ -6442,9 +6524,12 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex items-center justify-between">
-                        <div className="font-mono text-xs font-bold">WORDS.EXE</div>
-                        <button onClick={resetGame} className="font-mono text-xs px-2 py-1 border-2 border-black hover:bg-black hover:text-white">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Words size={16} />
+                            <span className="app-header-title">WORDS.EXE</span>
+                        </div>
+                        <button onClick={() => { sounds.click(); resetGame(); }} className="btn-secondary btn-xs">
                             NEW GAME
                         </button>
                     </div>
@@ -6522,12 +6607,19 @@
 
             const copyEmail = () => {
                 navigator.clipboard.writeText(email);
+                sounds.copy();
                 setCopied(true);
                 setTimeout(() => setCopied(false), 2000);
             };
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.Email size={16} />
+                            <span className="app-header-title">CONTACT</span>
+                        </div>
+                    </div>
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
                         <Icons.Email size={48} />
                         <div className="font-mono text-lg font-bold mt-4 mb-1">GET IN TOUCH</div>
@@ -6536,7 +6628,7 @@
                             <button onClick={copyEmail} className="btn-primary">
                                 {copied ? 'COPIED!' : 'COPY EMAIL'}
                             </button>
-                            <a href={`mailto:${email}`} className="btn-primary">
+                            <a href={`mailto:${email}`} className="btn-secondary" onClick={() => sounds.click()}>
                                 OPEN MAIL
                             </a>
                         </div>
