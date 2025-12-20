@@ -349,6 +349,15 @@
             0%, 100% { opacity: 1; background: #000; }
             50% { opacity: 0.7; background: #300; }
         }
+
+        /* Fade in animation for revealing apps */
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+            100% { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
     </style>
 </head>
 
@@ -1623,8 +1632,8 @@
             );
         };
 
-        // START.EXE - The grand portfolio reveal with phased animation
-        const StartApp = ({ onClose, isFirstVisit, onRevealComplete }) => {
+        // ABOUT.EXE - The grand portfolio reveal with phased animation
+        const AboutApp = ({ onClose, isFirstVisit, onRevealComplete }) => {
             const [phase, setPhase] = useState(0);
             const [musicStarted, setMusicStarted] = useState(false);
             const audioRef = useRef(null);
@@ -1754,6 +1763,163 @@
                             </div>
                         </div>
                     )}
+                </div>
+            );
+        };
+
+        // MESSAGES.EXE - Messenger app for intro sequence
+        const MessagesApp = ({ onIntroComplete }) => {
+            const [messages, setMessages] = useState([]);
+            const [isTyping, setIsTyping] = useState(false);
+            const [introStarted, setIntroStarted] = useState(false);
+            const messagesEndRef = useRef(null);
+
+            const introMessages = [
+                "This isn't a portfolio. It's a mind system.",
+                "Most of what I've built, loved, and learned is here.",
+                "Some on display, some buried deeper.",
+                "You start with four apps.",
+                "Explore.",
+                "Break things.",
+                "Have fun."
+            ];
+
+            // Typing sound effect
+            const playTypingSound = () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                // Soft click/tick sound
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800 + Math.random() * 200, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            };
+
+            // Message sent sound
+            const playMessageSound = () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            };
+
+            // Start intro sequence when component mounts
+            useEffect(() => {
+                if (introStarted) return;
+                setIntroStarted(true);
+
+                let messageIndex = 0;
+                const sendNextMessage = () => {
+                    if (messageIndex >= introMessages.length) {
+                        // All messages sent, wait 4 seconds then reveal apps
+                        setTimeout(() => {
+                            onIntroComplete?.();
+                        }, 4000);
+                        return;
+                    }
+
+                    // Show typing indicator
+                    setIsTyping(true);
+
+                    // Play typing sounds
+                    const typingDuration = 800 + Math.random() * 400;
+                    const typingSoundInterval = setInterval(playTypingSound, 100);
+
+                    setTimeout(() => {
+                        clearInterval(typingSoundInterval);
+                        setIsTyping(false);
+                        playMessageSound();
+                        setMessages(prev => [...prev, introMessages[messageIndex]]);
+                        messageIndex++;
+
+                        // Next message after a short delay
+                        setTimeout(sendNextMessage, 600);
+                    }, typingDuration);
+                };
+
+                // Start after a brief delay
+                setTimeout(sendNextMessage, 500);
+            }, [introStarted, onIntroComplete]);
+
+            // Auto-scroll to bottom
+            useEffect(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            }, [messages, isTyping]);
+
+            return (
+                <div className="h-full flex flex-col bg-gray-100 select-none">
+                    {/* Header */}
+                    <div className="bg-white border-b-2 border-black p-3 flex items-center gap-3">
+                        <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-mono font-bold text-lg">
+                            MM
+                        </div>
+                        <div>
+                            <div className="font-mono font-bold text-sm">MATEUS MUSTE</div>
+                            <div className="font-mono text-[10px] text-gray-500">
+                                {isTyping ? 'typing...' : 'online'}
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Messages area */}
+                    <div className="flex-grow overflow-auto p-4 space-y-3">
+                        {messages.map((msg, i) => (
+                            <div key={i} className="flex justify-start">
+                                <div className="bg-white border-2 border-black px-4 py-2 max-w-[80%] shadow-sm">
+                                    <p className="font-mono text-sm">{msg}</p>
+                                </div>
+                            </div>
+                        ))}
+
+                        {/* Typing indicator */}
+                        {isTyping && (
+                            <div className="flex justify-start">
+                                <div className="bg-white border-2 border-black px-4 py-2 shadow-sm">
+                                    <div className="flex gap-1">
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Input area (disabled, just for show) */}
+                    <div className="bg-white border-t-2 border-black p-3">
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                disabled
+                                placeholder="..."
+                                className="flex-grow border-2 border-black px-3 py-2 font-mono text-sm bg-gray-50 cursor-not-allowed"
+                            />
+                            <button disabled className="bg-gray-300 border-2 border-black px-4 py-2 font-mono text-xs font-bold cursor-not-allowed">
+                                SEND
+                            </button>
+                        </div>
+                    </div>
                 </div>
             );
         };
@@ -6891,12 +7057,66 @@
             );
         };
 
+        // Binary/Code Background for ASCII mode (defined outside OS to prevent re-mount on re-render)
+        const BinaryBackground = React.memo(() => {
+            const canvasRef = useRef(null);
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                const ctx = canvas.getContext('2d');
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+
+                const chars = '01{}[]()<>;:=/\\|_-+*&^%$#@!?.~`';
+                const fontSize = 12;
+                const columns = Math.floor(canvas.width / fontSize);
+                const drops = Array(columns).fill(0).map(() => Math.random() * -100);
+
+                const draw = () => {
+                    ctx.fillStyle = 'rgba(240, 240, 240, 0.03)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.font = fontSize + 'px monospace';
+
+                    for (let i = 0; i < drops.length; i++) {
+                        const char = chars[Math.floor(Math.random() * chars.length)];
+                        const alpha = 0.08 + Math.random() * 0.08;
+                        ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
+                        ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                        if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
+                            drops[i] = 0;
+                        }
+                        drops[i] += 0.3 + Math.random() * 0.2;
+                    }
+                };
+
+                // Initial fill
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const interval = setInterval(draw, 80);
+                const handleResize = () => {
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+                    ctx.fillStyle = '#f0f0f0';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                };
+                window.addEventListener('resize', handleResize);
+                return () => {
+                    clearInterval(interval);
+                    window.removeEventListener('resize', handleResize);
+                };
+            }, []);
+            return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />;
+        });
+
         // --- OS SHELL ---
 
         const OS = () => {
             const [booted, setBooted] = useState(false);
             const [bootPhase, setBootPhase] = useState(0); // 0: mobile notice (mobile only), 1: kernel, 2: ready
             const [isMobile, setIsMobile] = useState(false);
+            const [introComplete, setIntroComplete] = useState(() => localStorage.getItem('intro_complete') === 'true');
+            const [revealingApps, setRevealingApps] = useState(false);
+            const [revealedApps, setRevealedApps] = useState([]);
             const [isMuted, setIsMuted] = useState(() => localStorage.getItem('sound_muted') === 'true');
             const handleToggleMute = () => setIsMuted(toggleMute());
             const [topZ, setTopZ] = useState(100);
@@ -6918,6 +7138,8 @@
                 const padding = 8;
                 const topOffset = mobile ? 56 : 16; // Account for mobile taskbar at top
                 return {
+                    MESSAGES: { x: padding, y: topOffset },
+                    ABOUT: { x: padding, y: topOffset },
                     SYSTEM: { x: padding, y: topOffset },
                     FILES: { x: padding, y: topOffset + iconSize },
                     APPS: { x: padding, y: topOffset + iconSize * 2 },
@@ -7054,7 +7276,7 @@
 
             // App progression system - pool-based unlocks
             // Starting apps: TERMINAL, THIRD_EYE, SNEK, ACHIEVEMENTS.EXE + desktop icons
-            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'START', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END'];
+            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
             // Special unlocks (not pool-based)
             const SPECIAL_UNLOCKS = {
@@ -7449,14 +7671,20 @@
                 };
             }, [dogDragging, dogDragOffset]);
 
-            // Desktop icons - START.EXE first, then APPS, MEDIA_LIB, CONTACT, TRASH (plus TRUTH if unlocked)
-            const desktopIcons = truthUnlocked
-                ? ["START", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"]
-                : ["START", "APPS", "FILES", "CONTACT", "TRASH"];
+            // Desktop icons - MESSAGES only if intro not complete, otherwise full desktop
+            const allDesktopIcons = truthUnlocked
+                ? ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"]
+                : ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
+
+            // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
+            const desktopIcons = !introComplete
+                ? (revealingApps ? ["MESSAGES", ...revealedApps] : ["MESSAGES"])
+                : allDesktopIcons;
 
             // Window State (Position x/y added for dragging) - content rendered separately
             const [windows, setWindows] = useState({
-                "START": { id: "START", title: "START.EXE", icon: "Terminal", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: '380px', h: '500px', isOpen: false, isMin: false, z: 8, isDesktop: true },
+                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: '600px', h: '700px', isOpen: false, isMin: false, z: 9, isDesktop: true },
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: '1000px', h: '800px', isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: '800px', h: '500px', isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: '700px', h: '500px', isOpen: false, isMin: false, z: 12, isDesktop: true },
@@ -7494,10 +7722,35 @@
                 return !stored || parseInt(stored, 10) <= 1;
             });
 
+            // Handle intro complete - reveal apps one by one, then open ABOUT
+            const handleIntroComplete = () => {
+                localStorage.setItem('intro_complete', 'true');
+                setRevealingApps(true);
+
+                // Reveal apps one by one with 200ms delay
+                const appsToReveal = ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
+                appsToReveal.forEach((appId, index) => {
+                    setTimeout(() => {
+                        setRevealedApps(prev => [...prev, appId]);
+                        sounds.ping();
+                    }, index * 200);
+                });
+
+                // After all apps revealed + 500ms, open ABOUT and complete intro
+                setTimeout(() => {
+                    setIntroComplete(true);
+                    setRevealingApps(false);
+                    setRevealedApps([]);
+                    open('ABOUT');
+                    close('MESSAGES');
+                }, appsToReveal.length * 200 + 500);
+            };
+
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "START": return <StartApp isFirstVisit={isFirstVisit} onClose={() => close('START')} onRevealComplete={() => {}} />;
+                    case "MESSAGES": return <MessagesApp onIntroComplete={handleIntroComplete} />;
+                    case "ABOUT": return <AboutApp isFirstVisit={isFirstVisit} onClose={() => close('ABOUT')} onRevealComplete={() => {}} />;
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
@@ -7706,44 +7959,30 @@
                     img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
                 });
 
-                const isReturnVisitor = parseInt(localStorage.getItem('ultra_int_visits') || '0', 10) > 0;
+                const isFirstEver = !localStorage.getItem('intro_complete');
 
                 if (checkMobile) {
                     // Mobile: Show "best on desktop" notice first, then kernel boot
-                    if (isReturnVisitor) {
-                        // Return visitor: instant boot
-                        setBootPhase(2);
-                        setBooted(true);
-                    } else {
-                        setBootPhase(0);
-                        setTimeout(() => {
-                            setBootPhase(1); // kernel boot
-                            setTimeout(() => {
-                                setBootPhase(2);
-                                setBooted(true);
-                            }, 2000);
-                        }, 2000);
-                    }
-                } else {
-                    // Desktop
-                    if (isReturnVisitor) {
-                        // Return visitor: instant boot, SYSTEM opens
-                        setBootPhase(2);
-                        setBooted(true);
-                    } else {
-                        // First visit: full boot sequence, START.EXE opens instead of SYSTEM
-                        setBootPhase(1);
-                        // Close SYSTEM, open START for first visitors
-                        setWindows(prev => ({
-                            ...prev,
-                            SYSTEM: { ...prev.SYSTEM, isOpen: false },
-                            START: { ...prev.START, isOpen: true, z: 100 }
-                        }));
+                    setBootPhase(0);
+                    setTimeout(() => {
+                        setBootPhase(1); // kernel boot
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
                         }, 2000);
-                    }
+                    }, 2000);
+                } else {
+                    // Desktop: Always show boot animation
+                    setBootPhase(1);
+                    // Close SYSTEM on boot
+                    setWindows(prev => ({
+                        ...prev,
+                        SYSTEM: { ...prev.SYSTEM, isOpen: false }
+                    }));
+                    setTimeout(() => {
+                        setBootPhase(2);
+                        setBooted(true);
+                    }, 2000);
                 }
 
                 // Handle resize
@@ -8719,57 +8958,6 @@
                 return <canvas ref={canvasRef} className="matrix-rain" />;
             };
 
-            // Binary/Code Background for ASCII mode (memoized to prevent re-render on mouse move)
-            const BinaryBackground = React.memo(() => {
-                const canvasRef = useRef(null);
-                useEffect(() => {
-                    const canvas = canvasRef.current;
-                    const ctx = canvas.getContext('2d');
-                    canvas.width = window.innerWidth;
-                    canvas.height = window.innerHeight;
-
-                    const chars = '01{}[]()<>;:=/\\|_-+*&^%$#@!?.~`';
-                    const fontSize = 12;
-                    const columns = Math.floor(canvas.width / fontSize);
-                    const drops = Array(columns).fill(0).map(() => Math.random() * -100);
-
-                    const draw = () => {
-                        ctx.fillStyle = 'rgba(240, 240, 240, 0.03)';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                        ctx.font = fontSize + 'px monospace';
-
-                        for (let i = 0; i < drops.length; i++) {
-                            const char = chars[Math.floor(Math.random() * chars.length)];
-                            const alpha = 0.08 + Math.random() * 0.08;
-                            ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-                            ctx.fillText(char, i * fontSize, drops[i] * fontSize);
-                            if (drops[i] * fontSize > canvas.height && Math.random() > 0.98) {
-                                drops[i] = 0;
-                            }
-                            drops[i] += 0.3 + Math.random() * 0.2;
-                        }
-                    };
-
-                    // Initial fill
-                    ctx.fillStyle = '#f0f0f0';
-                    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                    const interval = setInterval(draw, 80);
-                    const handleResize = () => {
-                        canvas.width = window.innerWidth;
-                        canvas.height = window.innerHeight;
-                        ctx.fillStyle = '#f0f0f0';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
-                    };
-                    window.addEventListener('resize', handleResize);
-                    return () => {
-                        clearInterval(interval);
-                        window.removeEventListener('resize', handleResize);
-                    };
-                }, []);
-                return <canvas ref={canvasRef} style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', zIndex: 0, pointerEvents: 'none' }} />;
-            });
-
             const handleContextMenu = (e) => {
                     // Only show custom context menu when clicking directly on desktop background
                     if (e.target === e.currentTarget || e.target.classList.contains('desktop-bg-grid') || e.target.classList.contains('desktop-bg-solid') || e.target.classList.contains('desktop-bg-ascii')) {
@@ -8921,6 +9109,7 @@
                         const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 70 : 16 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
                         const isSelected = selectedIcon === app.id;
+                        const isRevealing = revealingApps && revealedApps.includes(app.id);
 
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
@@ -8928,10 +9117,11 @@
                         return (
                             <div
                                 key={app.id}
-                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                className={`absolute z-10 group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24'} cursor-pointer select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''} ${isRevealing ? 'animate-fade-in' : ''}`}
                                 style={{
                                     left: pos.x,
                                     top: pos.y,
+                                    animation: isRevealing ? 'fadeIn 0.3s ease-out forwards' : undefined,
                                 }}
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
