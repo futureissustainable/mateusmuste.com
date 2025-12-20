@@ -6380,9 +6380,9 @@
                     {/* Browser content */}
                     <div className="flex-grow flex flex-col items-center justify-center bg-gray-50 p-6">
                         <Icons.Browser size={64} />
-                        <div className="font-mono text-lg font-bold mt-4 mb-2">MUSTE://BROWSER</div>
+                        <div className="font-mono text-lg font-bold mt-4 mb-2">ZEN</div>
                         <div className="font-mono text-xs text-gray-500 text-center max-w-xs">
-                            Search for apps by name or type "mateusmuste.com" to reboot the system
+                            Search for apps or type "mateusmuste.com" to reboot
                         </div>
                     </div>
                     <div className="app-footer">
@@ -8564,7 +8564,7 @@
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
                                 onTouchStart={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black absolute window-shadow ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
+                                className={`flex flex-col bg-white border-2 border-black absolute ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={{
                                     left: isMobile ? 8 : win.x,
                                     top: isMobile ? 52 : win.y,
