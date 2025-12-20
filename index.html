@@ -7844,8 +7844,8 @@
                     const physics = initWindowPhysics(drag.id);
 
                     // Calculate velocity from mouse movement (2x speed)
-                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 16;
-                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 16;
+                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 8;
+                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 8;
                     physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
                     physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
 
@@ -7911,8 +7911,8 @@
                 const dt = Math.max(1, now - lastMousePos.current.time);
                 const physics = initWindowPhysics(drag.id);
 
-                const rawVelX = (touch.clientX - lastMousePos.current.x) / dt * 16;
-                const rawVelY = (touch.clientY - lastMousePos.current.y) / dt * 16;
+                const rawVelX = (touch.clientX - lastMousePos.current.x) / dt * 8;
+                const rawVelY = (touch.clientY - lastMousePos.current.y) / dt * 8;
                 physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
                 physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
 
@@ -8020,8 +8020,8 @@
                     const dt = Math.max(1, now - lastIconMousePos.current.time);
                     const physics = initIconPhysics(iconDrag.id);
 
-                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 16;
-                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 16;
+                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 8;
+                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 8;
                     physics.velX = physics.velX * 0.3 + rawVelX * 0.7;
                     physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
@@ -8124,8 +8124,8 @@
                 const dt = Math.max(1, now - lastIconMousePos.current.time);
                 const physics = initIconPhysics(iconDrag.id);
 
-                const rawVelX = (touch.clientX - lastIconMousePos.current.x) / dt * 16;
-                const rawVelY = (touch.clientY - lastIconMousePos.current.y) / dt * 16;
+                const rawVelX = (touch.clientX - lastIconMousePos.current.x) / dt * 8;
+                const rawVelY = (touch.clientY - lastIconMousePos.current.y) / dt * 8;
                 physics.velX = physics.velX * 0.3 + rawVelX * 0.7;
                 physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
