@@ -262,6 +262,18 @@
             z-index: 9999;
             opacity: 0.15;
         }
+
+        /* Icon drag shake animation */
+        @keyframes iconShake {
+            0%, 100% { transform: rotate(-1deg); }
+            50% { transform: rotate(1deg); }
+        }
+        .icon-dragging {
+            animation: iconShake 0.15s ease-in-out infinite;
+            transform: scale(1.1) translateY(-8px);
+            z-index: 99999 !important;
+            filter: drop-shadow(4px 8px 4px rgba(0,0,0,0.3));
+        }
     </style>
 </head>
 
@@ -5406,7 +5418,7 @@
         };
 
         // --- APPS Folder - Grid of all apps organized in folders ---
-        const AppsFolder = ({ onOpenApp }) => {
+        const AppsFolder = ({ onOpenApp, onDragStart }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
@@ -5468,7 +5480,9 @@
                                         return (
                                             <tr key={idx}
                                                 onClick={() => onOpenApp(app.id)}
-                                                className="border-b border-gray-200 hover:bg-yellow-100 cursor-pointer"
+                                                draggable
+                                                onDragStart={(e) => onDragStart?.(e, app.id, app.title, app.icon)}
+                                                className="border-b border-gray-200 hover:bg-yellow-100 cursor-grab active:cursor-grabbing"
                                             >
                                                 <td className="p-2 font-bold flex items-center gap-2">
                                                     <AppIcon size={20} />
@@ -5485,7 +5499,7 @@
                             </table>
                         </div>
                         <div className="app-footer">
-                            <span className="app-footer-text">CLICK TO OPEN • DOUBLE-CLICK TO RUN</span>
+                            <span className="app-footer-text">CLICK TO OPEN • DRAG TO DESKTOP</span>
                         </div>
                     </div>
                 );
@@ -5569,7 +5583,28 @@
             const [dogFacingRight, setDogFacingRight] = useState(true);
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
             const [carriedIcon, setCarriedIcon] = useState(null);
-            const [iconPositions, setIconPositions] = useState({});
+            const [iconPositions, setIconPositions] = useState(() => {
+                // Initialize desktop icon positions in a column on the left
+                const stored = localStorage.getItem('desktop_icon_positions');
+                if (stored) {
+                    try { return JSON.parse(stored); } catch { }
+                }
+                return {
+                    SYSTEM: { x: 16, y: 16 },
+                    FILES: { x: 16, y: 110 },
+                    APPS: { x: 16, y: 204 },
+                    CONTACT: { x: 16, y: 298 },
+                    TRUTH: { x: 16, y: 392 }
+                };
+            });
+            const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0 });
+            const iconPhysics = useRef({});
+            const lastIconMousePos = useRef({ x: 0, y: 0, time: Date.now() });
+            const [folderDrag, setFolderDrag] = useState(null); // { id, title, icon, startX, startY }
+            const [extraDesktopIcons, setExtraDesktopIcons] = useState(() => {
+                const stored = localStorage.getItem('extra_desktop_icons');
+                return stored ? JSON.parse(stored) : [];
+            });
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
@@ -5777,7 +5812,7 @@
                 switch (id) {
                     case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
-                    case "APPS": return <AppsFolder onOpenApp={open} />;
+                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
                     case "SNAKE": return <SnakeAppNew />;
@@ -6047,6 +6082,199 @@
                 setDrag({ id: null, offsetX: 0, offsetY: 0 });
             };
 
+            // === ICON PHYSICS AND DRAG HANDLERS ===
+            const ICON_SIZE = 80; // Approximate icon size for collision
+            const ICON_SPACING = 10; // Minimum spacing between icons
+
+            const initIconPhysics = (id) => {
+                if (!iconPhysics.current[id]) {
+                    iconPhysics.current[id] = { velX: 0, velY: 0 };
+                }
+                return iconPhysics.current[id];
+            };
+
+            // Check if position collides with other icons
+            const checkIconCollision = (id, x, y, positions) => {
+                for (const otherId in positions) {
+                    if (otherId === id) continue;
+                    const other = positions[otherId];
+                    const dx = Math.abs(x - other.x);
+                    const dy = Math.abs(y - other.y);
+                    if (dx < ICON_SIZE + ICON_SPACING && dy < ICON_SIZE + ICON_SPACING) {
+                        return otherId; // Return colliding icon id
+                    }
+                }
+                return null;
+            };
+
+            // Find nearest non-colliding position
+            const findNonCollidingPosition = (id, x, y, positions) => {
+                if (!checkIconCollision(id, x, y, positions)) return { x, y };
+
+                // Spiral outward to find free spot
+                for (let radius = ICON_SIZE; radius < 500; radius += ICON_SIZE / 2) {
+                    for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
+                        const testX = x + Math.cos(angle) * radius;
+                        const testY = y + Math.sin(angle) * radius;
+                        if (!checkIconCollision(id, testX, testY, positions)) {
+                            return { x: testX, y: testY };
+                        }
+                    }
+                }
+                return { x, y }; // Fallback
+            };
+
+            const handleIconMouseDown = (e, id) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const pos = iconPositions[id] || { x: 0, y: 0 };
+                const physics = initIconPhysics(id);
+                physics.velX = 0;
+                physics.velY = 0;
+                lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: Date.now() };
+                setIconDrag({
+                    id: id,
+                    offsetX: e.clientX - pos.x,
+                    offsetY: e.clientY - pos.y
+                });
+            };
+
+            const handleIconMouseMove = (e) => {
+                if (iconDrag.id) {
+                    const now = Date.now();
+                    const dt = Math.max(1, now - lastIconMousePos.current.time);
+                    const physics = initIconPhysics(iconDrag.id);
+
+                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 16;
+                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 16;
+                    physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
+                    physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
+
+                    lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
+
+                    setIconPositions(prev => ({
+                        ...prev,
+                        [iconDrag.id]: {
+                            x: e.clientX - iconDrag.offsetX,
+                            y: e.clientY - iconDrag.offsetY
+                        }
+                    }));
+                }
+            };
+
+            const handleIconMouseUp = () => {
+                if (iconDrag.id) {
+                    // Check for collision and adjust if needed
+                    setIconPositions(prev => {
+                        const current = prev[iconDrag.id];
+                        const adjusted = findNonCollidingPosition(iconDrag.id, current.x, current.y, prev);
+                        const newPositions = { ...prev, [iconDrag.id]: adjusted };
+                        localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
+                        return newPositions;
+                    });
+                }
+                setIconDrag({ id: null, offsetX: 0, offsetY: 0 });
+            };
+
+            // Folder item drag to desktop handlers
+            const handleFolderDragStart = (e, id, title, icon) => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', JSON.stringify({ id, title, icon }));
+                setFolderDrag({ id, title, icon, startX: e.clientX, startY: e.clientY });
+            };
+
+            const handleDesktopDrop = (e) => {
+                e.preventDefault();
+                if (!folderDrag) return;
+
+                const { id, title, icon } = folderDrag;
+                const dropX = e.clientX - 40; // Center icon on cursor
+                const dropY = e.clientY - 40;
+
+                // Check if already on desktop
+                if (!iconPositions[id] && !extraDesktopIcons.includes(id)) {
+                    // Add to extra desktop icons
+                    const newExtras = [...extraDesktopIcons, id];
+                    setExtraDesktopIcons(newExtras);
+                    localStorage.setItem('extra_desktop_icons', JSON.stringify(newExtras));
+
+                    // Set position
+                    const adjustedPos = findNonCollidingPosition(id, dropX, dropY, iconPositions);
+                    setIconPositions(prev => {
+                        const newPositions = { ...prev, [id]: adjustedPos };
+                        localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
+                        return newPositions;
+                    });
+                }
+                setFolderDrag(null);
+            };
+
+            const handleDesktopDragOver = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            };
+
+            // Icon physics loop
+            useEffect(() => {
+                let animationId;
+                const iconPhysicsLoop = () => {
+                    setIconPositions(prev => {
+                        let updated = { ...prev };
+                        let hasChanges = false;
+
+                        Object.keys(prev).forEach(id => {
+                            const physics = initIconPhysics(id);
+                            if (iconDrag.id === id) return;
+                            if (Math.abs(physics.velX) < MIN_VELOCITY && Math.abs(physics.velY) < MIN_VELOCITY) {
+                                physics.velX = 0;
+                                physics.velY = 0;
+                                return;
+                            }
+
+                            hasChanges = true;
+                            physics.velX *= FRICTION;
+                            physics.velY *= FRICTION;
+
+                            let newX = prev[id].x + physics.velX;
+                            let newY = prev[id].y + physics.velY;
+
+                            const maxX = window.innerWidth - ICON_SIZE;
+                            const maxY = window.innerHeight - 60 - ICON_SIZE;
+                            const minY = isMobile ? 80 : 0;
+
+                            // Bounce off edges
+                            if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; }
+                            else if (newX >= maxX) { newX = maxX; physics.velX = -physics.velX * BOUNCE_DAMPING; }
+                            if (newY <= minY) { newY = minY; physics.velY = -physics.velY * BOUNCE_DAMPING; }
+                            else if (newY >= maxY) { newY = maxY; physics.velY = -physics.velY * BOUNCE_DAMPING; }
+
+                            // Bounce off other icons
+                            const collider = checkIconCollision(id, newX, newY, updated);
+                            if (collider) {
+                                const other = updated[collider];
+                                const dx = newX - other.x;
+                                const dy = newY - other.y;
+                                const len = Math.sqrt(dx * dx + dy * dy) || 1;
+                                physics.velX = (dx / len) * Math.abs(physics.velX) * BOUNCE_DAMPING;
+                                physics.velY = (dy / len) * Math.abs(physics.velY) * BOUNCE_DAMPING;
+                                newX = prev[id].x;
+                                newY = prev[id].y;
+                            }
+
+                            updated[id] = { x: newX, y: newY };
+                        });
+
+                        if (hasChanges) {
+                            localStorage.setItem('desktop_icon_positions', JSON.stringify(updated));
+                        }
+                        return hasChanges ? updated : prev;
+                    });
+                    animationId = requestAnimationFrame(iconPhysicsLoop);
+                };
+                animationId = requestAnimationFrame(iconPhysicsLoop);
+                return () => cancelAnimationFrame(animationId);
+            }, [iconDrag.id, isMobile]);
+
             // Visit messages based on count
             const getVisitMessage = (count) => {
                 const messages = {
@@ -6205,41 +6433,99 @@
                     className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
+                        handleIconMouseMove(e);
                         setMousePos({ x: e.clientX, y: e.clientY });
                     }}
-                    onMouseUp={handleMouseUp}
+                    onMouseUp={() => {
+                        handleMouseUp();
+                        handleIconMouseUp();
+                    }}
+                    onDrop={handleDesktopDrop}
+                    onDragOver={handleDesktopDragOver}
+                    onDragEnd={() => setFolderDrag(null)}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
                     {matrixMode && <MatrixRain />}
-                    {/* DESKTOP ICONS - Only show main folders */}
-                    <div className={`absolute z-0 ${isMobile ? 'top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
-                        {desktopIcons.map(appId => {
-                            const app = windows[appId];
-                            if (!app) return null;
-                            const IconCmp = Icons[app.icon];
-                            const iconOffset = iconPositions[app.id] || { x: 0, y: 0 };
+                    {/* DESKTOP ICONS - Freely positionable */}
+                    {!isMobile && desktopIcons.map(appId => {
+                        const app = windows[appId];
+                        if (!app) return null;
+                        const IconCmp = Icons[app.icon];
+                        const pos = iconPositions[app.id] || { x: 16, y: 16 };
+                        const isDragging = iconDrag.id === app.id;
 
-                            // Skip icon if dog is carrying it
-                            if (carriedIcon === app.id) return null;
+                        // Skip icon if dog is carrying it
+                        if (carriedIcon === app.id) return null;
 
-                            return (
-                                <button
-                                    key={app.id}
-                                    onClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
-                                    className={`group flex flex-col items-center gap-1 ${isMobile ? 'w-16' : 'w-24 gap-2'}`}
-                                    style={{
-                                        transform: isMobile ? 'none' : `translate(${iconOffset.x}px, ${iconOffset.y}px)`,
-                                        transition: 'transform 0.3s ease'
-                                    }}
-                                >
-                                    <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'}`}>
-                                        <IconCmp size={isMobile ? 24 : 32} />
-                                    </div>
-                                    <span className={`bg-white border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>{isMobile ? app.title.split('_')[0] : app.title}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
+                        return (
+                            <div
+                                key={app.id}
+                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-grab select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                style={{
+                                    left: pos.x,
+                                    top: pos.y,
+                                }}
+                                onMouseDown={(e) => handleIconMouseDown(e, app.id)}
+                                onDoubleClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
+                            >
+                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
+                                    <IconCmp size={32} />
+                                </div>
+                                <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[10px]">{app.title}</span>
+                            </div>
+                        );
+                    })}
+                    {/* Extra desktop icons (dragged from folders) */}
+                    {!isMobile && extraDesktopIcons.map(appId => {
+                        const app = windows[appId];
+                        if (!app) return null;
+                        const IconCmp = Icons[app.icon];
+                        const pos = iconPositions[app.id] || { x: 200, y: 200 };
+                        const isDragging = iconDrag.id === app.id;
+                        if (carriedIcon === app.id) return null;
+
+                        return (
+                            <div
+                                key={app.id}
+                                className={`absolute z-10 group flex flex-col items-center gap-2 w-24 cursor-grab select-none ${isDragging ? 'icon-dragging cursor-grabbing' : ''}`}
+                                style={{
+                                    left: pos.x,
+                                    top: pos.y,
+                                }}
+                                onMouseDown={(e) => handleIconMouseDown(e, app.id)}
+                                onDoubleClick={() => open(app.id)}
+                            >
+                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
+                                    <IconCmp size={32} />
+                                </div>
+                                <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[10px]">{app.title}</span>
+                            </div>
+                        );
+                    })}
+                    {/* Mobile icons - fixed position */}
+                    {isMobile && (
+                        <div className="absolute z-0 top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2">
+                            {desktopIcons.map(appId => {
+                                const app = windows[appId];
+                                if (!app) return null;
+                                const IconCmp = Icons[app.icon];
+                                if (carriedIcon === app.id) return null;
+
+                                return (
+                                    <button
+                                        key={app.id}
+                                        onClick={() => open(app.id === 'CONTACT' ? 'PAINT' : app.id)}
+                                        className="group flex flex-col items-center gap-1 w-16"
+                                    >
+                                        <div className="bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-2">
+                                            <IconCmp size={24} />
+                                        </div>
+                                        <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[8px]">{app.title.split('_')[0]}</span>
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
 
                     {/* WINDOWS */}
                     {Object.values(windows).map(win => {
