@@ -6156,7 +6156,7 @@
                     startY: e.clientY
                 };
 
-                // Start hold timer - drag only activates after 0.5 seconds
+                // Start hold timer - drag only activates after 0.1 seconds
                 iconHoldTimer.current = setTimeout(() => {
                     if (iconPendingDrag.current) {
                         setIconDrag({
@@ -6166,7 +6166,7 @@
                             active: true
                         });
                     }
-                }, 500);
+                }, 100);
             };
 
             const handleIconMouseMove = (e) => {
@@ -6175,10 +6175,10 @@
                     const dt = Math.max(1, now - lastIconMousePos.current.time);
                     const physics = initIconPhysics(iconDrag.id);
 
-                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 16;
-                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 16;
-                    physics.velX = physics.velX * 0.5 + rawVelX * 0.5;
-                    physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
+                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 4; // Lighter feel
+                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 4;
+                    physics.velX = physics.velX * 0.3 + rawVelX * 0.7; // Less momentum carry
+                    physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
                     lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
 
