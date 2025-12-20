@@ -1216,7 +1216,7 @@
 
         // --- APP COMPONENTS ---
 
-        const PaintApp = ({ showHint }) => {
+        const PaintApp = ({ showHint, onAchievement }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const [tool, setTool] = useState('brush');
@@ -1458,6 +1458,7 @@
                                     new ClipboardItem({ 'image/png': blob })
                                 ]);
                                 setStatus("COPIED TO CLIPBOARD");
+                                onAchievement?.('MESSENGER');
                             } catch (e) {
                                 setStatus("COPY FAILED");
                             }
@@ -1524,8 +1525,8 @@
                             <Icons.Palette size={16} className="flex-shrink-0" />
                             <span className="app-header-title truncate">PAINT.EXE</span>
                         </div>
-                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex items-center gap-1 flex-shrink-0">
-                            <Icons.Send size={12} /> SEND
+                        <button onClick={() => { sounds.click(); send(); }} className="btn-primary btn-xs flex-shrink-0">
+                            SEND
                         </button>
                     </div>
                     <div className="p-2 border-b-2 border-black bg-white flex flex-wrap gap-2 items-center">
@@ -1829,7 +1830,8 @@
         };
 
         // ABOUT.EXE - Static portfolio page (no animations)
-        const AboutApp = () => {
+        const AboutApp = ({ onAchievement }) => {
+            const achievementTriggered = useRef(false);
             const skills = [
                 { name: 'PHOTOSHOP', yrs: 9 },
                 { name: 'PREMIERE', yrs: 8 },
@@ -1884,7 +1886,12 @@
                             <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Projects</h3>
                             <div className="space-y-2">
                                 {projects.map((p, i) => (
-                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer">
+                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer" onClick={() => {
+                                        if (!achievementTriggered.current) {
+                                            achievementTriggered.current = true;
+                                            onAchievement?.('WORK_IN_PROGRESS');
+                                        }
+                                    }}>
                                         <div className="font-bold text-sm uppercase">{p.t}</div>
                                         <div className="font-mono text-[10px] text-gray-500">{p.s}</div>
                                         <div className="text-[13px] mt-1">{p.d}</div>
@@ -2020,58 +2027,62 @@
             }, [messages, isTyping]);
 
             return (
-                <div className="h-full flex flex-col bg-gray-100 select-none">
-                    {/* Header */}
-                    <div className="bg-white border-b-2 border-black p-3 flex items-center gap-3">
-                        <div className="w-10 h-10 bg-black text-white flex items-center justify-center font-mono font-bold text-lg">
-                            MM
-                        </div>
-                        <div>
-                            <div className="font-heading font-bold text-sm">MATEUS MUSTE</div>
-                            <div className="font-mono text-[10px] text-gray-500">
-                                {isTyping ? 'typing...' : 'online'}
+                <div className="h-full flex flex-col bg-black select-none overflow-hidden">
+                    {/* Minimal Header */}
+                    <div className="bg-black border-b border-white/20 px-4 py-3 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-mono font-black text-xs">
+                                MM
                             </div>
+                            <div>
+                                <div className="font-heading text-white text-sm tracking-wide">MATEUS MUSTE</div>
+                                <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
+                                    <span className={`w-1.5 h-1.5 ${isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
+                                    {isTyping ? 'COMPOSING' : 'ONLINE'}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="font-mono text-[10px] text-white/30">
+                            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                     </div>
 
-                    {/* Messages area */}
-                    <div className="flex-grow overflow-auto p-4 space-y-3">
+                    {/* Messages area - dark terminal style */}
+                    <div className="flex-grow overflow-auto p-6 space-y-4">
                         {messages.filter(msg => msg && msg.trim()).map((msg, i) => (
-                            <div key={i} className="flex justify-start">
-                                <div className="bg-white border-2 border-black px-4 py-2 max-w-[80%] shadow-sm">
-                                    <p className="font-mono text-sm">{msg}</p>
+                            <div key={i} className="flex items-start gap-3 animate-fade-in">
+                                <div className="w-1 h-full bg-white/20 flex-shrink-0 mt-1" style={{ minHeight: '20px' }}></div>
+                                <div className="flex-grow">
+                                    <p className="font-mono text-white text-sm leading-relaxed">{msg}</p>
+                                    <div className="font-mono text-[9px] text-white/30 mt-1">
+                                        {String(i).padStart(2, '0')}:{String(Math.floor(Math.random() * 60)).padStart(2, '0')}
+                                    </div>
                                 </div>
                             </div>
                         ))}
 
-                        {/* Typing indicator */}
+                        {/* Typing indicator - minimal cursor blink */}
                         {isTyping && (
-                            <div className="flex justify-start">
-                                <div className="bg-white border-2 border-black px-4 py-2 shadow-sm">
-                                    <div className="flex gap-1">
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></span>
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></span>
-                                        <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></span>
-                                    </div>
+                            <div className="flex items-start gap-3">
+                                <div className="w-1 bg-yellow-400 flex-shrink-0" style={{ minHeight: '20px' }}></div>
+                                <div className="flex items-center gap-1">
+                                    <span className="font-mono text-white/50 text-sm">_</span>
+                                    <span className="w-2 h-4 bg-white/80 animate-pulse"></span>
                                 </div>
                             </div>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
 
-                    {/* Input area (disabled, just for show) */}
-                    <div className="bg-white border-t-2 border-black p-3">
-                        <div className="flex gap-2">
-                            <input
-                                type="text"
-                                disabled
-                                aria-label="Message input (disabled)"
-                                placeholder="..."
-                                className="flex-grow border-2 border-black px-3 py-2 font-mono text-sm bg-gray-50 cursor-not-allowed"
-                            />
-                            <button disabled className="bg-gray-300 border-2 border-black px-4 py-2 font-mono text-xs font-bold cursor-not-allowed">
-                                SEND
-                            </button>
+                    {/* Footer - system status bar */}
+                    <div className="bg-black border-t border-white/20 px-4 py-2 flex items-center justify-between">
+                        <div className="font-mono text-[10px] text-white/40 flex items-center gap-4">
+                            <span>MESSAGES.EXE</span>
+                            <span className="text-white/20">|</span>
+                            <span>{messages.length}/8 RECEIVED</span>
+                        </div>
+                        <div className="font-mono text-[10px] text-white/40">
+                            READ ONLY
                         </div>
                     </div>
                 </div>
@@ -2253,7 +2264,7 @@
         };
 
         // --- RADIO.WAV - Playlist link ---
-        const RadioApp = () => {
+        const RadioApp = ({ onAchievement }) => {
             const [isPlaying, setIsPlaying] = useState(false);
             const [visualizer, setVisualizer] = useState([]);
 
@@ -2269,6 +2280,7 @@
             const openPlaylist = () => {
                 window.open('https://music.youtube.com/playlist?list=PLeIQRsOWZUhKaD53FTvwZCxsNWzjq0lfO&si=92O5A6kAPjk8Vzmg', '_blank', 'noopener,noreferrer');
                 setIsPlaying(true);
+                onAchievement?.('TUNED_IN');
             };
 
             return (
@@ -3610,7 +3622,7 @@
         };
 
         // --- SYNTH_001.WAV - Brutalist Synthesizer ---
-        const SynthApp = () => {
+        const SynthApp = ({ onAchievement }) => {
             const [tempo, setTempo] = useState(120);
             const [filter, setFilter] = useState(1000);
             const [isPlaying, setIsPlaying] = useState(false);
@@ -3623,6 +3635,7 @@
                     noise: Array(16).fill(false)
                 };
             });
+            const symphonyTriggered = useRef(false);
             const audioCtxRef = useRef(null);
             const intervalRef = useRef(null);
             // Refs to avoid stale closures in interval
@@ -3685,6 +3698,12 @@
                     setCurrentStep(0);
                 } else {
                     setIsPlaying(true);
+                    // Check if entire grid is filled for SYMPHONY achievement
+                    const allFilled = oscillators.every(osc => grid[osc].every(note => note));
+                    if (allFilled && !symphonyTriggered.current) {
+                        symphonyTriggered.current = true;
+                        onAchievement?.('SYMPHONY');
+                    }
                     // Interval is started by the useEffect when isPlaying changes
                 }
             };
@@ -6745,21 +6764,19 @@
                             {visibleApps.map((app) => {
                                 const AppIcon = Icons[app.icon];
                                 const isUnlocked = unlockedApps?.has(app.id);
-                                const isHovered = hoveredApp === app.id;
-
                                 return (
                                     <div
                                         key={app.id}
-                                        className={`relative flex flex-col items-center gap-1 p-2 border-2 transition-all cursor-pointer ${
+                                        className={`relative flex flex-col items-center gap-1 p-2 border-2 cursor-pointer ${
                                             isUnlocked
-                                                ? 'border-black hover:bg-yellow-100 hover:translate-y-[-2px]'
+                                                ? 'border-black hover:bg-yellow-100 active:bg-yellow-100'
                                                 : 'border-gray-300 bg-gray-100 opacity-50'
                                         }`}
                                         onClick={() => isUnlocked && onOpenApp(app.id)}
                                         onMouseEnter={() => setHoveredApp(app.id)}
                                         onMouseLeave={() => setHoveredApp(null)}
-                                        draggable={isUnlocked}
-                                        onDragStart={(e) => isUnlocked && onDragStart?.(e, app.id, app.title, app.icon)}
+                                        draggable={isUnlocked && !isMobile}
+                                        onDragStart={(e) => isUnlocked && !isMobile && onDragStart?.(e, app.id, app.title, app.icon)}
                                     >
                                         <div className={`p-2 ${isUnlocked ? '' : 'grayscale'}`}>
                                             <AppIcon size={32} />
@@ -6951,13 +6968,15 @@
 
         // --- END.EXE - 100% Completion Screen ---
         const EndApp = ({ achievements }) => {
-            // Full 27 achievement list for display with icons and hints
+            // Full achievement list for display with icons and hints
             const ACHIEVEMENTS = {
                 // Pool A - Terminal
                 SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker' },
                 NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill' },
                 LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack' },
                 FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills' },
+                MESSENGER: { name: 'MESSENGER', icon: 'Palette', hint: 'A picture is worth a thousand words' },
+                WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'The art behind the artist' },
                 // Pool B - Games
                 OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time' },
                 FIRST_BLOOD: { name: 'FIRST BLOOD', icon: 'Sword', hint: 'Everyone starts somewhere' },
@@ -6969,11 +6988,13 @@
                 DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned' },
                 COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one' },
                 VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss' },
+                TUNED_IN: { name: 'TUNED IN', icon: 'Radio', hint: 'Broadcasting from the void' },
                 // Pool D - Meta
                 FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision' },
                 PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy' },
                 KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool' },
                 INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper' },
+                SYMPHONY: { name: 'SYMPHONY', icon: 'Synth', hint: 'Go all out' },
                 // Pool E - Time
                 TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies' },
                 CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: 'Click. Click. Click.' },
@@ -7189,6 +7210,8 @@
                 NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill', pool: 'A', visible: true },
                 LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack', pool: 'A', visible: true },
                 FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills', pool: 'A', visible: true },
+                MESSENGER: { name: 'MESSENGER', icon: 'Palette', hint: 'A picture is worth a thousand words', pool: 'A', requiresApp: 'PAINT' },
+                WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'The art behind the artist', pool: 'A', visible: true },
 
                 // Pool B - Games (unlocks: LABYRINTH, MINESWEEPER, STARSHIP, DICE)
                 OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time', pool: 'B', visible: true },
@@ -7202,12 +7225,14 @@
                 DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned', pool: 'C', visible: true },
                 COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one', pool: 'C', requiresApp: 'TAROT' },
                 VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss', pool: 'C', requiresApp: 'VOID' },
+                TUNED_IN: { name: 'TUNED IN', icon: 'Radio', hint: 'Broadcasting from the void', pool: 'C', requiresApp: 'RADIO' },
 
                 // Pool D - Meta (unlocks: TAROT, SYNTH, DESTRUCTION, POMODORO)
                 FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision', pool: 'D', visible: true },
                 PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy', pool: 'D', visible: true },
                 KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool', pool: 'D', visible: true },
                 INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper', pool: 'D', requiresApp: 'BROWSER' },
+                SYMPHONY: { name: 'SYMPHONY', icon: 'Synth', hint: 'Go all out', pool: 'D', requiresApp: 'SYNTH' },
 
                 // Pool E - Time (bragging rights only)
                 TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies', pool: 'E', visible: true },
@@ -7820,21 +7845,21 @@
             const getWindowContent = (id) => {
                 switch (id) {
                     case "MESSAGES": return <MessagesApp onIntroComplete={handleIntroComplete} />;
-                    case "ABOUT": return <AboutApp />;
+                    case "ABOUT": return <AboutApp onAchievement={unlockAchievement} />;
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer onAchievement={unlockAchievement} />;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
-                    case "PAINT": return <PaintApp showHint={paintShowHint} />;
+                    case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
-                    case "RADIO": return <RadioApp />;
+                    case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} />;
-                    case "SYNTH": return <SynthApp />;
+                    case "SYNTH": return <SynthApp onAchievement={unlockAchievement} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} />;
                     case "GALLERY": return <GalleryApp />;
@@ -8357,14 +8382,16 @@
                     iconHoldTimer.current = null;
                 }
 
-                // If drag was active, finalize position with grid snap
+                // If drag was active, finalize position (skip grid snap on mobile)
                 if (iconDrag.active && iconDrag.id) {
                     sounds.dragStop();
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
-                        const snapped = snapToGrid(current.x, current.y);
-                        const adjusted = findNonCollidingPosition(iconDrag.id, snapped.x, snapped.y, prev);
+                        // On mobile: no grid snap, just use current position
+                        // On desktop: snap to grid
+                        const finalPos = isMobile ? current : snapToGrid(current.x, current.y);
+                        const adjusted = findNonCollidingPosition(iconDrag.id, finalPos.x, finalPos.y, prev);
                         const newPositions = { ...prev, [iconDrag.id]: adjusted };
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
@@ -9345,7 +9372,7 @@
 
                     {/* Achievement notifications (stacked) */}
                     {achievementNotifications.map((notif, index) => (
-                        <div key={notif.id} className="fixed right-4 z-[9999999] bg-black text-white border-2 border-white px-4 py-3 font-mono shadow-lg animate-slide-in-right" style={{ top: `${16 + index * 76}px` }}>
+                        <div key={notif.id} className="fixed right-4 z-[9999999] bg-black text-white border-2 border-white px-4 py-3 font-mono shadow-lg animate-slide-in-right" style={{ top: `${16 + index * 152}px` }}>
                             <div className="text-[10px] text-gray-400 uppercase tracking-widest">Achievement Unlocked</div>
                             <div className="text-lg font-bold">{notif.name}</div>
                             <div className="text-xs text-gray-300">{notif.hint}</div>
@@ -9354,7 +9381,7 @@
 
                     {/* App unlock notifications (stacked below achievements) */}
                     {appUnlockNotifications.map((notif, index) => (
-                        <div key={notif.id} className="fixed right-4 z-[9999998] bg-white text-black border-2 border-black px-4 py-3 font-mono shadow-lg animate-slide-in-right" style={{ top: `${16 + achievementNotifications.length * 76 + index * 76}px` }}>
+                        <div key={notif.id} className="fixed right-4 z-[9999998] bg-white text-black border-2 border-black px-4 py-3 font-mono shadow-lg animate-slide-in-right" style={{ top: `${16 + achievementNotifications.length * 152 + index * 152}px` }}>
                             <div className="text-[10px] text-gray-500 uppercase tracking-widest">New App Unlocked</div>
                             <div className="text-lg font-bold">{notif.app}</div>
                             <div className="text-xs text-gray-500">Check APPS folder</div>
