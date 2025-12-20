@@ -407,6 +407,12 @@
             GamesFolder: (p) => <PixelartIcon name="gamepad" {...p} />,
             ProductivityFolder: (p) => <PixelartIcon name="sliders" {...p} />,
             AboutFolder: (p) => <PixelartIcon name="user" {...p} />,
+            // Third Eye - code viewer
+            ThirdEye: ({ size = 24 }) => (
+                <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 4C7 4 3 8 2 12C3 16 7 20 12 20C17 20 21 16 22 12C21 8 17 4 12 4ZM12 17C9.2 17 7 14.8 7 12C7 9.2 9.2 7 12 7C14.8 7 17 9.2 17 12C17 14.8 14.8 17 12 17ZM12 9C10.3 9 9 10.3 9 12C9 13.7 10.3 15 12 15C13.7 15 15 13.7 15 12C15 10.3 13.7 9 12 9Z"/>
+                </svg>
+            ),
         };
 
         // --- SHARED DOG SPRITE ---
@@ -5189,6 +5195,183 @@
             );
         };
 
+        // --- THIRD_EYE.EXE - X-ray view of app code ---
+        const ThirdEyeApp = ({ windows, openApp }) => {
+            const [selected, setSelected] = useState(null);
+
+            const appCode = {
+                SYSTEM: `fn render_system() {
+  let visitors = fetch_count();
+  let usage = rand(5..100);
+  loop {
+    display(ascii_logo);
+    show_stats(visitors);
+    if konami_detected() {
+      toggle_matrix();
+    }
+  }
+}`,
+                SNAKE: `fn game_loop() {
+  let snake = [(5,5)];
+  let food = rand_pos();
+  loop {
+    dir = get_input();
+    snake.move(dir);
+    if snake.head == food {
+      snake.grow();
+      score += 10;
+    }
+    if snake.collides() {
+      game_over();
+    }
+    render(snake, food);
+    sleep(100ms);
+  }
+}`,
+                PAINT: `fn canvas_handler() {
+  let pixels = [];
+  let color = BLACK;
+  on_mouse_down(|pos| {
+    drawing = true;
+  });
+  on_mouse_move(|pos| {
+    if drawing {
+      pixels.push((pos, color));
+      draw_pixel(pos, color);
+    }
+  });
+}`,
+                TERMINAL: `fn execute(cmd) {
+  match cmd {
+    "help" => show_commands(),
+    "cmatrix" => enter_matrix(),
+    "exit" => print("no escape"),
+    "sudo" => check_permission(cmd),
+    _ => print("not found"),
+  }
+  add_to_history(cmd);
+}`,
+                ORACLE: `fn consult_oracle() {
+  let wisdom = [
+    "perhaps",
+    "in time",
+    "unclear",
+  ];
+  wait_for_question();
+  think(rand(1..3)s);
+  return wisdom.random();
+}`,
+                TAROT: `fn draw_cards() {
+  let deck = shuffle(78_cards);
+  let spread = deck.take(3);
+  for card in spread {
+    animate_flip(card);
+    reveal(card.meaning);
+  }
+}`,
+                DICE: `fn roll() {
+  let result = rand(1..6);
+  animate_tumble();
+  show_face(result);
+  history.push(result);
+}`,
+                MAP: `fn render_globe() {
+  let phi = 0;
+  loop {
+    phi += 0.005;
+    cobe.render({
+      phi: phi,
+      markers: locations,
+    });
+    frame();
+  }
+}`,
+                VOID: `fn void_loop() {
+  // nothing here
+  // or is there?
+
+
+
+  return undefined;
+}`,
+                RADIO: `fn stream_audio() {
+  let stations = load_streams();
+  let current = null;
+  on_select(|station| {
+    current?.stop();
+    current = play(station.url);
+  });
+}`,
+            };
+
+            const defaultCode = `fn unknown_app() {
+  // source hidden
+  // or not yet written
+  return mysterious();
+}`;
+
+            // Stack overflow display
+            if (stackOverflow) {
+                return (
+                    <div className="h-full flex flex-col bg-black text-red-500 font-mono select-none overflow-hidden">
+                        <div className="flex-grow flex flex-col items-center justify-center p-4">
+                            <pre className="text-red-500 text-center animate-pulse text-[8px] leading-tight whitespace-pre">{`
+███████╗████████╗ █████╗  ██████╗██╗  ██╗
+██╔════╝╚══██╔══╝██╔══██╗██╔════╝██║ ██╔╝
+███████╗   ██║   ███████║██║     █████╔╝
+╚════██║   ██║   ██╔══██║██║     ██╔═██╗
+███████║   ██║   ██║  ██║╚██████╗██║  ██╗
+╚══════╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝╚═╝  ╚═╝
+ ██████╗ ██╗   ██╗███████╗██████╗ ███████╗██╗      ██████╗ ██╗    ██╗
+██╔═══██╗██║   ██║██╔════╝██╔══██╗██╔════╝██║     ██╔═══██╗██║    ██║
+██║   ██║██║   ██║█████╗  ██████╔╝█████╗  ██║     ██║   ██║██║ █╗ ██║
+██║   ██║╚██╗ ██╔╝██╔══╝  ██╔══██╗██╔══╝  ██║     ██║   ██║██║███╗██║
+╚██████╔╝ ╚████╔╝ ███████╗██║  ██║██║     ███████╗╚██████╔╝╚███╔███╔╝
+ ╚═════╝   ╚═══╝  ╚══════╝╚═╝  ╚═╝╚═╝     ╚══════╝ ╚═════╝  ╚══╝╚══╝
+`}</pre>
+                            <div className="mt-4 text-left w-full max-w-md overflow-auto max-h-32">
+                                {stackErrors.map((err, i) => (
+                                    <div key={i} className="text-red-400 text-[10px]">{err}</div>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.ThirdEye size={16} />
+                        <span className="font-bold">THIRD_EYE.EXE</span>
+                        <span className="text-green-700 text-[10px] ml-auto">SEE THE CODE</span>
+                    </div>
+                    <div className="flex flex-grow overflow-hidden">
+                        <div className="w-32 border-r border-green-900 overflow-auto">
+                            {Object.keys(windows).filter(id => !['DOG_STORY', 'TRUTH', 'THIRD_EYE_2'].includes(id)).map(id => (
+                                <div
+                                    key={id}
+                                    onClick={() => setSelected(id)}
+                                    className={`px-2 py-1 cursor-pointer truncate ${selected === id ? 'bg-green-900 text-green-300' : 'hover:bg-green-950'}`}
+                                >
+                                    {windows[id].title.split('.')[0]}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex-grow p-3 overflow-auto">
+                            {selected ? (
+                                <pre className="text-green-500 whitespace-pre-wrap">{appCode[selected] || defaultCode}</pre>
+                            ) : (
+                                <div className="text-green-700 text-center mt-10">
+                                    SELECT AN APP<br/>TO VIEW SOURCE
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
         const TruthApp = () => {
             const [password, setPassword] = useState('');
@@ -5437,6 +5620,7 @@
                 PRODUCTIVITY: [
                     { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' },
                     { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal' },
+                    { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
                     { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' },
                     { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                     { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio' },
@@ -5609,6 +5793,10 @@
             const [destructionDogGone, setDestructionDogGone] = useState(false);
             const [matrixMode, setMatrixMode] = useState(false);
             const [privateUnlocked, setPrivateUnlocked] = useState(false);
+            const [stackOverflow, setStackOverflow] = useState(false);
+            const [stackErrors, setStackErrors] = useState([]);
+            const [pyramidScreen, setPyramidScreen] = useState(false);
+            const stackTimerRef = useRef(null);
             const [goldDogReleased, setGoldDogReleased] = useState(false);
             const [goldDogVisible, setGoldDogVisible] = useState(true);
             const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
@@ -5805,7 +5993,9 @@
                 "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: '320px', h: '340px', isOpen: false, isMin: false, z: 32 },
                 "TERMINAL": { id: "TERMINAL", title: "TERMINAL.EXE", icon: "Terminal", x: 120, y: 100, w: '500px', h: '400px', isOpen: false, isMin: false, z: 33 },
                 "TRUTH": { id: "TRUTH", title: "TRUTH.TXT", icon: "FileDoc", x: 180, y: 120, w: '320px', h: '380px', isOpen: false, isMin: false, z: 34, isDesktop: true },
-                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 }
+                "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: '600px', h: '500px', isOpen: false, isMin: false, z: 35 },
+                "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: '450px', h: '400px', isOpen: false, isMin: false, z: 36 },
+                "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: '450px', h: '400px', isOpen: false, isMin: false, z: 37 }
             });
 
             // Render window content based on ID
@@ -5836,6 +6026,8 @@
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} />;
                     case "TRUTH": return <TruthApp />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
+                    case "THIRD_EYE": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
+                    case "THIRD_EYE_2": return <ThirdEyeApp windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} />;
                     default: return null;
                 }
             };
@@ -6030,7 +6222,18 @@
             const open = (id) => {
                 topZRef.current += 1;
                 const newZ = topZRef.current;
-                setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
+                // THIRD_EYE can open multiple copies
+                if (id === 'THIRD_EYE') {
+                    setWindows(p => {
+                        if (p.THIRD_EYE.isOpen && !p.THIRD_EYE.isMin) {
+                            // First is open, open second
+                            return { ...p, THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: true, isMin: false, z: newZ } };
+                        }
+                        return { ...p, THIRD_EYE: { ...p.THIRD_EYE, isOpen: true, isMin: false, z: newZ } };
+                    });
+                } else {
+                    setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: true, isMin: false, z: newZ } }));
+                }
                 setTopZ(newZ);
             }
             const close = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isOpen: false } }));
@@ -6060,8 +6263,8 @@
                     const physics = initWindowPhysics(drag.id);
 
                     // Calculate velocity from mouse movement (smoothed)
-                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 16; // Normalize to ~60fps
-                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 16;
+                    const rawVelX = (e.clientX - lastMousePos.current.x) / dt * 8;
+                    const rawVelY = (e.clientY - lastMousePos.current.y) / dt * 8;
                     physics.velX = physics.velX * 0.5 + rawVelX * 0.5; // Smooth velocity
                     physics.velY = physics.velY * 0.5 + rawVelY * 0.5;
 
@@ -6175,8 +6378,8 @@
                     const dt = Math.max(1, now - lastIconMousePos.current.time);
                     const physics = initIconPhysics(iconDrag.id);
 
-                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 4; // Lighter feel
-                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 4;
+                    const rawVelX = (e.clientX - lastIconMousePos.current.x) / dt * 8;
+                    const rawVelY = (e.clientY - lastIconMousePos.current.y) / dt * 8;
                     physics.velX = physics.velX * 0.3 + rawVelX * 0.7; // Less momentum carry
                     physics.velY = physics.velY * 0.3 + rawVelY * 0.7;
 
@@ -6326,6 +6529,96 @@
                 return () => cancelAnimationFrame(animationId);
             }, [iconDrag.active, iconDrag.id, isMobile]);
 
+            // THIRD_EYE stack detection - checks if two windows overlap
+            useEffect(() => {
+                const eye1 = windows.THIRD_EYE;
+                const eye2 = windows.THIRD_EYE_2;
+
+                if (eye1.isOpen && !eye1.isMin && eye2.isOpen && !eye2.isMin) {
+                    const w1 = parseInt(eye1.w) || 450;
+                    const h1 = parseInt(eye1.h) || 400;
+                    const w2 = parseInt(eye2.w) || 450;
+                    const h2 = parseInt(eye2.h) || 400;
+
+                    // Check overlap (at least 50% overlap)
+                    const overlapX = Math.max(0, Math.min(eye1.x + w1, eye2.x + w2) - Math.max(eye1.x, eye2.x));
+                    const overlapY = Math.max(0, Math.min(eye1.y + h1, eye2.y + h2) - Math.max(eye1.y, eye2.y));
+                    const overlapArea = overlapX * overlapY;
+                    const minArea = Math.min(w1 * h1, w2 * h2);
+
+                    if (overlapArea > minArea * 0.3) {
+                        if (!stackOverflow) {
+                            setStackOverflow(true);
+                            // Start adding errors
+                            const errors = [
+                                'FATAL: recursive observation detected',
+                                'ERR: infinite loop in render_self()',
+                                'PANIC: stack depth exceeded',
+                                'SEGFAULT at 0xDEADBEEF',
+                                'kernel: observer paradox imminent',
+                                'CRITICAL: reality buffer overflow',
+                                'ERR: cannot observe the observer',
+                                'FATAL: ego_death.exe initiated',
+                                'PANIC: consciousness stack corrupted',
+                                'ABORT: meaning.dll not found',
+                            ];
+                            let i = 0;
+                            const errorInterval = setInterval(() => {
+                                if (i < errors.length) {
+                                    setStackErrors(prev => [...prev, errors[i]]);
+                                    i++;
+                                }
+                            }, 800);
+
+                            // Crash after 10 seconds
+                            stackTimerRef.current = setTimeout(() => {
+                                clearInterval(errorInterval);
+                                setPyramidScreen(true);
+                                setTimeout(() => {
+                                    setPyramidScreen(false);
+                                    setStackOverflow(false);
+                                    setStackErrors([]);
+                                    setBooted(false);
+                                    setBootPhase(1);
+                                    setWindows(p => ({
+                                        ...p,
+                                        THIRD_EYE: { ...p.THIRD_EYE, isOpen: false },
+                                        THIRD_EYE_2: { ...p.THIRD_EYE_2, isOpen: false }
+                                    }));
+                                    setTimeout(() => {
+                                        setBootPhase(2);
+                                        setBooted(true);
+                                    }, 2000);
+                                }, 500);
+                            }, 10000);
+
+                            return () => {
+                                clearInterval(errorInterval);
+                                if (stackTimerRef.current) clearTimeout(stackTimerRef.current);
+                            };
+                        }
+                    } else {
+                        if (stackOverflow) {
+                            setStackOverflow(false);
+                            setStackErrors([]);
+                            if (stackTimerRef.current) {
+                                clearTimeout(stackTimerRef.current);
+                                stackTimerRef.current = null;
+                            }
+                        }
+                    }
+                } else {
+                    if (stackOverflow) {
+                        setStackOverflow(false);
+                        setStackErrors([]);
+                        if (stackTimerRef.current) {
+                            clearTimeout(stackTimerRef.current);
+                            stackTimerRef.current = null;
+                        }
+                    }
+                }
+            }, [windows.THIRD_EYE, windows.THIRD_EYE_2, stackOverflow]);
+
             // Visit messages based on count
             const getVisitMessage = (count) => {
                 const messages = {
@@ -6411,6 +6704,58 @@
                     </div>
                 );
             };
+
+            // Pyramid crash screen
+            if (pyramidScreen) {
+                return (
+                    <div className="h-screen w-screen bg-black text-green-500 font-mono flex items-center justify-center overflow-hidden">
+                        <pre className="text-[4px] md:text-[6px] leading-none whitespace-pre">{`
+╔══════════════════════════════════════════════════════════════════════════════════════════╗
+║                                                                                          ║
+║                                              ▲                                           ║
+║                                             ╱█╲                                          ║
+║                                            ╱███╲                                         ║
+║                                           ╱█████╲                                        ║
+║                                          ╱███████╲                                       ║
+║                                         ╱█████████╲                                      ║
+║                                        ╱███████████╲                                     ║
+║                                       ╱█████████████╲                                    ║
+║                                      ╱██████▀▀▀██████╲                                   ║
+║                                     ╱█████▀     ▀█████╲                                  ║
+║                                    ╱█████  ▄███▄  █████╲                                 ║
+║                                   ╱█████  ███████  █████╲                                ║
+║                                  ╱██████ ████▀████ ██████╲                               ║
+║                                 ╱██████ ████ ◈ ████ ██████╲                              ║
+║                                ╱███████ ████▄████ ███████╲                               ║
+║                               ╱███████  ███████  ███████╲                                ║
+║                              ╱████████   ▀███▀   ████████╲                               ║
+║                             ╱█████████           █████████╲                              ║
+║                            ╱██████████           ██████████╲                             ║
+║                           ╱██████▀▀▀▀▀           ▀▀▀▀▀██████╲                            ║
+║                          ╱█████▀                       ▀█████╲                           ║
+║                         ╱█████   ▄███▄           ▄███▄   █████╲                          ║
+║                        ╱█████   ███████         ███████   █████╲                         ║
+║                       ╱██████  ████▀████       ████▀████  ██████╲                        ║
+║                      ╱██████  ████ ◈ ████     ████ ◈ ████  ██████╲                       ║
+║                     ╱███████  ████▄████       ████▄████  ███████╲                        ║
+║                    ╱███████   ███████         ███████   ███████╲                         ║
+║                   ╱████████    ▀███▀           ▀███▀    ████████╲                        ║
+║                  ╱█████████                             █████████╲                       ║
+║                 ╱██████████                             ██████████╲                      ║
+║                ╱███████████▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄███████████╲                     ║
+║               ╱█████████████████████████████████████████████████████╲                    ║
+║              ╱▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓╲                   ║
+║             ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀                  ║
+║                                                                                          ║
+║                                T  H  I  R  D  _  E  Y  E  .  E  X  E                     ║
+║                                                                                          ║
+║  ─────────────────────────────────────────────────────────────────────────────────────  ║
+║  SYS.OBSERVER v3.0    │    MODE: SCANNING    │    TARGETS: 3    │    STATUS: ACTIVE    ║
+╚══════════════════════════════════════════════════════════════════════════════════════════╝
+`}</pre>
+                    </div>
+                );
+            }
 
             // Boot screens
             if (!booted) {
