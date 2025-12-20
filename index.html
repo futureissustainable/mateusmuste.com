@@ -225,6 +225,46 @@
         .animate-shake {
             animation: shake 0.5s ease-in-out;
         }
+
+        /* Matrix Mode */
+        .matrix-mode {
+            background: #000 !important;
+            background-image: none !important;
+        }
+        .matrix-mode * {
+            color: #0f0 !important;
+            border-color: #0f0 !important;
+            background-color: transparent !important;
+        }
+        .matrix-mode .bg-white,
+        .matrix-mode .bg-gray-50,
+        .matrix-mode .bg-gray-100,
+        .matrix-mode .bg-black {
+            background-color: transparent !important;
+        }
+        .matrix-mode button,
+        .matrix-mode .border,
+        .matrix-mode .border-2,
+        .matrix-mode .border-4 {
+            border-color: #0f0 !important;
+            box-shadow: 0 0 5px #0f0 !important;
+        }
+        .matrix-mode svg {
+            filter: drop-shadow(0 0 2px #0f0) brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
+        }
+        .matrix-mode canvas {
+            filter: hue-rotate(70deg) saturate(3) brightness(0.8);
+        }
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.15;
+        }
     </style>
 </head>
 
@@ -880,7 +920,29 @@
             );
         }
 
-        const SystemInfo = () => (
+        const SystemInfo = ({ onMatrixMode }) => {
+            const [konamiProgress, setKonamiProgress] = useState(0);
+            const konamiCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    const expectedKey = konamiCode[konamiProgress];
+                    if (e.code === expectedKey) {
+                        const newProgress = konamiProgress + 1;
+                        setKonamiProgress(newProgress);
+                        if (newProgress === konamiCode.length) {
+                            onMatrixMode?.();
+                            setKonamiProgress(0);
+                        }
+                    } else {
+                        setKonamiProgress(0);
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [konamiProgress, onMatrixMode]);
+
+            return (
             <div className="p-6 md:p-12 font-sans select-text">
                 <header className="mb-12 border-b-4 border-black pb-8">
                     <h1 className="text-6xl md:text-8xl font-black uppercase tracking-tighter leading-none">Mateus<br />Muste</h1>
@@ -946,7 +1008,8 @@
                     </div>
                 </div>
             </div>
-        )
+            );
+        };
 
         const TrashApp = () => {
             const [shakingFile, setShakingFile] = useState(null);
@@ -5079,6 +5142,9 @@
             const [carriedIcon, setCarriedIcon] = useState(null);
             const [iconPositions, setIconPositions] = useState({});
             const [destructionDogGone, setDestructionDogGone] = useState(false);
+            const [matrixMode, setMatrixMode] = useState(false);
+
+            const toggleMatrixMode = () => setMatrixMode(prev => !prev);
 
             // Handle dog stealing the destruction button - dog starts running around!
             const handleDogSteal = () => {
@@ -5174,7 +5240,7 @@
             // Render window content based on ID
             const getWindowContent = (id) => {
                 switch (id) {
-                    case "SYSTEM": return <SystemInfo />;
+                    case "SYSTEM": return <SystemInfo onMatrixMode={toggleMatrixMode} />;
                     case "FILES": return <FileExplorer />;
                     case "APPS": return <AppsFolder onOpenApp={open} />;
                     case "CONTACT": return <ContactApp />;
@@ -5369,9 +5435,53 @@
                 }
             }
 
+            // Matrix Rain Canvas Component
+            const MatrixRain = () => {
+                const canvasRef = useRef(null);
+                useEffect(() => {
+                    const canvas = canvasRef.current;
+                    const ctx = canvas.getContext('2d');
+                    canvas.width = window.innerWidth;
+                    canvas.height = window.innerHeight;
+
+                    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                    const fontSize = 14;
+                    const columns = canvas.width / fontSize;
+                    const drops = Array(Math.floor(columns)).fill(1);
+
+                    const draw = () => {
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        ctx.fillStyle = '#0f0';
+                        ctx.font = fontSize + 'px monospace';
+
+                        for (let i = 0; i < drops.length; i++) {
+                            const char = chars[Math.floor(Math.random() * chars.length)];
+                            ctx.fillText(char, i * fontSize, drops[i] * fontSize);
+                            if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                                drops[i] = 0;
+                            }
+                            drops[i]++;
+                        }
+                    };
+
+                    const interval = setInterval(draw, 50);
+                    const handleResize = () => {
+                        canvas.width = window.innerWidth;
+                        canvas.height = window.innerHeight;
+                    };
+                    window.addEventListener('resize', handleResize);
+                    return () => {
+                        clearInterval(interval);
+                        window.removeEventListener('resize', handleResize);
+                    };
+                }, []);
+                return <canvas ref={canvasRef} className="matrix-rain" />;
+            };
+
             return (
                 <div
-                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''}`}
+                    className={`h-screen w-screen relative overflow-hidden desktop-bg ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         setMousePos({ x: e.clientX, y: e.clientY });
@@ -5379,6 +5489,7 @@
                     onMouseUp={handleMouseUp}
                     style={destructionMode ? { filter: 'hue-rotate(180deg) saturate(3)' } : {}}
                 >
+                    {matrixMode && <MatrixRain />}
                     {/* DESKTOP ICONS - Only show main folders */}
                     <div className={`absolute z-0 ${isMobile ? 'top-16 left-0 right-0 flex flex-row justify-center gap-4 px-2' : 'top-4 left-4 flex flex-col gap-6'}`}>
                         {desktopIcons.map(appId => {
