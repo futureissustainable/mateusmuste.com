@@ -347,10 +347,18 @@
         // --- SOUND SYSTEM ---
         let audioCtx = null;
         let activeDragNodes = null;
+        let soundMuted = localStorage.getItem('sound_muted') === 'true';
 
         const getAudioCtx = () => {
+            if (soundMuted) return null;
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             return audioCtx;
+        };
+
+        const toggleMute = () => {
+            soundMuted = !soundMuted;
+            localStorage.setItem('sound_muted', soundMuted.toString());
+            return soundMuted;
         };
 
         const makeDistortion = (ctx, amount) => {
@@ -873,6 +881,9 @@
             Pomodoro: (p) => <PixelartIcon name="clock" {...p} />,
             // Charging/power
             Charging: (p) => <PixelartIcon name="power" {...p} />,
+            // Sound
+            Speaker: (p) => <PixelartIcon name="volume-3" {...p} />,
+            SpeakerOff: (p) => <PixelartIcon name="volume-x" {...p} />,
             // Health scanner
             HealthScanner: (p) => <PixelartIcon name="heart" {...p} />,
             // Lock icon
@@ -6151,7 +6162,7 @@
         };
 
         // --- APPS Folder - Grid of all apps organized in folders ---
-        const AppsFolder = ({ onOpenApp, onDragStart, isMobile }) => {
+        const AppsFolder = ({ onOpenApp, onDragStart, isMobile, unlockedApps }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
 
             const folders = [
@@ -6160,7 +6171,7 @@
                 { key: 'ABOUT', name: 'ABOUT', icon: 'AboutFolder' }
             ];
 
-            const APP_CATEGORIES = {
+            const ALL_APPS = {
                 GAMES: [
                     { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek' },
                     { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' },
@@ -6192,6 +6203,13 @@
                     { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
                     { id: 'END', title: 'END.EXE', icon: 'Trophy' }
                 ]
+            };
+
+            // Filter apps based on what's unlocked
+            const APP_CATEGORIES = {
+                GAMES: ALL_APPS.GAMES.filter(app => unlockedApps?.has(app.id)),
+                PRODUCTIVITY: ALL_APPS.PRODUCTIVITY.filter(app => unlockedApps?.has(app.id)),
+                ABOUT: ALL_APPS.ABOUT.filter(app => unlockedApps?.has(app.id))
             };
 
             if (selectedFolder) {
@@ -6683,6 +6701,8 @@
             const [booted, setBooted] = useState(false);
             const [bootPhase, setBootPhase] = useState(0); // 0: mobile notice (mobile only), 1: kernel, 2: ready
             const [isMobile, setIsMobile] = useState(false);
+            const [isMuted, setIsMuted] = useState(() => localStorage.getItem('sound_muted') === 'true');
+            const handleToggleMute = () => setIsMuted(toggleMute());
             const [topZ, setTopZ] = useState(100);
             const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
@@ -6711,10 +6731,21 @@
                 };
             });
             const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
+            const [selectedIcon, setSelectedIcon] = useState(null);
+            const lastIconClick = useRef({ id: null, time: 0 });
             const iconPhysics = useRef({});
             const lastIconMousePos = useRef({ x: 0, y: 0, time: Date.now() });
             const iconHoldTimer = useRef(null);
             const iconPendingDrag = useRef(null); // Stores pending drag info before hold completes
+
+            // Snap icon position to grid (80px grid)
+            const snapToGrid = (x, y) => {
+                const gridSize = 80;
+                return {
+                    x: Math.round(x / gridSize) * gridSize + 8,
+                    y: Math.max(16, Math.round(y / gridSize) * gridSize)
+                };
+            };
             const [folderDrag, setFolderDrag] = useState(null); // { id, title, icon, startX, startY }
             const [extraDesktopIcons, setExtraDesktopIcons] = useState(() => {
                 const stored = localStorage.getItem('extra_desktop_icons');
@@ -6777,6 +6808,31 @@
                 return stored ? JSON.parse(stored) : {};
             });
             const [achievementNotification, setAchievementNotification] = useState(null);
+
+            // App progression system - apps unlock via achievements
+            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRUTH', 'TRASH'];
+            const APP_UNLOCKS = {
+                NEO: ['VOID', 'BROWSER'],
+                OUROBOROS: ['LABYRINTH', 'MINESWEEPER'],
+                FOURTH_DIMENSION: ['PAINT', 'SYNTH'],
+                DAEDALUS: ['STARSHIP', 'DICE'],
+                LOCKSMITH: ['PERSONAL', 'POMODORO'],
+                INCEPTION: ['GALLERY', 'MAP'],
+                ACE: ['TAROT', 'RADIO'],
+                UNTOUCHABLE: ['DESTRUCTION', 'WORDS'],
+                VOIDBORN: ['SCANNER'],
+                HUNDRED_PERCENT: ['END']
+            };
+            const getUnlockedApps = () => {
+                const unlocked = new Set(INITIAL_APPS);
+                Object.entries(APP_UNLOCKS).forEach(([achievement, apps]) => {
+                    if (achievements[achievement]) {
+                        apps.forEach(app => unlocked.add(app));
+                    }
+                });
+                return unlocked;
+            };
+            const unlockedApps = getUnlockedApps();
             const [dogTrashCount, setDogTrashCount] = useState(() => {
                 const stored = localStorage.getItem('dog_trash_count');
                 return stored ? parseInt(stored, 10) : 0;
@@ -7112,7 +7168,7 @@
                 switch (id) {
                     case "SYSTEM": return <SystemInfo onThirdEyeWorld={activateThirdEyeWorld} totalVisitors={totalVisitors} />;
                     case "FILES": return <FileExplorer />;
-                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} />;
+                    case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp />;
                     case "PAINT": return <PaintApp />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
@@ -7151,8 +7207,8 @@
             const physicsAchievementUnlocked = useRef(false);
 
             // Physics constants
-            const FRICTION = 0.95; // Velocity decay per frame (ice-like, slightly reduced friction)
-            const BOUNCE_DAMPING = 0.6; // Energy loss on bounce
+            const FRICTION = 0.92; // Velocity decay per frame (snappier, less floaty)
+            const BOUNCE_DAMPING = 0.4; // Energy loss on bounce (more dampening)
             const MIN_VELOCITY = 0.25; // Stop threshold (reduced for smoother stops)
             const EDGE_MAGNET_DISTANCE = 30; // Pixels for edge attraction
             const EDGE_MAGNET_STRENGTH = 0.15; // Pull strength
@@ -7318,23 +7374,38 @@
                     img.src = `https://unpkg.com/pixelarticons@1.8.1/svg/${name}.svg`;
                 });
 
+                const isReturnVisitor = parseInt(localStorage.getItem('ultra_int_visits') || '0', 10) > 0;
+
                 if (checkMobile) {
                     // Mobile: Show "best on desktop" notice first, then kernel boot
-                    setBootPhase(0);
-                    setTimeout(() => {
-                        setBootPhase(1); // kernel boot
+                    if (isReturnVisitor) {
+                        // Return visitor: instant boot
+                        setBootPhase(2);
+                        setBooted(true);
+                    } else {
+                        setBootPhase(0);
+                        setTimeout(() => {
+                            setBootPhase(1); // kernel boot
+                            setTimeout(() => {
+                                setBootPhase(2);
+                                setBooted(true);
+                            }, 2000);
+                        }, 2000);
+                    }
+                } else {
+                    // Desktop
+                    if (isReturnVisitor) {
+                        // Return visitor: instant boot
+                        setBootPhase(2);
+                        setBooted(true);
+                    } else {
+                        // First visit: full boot sequence
+                        setBootPhase(1);
                         setTimeout(() => {
                             setBootPhase(2);
                             setBooted(true);
                         }, 2000);
-                    }, 2000);
-                } else {
-                    // Desktop: Go straight to kernel boot
-                    setBootPhase(1);
-                    setTimeout(() => {
-                        setBootPhase(2);
-                        setBooted(true);
-                    }, 2000);
+                    }
                 }
 
                 // Handle resize
@@ -7640,21 +7711,34 @@
                     iconHoldTimer.current = null;
                 }
 
-                // If drag was active, finalize position
+                // If drag was active, finalize position with grid snap
                 if (iconDrag.active && iconDrag.id) {
                     sounds.dragStop();
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
-                        const adjusted = findNonCollidingPosition(iconDrag.id, current.x, current.y, prev);
+                        const snapped = snapToGrid(current.x, current.y);
+                        const adjusted = findNonCollidingPosition(iconDrag.id, snapped.x, snapped.y, prev);
                         const newPositions = { ...prev, [iconDrag.id]: adjusted };
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
                     });
                 } else if (iconPendingDrag.current) {
-                    // Drag wasn't active - this was a click, open the app
+                    // Drag wasn't active - this was a click
                     const id = iconPendingDrag.current.id;
-                    if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
+                    const now = Date.now();
+                    const isDoubleClick = lastIconClick.current.id === id && (now - lastIconClick.current.time) < 400;
+
+                    if (isDoubleClick) {
+                        // Double click - open app
+                        if (openCallback) openCallback(id === 'CONTACT' ? 'PAINT' : id);
+                        setSelectedIcon(null);
+                        lastIconClick.current = { id: null, time: 0 };
+                    } else {
+                        // Single click - select
+                        setSelectedIcon(id);
+                        lastIconClick.current = { id, time: now };
+                    }
                 }
 
                 iconPendingDrag.current = null;
@@ -7786,7 +7870,7 @@
             };
 
             // Icon physics loop (reduced motion compared to windows)
-            const ICON_FRICTION = 0.96; // Higher = slower deceleration
+            const ICON_FRICTION = 0.94; // Snappier icon physics
             const ICON_MIN_VELOCITY = MIN_VELOCITY / 2; // Half of window threshold
 
             useEffect(() => {
@@ -8382,7 +8466,7 @@
                         handleWindowTouchEnd();
                         handleIconTouchEnd(open);
                     }}
-                    onClick={() => contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 })}
+                    onClick={() => { setSelectedIcon(null); contextMenu.show && setContextMenu({ show: false, x: 0, y: 0 }); }}
                     onContextMenu={handleContextMenu}
                     onDrop={handleDesktopDrop}
                     onDragOver={handleDesktopDragOver}
@@ -8498,6 +8582,7 @@
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 16, y: isMobile ? 70 : 16 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
+                        const isSelected = selectedIcon === app.id;
 
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
@@ -8513,10 +8598,10 @@
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
-                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'} ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
-                                    <IconCmp size={isMobile ? 24 : 32} />
+                                <div className={`border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isMobile ? 'p-2' : 'p-3'} ${isDragging ? 'translate-x-0 translate-y-0' : ''} ${isSelected ? 'bg-black text-white' : 'bg-white'}`}>
+                                    <IconCmp size={isMobile ? 24 : 32} className={isSelected ? 'invert' : ''} />
                                 </div>
-                                <span className={`bg-white border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'}`}>{app.title}</span>
+                                <span className={`border border-black px-1 font-mono font-bold shadow-sm ${isMobile ? 'text-[8px]' : 'text-[10px]'} ${isSelected ? 'bg-black text-white' : 'bg-white'}`}>{app.title}</span>
                             </div>
                         );
                     })}
@@ -8527,6 +8612,7 @@
                         const IconCmp = Icons[app.icon];
                         const pos = iconPositions[app.id] || { x: 200, y: 200 };
                         const isDragging = iconDrag.active && iconDrag.id === app.id;
+                        const isSelected = selectedIcon === app.id;
                         if (carriedIcon === app.id) return null;
 
                         return (
@@ -8540,10 +8626,10 @@
                                 onMouseDown={(e) => handleIconMouseDown(e, app.id)}
                                 onTouchStart={(e) => handleIconTouchStart(e, app.id)}
                             >
-                                <div className={`bg-white border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''}`}>
-                                    <IconCmp size={32} />
+                                <div className={`border-2 border-black icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all p-3 ${isDragging ? 'translate-x-0 translate-y-0' : ''} ${isSelected ? 'bg-black text-white' : 'bg-white'}`}>
+                                    <IconCmp size={32} className={isSelected ? 'invert' : ''} />
                                 </div>
-                                <span className="bg-white border border-black px-1 font-mono font-bold shadow-sm text-[10px]">{app.title}</span>
+                                <span className={`border border-black px-1 font-mono font-bold shadow-sm text-[10px] ${isSelected ? 'bg-black text-white' : 'bg-white'}`}>{app.title}</span>
                             </div>
                         );
                     })}
@@ -8553,12 +8639,13 @@
                         const physics = windowPhysics.current[win.id] || { scaleX: 1, scaleY: 1 };
                         const animState = windowAnimations[win.id];
                         const shouldRender = (win.isOpen || animState === 'closing') && !win.isMin;
+                        const isActive = win.z === topZ;
                         return shouldRender && (
                             <div
                                 key={win.id}
                                 onMouseDown={() => focus(win.id)}
                                 onTouchStart={() => focus(win.id)}
-                                className={`flex flex-col bg-white border-2 border-black absolute ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
+                                className={`flex flex-col bg-white border-2 border-black absolute transition-opacity duration-150 ${isMobile ? '' : 'window-shadow'} ${animState === 'opening' ? 'window-opening' : ''} ${animState === 'closing' ? 'window-closing' : ''}`}
                                 style={{
                                     left: isMobile ? 8 : win.x,
                                     top: isMobile ? 52 : win.y,
@@ -8568,12 +8655,13 @@
                                     transform: animState ? undefined : `scale(${physics.scaleX}, ${physics.scaleY})`,
                                     transformOrigin: 'top center',
                                     maxWidth: isMobile ? 'calc(100% - 16px)' : undefined,
-                                    maxHeight: isMobile ? 'calc(100% - 116px)' : undefined
+                                    maxHeight: isMobile ? 'calc(100% - 116px)' : undefined,
+                                    opacity: isActive ? 1 : 0.85
                                 }}
                             >
                                 {/* HEADER (DRAG HANDLE) */}
                                 <div
-                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${win.z === topZ ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
+                                    className={`flex justify-between items-center p-1 border-b-2 border-black select-none cursor-move ${isActive ? 'bg-black text-white' : 'bg-gray-200 text-black'}`}
                                     onMouseDown={(e) => handleMouseDown(e, win.id)}
                                     onTouchStart={(e) => handleWindowTouchStart(e, win.id)}
                                 >
@@ -8581,8 +8669,8 @@
                                         <span className="font-mono text-xs font-bold tracking-widest uppercase truncate">{win.title}</span>
                                     </div>
                                     <div className="flex gap-1" onMouseDown={e => e.stopPropagation()} onTouchStart={e => e.stopPropagation()}>
-                                        <button onClick={() => toggleMin(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center border border-transparent hover:bg-white/20 ${win.z === topZ ? 'invert' : ''}`}><Icons.Minus size={14} /></button>
-                                        <button onClick={() => close(win.id)} className={`w-8 h-8 md:w-6 md:h-6 flex items-center justify-center hover:bg-red-500 ${win.z === topZ ? 'invert hover:invert-0' : ''}`}><Icons.X size={20} /></button>
+                                        <button onClick={() => toggleMin(win.id)} className={`w-8 h-8 flex items-center justify-center border border-transparent hover:bg-white/20 transition-colors ${isActive ? 'invert' : ''}`}><Icons.Minus size={16} /></button>
+                                        <button onClick={() => close(win.id)} className={`w-8 h-8 flex items-center justify-center hover:bg-red-500 transition-colors ${isActive ? 'invert hover:invert-0' : ''}`}><Icons.X size={20} /></button>
                                     </div>
                                 </div>
                                 {/* CONTENT */}
@@ -8611,6 +8699,13 @@
                             })}
                         </div>
                         <div className="flex-grow"></div>
+                        <button
+                            onClick={handleToggleMute}
+                            className={`border-l-2 border-black flex items-center justify-center hover:bg-gray-100 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
+                            title={isMuted ? 'Unmute' : 'Mute'}
+                        >
+                            {isMuted ? <Icons.SpeakerOff size={16} /> : <Icons.Speaker size={16} />}
+                        </button>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
                             {battery.level !== null && (
                                 <>
