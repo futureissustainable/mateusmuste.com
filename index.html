@@ -6825,16 +6825,8 @@
                 }
             }, []);
 
-            // Current usage - exponential distribution favoring lower percentages
-            const [currentUsage, setCurrentUsage] = useState(() => {
-                // Exponential distribution: higher percentages exponentially less likely
-                const rand = Math.random();
-                // Use inverse exponential: -ln(rand) scaled to 5.0-100.0
-                // Lower values much more likely than higher
-                const exp = -Math.log(rand) * 15; // Scale factor
-                const percentage = 5.0 + Math.min(95.0, exp);
-                return Math.round(percentage * 10) / 10; // Round to 1 decimal
-            });
+            // Battery status
+            const [battery, setBattery] = useState({ level: null, charging: false });
 
             // Total visitors counter (using CountAPI)
             const [totalVisitors, setTotalVisitors] = useState(null);
@@ -6853,18 +6845,20 @@
                     });
             }, []);
 
-            // Random fluctuation of current usage every second
+            // Battery API
             useEffect(() => {
-                const interval = setInterval(() => {
-                    if (Math.random() < 0.5) { // 50% chance each second
-                        setCurrentUsage(prev => {
-                            const change = Math.random() < 0.5 ? -0.1 : 0.1;
-                            const newVal = Math.round((prev + change) * 10) / 10;
-                            return Math.min(100.0, Math.max(5.0, newVal));
-                        });
-                    }
-                }, 1000);
-                return () => clearInterval(interval);
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then(batt => {
+                        const updateBattery = () => setBattery({ level: Math.round(batt.level * 100), charging: batt.charging });
+                        updateBattery();
+                        batt.addEventListener('levelchange', updateBattery);
+                        batt.addEventListener('chargingchange', updateBattery);
+                        return () => {
+                            batt.removeEventListener('levelchange', updateBattery);
+                            batt.removeEventListener('chargingchange', updateBattery);
+                        };
+                    });
+                }
             }, []);
 
             const toggleMatrixMode = () => {
@@ -8616,8 +8610,12 @@
                         </div>
                         <div className="flex-grow"></div>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
-                            <span className="text-gray-500">CURRENT USAGE:</span>
-                            <span className="font-bold">{currentUsage.toFixed(1)}%</span>
+                            {battery.level !== null && (
+                                <>
+                                    <span className="text-gray-500">BATTERY:</span>
+                                    <span className="font-bold">{battery.charging ? '⚡' : ''}{battery.level}%</span>
+                                </>
+                            )}
                         </div>
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
