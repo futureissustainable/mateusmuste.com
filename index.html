@@ -8981,6 +8981,21 @@ Good luck.`;
                 }
             };
 
+            // Check if Third Eye window is scanning over a position
+            const isThirdEyeOver = (targetPos) => {
+                if (!targetPos) return false;
+                const iconSize = 80; // Approximate icon size
+                const checkEye = (eye) => {
+                    if (!eye || !eye.isOpen || eye.isMin) return false;
+                    // Check if icon center is within Third Eye window bounds
+                    const iconCenterX = targetPos.x + iconSize / 2;
+                    const iconCenterY = targetPos.y + iconSize / 2;
+                    return iconCenterX >= eye.x && iconCenterX <= eye.x + eye.w &&
+                           iconCenterY >= eye.y + 32 && iconCenterY <= eye.y + eye.h; // +32 for header
+                };
+                return checkEye(windows.THIRD_EYE) || checkEye(windows.THIRD_EYE_2);
+            };
+
             const handleIconMouseUp = (openCallback) => {
                 // Clear hold timer
                 if (iconHoldTimer.current) {
@@ -9002,7 +9017,15 @@ Good luck.`;
                 } else if (iconPendingDrag.current) {
                     // Drag wasn't active - this was a click - open app immediately
                     const id = iconPendingDrag.current.id;
-                    if (openCallback) openCallback(id);
+                    // TRUTH.EXE can only be opened when Third Eye is scanning it
+                    if (id === 'TRUTH') {
+                        if (isThirdEyeOver(iconPositions[id])) {
+                            if (openCallback) openCallback(id);
+                        }
+                        // If Third Eye not over it, do nothing (icon not clickable)
+                    } else {
+                        if (openCallback) openCallback(id);
+                    }
                     setSelectedIcon(null);
                 }
 
@@ -9090,7 +9113,14 @@ Good luck.`;
                     });
                 } else if (iconPendingDrag.current) {
                     const id = iconPendingDrag.current.id;
-                    if (openCallback) openCallback(id);
+                    // TRUTH.EXE can only be opened when Third Eye is scanning it
+                    if (id === 'TRUTH') {
+                        if (isThirdEyeOver(iconPositions[id])) {
+                            if (openCallback) openCallback(id);
+                        }
+                    } else {
+                        if (openCallback) openCallback(id);
+                    }
                 }
 
                 iconPendingDrag.current = null;
