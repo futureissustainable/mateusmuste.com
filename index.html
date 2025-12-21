@@ -3428,7 +3428,7 @@
         };
 
         // --- STARSHIP.EXE - Low Poly Star Fox Style Game ---
-        const StarshipApp = ({ onAchievement }) => {
+        const StarshipApp = ({ onAchievement, onUnlockApp }) => {
             const containerRef = useRef(null);
             const gameRef = useRef(null);
             const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
@@ -3437,11 +3437,12 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('starship'));
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
-            const [unlockedRun42, setUnlockedRun42] = useState(false); // Revealed when player hits 1000 pts
             const achievementTriggered = useRef(false);
-            const run42Triggered = useRef(false);
+            const booksUnlockTriggered = useRef(false);
             const onAchievementRef = useRef(onAchievement);
+            const onUnlockAppRef = useRef(onUnlockApp);
             onAchievementRef.current = onAchievement;
+            onUnlockAppRef.current = onUnlockApp;
 
             // Load high score from storage when IP is ready
             useEffect(() => {
@@ -3716,11 +3717,10 @@
                                 achievementTriggered.current = true;
                                 onAchievementRef.current?.('ACE');
                             }
-                            // Unlock RUN 42 hint at 1000 points (revealed in game over high score table)
-                            if (scoreVal >= 1000 && !run42Triggered.current) {
-                                run42Triggered.current = true;
-                                setUnlockedRun42(true);
-                                sounds.success?.();
+                            // Unlock BOOKS at 1000 points
+                            if (scoreVal >= 1000 && !booksUnlockTriggered.current) {
+                                booksUnlockTriggered.current = true;
+                                onUnlockAppRef.current?.('BOOKS');
                             }
                         }
 
@@ -3848,12 +3848,6 @@
                                             <div className="flex justify-between gap-8">
                                                 <span className="text-black">YOU</span>
                                                 <span className="font-bold">{highScore}</span>
-                                            </div>
-                                            <div className="flex justify-between gap-8">
-                                                <span className={unlockedRun42 ? "text-black font-bold" : "text-gray-400"}>
-                                                    {unlockedRun42 ? "RUN 42" : "████████"}
-                                                </span>
-                                                <span className={unlockedRun42 ? "font-bold text-black" : "text-gray-400"}>0</span>
                                             </div>
                                         </div>
                                     </div>
@@ -6920,11 +6914,6 @@ Good luck.`;
                     addOutput('STARSHIP.EXE UNLOCKED');
                     onUnlockApp?.('STARSHIP');
 
-                } else if (trimmed === '42' || trimmed === 'run 42') {
-                    addOutput('FREQUENCY 42 ACCEPTED\n');
-                    addOutput('BOOKS.EXE UNLOCKED');
-                    onUnlockApp?.('BOOKS');
-
                 } else if (trimmed === 'sudo unlock zen') {
                     addOutput('ZEN PATHWAY ACTIVATED\n');
                     addOutput('BROWSER.EXE UNLOCKED');
@@ -8488,7 +8477,7 @@ Good luck.`;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
-                    case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} />;
+                    case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "SYNTH": return <SynthApp onAchievement={unlockAchievement} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} onAchievement={unlockAchievement} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
