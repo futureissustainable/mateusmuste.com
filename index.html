@@ -1315,6 +1315,19 @@
                 }
             };
 
+            // Draw hidden "SUDO UNLOCK ZEN" pixels in the corner
+            const drawHiddenMessage = () => {
+                const canvas = canvasRef.current;
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                ctx.save();
+                ctx.fillStyle = '#f8f8f8'; // Very slightly off-white, nearly invisible
+                ctx.font = '6px monospace';
+                // Draw tiny hidden text in bottom-right corner
+                ctx.fillText('SUDO UNLOCK ZEN', canvas.width - 70, canvas.height - 4);
+                ctx.restore();
+            };
+
             useEffect(() => {
                 const initCanvas = () => {
                     if (!containerRef.current) return;
@@ -1337,11 +1350,22 @@
                         ctx.fillText("draw your message :)", canvas.width / 2, canvas.height / 2);
                         ctx.restore();
                     }
+                    // Draw hidden message
+                    drawHiddenMessage();
                     saveToHistory();
                 };
                 initCanvas();
                 window.addEventListener('resize', initCanvas);
-                return () => window.removeEventListener('resize', initCanvas);
+
+                // Periodically redraw hidden message (resists being painted over)
+                const hiddenInterval = setInterval(() => {
+                    drawHiddenMessage();
+                }, 5000);
+
+                return () => {
+                    window.removeEventListener('resize', initCanvas);
+                    clearInterval(hiddenInterval);
+                };
             }, []);
 
             const floodFill = (x, y, fillColor) => {
@@ -2232,47 +2256,97 @@
             );
         };
 
-        const TrashApp = () => {
+        const TrashApp = ({ onDelete, totalDeletions }) => {
             const [shakingFile, setShakingFile] = useState(null);
+            const [clickCounts, setClickCounts] = useState({});
+            const [deletedFiles, setDeletedFiles] = useState(() => {
+                const stored = localStorage.getItem('trash_deleted_files');
+                return stored ? JSON.parse(stored) : [];
+            });
 
-            const trashFiles = [
-                { name: 'BITCOIN_WALLET.txt', icon: 'FileDoc' },
-                { name: 'ACCEPTANCE_LETTER.pdf', icon: 'FileDoc' },
-                { name: 'SCHEDULE.ics', icon: 'FileDoc' }
-            ];
+            // Generate many trash files for deletion challenge
+            const generateTrashFiles = () => {
+                const baseFiles = [
+                    'BITCOIN_WALLET', 'ACCEPTANCE_LETTER', 'SCHEDULE', 'OLD_PHOTOS', 'PASSWORDS',
+                    'LOVE_LETTER', 'RECEIPTS', 'MEMES', 'BACKUP', 'IMPORTANT', 'TAXES', 'RESUME',
+                    'VACATION_PICS', 'THESIS_DRAFT', 'SECRETS', 'MEMORIES', 'DREAMS', 'PLANS',
+                    'REGRETS', 'HOPES', 'IDEAS', 'NOTES', 'SKETCHES', 'SONGS', 'VIDEOS',
+                    'CONTACTS', 'DIARY', 'PROJECT', 'DESIGN', 'CODE', 'DATA', 'CACHE',
+                    'TEMP', 'OLD_VERSION', 'DUPLICATE', 'UNTITLED', 'NEW_FILE', 'COPY',
+                    'ARCHIVE', 'DOWNLOAD', 'SCREENSHOT', 'RECORDING', 'EXPORT', 'IMPORT',
+                    'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'DATABASE', 'CONFIG', 'LOG'
+                ];
+                const extensions = ['.txt', '.pdf', '.doc', '.zip', '.bak', '.old', '.tmp', '.dat'];
+                return baseFiles.map((name, i) => ({
+                    name: name + extensions[i % extensions.length],
+                    icon: 'FileDoc'
+                }));
+            };
+            const allTrashFiles = generateTrashFiles();
+
+            const trashFiles = allTrashFiles.filter(f => !deletedFiles.includes(f.name));
 
             const handleFileClick = (fileName) => {
-                setShakingFile(fileName);
-                setTimeout(() => setShakingFile(null), 500);
+                const newCounts = { ...clickCounts, [fileName]: (clickCounts[fileName] || 0) + 1 };
+                setClickCounts(newCounts);
+
+                if (newCounts[fileName] >= 3) {
+                    // Permanently delete after 3 clicks
+                    const newDeleted = [...deletedFiles, fileName];
+                    setDeletedFiles(newDeleted);
+                    localStorage.setItem('trash_deleted_files', JSON.stringify(newDeleted));
+                    onDelete?.();
+                    sounds.explosion();
+                } else {
+                    setShakingFile(fileName);
+                    setTimeout(() => setShakingFile(null), 500);
+                }
+            };
+
+            const getClickHint = (fileName) => {
+                const clicks = clickCounts[fileName] || 0;
+                if (clicks === 0) return '';
+                if (clicks === 1) return 'CLICK AGAIN...';
+                if (clicks === 2) return 'ONE MORE...';
+                return '';
             };
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="app-header">
                         <span className="app-header-title">RECYCLE_BIN</span>
-                        <span className="app-header-subtitle">{trashFiles.length} ITEMS</span>
+                        <span className="app-header-subtitle">{trashFiles.length} ITEMS | {totalDeletions || 0} DELETED</span>
                     </div>
-                    <div className="flex-grow p-4">
-                        <div className="grid grid-cols-3 gap-4">
-                            {trashFiles.map(file => (
-                                <button
-                                    key={file.name}
-                                    onClick={() => handleFileClick(file.name)}
-                                    className="group flex flex-col items-center gap-2 p-3 cursor-not-allowed hover:bg-gray-100"
-                                    style={{
-                                        animation: shakingFile === file.name ? 'shake 0.5s ease-in-out' : 'none'
-                                    }}
-                                >
-                                    <div className="bg-white border-2 border-black p-2 icon-shadow opacity-50 group-hover:opacity-70">
-                                        <Icons.FileDoc size={24} />
-                                    </div>
-                                    <span className="font-mono text-[8px] font-bold text-center break-all opacity-50 group-hover:opacity-70">{file.name}</span>
-                                </button>
-                            ))}
-                        </div>
+                    <div className="flex-grow p-4 overflow-y-auto">
+                        {trashFiles.length === 0 ? (
+                            <div className="h-full flex items-center justify-center">
+                                <span className="font-mono text-xs text-gray-400">EMPTY</span>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-3 gap-4">
+                                {trashFiles.map(file => (
+                                    <button
+                                        key={file.name}
+                                        onClick={() => handleFileClick(file.name)}
+                                        className="group flex flex-col items-center gap-2 p-3 cursor-pointer hover:bg-gray-100"
+                                        style={{
+                                            animation: shakingFile === file.name ? 'shake 0.5s ease-in-out' : 'none'
+                                        }}
+                                    >
+                                        <div className="bg-white border-2 border-black p-2 icon-shadow opacity-50 group-hover:opacity-70">
+                                            <Icons.FileDoc size={24} />
+                                        </div>
+                                        <span className="font-mono text-[8px] font-bold text-center break-all opacity-50 group-hover:opacity-70">{file.name}</span>
+                                        {getClickHint(file.name) && (
+                                            <span className="font-mono text-[6px] text-red-500 animate-pulse">{getClickHint(file.name)}</span>
+                                        )}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
                     <div className="p-2 border-t-2 border-black text-center">
-                        <span className="font-mono text-[10px] text-gray-500">PERMANENTLY DELETED</span>
+                        <span className="font-mono text-[10px] text-gray-500">CLICK 3x TO PERMANENTLY DELETE</span>
                     </div>
                 </div>
             );
@@ -2910,11 +2984,23 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('labyrinth'));
             const [won, setWon] = useState(false);
             const [showingMaze, setShowingMaze] = useState(false);
+            const [levelWord, setLevelWord] = useState(null);
+            const [showOpenFlash, setShowOpenFlash] = useState(true);
             const mazeRef = useRef(null);
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
 
+            // Level completion words - spell out "THE PASSWORD IS ALWAYS PATIENCE"
+            const LEVEL_WORDS = ['THE', 'PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
             const CELL_SIZE = 8; // Thinner walls
+
+            // Flash "THE" on app open
+            useEffect(() => {
+                if (showOpenFlash) {
+                    const timer = setTimeout(() => setShowOpenFlash(false), 1500);
+                    return () => clearTimeout(timer);
+                }
+            }, []);
 
             // Load high score from storage when IP is ready
             useEffect(() => {
@@ -3035,6 +3121,12 @@
                             });
                             return newScore;
                         });
+                        // Show level word (0-indexed, so level 1 = index 0)
+                        if (level <= LEVEL_WORDS.length) {
+                            setLevelWord(LEVEL_WORDS[level - 1]);
+                        } else {
+                            setLevelWord('CLEAR');
+                        }
                         setWon(true);
                         sounds.success();
 
@@ -3101,10 +3193,15 @@
                         </div>
                     </div>
                     <div className="flex-grow flex items-center justify-center relative bg-white">
+                        {showOpenFlash && (
+                            <div className="absolute inset-0 bg-black flex items-center justify-center z-20">
+                                <div className="text-4xl font-black tracking-widest text-white animate-pulse">THE</div>
+                            </div>
+                        )}
                         {won && !showingMaze && (
                             <div className="absolute inset-0 bg-white/95 flex items-center justify-center z-10">
                                 <div className="text-center">
-                                    <div className="text-2xl font-black tracking-widest">CLEAR</div>
+                                    <div className="text-2xl font-black tracking-widest">{levelWord || 'CLEAR'}</div>
                                     <div className="font-mono text-[10px] text-gray-400 mt-1">+{level * 100}</div>
                                 </div>
                             </div>
@@ -3148,6 +3245,13 @@
             const ROWS = 12;
             const COLS = 16;
             const MINES = 30;
+
+            // Hidden background message at 20% opacity
+            const HIDDEN_MESSAGE = 'RUN42INTHETERM';
+            const getBackgroundLetter = (r, c) => {
+                const idx = (r * COLS + c) % HIDDEN_MESSAGE.length;
+                return HIDDEN_MESSAGE[idx];
+            };
 
             const initGame = () => {
                 // Create empty grid
@@ -3322,8 +3426,13 @@
                                             key={c}
                                             onClick={() => reveal(r, c)}
                                             onContextMenu={(e) => flag(e, r, c)}
-                                            className={`w-6 h-6 border border-gray-100 font-mono text-[10px] font-bold flex items-center justify-center transition-colors ${getCellStyle(r, c)}`}
+                                            className={`w-6 h-6 border border-gray-100 font-mono text-[10px] font-bold flex items-center justify-center transition-colors relative ${getCellStyle(r, c)}`}
                                         >
+                                            {!revealed[r][c] && !flagged[r][c] && (
+                                                <span className="absolute inset-0 flex items-center justify-center text-gray-300 opacity-20 pointer-events-none">
+                                                    {getBackgroundLetter(r, c)}
+                                                </span>
+                                            )}
                                             {getCellContent(r, c)}
                                         </button>
                                     ))}
@@ -3355,7 +3464,9 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('starship'));
             const [gameOver, setGameOver] = useState(false);
             const [started, setStarted] = useState(false);
+            const [showUniversalLaw, setShowUniversalLaw] = useState(false); // Narrative Bible v3.0 - 1000 points message
             const achievementTriggered = useRef(false);
+            const universalLawTriggered = useRef(false);
             const onAchievementRef = useRef(onAchievement);
             onAchievementRef.current = onAchievement;
 
@@ -3632,6 +3743,13 @@
                                 achievementTriggered.current = true;
                                 onAchievementRef.current?.('ACE');
                             }
+                            // Narrative Bible v3.0 - Show "THE UNIVERSAL LAW: RUN 42" at 1000 points
+                            if (scoreVal >= 1000 && !universalLawTriggered.current) {
+                                universalLawTriggered.current = true;
+                                setShowUniversalLaw(true);
+                                sounds.success?.();
+                                setTimeout(() => setShowUniversalLaw(false), 3000);
+                            }
                         }
 
                         // Collision with ship
@@ -3753,6 +3871,15 @@
                                     >
                                         RETRY
                                     </button>
+                                </div>
+                            </div>
+                        )}
+                        {/* Narrative Bible v3.0 - 1000 points message */}
+                        {showUniversalLaw && (
+                            <div className="absolute inset-0 bg-black flex items-center justify-center z-20 animate-pulse">
+                                <div className="text-center text-white">
+                                    <div className="text-2xl font-black tracking-widest mb-4">THE UNIVERSAL LAW:</div>
+                                    <div className="text-4xl font-black text-yellow-400">RUN 42</div>
                                 </div>
                             </div>
                         )}
@@ -7427,6 +7554,10 @@ Good luck.`;
                         <div className="font-mono text-xs text-gray-500 text-center max-w-xs">
                             Search for apps
                         </div>
+                        {/* Hidden Konami code hint */}
+                        <div className="mt-8 font-mono text-[8px] text-gray-200 tracking-widest select-none">
+                            ↑↑↓↓←→←→BA
+                        </div>
                     </div>
                     <div className="app-footer">
                         <span className="app-footer-text">SEARCH - NAVIGATE - DISCOVER</span>
@@ -7873,6 +8004,18 @@ Good luck.`;
                 localStorage.setItem('ultra_int_deletions', totalDeletions.toString());
             }, [totalDeletions]);
 
+            // Handle trash deletion - increment counter and check for 50 deletions
+            const handleTrashDelete = () => {
+                const newTotal = totalDeletions + 1;
+                setTotalDeletions(newTotal);
+
+                // Unlock DESTRUCTION at 50 deletions
+                if (newTotal >= 50) {
+                    unlockApp('DESTRUCTION');
+                    unlockAchievement('DESTROYER_OF_WORLDS');
+                }
+            };
+
             // Check for 100% completion
             const achievementCount = Object.keys(achievements).filter(k => k !== 'COMPLETIONIST').length;
             const totalAchievements = Object.keys(ACHIEVEMENTS).length - 1; // Exclude COMPLETIONIST itself
@@ -8153,15 +8296,11 @@ Good luck.`;
                         setDogTrashCount(newCount);
                         localStorage.setItem('dog_trash_count', newCount.toString());
 
-                        // Trigger achievements
+                        // Trigger achievements and unlocks
                         if (newCount >= 1 && !achievements.YOU_MONSTER) {
                             setTimeout(() => unlockAchievement('YOU_MONSTER'), 500);
-                        }
-                        if (newCount >= 3 && !achievements.JOHN_WICK) {
-                            setTimeout(() => unlockAchievement('JOHN_WICK'), 500);
-                        }
-                        if (newCount >= 10 && !achievements.OVERKILL) {
-                            setTimeout(() => unlockAchievement('OVERKILL'), 500);
+                            // Narrative Bible v3.0 - Unlock MAP when dog is trashed
+                            setTimeout(() => unlockApp('MAP'), 700);
                         }
                     }
                 } else {
@@ -8312,7 +8451,7 @@ Good luck.`;
                     case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
                     case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
-                    case "TRASH": return <TrashApp />;
+                    case "TRASH": return <TrashApp onDelete={handleTrashDelete} totalDeletions={totalDeletions} />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
                     case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
