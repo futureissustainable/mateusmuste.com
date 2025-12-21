@@ -976,63 +976,84 @@
 
             // ========== NEW SOUNDS ==========
 
-            // First visit wind-up boot sound - mechanical spin-up feeling
+            // Iconic boot chime - inspired by Windows 95/Mac startup
+            // Warm, satisfying, minimalist chord progression
             bootWindup: () => {
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
 
-                // Main rising oscillator - creates wind-up feeling
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                const filter = ctx.createBiquadFilter();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(40, now);
-                osc.frequency.exponentialRampToValueAtTime(200, now + 0.8);
-                osc.frequency.exponentialRampToValueAtTime(600, now + 1.2);
-                filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(200, now);
-                filter.frequency.exponentialRampToValueAtTime(2000, now + 1.2);
-                gain.gain.setValueAtTime(0, now);
-                gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
-                gain.gain.setValueAtTime(0.15, now + 1.0);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
-                osc.connect(filter);
-                filter.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start(now);
-                osc.stop(now + 1.5);
+                // Create a warm major chord with slight detuning for richness
+                // D major chord: D3, F#3, A3, D4 (146.83, 185, 220, 293.66 Hz)
+                const frequencies = [146.83, 185, 220, 293.66, 440];
+                const detune = [-3, 2, -1, 3, 0]; // Slight detune for warmth
 
-                // Clicks that speed up like a motor starting
-                for (let i = 0; i < 15; i++) {
-                    const clickTime = now + (i * 0.12) - (i * i * 0.004);
-                    if (clickTime < now + 1.2) {
-                        const click = ctx.createOscillator();
-                        const clickGain = ctx.createGain();
-                        click.type = 'square';
-                        click.frequency.value = 100 + i * 30;
-                        clickGain.gain.setValueAtTime(0.06, clickTime);
-                        clickGain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.02);
-                        click.connect(clickGain);
-                        clickGain.connect(ctx.destination);
-                        click.start(clickTime);
-                        click.stop(clickTime + 0.02);
+                // Master gain with compression feel
+                const masterGain = ctx.createGain();
+                const masterFilter = ctx.createBiquadFilter();
+                masterFilter.type = 'lowpass';
+                masterFilter.frequency.setValueAtTime(800, now);
+                masterFilter.frequency.linearRampToValueAtTime(3000, now + 0.3);
+                masterFilter.frequency.linearRampToValueAtTime(1500, now + 2.0);
+                masterFilter.Q.value = 0.7;
+                masterGain.gain.setValueAtTime(0, now);
+                masterGain.gain.linearRampToValueAtTime(0.25, now + 0.08);
+                masterGain.gain.setValueAtTime(0.25, now + 1.2);
+                masterGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+                masterFilter.connect(masterGain);
+                masterGain.connect(ctx.destination);
+
+                // Create each note of the chord
+                frequencies.forEach((freq, i) => {
+                    // Main tone (sine for warmth)
+                    const osc = ctx.createOscillator();
+                    const oscGain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    osc.detune.value = detune[i];
+
+                    // Stagger entry slightly for that "bloom" effect
+                    const stagger = i * 0.015;
+                    oscGain.gain.setValueAtTime(0, now + stagger);
+                    oscGain.gain.linearRampToValueAtTime(0.15 - i * 0.02, now + stagger + 0.05);
+                    oscGain.gain.setValueAtTime(0.15 - i * 0.02, now + 1.5);
+                    oscGain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+
+                    osc.connect(oscGain);
+                    oscGain.connect(masterFilter);
+                    osc.start(now + stagger);
+                    osc.stop(now + 2.6);
+
+                    // Add subtle triangle harmonic for texture
+                    if (i < 3) {
+                        const harm = ctx.createOscillator();
+                        const harmGain = ctx.createGain();
+                        harm.type = 'triangle';
+                        harm.frequency.value = freq * 2;
+                        harmGain.gain.setValueAtTime(0, now + stagger);
+                        harmGain.gain.linearRampToValueAtTime(0.03, now + stagger + 0.1);
+                        harmGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                        harm.connect(harmGain);
+                        harmGain.connect(masterFilter);
+                        harm.start(now + stagger);
+                        harm.stop(now + 1.6);
                     }
-                }
+                });
 
-                // Final "ready" chime
+                // Subtle high "sparkle" that fades in late - the resolution
                 setTimeout(() => {
-                    const chime = ctx.createOscillator();
-                    const chimeGain = ctx.createGain();
-                    chime.type = 'sine';
-                    chime.frequency.value = 880;
-                    chimeGain.gain.setValueAtTime(0.12, ctx.currentTime);
-                    chimeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-                    chime.connect(chimeGain);
-                    chimeGain.connect(ctx.destination);
-                    chime.start();
-                    chime.stop(ctx.currentTime + 0.3);
-                }, 1200);
+                    const sparkle = ctx.createOscillator();
+                    const sparkGain = ctx.createGain();
+                    sparkle.type = 'sine';
+                    sparkle.frequency.value = 880; // A5 - the fifth, for resolution
+                    sparkGain.gain.setValueAtTime(0, ctx.currentTime);
+                    sparkGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 0.1);
+                    sparkGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+                    sparkle.connect(sparkGain);
+                    sparkGain.connect(ctx.destination);
+                    sparkle.start();
+                    sparkle.stop(ctx.currentTime + 0.9);
+                }, 400);
             },
 
             // Window minimize - quick descending swoosh
@@ -9245,10 +9266,16 @@ Good luck.`;
             const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
+            // In about mode: only show base apps, no story progression
             const getUnlockedApps = () => {
                 const unlocked = new Set(INITIAL_APPS);
 
-                // Add all narrative-driven unlocks
+                // About mode: clean slate, no story unlocks
+                if (modeSelected === 'about') {
+                    return unlocked;
+                }
+
+                // Story mode: add all narrative-driven unlocks
                 narrativeUnlocks.forEach(app => unlocked.add(app));
 
                 // TRUTH unlocks at 100 visits OR after god mode
@@ -11338,8 +11365,8 @@ Good luck.`;
                             </div>
                         );
                     })}
-                    {/* Extra desktop icons (dragged from folders) */}
-                    {extraDesktopIcons.map(appId => {
+                    {/* Extra desktop icons (dragged from folders) - only in story mode */}
+                    {modeSelected !== 'about' && extraDesktopIcons.map(appId => {
                         const app = windows[appId];
                         if (!app) return null;
                         const IconCmp = Icons[app.icon];
