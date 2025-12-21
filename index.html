@@ -4948,6 +4948,16 @@
             const [dogStealing, setDogStealing] = useState(false);
             const [dogPos, setDogPos] = useState({ x: -100, y: 200 });
             const [buttonGone, setButtonGone] = useState(false);
+            const dogRunRef = useRef(null);
+            const dogEscapeRef = useRef(null);
+
+            // Cleanup intervals on unmount
+            useEffect(() => {
+                return () => {
+                    if (dogRunRef.current) clearInterval(dogRunRef.current);
+                    if (dogEscapeRef.current) clearInterval(dogEscapeRef.current);
+                };
+            }, []);
 
             const confirmMessages = [
                 { prompt: "EXECUTE", response: "You want to do it?" },
@@ -4971,21 +4981,23 @@
 
                     // Animate dog running in
                     let dogX = -100;
-                    const dogRun = setInterval(() => {
+                    dogRunRef.current = setInterval(() => {
                         dogX += 15;
                         setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 20) * 10 });
 
                         if (dogX >= 120) {
-                            clearInterval(dogRun);
+                            clearInterval(dogRunRef.current);
+                            dogRunRef.current = null;
                             setButtonGone(true);
 
                             // Dog runs away with button
-                            const dogEscape = setInterval(() => {
+                            dogEscapeRef.current = setInterval(() => {
                                 dogX += 20;
                                 setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 15) * 15 });
 
                                 if (dogX > window.innerWidth + 100) {
-                                    clearInterval(dogEscape);
+                                    clearInterval(dogEscapeRef.current);
+                                    dogEscapeRef.current = null;
                                     onAchievement?.('DESTROYER_OF_WORLDS');
                                     if (onDogSteal) onDogSteal();
                                 }
@@ -5114,6 +5126,15 @@
             const [showFatePrompt, setShowFatePrompt] = useState(false);
             const [isShuffling, setIsShuffling] = useState(false);
             const [shuffleFrame, setShuffleFrame] = useState(0);
+            const shuffleIntervalRef = useRef(null);
+
+            // Cleanup interval on unmount
+            useEffect(() => {
+                return () => {
+                    if (shuffleIntervalRef.current) clearInterval(shuffleIntervalRef.current);
+                };
+            }, []);
+
             const [uniqueDays, setUniqueDays] = useState(() => {
                 const stored = localStorage.getItem('tarot_unique_days');
                 return stored ? JSON.parse(stored) : [];
@@ -6005,11 +6026,12 @@
                 sounds.tarotShuffle();
                 setIsShuffling(true);
                 let frame = 0;
-                const shuffleInterval = setInterval(() => {
+                shuffleIntervalRef.current = setInterval(() => {
                     setShuffleFrame(f => f + 1);
                     frame++;
                     if (frame >= 20) {
-                        clearInterval(shuffleInterval);
+                        clearInterval(shuffleIntervalRef.current);
+                        shuffleIntervalRef.current = null;
                         setIsShuffling(false);
                         // Pick 3 unique random cards
                         const shuffled = [...tarotCards].sort(() => Math.random() - 0.5);
@@ -7544,6 +7566,15 @@ Good luck.`;
 
         // --- TERMINAL.EXE - Command line interface (v3.0 Narrative Bible) ---
         const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive }) => {
+            const dotIntervalRef = useRef(null);
+
+            // Cleanup interval on unmount
+            useEffect(() => {
+                return () => {
+                    if (dotIntervalRef.current) clearInterval(dotIntervalRef.current);
+                };
+            }, []);
+
             // Initial archived history
             const archivedHistory = [
                 { type: 'archive', text: '[ARCHIVE] user@system:~$ ping mateus' },
@@ -7708,7 +7739,7 @@ Good luck.`;
 
                 // Show loading dots
                 let dots = '';
-                const dotInterval = setInterval(() => {
+                dotIntervalRef.current = setInterval(() => {
                     dots = dots.length >= 3 ? '.' : dots + '.';
                     setHistory(prev => {
                         const newHist = [...prev];
@@ -7722,7 +7753,8 @@ Good luck.`;
                 }, 300);
 
                 await new Promise(resolve => setTimeout(resolve, loadTime));
-                clearInterval(dotInterval);
+                clearInterval(dotIntervalRef.current);
+                dotIntervalRef.current = null;
 
                 // Remove loading entry
                 setHistory(prev => prev.filter(h => h.type !== 'loading'));
