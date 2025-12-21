@@ -6842,10 +6842,16 @@ Good luck.`;
                     onUnlockApp?.('PAINT');
 
                 } else if (trimmed === 'cmatrix') {
-                    addOutput('MATRIX PROTOCOL COMPLETE\n');
-                    addOutput('VOID.EXE UNLOCKED');
-                    onUnlockApp?.('VOID');
-                    setTimeout(() => onMatrixMode?.(), 500);
+                    addOutput('MATRIX PROTOCOL INITIATED...\n');
+                    // Turn on matrix mode
+                    setTimeout(() => onMatrixMode?.(), 300);
+                    // Turn off after 2 seconds and show completion
+                    setTimeout(() => {
+                        onMatrixMode?.(); // Toggle off
+                        addOutput('MATRIX PROTOCOL COMPLETE\n');
+                        addOutput('VOID.EXE UNLOCKED');
+                        onUnlockApp?.('VOID');
+                    }, 2300);
 
                 } else if (trimmed === 'sudo unlock') {
                     addOutput('UNLOCKING RESTRICTED ACCESS...\n');
