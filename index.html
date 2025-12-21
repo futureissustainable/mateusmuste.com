@@ -1029,12 +1029,13 @@
                     filter.frequency.linearRampToValueAtTime(1200, now + 2.0);
                     filter.Q.value = 0.5;
 
-                    // Fast bloom
+                    // Fast bloom, smooth 3s fade
                     const delay = i * 0.02;
                     gain.gain.setValueAtTime(0, now);
                     gain.gain.linearRampToValueAtTime(note.vol, now + delay + 0.12);
-                    gain.gain.setValueAtTime(note.vol * 0.9, now + 1.0);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
+                    gain.gain.setValueAtTime(note.vol * 0.95, now + 1.2);
+                    gain.gain.linearRampToValueAtTime(note.vol * 0.4, now + 2.2);
+                    gain.gain.linearRampToValueAtTime(0, now + 3.0);
 
                     osc.connect(filter);
                     osc2.connect(filter);
@@ -1043,11 +1044,11 @@
 
                     osc.start(now);
                     osc2.start(now);
-                    osc.stop(now + 2.6);
-                    osc2.stop(now + 2.6);
+                    osc.stop(now + 3.1);
+                    osc2.stop(now + 3.1);
                 });
 
-                // Bell arrival - earlier and brighter
+                // Bell arrival
                 setTimeout(() => {
                     const bell = ctx.createOscillator();
                     const bellGain = ctx.createGain();
@@ -1055,11 +1056,12 @@
                     bell.frequency.value = 1046.50; // C6
                     bellGain.gain.setValueAtTime(0, ctx.currentTime);
                     bellGain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
-                    bellGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                    bellGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.0);
+                    bellGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
                     bell.connect(bellGain);
                     bellGain.connect(ctx.destination);
                     bell.start();
-                    bell.stop(ctx.currentTime + 1.6);
+                    bell.stop(ctx.currentTime + 2.1);
                 }, 350);
             },
 
@@ -2953,7 +2955,7 @@
                         "most people bounce after 30 seconds.",
                         "you stayed. you searched. you solved.",
                         "this site exists because systems make more sense than people.",
-                        "portfolios feel like coffins. resumes feel like lies.",
+                        "... feel like placing value on projects above the person.",
                         "if you got here, you probably think the same way.",
                         "that's rare.",
                         "if you want to talk about ideas, projects,",
