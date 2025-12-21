@@ -2490,6 +2490,365 @@
             )
         }
 
+        // --- 3D MEDIA VIEWER ---
+        const Media3DViewer = ({ items, mediaType }) => {
+            const containerRef = useRef(null);
+            const sceneRef = useRef(null);
+            const objectsRef = useRef([]);
+            const mouseRef = useRef({ x: 0, y: 0 });
+            const hoveredRef = useRef(null);
+            const animationRef = useRef(null);
+
+            // Color palettes for different media types
+            const colorPalettes = {
+                LITERATURE: [0x1a1a2e, 0x16213e, 0x0f3460, 0x533483, 0x2c3e50, 0x34495e, 0x8e44ad, 0x2980b9],
+                AUDIO: [0x1a1a1a, 0x2d2d2d, 0x404040, 0x1a1a2e, 0x2c2c2c, 0x383838],
+                CINEMA_TV: [0x1a1a1a, 0x0a0a0a, 0x2d2d2d, 0x1a1a2e, 0x0f0f1a],
+                GAMES: [0x1a1a2e, 0x16213e, 0x0f3460, 0x1a0a2e, 0x0a1a2e, 0x2e1a2e]
+            };
+
+            // Create text texture
+            const createTextTexture = (text, width, height, fontSize, bgColor, textColor = '#ffffff') => {
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+
+                // Background
+                ctx.fillStyle = typeof bgColor === 'number' ? '#' + bgColor.toString(16).padStart(6, '0') : bgColor;
+                ctx.fillRect(0, 0, width, height);
+
+                // Text
+                ctx.fillStyle = textColor;
+                ctx.font = `bold ${fontSize}px monospace`;
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+
+                // Word wrap for longer titles
+                const words = text.split(' ');
+                const lines = [];
+                let currentLine = '';
+                const maxWidth = width - 20;
+
+                words.forEach(word => {
+                    const testLine = currentLine + (currentLine ? ' ' : '') + word;
+                    const metrics = ctx.measureText(testLine);
+                    if (metrics.width > maxWidth && currentLine) {
+                        lines.push(currentLine);
+                        currentLine = word;
+                    } else {
+                        currentLine = testLine;
+                    }
+                });
+                lines.push(currentLine);
+
+                const lineHeight = fontSize * 1.2;
+                const startY = height / 2 - (lines.length - 1) * lineHeight / 2;
+                lines.forEach((line, i) => {
+                    ctx.fillText(line, width / 2, startY + i * lineHeight);
+                });
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+                return texture;
+            };
+
+            // Create book geometry
+            const createBook = (item, index, total) => {
+                const colors = colorPalettes.LITERATURE;
+                const color = colors[index % colors.length];
+
+                const width = 0.15;
+                const height = 0.9 + Math.random() * 0.2;
+                const depth = 0.6;
+
+                const geometry = new THREE.BoxGeometry(width, height, depth);
+
+                // Create materials for each face
+                const spineTexture = createTextTexture(item.title, 64, 256, 11, color);
+                const coverTexture = createTextTexture(item.title, 256, 256, 18, color);
+
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }), // right
+                    new THREE.MeshStandardMaterial({ map: spineTexture, roughness: 0.7 }), // left (spine)
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }), // top
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }), // bottom
+                    new THREE.MeshStandardMaterial({ map: coverTexture, roughness: 0.6 }), // front
+                    new THREE.MeshStandardMaterial({ color: 0xf5f5dc, roughness: 0.9 }), // back (pages)
+                ];
+
+                const book = new THREE.Mesh(geometry, materials);
+                book.userData = { item, type: 'book', baseRotation: { x: 0, y: 0 } };
+
+                return book;
+            };
+
+            // Create cassette geometry
+            const createCassette = (item, index) => {
+                const colors = colorPalettes.AUDIO;
+                const color = colors[index % colors.length];
+
+                const group = new THREE.Group();
+
+                // Main body
+                const bodyGeom = new THREE.BoxGeometry(0.7, 0.45, 0.12);
+                const labelTexture = createTextTexture(
+                    `${item.title}\n${item.artist || ''}`,
+                    256, 160, 16, color
+                );
+                const bodyMats = [
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 }),
+                    new THREE.MeshStandardMaterial({ map: labelTexture, roughness: 0.5 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.4 }),
+                ];
+                const body = new THREE.Mesh(bodyGeom, bodyMats);
+                group.add(body);
+
+                // Tape reels
+                const reelGeom = new THREE.CylinderGeometry(0.08, 0.08, 0.05, 16);
+                const reelMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.3, metalness: 0.5 });
+
+                const leftReel = new THREE.Mesh(reelGeom, reelMat);
+                leftReel.rotation.x = Math.PI / 2;
+                leftReel.position.set(-0.18, 0.05, 0.04);
+                group.add(leftReel);
+
+                const rightReel = new THREE.Mesh(reelGeom, reelMat);
+                rightReel.rotation.x = Math.PI / 2;
+                rightReel.position.set(0.18, 0.05, 0.04);
+                group.add(rightReel);
+
+                // Window
+                const windowGeom = new THREE.BoxGeometry(0.35, 0.12, 0.02);
+                const windowMat = new THREE.MeshStandardMaterial({
+                    color: 0x222222,
+                    transparent: true,
+                    opacity: 0.7,
+                    roughness: 0.1
+                });
+                const window = new THREE.Mesh(windowGeom, windowMat);
+                window.position.set(0, 0.05, 0.06);
+                group.add(window);
+
+                group.userData = { item, type: 'cassette', baseRotation: { x: 0.3, y: 0 } };
+                group.rotation.x = 0.3;
+
+                return group;
+            };
+
+            // Create DVD/Game case
+            const createCase = (item, index, isGame) => {
+                const colors = isGame ? colorPalettes.GAMES : colorPalettes.CINEMA_TV;
+                const color = colors[index % colors.length];
+
+                const width = isGame ? 0.15 : 0.12;
+                const height = 0.75;
+                const depth = 0.55;
+
+                const geometry = new THREE.BoxGeometry(width, height, depth);
+
+                const spineTexture = createTextTexture(item.title, 48, 256, 10, color);
+                const coverTexture = createTextTexture(item.title, 256, 256, 20, color);
+
+                const materials = [
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 }),
+                    new THREE.MeshStandardMaterial({ map: spineTexture, roughness: 0.3 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 }),
+                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.3 }),
+                    new THREE.MeshStandardMaterial({ map: coverTexture, roughness: 0.4 }),
+                    new THREE.MeshStandardMaterial({ color: 0x1a1a1a, roughness: 0.5 }),
+                ];
+
+                const caseObj = new THREE.Mesh(geometry, materials);
+                caseObj.userData = { item, type: isGame ? 'game' : 'dvd', baseRotation: { x: 0, y: 0 } };
+
+                return caseObj;
+            };
+
+            useEffect(() => {
+                if (!containerRef.current || sceneRef.current) return;
+
+                const container = containerRef.current;
+                const width = container.clientWidth;
+                const height = container.clientHeight;
+
+                // Scene
+                const scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xf5f5f5);
+
+                // Camera - orthographic for cleaner look
+                const aspect = width / height;
+                const frustumSize = 4;
+                const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+                camera.position.set(0, 2, 6);
+                camera.lookAt(0, 0, 0);
+
+                // Renderer
+                const renderer = new THREE.WebGLRenderer({ antialias: true });
+                renderer.setSize(width, height);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                renderer.shadowMap.enabled = true;
+                renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+                container.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+
+                const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                mainLight.position.set(5, 10, 5);
+                mainLight.castShadow = true;
+                mainLight.shadow.mapSize.width = 1024;
+                mainLight.shadow.mapSize.height = 1024;
+                scene.add(mainLight);
+
+                const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+                fillLight.position.set(-5, 5, -5);
+                scene.add(fillLight);
+
+                // Create objects based on media type
+                const objects = [];
+                const itemsPerRow = mediaType === 'AUDIO' ? 4 : 6;
+                const spacing = mediaType === 'AUDIO' ? 1.0 : 0.35;
+                const rowSpacing = mediaType === 'AUDIO' ? 0.8 : 1.2;
+
+                items.forEach((item, index) => {
+                    let obj;
+                    switch (mediaType) {
+                        case 'LITERATURE':
+                            obj = createBook(item, index, items.length);
+                            break;
+                        case 'AUDIO':
+                            obj = createCassette(item, index);
+                            break;
+                        case 'GAMES':
+                            obj = createCase(item, index, true);
+                            break;
+                        case 'CINEMA_TV':
+                        default:
+                            obj = createCase(item, index, false);
+                            break;
+                    }
+
+                    // Position in grid
+                    const row = Math.floor(index / itemsPerRow);
+                    const col = index % itemsPerRow;
+                    const totalCols = Math.min(items.length, itemsPerRow);
+                    const offsetX = (totalCols - 1) * spacing / 2;
+
+                    obj.position.x = col * spacing - offsetX;
+                    obj.position.y = -row * rowSpacing;
+                    obj.position.z = 0;
+
+                    obj.castShadow = true;
+                    obj.receiveShadow = true;
+
+                    objects.push(obj);
+                    scene.add(obj);
+                });
+
+                objectsRef.current = objects;
+
+                // Center camera on content
+                const totalRows = Math.ceil(items.length / itemsPerRow);
+                camera.position.y = -(totalRows - 1) * rowSpacing / 2 + 1;
+                camera.lookAt(0, camera.position.y - 1, 0);
+
+                // Raycaster for hover detection
+                const raycaster = new THREE.Raycaster();
+                const mouse = new THREE.Vector2();
+
+                // Mouse move handler
+                const onMouseMove = (event) => {
+                    const rect = container.getBoundingClientRect();
+                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+                    mouseRef.current = { x: mouse.x, y: mouse.y };
+
+                    // Raycast to find hovered object
+                    raycaster.setFromCamera(mouse, camera);
+                    const intersects = raycaster.intersectObjects(objects, true);
+
+                    if (intersects.length > 0) {
+                        let target = intersects[0].object;
+                        while (target.parent && !target.userData.item) {
+                            target = target.parent;
+                        }
+                        if (target.userData.item) {
+                            hoveredRef.current = target;
+                            container.style.cursor = 'pointer';
+                        }
+                    } else {
+                        hoveredRef.current = null;
+                        container.style.cursor = 'default';
+                    }
+                };
+
+                container.addEventListener('mousemove', onMouseMove);
+
+                sceneRef.current = { scene, camera, renderer };
+
+                // Animation loop
+                const animate = () => {
+                    objects.forEach(obj => {
+                        const baseRot = obj.userData.baseRotation || { x: 0, y: 0 };
+                        const isHovered = hoveredRef.current === obj;
+
+                        // Target rotation based on mouse position (opposite direction = tilt away)
+                        const targetRotX = baseRot.x + (isHovered ? -mouseRef.current.y * 0.3 : 0);
+                        const targetRotY = baseRot.y + (isHovered ? -mouseRef.current.x * 0.4 : 0);
+                        const targetZ = isHovered ? 0.3 : 0;
+                        const targetScale = isHovered ? 1.15 : 1;
+
+                        // Smooth interpolation
+                        obj.rotation.x += (targetRotX - obj.rotation.x) * 0.1;
+                        obj.rotation.y += (targetRotY - obj.rotation.y) * 0.1;
+                        obj.position.z += (targetZ - obj.position.z) * 0.1;
+
+                        const currentScale = obj.scale.x;
+                        const newScale = currentScale + (targetScale - currentScale) * 0.1;
+                        obj.scale.set(newScale, newScale, newScale);
+                    });
+
+                    renderer.render(scene, camera);
+                    animationRef.current = requestAnimationFrame(animate);
+                };
+                animate();
+
+                // Handle resize
+                const onResize = () => {
+                    const newWidth = container.clientWidth;
+                    const newHeight = container.clientHeight;
+                    camera.aspect = newWidth / newHeight;
+                    camera.updateProjectionMatrix();
+                    renderer.setSize(newWidth, newHeight);
+                };
+                window.addEventListener('resize', onResize);
+
+                return () => {
+                    cancelAnimationFrame(animationRef.current);
+                    container.removeEventListener('mousemove', onMouseMove);
+                    window.removeEventListener('resize', onResize);
+                    renderer.dispose();
+                    if (container && renderer.domElement) {
+                        container.removeChild(renderer.domElement);
+                    }
+                    sceneRef.current = null;
+                };
+            }, [items, mediaType]);
+
+            return (
+                <div
+                    ref={containerRef}
+                    className="w-full h-full"
+                    style={{ minHeight: '300px' }}
+                />
+            );
+        };
+
         const FileExplorer = ({ onAchievement }) => {
             const [selectedFolder, setSelectedFolder] = useState(null);
             const [visitedFolders, setVisitedFolders] = useState(() => {
@@ -2530,23 +2889,11 @@
                             <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
                             <span className="app-footer-text">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
                         </div>
-                        <div className="flex-grow overflow-auto">
-                            <table className="w-full text-left border-collapse">
-                                <thead className="bg-black text-white text-xs font-mono sticky top-0">
-                                    <tr><th className="p-2">TITLE</th><th className="p-2 border-l border-gray-600">NOTE</th></tr>
-                                </thead>
-                                <tbody className="font-mono text-xs">
-                                    {MEDIA_DB[selectedFolder].map((i, idx) => (
-                                        <tr key={idx} className="border-b border-gray-200 hover:bg-yellow-100">
-                                            <td className="p-2 font-bold">{i.title}</td>
-                                            <td className="p-2 border-l border-gray-200">{i.rating || i.artist}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                        <div className="flex-grow overflow-hidden bg-gray-100">
+                            <Media3DViewer items={MEDIA_DB[selectedFolder]} mediaType={selectedFolder} />
                         </div>
                         <div className="app-footer">
-                            <span className="app-footer-text">CLICK TO VIEW - HOVER TO PREVIEW</span>
+                            <span className="app-footer-text">HOVER TO INTERACT - 3D VIEW</span>
                         </div>
                     </div>
                 );
