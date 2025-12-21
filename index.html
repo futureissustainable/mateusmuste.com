@@ -8787,6 +8787,13 @@ Good luck.`;
             const [dogFacingRight, setDogFacingRight] = useState(true);
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
             const [carriedIcon, setCarriedIcon] = useState(null);
+            const carriedIconRef = useRef(null); // Ref to avoid stale closure in dog interval
+
+            // Keep ref in sync with state
+            useEffect(() => {
+                carriedIconRef.current = carriedIcon;
+            }, [carriedIcon]);
+
             const [iconPositions, setIconPositions] = useState(() => {
                 // Initialize desktop icon positions in a column on the left
                 const stored = localStorage.getItem('desktop_icon_positions');
@@ -9058,25 +9065,13 @@ Good luck.`;
                 }
             }, []);
 
-            // Total visitors counter (using CountAPI)
-            const [totalVisitors, setTotalVisitors] = useState(null);
-
-            // Fetch and increment total visitors with abort controller
-            useEffect(() => {
-                const controller = new AbortController();
-                fetch('https://api.countapi.xyz/hit/mateusmuste-com/visits', { signal: controller.signal })
-                    .then(res => res.json())
-                    .then(data => setTotalVisitors(data.value))
-                    .catch((err) => {
-                        if (err.name === 'AbortError') return; // Ignore abort errors
-                        // Fallback to localStorage estimate
-                        const stored = parseInt(localStorage.getItem('visitor_estimate') || '340', 10);
-                        const newCount = stored + Math.floor(Math.random() * 3);
-                        localStorage.setItem('visitor_estimate', newCount.toString());
-                        setTotalVisitors(newCount);
-                    });
-                return () => controller.abort();
-            }, []);
+            // Total visitors counter (localStorage based - CountAPI was shut down)
+            const [totalVisitors, setTotalVisitors] = useState(() => {
+                const stored = parseInt(localStorage.getItem('visitor_estimate') || '340', 10);
+                const newCount = stored + 1;
+                localStorage.setItem('visitor_estimate', newCount.toString());
+                return newCount;
+            });
 
             const toggleMatrixMode = () => {
                 setMatrixMode(prev => {
@@ -9158,8 +9153,8 @@ Good luck.`;
                         return { x: newX, y: newY };
                     });
 
-                    // Randomly grab icons
-                    if (!carriedIcon && Math.random() < 0.003) {
+                    // Randomly grab icons (use ref to avoid stale closure)
+                    if (!carriedIconRef.current && Math.random() < 0.003) {
                         const iconKeys = Object.keys(windows);
                         const randomIcon = iconKeys[Math.floor(Math.random() * iconKeys.length)];
                         setCarriedIcon(randomIcon);
@@ -9585,9 +9580,16 @@ Good luck.`;
                         return hasChanges ? updated : prev;
                     });
 
-                    animationId = requestAnimationFrame(physicsLoop);
+                    // OPTIMIZATION: Only continue loop if there's active velocity
+                    const hasActiveVelocity = Object.values(windowPhysics.current).some(
+                        p => Math.abs(p.velX) >= MIN_VELOCITY || Math.abs(p.velY) >= MIN_VELOCITY
+                    );
+                    if (hasActiveVelocity) {
+                        animationId = requestAnimationFrame(physicsLoop);
+                    }
                 };
 
+                // Start loop when drag ends (velocity is set)
                 animationId = requestAnimationFrame(physicsLoop);
                 return () => cancelAnimationFrame(animationId);
             }, [drag.id, isMobile]);
