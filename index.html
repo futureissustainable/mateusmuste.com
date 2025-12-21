@@ -2205,7 +2205,7 @@
                                 {isRedacting ? redactText('MATEUS MUSTE') : 'MATEUS MUSTE'}
                             </div>
                             <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
-                                <span className={`w-1.5 h-1.5 ${isRedacting ? 'bg-red-500' : isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
+                                <span className={`w-1.5 h-1.5 ${isRedacting ? 'bg-red-500' : isTyping ? 'bg-white animate-pulse' : 'bg-green-400'}`}></span>
                                 {isRedacting ? 'ENCRYPTING' : isTyping ? 'COMPOSING' : 'ONLINE'}
                             </div>
                         </div>
@@ -3850,10 +3850,10 @@
                                                 <span className="font-bold">{highScore}</span>
                                             </div>
                                             <div className="flex justify-between gap-8">
-                                                <span className={unlockedRun42 ? "text-yellow-600 font-bold" : "text-gray-400"}>
+                                                <span className={unlockedRun42 ? "text-black font-bold" : "text-gray-400"}>
                                                     {unlockedRun42 ? "RUN 42" : "████████"}
                                                 </span>
-                                                <span className={unlockedRun42 ? "font-bold text-yellow-600" : "text-gray-400"}>0</span>
+                                                <span className={unlockedRun42 ? "font-bold text-black" : "text-gray-400"}>0</span>
                                             </div>
                                         </div>
                                     </div>
@@ -5258,16 +5258,16 @@
                                 </div>
                                 {/* Accept Fate Prompt (Narrative Bible v3.0) */}
                                 {showFatePrompt && !fateAccepted && (
-                                    <div className="mt-4 p-4 border border-gray-700 bg-gray-900">
-                                        <p className="font-mono text-sm mb-4">ARE YOU HAPPY WITH YOUR FATE?</p>
-                                        <div className="flex gap-4 justify-center">
+                                    <div className="mt-6 bg-white border-2 border-black p-4">
+                                        <p className="font-mono text-black text-xs font-bold tracking-widest mb-4 text-center">ACCEPT YOUR FATE?</p>
+                                        <div className="flex gap-3 justify-center">
                                             <button
                                                 onClick={() => {
                                                     setFateAccepted(true);
                                                     onAchievement?.('ACCEPT_FATE');
                                                     onUnlockApp?.('MINESWEEPER');
                                                 }}
-                                                className="bg-white text-black px-6 py-2 font-mono text-xs hover:bg-gray-200"
+                                                className="bg-black text-white px-8 py-2 font-mono text-[10px] font-bold tracking-widest hover:bg-gray-800 border-2 border-black"
                                             >
                                                 YES
                                             </button>
@@ -5279,7 +5279,7 @@
                                                     setShowFatePrompt(false);
                                                     setAlreadyPulled(false);
                                                 }}
-                                                className="border border-white text-white px-6 py-2 font-mono text-xs hover:bg-gray-800"
+                                                className="bg-white text-black px-8 py-2 font-mono text-[10px] font-bold tracking-widest hover:bg-gray-100 border-2 border-black"
                                             >
                                                 NO
                                             </button>
@@ -5287,7 +5287,7 @@
                                     </div>
                                 )}
                                 {fateAccepted && (
-                                    <p className="mt-3 font-mono text-xs text-green-400">FATE ACCEPTED</p>
+                                    <p className="mt-4 font-mono text-[10px] text-white tracking-widest">FATE ACCEPTED</p>
                                 )}
                             </div>
                         )}
@@ -5568,6 +5568,9 @@ Good luck.`;
             const [logLines, setLogLines] = useState([]);
             const [loopComplete, setLoopComplete] = useState(false);
             const loopCompleteRef = useRef(false);
+            const onUnlockAppRef = useRef(onUnlockApp);
+            const timerRef = useRef(null);
+            onUnlockAppRef.current = onUnlockApp;
 
             const backupLog = [
                 '[0001] init system',
@@ -5591,31 +5594,26 @@ Good luck.`;
                     if (lineIndex < backupLog.length) {
                         setLogLines(prev => [...prev, backupLog[lineIndex]]);
                         lineIndex++;
-                        setTimeout(addLine, 500 + Math.random() * 500);
+                        timerRef.current = setTimeout(addLine, 500 + Math.random() * 500);
                     } else {
-                        // Loop complete
+                        // Loop complete - unlock TAROT once
                         if (!loopCompleteRef.current) {
                             loopCompleteRef.current = true;
                             setLoopComplete(true);
-                            // Unlock TAROT after loop completes
                             setTimeout(() => {
-                                onUnlockApp?.('TAROT');
+                                onUnlockAppRef.current?.('TAROT');
                             }, 1000);
                         }
-                        // Restart loop after 2 seconds
-                        setTimeout(() => {
-                            if (!cancelled) {
-                                setLogLines([]);
-                                lineIndex = 0;
-                                setTimeout(addLine, 500);
-                            }
-                        }, 2000);
+                        // Don't restart - just show LOOP COMPLETE
                     }
                 };
 
-                setTimeout(addLine, 500);
+                timerRef.current = setTimeout(addLine, 500);
 
-                return () => { cancelled = true; };
+                return () => {
+                    cancelled = true;
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                };
             }, []);
 
             return (
@@ -5623,7 +5621,7 @@ Good luck.`;
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">BACKUP.BAT</span>
-                        {loopComplete && <span className="text-yellow-400 text-xs ml-auto">LOOP COMPLETE</span>}
+                        {loopComplete && <span className="text-white text-xs ml-auto">LOOP COMPLETE</span>}
                     </div>
                     <div className="flex-grow overflow-auto p-3 space-y-1">
                         <div className="text-green-600 mb-2">ACCESSING DEEP ARCHIVES...</div>
@@ -5973,7 +5971,7 @@ Good luck.`;
                     </div>
 
                     {/* Globe container */}
-                    <div ref={containerRef} className="flex-grow relative overflow-hidden" style={{ minHeight: 0 }}>
+                    <div ref={containerRef} className="flex-grow relative overflow-hidden flex items-center justify-center" style={{ minHeight: 0 }}>
                         {/* Rings - behind globe, centered */}
                         {ringCount >= 1 && (
                             <div
@@ -6044,11 +6042,7 @@ Good luck.`;
                                 width: canvasSize,
                                 height: canvasSize,
                                 cursor: 'grab',
-                                touchAction: 'none',
-                                position: 'absolute',
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)'
+                                touchAction: 'none'
                             }}
                             onPointerDown={handlePointerDown}
                             onPointerUp={handlePointerUp}
@@ -6780,6 +6774,7 @@ Good luck.`;
                     // Base help - shown normally
                     let helpText = `AVAILABLE COMMANDS:
   help ............. show this menu
+  list user ........ show registered users
   ping [user] ...... attempt connection
   sudo reveal ...... unlock hidden layer
   clear ............ clear terminal
@@ -6792,6 +6787,12 @@ Good luck.`;
                     }
 
                     addOutput(helpText);
+
+                } else if (trimmed === 'list user') {
+                    addOutput(`REGISTERED USERS:
+  MATEUS ........... ADMIN
+  ████████ ......... ████████
+  UNKNOWN .......... CURRENT`);
 
                 } else if (trimmed === 'chkdsk') {
                     addOutput('SCANNING SYSTEM...\n');
@@ -6950,7 +6951,7 @@ Good luck.`;
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">TERMINAL.EXE</span>
-                        {awaitingKonami && <span className="text-yellow-400 text-xs animate-pulse ml-auto">AWAITING INPUT...</span>}
+                        {awaitingKonami && <span className="text-white text-xs animate-pulse ml-auto">AWAITING INPUT...</span>}
                     </div>
                     <div ref={historyRef} className="flex-grow overflow-auto p-3 space-y-1">
                         {history.map((item, i) => (
@@ -7311,11 +7312,11 @@ Good luck.`;
                                     disabled={revealPhase < 3}
                                     style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
                                 >
-                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-gray-100 transition-colors">
                                         <Icons.FileDoc size={64} />
                                     </div>
                                     <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
-                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
+                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-black" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
                                 </button>
                             </div>
                         </div>
@@ -7535,7 +7536,7 @@ Good luck.`;
                                 onChange={(e) => { setUrl(e.target.value); setShowSuggestions(true); }}
                                 onFocus={() => setShowSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                                placeholder="Search apps or enter mateusmuste.com..."
+                                placeholder="Search apps, be zen."
                                 className="w-full px-3 py-1 border-2 border-black font-mono text-sm focus:outline-none"
                             />
                             {showSuggestions && filteredItems.length > 0 && (
@@ -8280,11 +8281,16 @@ Good luck.`;
                     const trashRight = trashLeft + 96; // ~w-24 = 96px
                     const trashBottom = trashTop + 80;
 
-                    if (dogPos.x >= trashLeft - 30 && dogPos.x <= trashRight + 30 &&
-                        dogPos.y >= trashTop - 30 && dogPos.y <= trashBottom + 30) {
+                    // Increased hitbox by 50% (45px margin instead of 30px) for easier dropping
+                    if (dogPos.x >= trashLeft - 45 && dogPos.x <= trashRight + 45 &&
+                        dogPos.y >= trashTop - 45 && dogPos.y <= trashBottom + 45) {
                         // Dog was dropped on trash!
                         sounds.error();
                         setDogReleased(false);
+
+                        // Close PRIVATE.EXE and DOG.TXT windows
+                        close('PERSONAL');
+                        close('DOG_STORY');
 
                         // Update trash count
                         const newCount = dogTrashCount + 1;
@@ -8370,7 +8376,7 @@ Good luck.`;
                 "DOG_STORY": { id: "DOG_STORY", title: "DOG.TXT", icon: "FileDoc", x: 100, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 35 },
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: 450, h: 400, isOpen: false, isMin: false, z: 36 },
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: 450, h: 400, isOpen: false, isMin: false, z: 37 },
-                "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
+                "BROWSER": { id: "BROWSER", title: "KONAMI by zen", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
                 "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 },
                 "BOOKS": { id: "BOOKS", title: "BOOKS.EXE", icon: "FileDoc", x: 150, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 40 },
                 "BACKUP": { id: "BACKUP", title: "BACKUP.BAT", icon: "Terminal", x: 180, y: 100, w: 500, h: 400, isOpen: false, isMin: false, z: 41 },
