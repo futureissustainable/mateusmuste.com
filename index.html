@@ -5569,6 +5569,7 @@ Good luck.`;
             const [loopComplete, setLoopComplete] = useState(false);
             const loopCompleteRef = useRef(false);
             const onUnlockAppRef = useRef(onUnlockApp);
+            const timerRef = useRef(null);
             onUnlockAppRef.current = onUnlockApp;
 
             const backupLog = [
@@ -5593,31 +5594,26 @@ Good luck.`;
                     if (lineIndex < backupLog.length) {
                         setLogLines(prev => [...prev, backupLog[lineIndex]]);
                         lineIndex++;
-                        setTimeout(addLine, 500 + Math.random() * 500);
+                        timerRef.current = setTimeout(addLine, 500 + Math.random() * 500);
                     } else {
-                        // Loop complete
+                        // Loop complete - unlock TAROT once
                         if (!loopCompleteRef.current) {
                             loopCompleteRef.current = true;
                             setLoopComplete(true);
-                            // Unlock TAROT after loop completes
                             setTimeout(() => {
                                 onUnlockAppRef.current?.('TAROT');
                             }, 1000);
                         }
-                        // Restart loop after 2 seconds
-                        setTimeout(() => {
-                            if (!cancelled) {
-                                setLogLines([]);
-                                lineIndex = 0;
-                                setTimeout(addLine, 500);
-                            }
-                        }, 2000);
+                        // Don't restart - just show LOOP COMPLETE
                     }
                 };
 
-                setTimeout(addLine, 500);
+                timerRef.current = setTimeout(addLine, 500);
 
-                return () => { cancelled = true; };
+                return () => {
+                    cancelled = true;
+                    if (timerRef.current) clearTimeout(timerRef.current);
+                };
             }, []);
 
             return (
