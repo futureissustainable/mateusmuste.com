@@ -2911,17 +2911,17 @@
                 // TRUTH.EXE sequence (after completing sudo become god + konami)
                 if (isTruthSequence) {
                     const truthMessages = [
-                        "// Wow... you made it.",
-                        "// most people bounce after 30 seconds.",
-                        "// you stayed. you searched. you solved.",
-                        "// this site exists because systems make more sense than people.",
-                        "// portfolios feel like coffins. resumes feel like lies.",
-                        "// if you got here, you probably think the same way.",
-                        "// that's rare.",
-                        "// if you want to talk about ideas, projects,",
-                        "// or just because you enjoyed this",
-                        "// mateusmuste9@gmail.com",
-                        "// P.S. include \"CODE 9\" in your email ;)"
+                        "Wow... you made it.",
+                        "most people bounce after 30 seconds.",
+                        "you stayed. you searched. you solved.",
+                        "this site exists because systems make more sense than people.",
+                        "portfolios feel like coffins. resumes feel like lies.",
+                        "if you got here, you probably think the same way.",
+                        "that's rare.",
+                        "if you want to talk about ideas, projects,",
+                        "or just because you enjoyed this",
+                        "mateusmuste9@gmail.com",
+                        "P.S. include \"CODE 9\" in your email ;)"
                     ];
                     let messageIndex = 0;
                     let cancelled = false;
@@ -2936,20 +2936,20 @@
                         const currentMessage = truthMessages[messageIndex];
                         messageIndex++;
                         setIsTyping(true);
-                        const typingDuration = 533 + Math.random() * 467;
+                        const typingDuration = 800 + Math.random() * 700;
                         const typingSoundInterval = setInterval(() => {
                             if (!cancelled) playTypingSound();
-                        }, 70);
+                        }, 100);
                         setTimeout(() => {
                             if (cancelled) { clearInterval(typingSoundInterval); return; }
                             clearInterval(typingSoundInterval);
                             setIsTyping(false);
                             playMessageSound();
                             setMessages(prev => [...prev, { text: currentMessage, highlight: false }]);
-                            setTimeout(sendNextMessage, 667 + Math.random() * 1333);
+                            setTimeout(sendNextMessage, 1000 + Math.random() * 2000);
                         }, typingDuration);
                     };
-                    setTimeout(sendNextMessage, 667);
+                    setTimeout(sendNextMessage, 1000);
                     return () => { cancelled = true; };
                 }
 
@@ -2979,22 +2979,22 @@
                     if (cancelled) return;
 
                     if (messageIndex >= messagesToSend.length) {
-                        // Start redaction sequence after pause (50% faster)
+                        // Start redaction sequence after 2 second pause
                         setTimeout(() => {
                             if (cancelled) return;
                             setIsRedacting(true);
 
-                            // Redact messages one by one (50% faster)
+                            // Redact messages one by one, every 0.5 seconds
                             // Skip the last message (contains truth.exe)
                             const totalToRedact = messagesToSend.length - 1;
                             let currentRedact = 0;
 
                             const redactNext = () => {
                                 if (cancelled || currentRedact >= totalToRedact) {
-                                    // All done - complete intro after a pause (50% faster)
+                                    // All done - complete intro after a pause
                                     setTimeout(() => {
                                         if (!cancelled) onIntroCompleteRef.current?.();
-                                    }, 1333);
+                                    }, 2000);
                                     return;
                                 }
 
@@ -3002,31 +3002,31 @@
                                 currentRedact++;
                                 setRedactedCount(currentRedact);
 
-                                // Schedule next redaction (50% faster)
-                                setTimeout(redactNext, 333);
+                                // Schedule next redaction
+                                setTimeout(redactNext, 500);
                             };
 
                             // Start first redaction
                             redactNext();
-                        }, 1333);
+                        }, 2000);
                         return;
                     }
 
                     const currentMsg = messagesToSend[messageIndex];
                     messageIndex++;
 
-                    // Handle extra pause (50% faster)
-                    const extraPause = currentMsg.extraPauseBefore ? 1333 : 0;
+                    // Handle extra pause
+                    const extraPause = currentMsg.extraPauseBefore ? 2000 : 0;
 
                     setTimeout(() => {
                         if (cancelled) return;
                         setIsTyping(true);
 
-                        // Random typing duration (50% faster)
-                        const typingDuration = 667 + Math.random() * 667;
+                        // Random typing duration 1-2 seconds
+                        const typingDuration = 1000 + Math.random() * 1000;
                         const typingSoundInterval = setInterval(() => {
                             if (!cancelled) playTypingSound();
-                        }, 70);
+                        }, 100);
 
                         setTimeout(() => {
                             if (cancelled) {
@@ -3038,15 +3038,15 @@
                             playMessageSound();
                             setMessages(prev => [...prev, currentMsg]);
 
-                            // Random delay before next message (50% faster)
-                            const nextDelay = 667 + Math.random() * 1333;
+                            // Random delay 1-3 seconds before next message
+                            const nextDelay = 1000 + Math.random() * 2000;
                             setTimeout(sendNextMessage, nextDelay);
                         }, typingDuration);
                     }, extraPause);
                 };
 
-                // Start after a brief delay (50% faster)
-                setTimeout(sendNextMessage, 667);
+                // Start after a brief delay
+                setTimeout(sendNextMessage, 1000);
 
                 return () => { cancelled = true; };
             }, [isTruthSequence]); // Dependency on isTruthSequence
