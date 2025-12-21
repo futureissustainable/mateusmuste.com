@@ -9620,7 +9620,19 @@ Good luck.`;
 
                 const isFirstEver = !localStorage.getItem('intro_complete');
 
-                if (checkMobile) {
+                // Handle resize
+                const handleResize = () => {
+                    setIsMobile(window.innerWidth < 768);
+                };
+                window.addEventListener('resize', handleResize);
+                return () => window.removeEventListener('resize', handleResize);
+            }, []);
+
+            // Boot sequence - only starts AFTER mode is selected
+            useEffect(() => {
+                if (!modeSelected) return; // Don't start boot until mode is selected
+
+                if (isMobile) {
                     // Mobile: Show "best on desktop" notice first, then kernel boot
                     setBootPhase(0);
                     setTimeout(() => {
@@ -9643,14 +9655,7 @@ Good luck.`;
                         setBooted(true);
                     }, 2000);
                 }
-
-                // Handle resize
-                const handleResize = () => {
-                    setIsMobile(window.innerWidth < 768);
-                };
-                window.addEventListener('resize', handleResize);
-                return () => window.removeEventListener('resize', handleResize);
-            }, []);
+            }, [modeSelected]);
 
             // Handle 'about' mode after boot - skip intro and open ABOUT
             useEffect(() => {
@@ -10600,13 +10605,11 @@ Good luck.`;
                 }, []);
                 const playBootSound = () => {
                     if (!soundPlayed) {
-                        // First visit gets special wind-up sound, milestones get special melody
-                        if (visitCount === 1) {
-                            sounds.bootWindup();
-                        } else if (visitCount === 100 || visitCount === 500 || visitCount === 1000) {
-                            sounds.visitMilestone();
-                        } else {
-                            sounds.bootSequence();
+                        // Always play wind-up boot sound, milestones get extra melody
+                        sounds.bootWindup();
+                        if (visitCount === 100 || visitCount === 500 || visitCount === 1000) {
+                            // Play milestone sound after wind-up for special visits
+                            setTimeout(() => sounds.visitMilestone(), 1300);
                         }
                         setSoundPlayed(true);
                     }
