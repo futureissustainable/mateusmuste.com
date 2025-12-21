@@ -6720,9 +6720,35 @@ Good luck.`;
                 }
             }, [input]);
 
-            // Handle konami code input when awaiting
+            // Handle konami code input when awaiting - 10 second timer
+            const konamiTimerRef = useRef(null);
+            const konamiSucceededRef = useRef(false);
+
             useEffect(() => {
-                if (!awaitingKonami) return;
+                if (!awaitingKonami) {
+                    // Clear timer when not awaiting
+                    if (konamiTimerRef.current) {
+                        clearTimeout(konamiTimerRef.current);
+                        konamiTimerRef.current = null;
+                    }
+                    return;
+                }
+
+                // Reset success flag
+                konamiSucceededRef.current = false;
+
+                // Start 10 second timer
+                konamiTimerRef.current = setTimeout(() => {
+                    if (!konamiSucceededRef.current) {
+                        addOutput('\nTIME EXPIRED.');
+                        addOutput('ELEVATION FAILED.');
+                        addOutput('RETURNING TO VOID...\n');
+                        setAwaitingKonami(false);
+                        setTimeout(() => {
+                            window.location.href = 'https://mateusmuste.com';
+                        }, 1500);
+                    }
+                }, 10000);
 
                 const handleKeyDown = (e) => {
                     const key = e.code;
@@ -6738,7 +6764,12 @@ Good luck.`;
                         }
                         // Check if complete
                         if (newSeq.length === KONAMI_CODE.length) {
-                            // Success!
+                            // Success! Mark as succeeded and clear timer
+                            konamiSucceededRef.current = true;
+                            if (konamiTimerRef.current) {
+                                clearTimeout(konamiTimerRef.current);
+                                konamiTimerRef.current = null;
+                            }
                             setTimeout(() => {
                                 addOutput('\nCODE ACCEPTED.\n');
                                 addOutput('ELEVATION COMPLETE.\n');
@@ -6763,7 +6794,12 @@ Good luck.`;
                 };
 
                 window.addEventListener('keydown', handleKeyDown);
-                return () => window.removeEventListener('keydown', handleKeyDown);
+                return () => {
+                    window.removeEventListener('keydown', handleKeyDown);
+                    if (konamiTimerRef.current) {
+                        clearTimeout(konamiTimerRef.current);
+                    }
+                };
             }, [awaitingKonami]);
 
             const addOutput = (text) => {
@@ -7222,13 +7258,16 @@ Good luck.`;
 
         // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
         const TruthApp = ({ onAchievement, onOpenTruthMessages, godModeCompleted }) => {
-            // Narrative Bible v3.0 - Truth opens TRUTH_MESSAGES after god mode
-            if (godModeCompleted) {
-                // Will open TRUTH_MESSAGES window instead
-                useEffect(() => {
+            // useEffect must be called unconditionally (React hooks rule)
+            useEffect(() => {
+                if (godModeCompleted) {
+                    // Open TRUTH_MESSAGES window after god mode
                     onOpenTruthMessages?.();
-                }, []);
+                }
+            }, [godModeCompleted, onOpenTruthMessages]);
 
+            // After god mode - show accessing message (TRUTH_MESSAGES will open)
+            if (godModeCompleted) {
                 return (
                     <div className="h-full flex flex-col bg-black select-none">
                         <div className="p-2 border-b border-green-900 bg-black flex items-center gap-2">
@@ -8077,12 +8116,15 @@ Good luck.`;
                 });
                 setAchievements(allAchievements);
 
-                // Unlock all apps from all pools
-                const allPoolUnlocks = {};
-                Object.keys(APP_POOLS).forEach(pool => {
-                    allPoolUnlocks[pool] = [...APP_POOLS[pool]];
-                });
-                setPoolUnlocks(allPoolUnlocks);
+                // Unlock ALL apps via narrative unlocks (so they persist)
+                const ALL_UNLOCKABLE_APPS = [
+                    'PAINT', 'SNAKE', 'VOID', 'RADIO', 'DICE', 'LABYRINTH',
+                    'MINESWEEPER', 'STARSHIP', 'SYNTH', 'DESTRUCTION', 'TAROT',
+                    'GALLERY', 'MAP', 'POMODORO', 'SCANNER', 'PERSONAL',
+                    'DOG_STORY', 'THIRD_EYE', 'THIRD_EYE_2', 'BROWSER',
+                    'BOOKS', 'BACKUP', 'TRUTH'
+                ];
+                setNarrativeUnlocks(ALL_UNLOCKABLE_APPS);
 
                 // Show a single notification
                 const godNotifId = Date.now();
