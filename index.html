@@ -5324,6 +5324,16 @@
             const [dogStealing, setDogStealing] = useState(false);
             const [dogPos, setDogPos] = useState({ x: -100, y: 200 });
             const [buttonGone, setButtonGone] = useState(false);
+            const dogRunRef = useRef(null);
+            const dogEscapeRef = useRef(null);
+
+            // Cleanup intervals on unmount
+            useEffect(() => {
+                return () => {
+                    if (dogRunRef.current) clearInterval(dogRunRef.current);
+                    if (dogEscapeRef.current) clearInterval(dogEscapeRef.current);
+                };
+            }, []);
 
             const confirmMessages = [
                 { prompt: "EXECUTE", response: "You want to do it?" },
@@ -5347,21 +5357,21 @@
 
                     // Animate dog running in
                     let dogX = -100;
-                    const dogRun = setInterval(() => {
+                    dogRunRef.current = setInterval(() => {
                         dogX += 15;
                         setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 20) * 10 });
 
                         if (dogX >= 120) {
-                            clearInterval(dogRun);
+                            clearInterval(dogRunRef.current);
                             setButtonGone(true);
 
                             // Dog runs away with button
-                            const dogEscape = setInterval(() => {
+                            dogEscapeRef.current = setInterval(() => {
                                 dogX += 20;
                                 setDogPos({ x: dogX, y: 150 + Math.sin(dogX / 15) * 15 });
 
                                 if (dogX > window.innerWidth + 100) {
-                                    clearInterval(dogEscape);
+                                    clearInterval(dogEscapeRef.current);
                                     onAchievement?.('DESTROYER_OF_WORLDS');
                                     if (onDogSteal) onDogSteal();
                                 }
@@ -5494,6 +5504,14 @@
                 const stored = localStorage.getItem('tarot_unique_days');
                 return stored ? JSON.parse(stored) : [];
             });
+            const shuffleIntervalRef = useRef(null);
+
+            // Cleanup interval on unmount
+            useEffect(() => {
+                return () => {
+                    if (shuffleIntervalRef.current) clearInterval(shuffleIntervalRef.current);
+                };
+            }, []);
 
             const tarotCards = [
                 {
@@ -6381,11 +6399,11 @@
                 sounds.tarotShuffle();
                 setIsShuffling(true);
                 let frame = 0;
-                const shuffleInterval = setInterval(() => {
+                shuffleIntervalRef.current = setInterval(() => {
                     setShuffleFrame(f => f + 1);
                     frame++;
                     if (frame >= 20) {
-                        clearInterval(shuffleInterval);
+                        clearInterval(shuffleIntervalRef.current);
                         setIsShuffling(false);
                         // Pick 3 unique random cards
                         const shuffled = [...tarotCards].sort(() => Math.random() - 0.5);
@@ -7951,6 +7969,14 @@ Good luck.`;
             const [konamiSequence, setKonamiSequence] = useState([]);
             const inputRef = useRef(null);
             const historyRef = useRef(null);
+            const dotIntervalRef = useRef(null);
+
+            // Cleanup interval on unmount
+            useEffect(() => {
+                return () => {
+                    if (dotIntervalRef.current) clearInterval(dotIntervalRef.current);
+                };
+            }, []);
 
             // Konami code: up up down down left right left right b a
             const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
@@ -8084,7 +8110,7 @@ Good luck.`;
 
                 // Show loading dots
                 let dots = '';
-                const dotInterval = setInterval(() => {
+                dotIntervalRef.current = setInterval(() => {
                     dots = dots.length >= 3 ? '.' : dots + '.';
                     setHistory(prev => {
                         const newHist = [...prev];
@@ -8098,7 +8124,7 @@ Good luck.`;
                 }, 300);
 
                 await new Promise(resolve => setTimeout(resolve, loadTime));
-                clearInterval(dotInterval);
+                clearInterval(dotIntervalRef.current);
 
                 // Remove loading entry
                 setHistory(prev => prev.filter(h => h.type !== 'loading'));
