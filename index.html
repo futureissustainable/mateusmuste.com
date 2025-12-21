@@ -8365,9 +8365,8 @@ Good luck.`;
             }, [dogDragging, dogDragOffset]);
 
             // Desktop icons - MESSAGES only if intro not complete, otherwise full desktop
-            const allDesktopIcons = truthUnlocked
-                ? ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"]
-                : ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
+            // TRUTH is always in list but only visible/clickable when Third Eye scans it
+            const allDesktopIcons = ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
             const desktopIcons = !introComplete
@@ -9965,6 +9964,10 @@ Good luck.`;
 
                         // Skip icon if dog is carrying it
                         if (carriedIcon === app.id) return null;
+
+                        // TRUTH is only visible when Third Eye is scanning over it
+                        const isTruthScanned = app.id === 'TRUTH' && isThirdEyeOver(pos);
+                        if (app.id === 'TRUTH' && !isTruthScanned) return null;
 
                         return (
                             <div
