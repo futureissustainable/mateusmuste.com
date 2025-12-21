@@ -8110,10 +8110,18 @@ Good luck.`;
             const openDogStory = () => {
                 setDogReleased(true);
                 setGoldDogReleased(true);
+                // Bring DOG_STORY to front on top of everything
+                sounds.windowOpen();
+                topZRef.current += 1;
+                const newZ = topZRef.current;
                 setWindows(prev => ({
                     ...prev,
-                    DOG_STORY: { ...prev.DOG_STORY, isOpen: true }
+                    DOG_STORY: { ...prev.DOG_STORY, isOpen: true, isMin: false, z: newZ }
                 }));
+                setTopZ(newZ);
+                // Trigger opening animation
+                setWindowAnimations(p => ({ ...p, DOG_STORY: 'opening' }));
+                setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n.DOG_STORY; return n; }), 200);
             };
             const removeGoldDog = () => setGoldDogVisible(false);
 
