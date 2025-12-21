@@ -6780,6 +6780,7 @@ Good luck.`;
                     // Base help - shown normally
                     let helpText = `AVAILABLE COMMANDS:
   help ............. show this menu
+  list user ........ show registered users
   ping [user] ...... attempt connection
   sudo reveal ...... unlock hidden layer
   clear ............ clear terminal
@@ -6792,6 +6793,12 @@ Good luck.`;
                     }
 
                     addOutput(helpText);
+
+                } else if (trimmed === 'list user') {
+                    addOutput(`REGISTERED USERS:
+  MATEUS ........... ADMIN
+  ████████ ......... ████████
+  UNKNOWN .......... CURRENT`);
 
                 } else if (trimmed === 'chkdsk') {
                     addOutput('SCANNING SYSTEM...\n');
