@@ -2941,8 +2941,8 @@
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
 
-            // Level completion words - spell out "THE PASSWORD IS ALWAYS PATIENCE"
-            const LEVEL_WORDS = ['THE', 'PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
+            // Level completion words - "THE" already flashes on open, then levels reveal the rest
+            const LEVEL_WORDS = ['PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
             const CELL_SIZE = 8; // Thinner walls
 
             // Flash "THE" on app open (1 second as per Narrative Bible v3.0)
