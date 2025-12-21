@@ -982,87 +982,102 @@
                 if (!ctx) return;
                 const now = ctx.currentTime;
 
-                // C major chord - full and resolved
-                const chord = [
-                    { freq: 65.41, vol: 0.28 },   // C2 - foundation
-                    { freq: 130.81, vol: 0.24 }, // C3 - body
-                    { freq: 164.81, vol: 0.20 }, // E3 - third
-                    { freq: 196.00, vol: 0.18 }, // G3 - fifth
-                    { freq: 261.63, vol: 0.15 }, // C4 - octave
-                    { freq: 329.63, vol: 0.11 }, // E4 - high third
-                    { freq: 523.25, vol: 0.07 }, // C5 - sparkle
-                ];
-
                 const master = ctx.createGain();
-                master.gain.setValueAtTime(0.75, now);
+                master.gain.setValueAtTime(0.6, now);
                 master.connect(ctx.destination);
 
-                // Sub thump - quick punch
-                const sub = ctx.createOscillator();
-                const subGain = ctx.createGain();
-                sub.type = 'sine';
-                sub.frequency.setValueAtTime(55, now);
-                sub.frequency.exponentialRampToValueAtTime(35, now + 0.25);
-                subGain.gain.setValueAtTime(0.5, now);
-                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-                sub.connect(subGain);
-                subGain.connect(master);
-                sub.start(now);
-                sub.stop(now + 0.4);
+                // Industrial impact - metallic hit
+                const impact = ctx.createOscillator();
+                const impactGain = ctx.createGain();
+                const impactFilter = ctx.createBiquadFilter();
+                impact.type = 'sawtooth';
+                impact.frequency.setValueAtTime(80, now);
+                impact.frequency.exponentialRampToValueAtTime(40, now + 0.15);
+                impactFilter.type = 'bandpass';
+                impactFilter.frequency.value = 120;
+                impactFilter.Q.value = 8;
+                impactGain.gain.setValueAtTime(0.7, now);
+                impactGain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                impact.connect(impactFilter);
+                impactFilter.connect(impactGain);
+                impactGain.connect(master);
+                impact.start(now);
+                impact.stop(now + 0.35);
 
-                // Main chord - fast bloom, satisfying sustain
-                chord.forEach((note, i) => {
+                // Metallic resonance tones
+                const metals = [
+                    { freq: 110, vol: 0.22 },    // A2 - deep
+                    { freq: 220, vol: 0.18 },    // A3 - body
+                    { freq: 330, vol: 0.12 },    // E4 - fifth harmonic
+                    { freq: 440, vol: 0.08 },    // A4 - octave
+                ];
+
+                metals.forEach((note, i) => {
                     const osc = ctx.createOscillator();
-                    const osc2 = ctx.createOscillator();
                     const gain = ctx.createGain();
                     const filter = ctx.createBiquadFilter();
 
-                    osc.type = 'sine';
-                    osc2.type = 'sine';
+                    osc.type = 'sawtooth';
                     osc.frequency.value = note.freq;
-                    osc2.frequency.value = note.freq;
-                    osc2.detune.value = 5;
 
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(300, now);
-                    filter.frequency.linearRampToValueAtTime(5000, now + 0.3);
-                    filter.frequency.linearRampToValueAtTime(1200, now + 2.0);
-                    filter.Q.value = 0.5;
+                    // High-Q bandpass for metallic ring
+                    filter.type = 'bandpass';
+                    filter.frequency.value = note.freq;
+                    filter.Q.value = 15;
 
-                    // Fast bloom, smooth 3s fade
-                    const delay = i * 0.02;
-                    gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(note.vol, now + delay + 0.12);
-                    gain.gain.setValueAtTime(note.vol * 0.95, now + 1.2);
-                    gain.gain.linearRampToValueAtTime(note.vol * 0.4, now + 2.2);
+                    const delay = i * 0.03;
+                    gain.gain.setValueAtTime(0, now + delay);
+                    gain.gain.linearRampToValueAtTime(note.vol, now + delay + 0.08);
+                    gain.gain.setValueAtTime(note.vol * 0.7, now + 0.8);
+                    gain.gain.linearRampToValueAtTime(note.vol * 0.3, now + 2.0);
                     gain.gain.linearRampToValueAtTime(0, now + 3.0);
 
                     osc.connect(filter);
-                    osc2.connect(filter);
                     filter.connect(gain);
                     gain.connect(master);
 
                     osc.start(now);
-                    osc2.start(now);
                     osc.stop(now + 3.1);
-                    osc2.stop(now + 3.1);
                 });
 
-                // Bell arrival
+                // Industrial drone - low grinding
+                const drone = ctx.createOscillator();
+                const droneGain = ctx.createGain();
+                const droneFilter = ctx.createBiquadFilter();
+                drone.type = 'square';
+                drone.frequency.value = 55;
+                droneFilter.type = 'lowpass';
+                droneFilter.frequency.value = 200;
+                droneFilter.Q.value = 2;
+                droneGain.gain.setValueAtTime(0, now);
+                droneGain.gain.linearRampToValueAtTime(0.15, now + 0.2);
+                droneGain.gain.setValueAtTime(0.12, now + 1.5);
+                droneGain.gain.linearRampToValueAtTime(0, now + 3.0);
+                drone.connect(droneFilter);
+                droneFilter.connect(droneGain);
+                droneGain.connect(master);
+                drone.start(now);
+                drone.stop(now + 3.1);
+
+                // Metallic ping - confirmation
                 setTimeout(() => {
-                    const bell = ctx.createOscillator();
-                    const bellGain = ctx.createGain();
-                    bell.type = 'sine';
-                    bell.frequency.value = 1046.50; // C6
-                    bellGain.gain.setValueAtTime(0, ctx.currentTime);
-                    bellGain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
-                    bellGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 1.0);
-                    bellGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 2.0);
-                    bell.connect(bellGain);
-                    bellGain.connect(ctx.destination);
-                    bell.start();
-                    bell.stop(ctx.currentTime + 2.1);
-                }, 350);
+                    const ping = ctx.createOscillator();
+                    const pingGain = ctx.createGain();
+                    const pingFilter = ctx.createBiquadFilter();
+                    ping.type = 'triangle';
+                    ping.frequency.value = 880;
+                    pingFilter.type = 'bandpass';
+                    pingFilter.frequency.value = 880;
+                    pingFilter.Q.value = 20;
+                    pingGain.gain.setValueAtTime(0, ctx.currentTime);
+                    pingGain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 0.02);
+                    pingGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                    ping.connect(pingFilter);
+                    pingFilter.connect(pingGain);
+                    pingGain.connect(ctx.destination);
+                    ping.start();
+                    ping.stop(ctx.currentTime + 1.6);
+                }, 250);
             },
 
             // Window minimize - quick descending swoosh
@@ -2955,7 +2970,7 @@
                         "most people bounce after 30 seconds.",
                         "you stayed. you searched. you solved.",
                         "this site exists because systems make more sense than people.",
-                        "... feel like placing value on projects above the person.",
+                        "To that point portfolios place more value on projects than actual people.",
                         "if you got here, you probably think the same way.",
                         "that's rare.",
                         "if you want to talk about ideas, projects,",
