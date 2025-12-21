@@ -5568,6 +5568,8 @@ Good luck.`;
             const [logLines, setLogLines] = useState([]);
             const [loopComplete, setLoopComplete] = useState(false);
             const loopCompleteRef = useRef(false);
+            const onUnlockAppRef = useRef(onUnlockApp);
+            onUnlockAppRef.current = onUnlockApp;
 
             const backupLog = [
                 '[0001] init system',
@@ -5599,7 +5601,7 @@ Good luck.`;
                             setLoopComplete(true);
                             // Unlock TAROT after loop completes
                             setTimeout(() => {
-                                onUnlockApp?.('TAROT');
+                                onUnlockAppRef.current?.('TAROT');
                             }, 1000);
                         }
                         // Restart loop after 2 seconds
