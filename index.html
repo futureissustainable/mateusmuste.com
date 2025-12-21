@@ -972,6 +972,873 @@
                 gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.04);
+            },
+
+            // ========== NEW SOUNDS ==========
+
+            // First visit wind-up boot sound - mechanical spin-up feeling
+            bootWindup: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+
+                // Main rising oscillator - creates wind-up feeling
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(40, now);
+                osc.frequency.exponentialRampToValueAtTime(200, now + 0.8);
+                osc.frequency.exponentialRampToValueAtTime(600, now + 1.2);
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(200, now);
+                filter.frequency.exponentialRampToValueAtTime(2000, now + 1.2);
+                gain.gain.setValueAtTime(0, now);
+                gain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now + 1.0);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 1.4);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 1.5);
+
+                // Clicks that speed up like a motor starting
+                for (let i = 0; i < 15; i++) {
+                    const clickTime = now + (i * 0.12) - (i * i * 0.004);
+                    if (clickTime < now + 1.2) {
+                        const click = ctx.createOscillator();
+                        const clickGain = ctx.createGain();
+                        click.type = 'square';
+                        click.frequency.value = 100 + i * 30;
+                        clickGain.gain.setValueAtTime(0.06, clickTime);
+                        clickGain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.02);
+                        click.connect(clickGain);
+                        clickGain.connect(ctx.destination);
+                        click.start(clickTime);
+                        click.stop(clickTime + 0.02);
+                    }
+                }
+
+                // Final "ready" chime
+                setTimeout(() => {
+                    const chime = ctx.createOscillator();
+                    const chimeGain = ctx.createGain();
+                    chime.type = 'sine';
+                    chime.frequency.value = 880;
+                    chimeGain.gain.setValueAtTime(0.12, ctx.currentTime);
+                    chimeGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
+                    chime.connect(chimeGain);
+                    chimeGain.connect(ctx.destination);
+                    chime.start();
+                    chime.stop(ctx.currentTime + 0.3);
+                }, 1200);
+            },
+
+            // Window minimize - quick descending swoosh
+            windowMinimize: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            },
+
+            // Window restore - quick ascending pop
+            windowRestore: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(700, now + 0.06);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            },
+
+            // Icon select - subtle mechanical tick
+            iconSelect: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 500;
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.02);
+            },
+
+            // Achievement unlock fanfare - triumphant ascending arpeggio with shimmer
+            achievementUnlock: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Ascending fanfare notes (C5, E5, G5, C6)
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const start = now + i * 0.08;
+                    gain.gain.setValueAtTime(0, start);
+                    gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
+                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(start);
+                    osc.stop(start + 0.5);
+                });
+                // Shimmer overlay
+                for (let i = 0; i < 8; i++) {
+                    const shimmer = ctx.createOscillator();
+                    const shimmerGain = ctx.createGain();
+                    shimmer.type = 'sine';
+                    shimmer.frequency.value = 2000 + Math.random() * 2000;
+                    const t = now + 0.2 + i * 0.05;
+                    shimmerGain.gain.setValueAtTime(0.02, t);
+                    shimmerGain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    shimmer.connect(shimmerGain);
+                    shimmerGain.connect(ctx.destination);
+                    shimmer.start(t);
+                    shimmer.stop(t + 0.15);
+                }
+            },
+
+            // App unlock/materialize - magical appearance with noise burst
+            appUnlock: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Noise burst
+                const bufferSize = ctx.sampleRate * 0.1;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const noiseGain = ctx.createGain();
+                const noiseFilter = ctx.createBiquadFilter();
+                noiseFilter.type = 'highpass';
+                noiseFilter.frequency.value = 2000;
+                noiseGain.gain.setValueAtTime(0.08, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                noise.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+                noise.start(now);
+                // Rising tone
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(300, now);
+                osc.frequency.exponentialRampToValueAtTime(900, now + 0.15);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            },
+
+            // Context menu snap
+            menuOpen: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 400;
+                gain.gain.setValueAtTime(0.05, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.03);
+            },
+
+            // Dice critical 20 - golden triumphant shimmer
+            diceCrit20: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Triumphant chord (C major with high octave)
+                [523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    gain.gain.setValueAtTime(0.08, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.8);
+                });
+                // Golden shimmer
+                for (let i = 0; i < 12; i++) {
+                    const shimmer = ctx.createOscillator();
+                    const shimmerGain = ctx.createGain();
+                    shimmer.type = 'sine';
+                    shimmer.frequency.value = 1500 + Math.random() * 3000;
+                    const t = now + i * 0.04;
+                    shimmerGain.gain.setValueAtTime(0.03, t);
+                    shimmerGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+                    shimmer.connect(shimmerGain);
+                    shimmerGain.connect(ctx.destination);
+                    shimmer.start(t);
+                    shimmer.stop(t + 0.2);
+                }
+            },
+
+            // Dice critical 1 - sad descending wah-wah
+            diceCrit1: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.5);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.6);
+                // Second descending tone for wah-wah effect
+                const osc2 = ctx.createOscillator();
+                const gain2 = ctx.createGain();
+                osc2.type = 'triangle';
+                osc2.frequency.setValueAtTime(300, now + 0.15);
+                osc2.frequency.exponentialRampToValueAtTime(80, now + 0.6);
+                gain2.gain.setValueAtTime(0.12, now + 0.15);
+                gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
+                osc2.connect(gain2);
+                gain2.connect(ctx.destination);
+                osc2.start(now + 0.15);
+                osc2.stop(now + 0.7);
+            },
+
+            // Terminal command submit - typewriter carriage return
+            terminalSubmit: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Mechanical chunk
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const dist = makeDistortion(ctx, 5);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.05);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+                // Bell ding
+                const bell = ctx.createOscillator();
+                const bellGain = ctx.createGain();
+                bell.type = 'sine';
+                bell.frequency.value = 1400;
+                bellGain.gain.setValueAtTime(0.04, now + 0.02);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                bell.connect(bellGain);
+                bellGain.connect(ctx.destination);
+                bell.start(now + 0.02);
+                bell.stop(now + 0.15);
+            },
+
+            // Konami code activation - secret unlock whoosh with chime cascade
+            konamiActivate: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Ethereal sweep
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(1500, now + 0.6);
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(300, now);
+                filter.frequency.exponentialRampToValueAtTime(4000, now + 0.6);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.8);
+                // Chime cascade
+                [880, 1046.50, 1318.51, 1567.98, 1760].forEach((freq, i) => {
+                    const chime = ctx.createOscillator();
+                    const chimeGain = ctx.createGain();
+                    chime.type = 'sine';
+                    chime.frequency.value = freq;
+                    const t = now + 0.3 + i * 0.1;
+                    chimeGain.gain.setValueAtTime(0.08, t);
+                    chimeGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+                    chime.connect(chimeGain);
+                    chimeGain.connect(ctx.destination);
+                    chime.start(t);
+                    chime.stop(t + 0.4);
+                });
+            },
+
+            // God mode activation - transcendence with deep bass and ascending harmonics
+            godMode: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Deep bass foundation
+                const bass = ctx.createOscillator();
+                const bassGain = ctx.createGain();
+                bass.type = 'sine';
+                bass.frequency.value = 55;
+                bassGain.gain.setValueAtTime(0.2, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 2);
+                bass.connect(bassGain);
+                bassGain.connect(ctx.destination);
+                bass.start(now);
+                bass.stop(now + 2);
+                // Ascending harmonic series
+                [110, 220, 330, 440, 550, 660, 880, 1100].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = now + i * 0.15;
+                    gain.gain.setValueAtTime(0, t);
+                    gain.gain.linearRampToValueAtTime(0.06, t + 0.1);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 1.5);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 1.5);
+                });
+            },
+
+            // Tarot shuffle - rapid paper flutter
+            tarotShuffle: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                for (let i = 0; i < 20; i++) {
+                    const bufferSize = ctx.sampleRate * 0.03;
+                    const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                    const data = buffer.getChannelData(0);
+                    for (let j = 0; j < bufferSize; j++) {
+                        data[j] = (Math.random() * 2 - 1) * (1 - j / bufferSize);
+                    }
+                    const noise = ctx.createBufferSource();
+                    noise.buffer = buffer;
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = 2000 + Math.random() * 1000;
+                    filter.Q.value = 1;
+                    const gain = ctx.createGain();
+                    const t = now + i * 0.025;
+                    gain.gain.setValueAtTime(0.04, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.03);
+                    noise.connect(filter);
+                    filter.connect(gain);
+                    gain.connect(ctx.destination);
+                    noise.start(t);
+                }
+            },
+
+            // Tarot card flip - soft thwip with subtle chime
+            tarotFlip: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Paper thwip
+                const bufferSize = ctx.sampleRate * 0.05;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1500;
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+                // Subtle mystery chime
+                const chime = ctx.createOscillator();
+                const chimeGain = ctx.createGain();
+                chime.type = 'sine';
+                chime.frequency.value = 600 + Math.random() * 200;
+                chimeGain.gain.setValueAtTime(0.03, now + 0.03);
+                chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                chime.connect(chimeGain);
+                chimeGain.connect(ctx.destination);
+                chime.start(now + 0.03);
+                chime.stop(now + 0.2);
+            },
+
+            // Pomodoro timer start - wind-up click sequence
+            pomodoroStart: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                for (let i = 0; i < 4; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'square';
+                    osc.frequency.value = 300 + i * 50;
+                    const t = now + i * 0.06;
+                    gain.gain.setValueAtTime(0.06, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.04);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.04);
+                }
+            },
+
+            // Pomodoro session complete - gentle bell chime
+            pomodoroComplete: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Bell-like tones
+                [523.25, 659.25, 783.99].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = now + i * 0.15;
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.8);
+                });
+            },
+
+            // Flower bloom - soft organic pop
+            flowerBloom: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(400, now + 0.05);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.15);
+                filter.type = 'lowpass';
+                filter.frequency.value = 800;
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+            },
+
+            // Snek movement - subtle slither
+            snekMove: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const bufferSize = ctx.sampleRate * 0.02;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * 0.3 * (1 - i / bufferSize);
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1500;
+                filter.Q.value = 2;
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.03, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+            },
+
+            // Snek letter revealed - magical sparkle
+            snekLetter: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                [1200, 1500, 1800].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = now + i * 0.03;
+                    gain.gain.setValueAtTime(0.06, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.15);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.15);
+                });
+            },
+
+            // Labyrinth footstep - soft alternating taps
+            labyrinthStep: (isLeft = true) => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.value = isLeft ? 180 : 200;
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.05);
+            },
+
+            // Labyrinth wall bump - blocked thud
+            labyrinthBump: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const dist = makeDistortion(ctx, 3);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(100, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.08);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            },
+
+            // Labyrinth exit reached - portal whoosh
+            labyrinthExit: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const filter = ctx.createBiquadFilter();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(800, now + 0.2);
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(500, now);
+                filter.frequency.exponentialRampToValueAtTime(3000, now + 0.2);
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.3);
+                // Success overlay
+                [523.25, 783.99].forEach((freq, i) => {
+                    const chime = ctx.createOscillator();
+                    const chimeGain = ctx.createGain();
+                    chime.type = 'sine';
+                    chime.frequency.value = freq;
+                    chimeGain.gain.setValueAtTime(0.08, now + 0.15);
+                    chimeGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                    chime.connect(chimeGain);
+                    chimeGain.connect(ctx.destination);
+                    chime.start(now + 0.15);
+                    chime.stop(now + 0.5);
+                });
+            },
+
+            // Starship thrust - low rumble
+            starshipThrust: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Brown noise for engine rumble
+                const bufferSize = ctx.sampleRate * 0.1;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                let lastOut = 0;
+                for (let i = 0; i < bufferSize; i++) {
+                    const white = Math.random() * 2 - 1;
+                    data[i] = (lastOut + (0.02 * white)) / 1.02;
+                    lastOut = data[i];
+                    data[i] *= 3.5;
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.value = 200;
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+            },
+
+            // Starship damage - alarm crunch
+            starshipDamage: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                const dist = makeDistortion(ctx, 15);
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(200, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.15);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                osc.connect(dist);
+                dist.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.2);
+                // Alarm beep
+                const alarm = ctx.createOscillator();
+                const alarmGain = ctx.createGain();
+                alarm.type = 'square';
+                alarm.frequency.value = 880;
+                alarmGain.gain.setValueAtTime(0.08, now);
+                alarmGain.gain.setValueAtTime(0, now + 0.05);
+                alarmGain.gain.setValueAtTime(0.08, now + 0.1);
+                alarmGain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                alarm.connect(alarmGain);
+                alarmGain.connect(ctx.destination);
+                alarm.start(now);
+                alarm.stop(now + 0.15);
+            },
+
+            // Folder open - soft unfold rustle
+            folderOpen: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const bufferSize = ctx.sampleRate * 0.06;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const env = Math.sin(Math.PI * i / bufferSize);
+                    data[i] = (Math.random() * 2 - 1) * env * 0.5;
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 1000;
+                const gain = ctx.createGain();
+                gain.gain.value = 0.06;
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+            },
+
+            // Folder close - reverse rustle
+            folderClose: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const bufferSize = ctx.sampleRate * 0.04;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    const env = 1 - (i / bufferSize);
+                    data[i] = (Math.random() * 2 - 1) * env * 0.4;
+                }
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.value = 800;
+                const gain = ctx.createGain();
+                gain.gain.value = 0.05;
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+                noise.start(now);
+            },
+
+            // TRUTH reveal - ethereal whisper with deep resonance
+            truthReveal: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Deep bass drone
+                const bass = ctx.createOscillator();
+                const bassGain = ctx.createGain();
+                bass.type = 'sine';
+                bass.frequency.value = 55;
+                bassGain.gain.setValueAtTime(0.1, now);
+                bassGain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                bass.connect(bassGain);
+                bassGain.connect(ctx.destination);
+                bass.start(now);
+                bass.stop(now + 1.5);
+                // Ethereal shimmer
+                for (let i = 0; i < 6; i++) {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 400 + i * 200 + Math.random() * 50;
+                    const t = now + i * 0.1;
+                    gain.gain.setValueAtTime(0.03, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.8);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.8);
+                }
+            },
+
+            // Password incorrect - access denied buzz
+            passwordWrong: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.value = 150;
+                gain.gain.setValueAtTime(0.1, now);
+                gain.gain.setValueAtTime(0, now + 0.1);
+                gain.gain.setValueAtTime(0.1, now + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            },
+
+            // Password correct - unlock mechanism
+            passwordCorrect: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Mechanical unlock clicks
+                [0, 0.08, 0.15].forEach((delay, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = 300 + i * 100;
+                    gain.gain.setValueAtTime(0.08, now + delay);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.05);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(now + delay);
+                    osc.stop(now + delay + 0.05);
+                });
+                // Final success tone
+                const success = ctx.createOscillator();
+                const successGain = ctx.createGain();
+                success.type = 'sine';
+                success.frequency.value = 800;
+                successGain.gain.setValueAtTime(0.1, now + 0.2);
+                successGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+                success.connect(successGain);
+                successGain.connect(ctx.destination);
+                success.start(now + 0.2);
+                success.stop(now + 0.5);
+            },
+
+            // Upgrade purchase - cash register ching
+            upgradePurchase: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Register click
+                const click = ctx.createOscillator();
+                const clickGain = ctx.createGain();
+                click.type = 'square';
+                click.frequency.value = 200;
+                clickGain.gain.setValueAtTime(0.08, now);
+                clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+                click.connect(clickGain);
+                clickGain.connect(ctx.destination);
+                click.start(now);
+                click.stop(now + 0.03);
+                // Bell ching
+                const bell = ctx.createOscillator();
+                const bellGain = ctx.createGain();
+                bell.type = 'sine';
+                bell.frequency.value = 1500;
+                bellGain.gain.setValueAtTime(0.1, now + 0.02);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+                bell.connect(bellGain);
+                bellGain.connect(ctx.destination);
+                bell.start(now + 0.02);
+                bell.stop(now + 0.4);
+            },
+
+            // Visit milestone - special acknowledgment melody
+            visitMilestone: () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                // Special ascending melody
+                [392, 523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    const t = now + i * 0.12;
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
+                    osc.connect(gain);
+                    gain.connect(ctx.destination);
+                    osc.start(t);
+                    osc.stop(t + 0.4);
+                });
             }
         };
 
@@ -1644,6 +2511,7 @@
             ];
 
             const handleFolderSelect = (key) => {
+                sounds.folderOpen();
                 setSelectedFolder(key);
                 if (!visitedFolders.includes(key)) {
                     const newVisited = [...visitedFolders, key];
@@ -1661,7 +2529,7 @@
                 return (
                     <div className="h-full flex flex-col bg-white select-none">
                         <div className="p-2 border-b-2 border-black bg-white flex items-center gap-3">
-                            <button onClick={() => setSelectedFolder(null)} className="p-1 border-2 border-black hover:bg-black hover:text-white">
+                            <button onClick={() => { sounds.folderClose(); setSelectedFolder(null); }} className="p-1 border-2 border-black hover:bg-black hover:text-white">
                                 <Icons.Back size={16} />
                             </button>
                             <FolderIcon size={24} />
@@ -2651,11 +3519,15 @@
                             isRollingRef.current = false;
                             // On roll 20: DIVINE_ROLL achievement + reveal command (Narrative Bible v3.0)
                             if (roll === 20) {
+                                sounds.diceCrit20();
                                 consecutiveTwenties.current++;
                                 onAchievement?.('DIVINE_ROLL');
                                 if (consecutiveTwenties.current >= 3) {
                                     onAchievement?.('IMPOSSIBLE');
                                 }
+                            } else if (roll === 1) {
+                                sounds.diceCrit1();
+                                consecutiveTwenties.current = 0;
                             } else {
                                 consecutiveTwenties.current = 0;
                             }
@@ -3072,6 +3944,7 @@
                 ctx.fillRect(px + 2, py + 2, CELL_SIZE - 4, CELL_SIZE - 4);
             };
 
+            const stepLeftRef = useRef(true);
             const move = (dx, dy) => {
                 if (won || showingMaze) return;
                 const maze = mazeRef.current;
@@ -3081,6 +3954,8 @@
                 const ny = playerRef.current.y + dy;
 
                 if (nx >= 0 && nx < maze[0].length && ny >= 0 && ny < maze.length && maze[ny][nx] === 0) {
+                    sounds.labyrinthStep(stepLeftRef.current);
+                    stepLeftRef.current = !stepLeftRef.current;
                     playerRef.current = { x: nx, y: ny };
                     draw();
 
@@ -3102,7 +3977,7 @@
                             setLevelWord('CLEAR');
                         }
                         setWon(true);
-                        sounds.success();
+                        sounds.labyrinthExit();
 
                         // FIRST_BLOOD - win any game
                         onAchievement?.('FIRST_BLOOD');
@@ -3118,6 +3993,9 @@
                             }, 2000);
                         }, 1000);
                     }
+                } else {
+                    // Wall bump
+                    sounds.labyrinthBump();
                 }
             };
 
@@ -3731,6 +4609,7 @@
                         if (dist < 1) {
                             isGameOver = true;
                             setGameOver(true);
+                            sounds.starshipDamage();
                             sounds.explosion();
                             // Save high score on game over
                             setHighScore(h => {
@@ -5123,7 +6002,7 @@
 
             const pullCards = () => {
                 if (alreadyPulled || isShuffling) return;
-
+                sounds.tarotShuffle();
                 setIsShuffling(true);
                 let frame = 0;
                 const shuffleInterval = setInterval(() => {
@@ -5138,6 +6017,7 @@
                         setCards(selectedCards);
                         localStorage.setItem('tarot_cards_3', JSON.stringify(selectedCards));
                         setTimeout(() => {
+                            sounds.tarotFlip();
                             setRevealed(true);
                             // Show fate prompt after 1 second of viewing cards (Narrative Bible v3.0)
                             setTimeout(() => setShowFatePrompt(true), 1000);
@@ -5798,6 +6678,7 @@ Good luck.`;
                 const actualCost = getActualCost(item.cost);
                 if (gameState.clicks >= actualCost && !gameState.upgrades[item.id]) {
                     if (item.requires && !gameState.upgrades[item.requires]) return;
+                    sounds.upgradePurchase();
                     if (item.id === 'dogMode') {
                         setGameState({
                             ...defaultGameState,
@@ -6226,10 +7107,12 @@ Good luck.`;
                     setTimeLeft(prev => {
                         if (prev <= 1) {
                             if (mode === 'work') {
+                                sounds.pomodoroComplete();
                                 setMode('break');
                                 setSessions(s => s + 1);
                                 // Add completed flower to collection
                                 if (currentFlower) {
+                                    sounds.flowerBloom();
                                     setFlowers(f => {
                                         const newFlowers = [...f, { ...currentFlower, completedAt: Date.now() }];
                                         // Check for MASTER achievement (50 flowers)
@@ -6459,7 +7342,10 @@ Good luck.`;
                             {/* Controls */}
                             <div className="flex gap-4">
                                 <button
-                                    onClick={() => setIsRunning(!isRunning)}
+                                    onClick={() => {
+                                        if (!isRunning) sounds.pomodoroStart();
+                                        setIsRunning(!isRunning);
+                                    }}
                                     className="btn-primary"
                                 >
                                     {isRunning ? 'PAUSE' : 'START'}
@@ -6767,6 +7653,7 @@ Good luck.`;
                         if (newSeq.length === KONAMI_CODE.length) {
                             // Success! Mark as succeeded and clear timer
                             konamiSucceededRef.current = true;
+                            sounds.konamiActivate();
                             if (konamiTimerRef.current) {
                                 clearTimeout(konamiTimerRef.current);
                                 konamiTimerRef.current = null;
@@ -6809,6 +7696,7 @@ Good luck.`;
 
             const executeCommand = async (cmd) => {
                 if (awaitingKonami) return; // Don't process commands while waiting for konami
+                sounds.terminalSubmit();
 
                 const trimmed = cmd.trim().toLowerCase();
                 setHistory(prev => [...prev, { type: 'input', text: `user@system:~$ ${cmd}` }]);
@@ -7286,6 +8174,7 @@ Good luck.`;
             useEffect(() => {
                 if (godModeCompleted) {
                     // Open TRUTH_MESSAGES window after god mode
+                    sounds.truthReveal();
                     onOpenTruthMessages?.();
                 }
             }, [godModeCompleted, onOpenTruthMessages]);
@@ -7335,6 +8224,7 @@ Good luck.`;
 
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
+                    sounds.passwordCorrect();
                     setRevealPhase(1);
                     setTimeout(() => setRevealPhase(2), 3000); // File starts appearing at 3s
                     setTimeout(() => setRevealPhase(3), 10000); // Fully revealed at 10s
@@ -7343,6 +8233,7 @@ Good luck.`;
 
             const handleSubmit = (e) => {
                 e.preventDefault();
+                sounds.passwordWrong();
                 setAttempts(a => a + 1);
                 setShaking(true);
                 setTimeout(() => setShaking(false), 500);
@@ -7991,7 +8882,7 @@ Good luck.`;
             const unlockApp = (appId) => {
                 if (!narrativeUnlocks.includes(appId)) {
                     setNarrativeUnlocks(prev => [...prev, appId]);
-                    sounds.success();
+                    sounds.appUnlock();
                     // Show app unlock notification
                     const appNotifId = Date.now() + Math.random();
                     setAppUnlockNotifications(prev => [...prev, { app: appId, id: appNotifId }]);
@@ -8116,7 +9007,7 @@ Good luck.`;
                 // Mark achievement as unlocked
                 setAchievements(prev => ({ ...prev, [id]: { unlockedAt: Date.now() } }));
                 setAchievementNotifications(prev => [...prev, { ...achievement, id: notifId }]);
-                sounds.success();
+                sounds.achievementUnlock();
 
                 // Auto-hide achievement notification after 3 seconds
                 setTimeout(() => {
@@ -8154,7 +9045,7 @@ Good luck.`;
                 // Show a single notification
                 const godNotifId = Date.now();
                 setAchievementNotifications([{ id: godNotifId, name: 'GOD MODE', hint: 'All achievements and apps unlocked' }]);
-                sounds.success();
+                sounds.godMode();
                 setTimeout(() => {
                     setAchievementNotifications(prev => prev.filter(n => n.id !== godNotifId));
                 }, 3000);
@@ -8831,7 +9722,15 @@ Good luck.`;
                     setWindowAnimations(p => { const n = {...p}; delete n[id]; return n; });
                 }, 150);
             };
-            const toggleMin = (id) => setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
+            const toggleMin = (id) => {
+                const wasMin = windows[id]?.isMin;
+                if (wasMin) {
+                    sounds.windowRestore();
+                } else {
+                    sounds.windowMinimize();
+                }
+                setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
+            };
 
             // Drag Handlers with velocity tracking
             const handleMouseDown = (e, id) => {
@@ -9006,6 +9905,7 @@ Good luck.`;
             const handleIconMouseDown = (e, id) => {
                 e.preventDefault();
                 e.stopPropagation();
+                sounds.iconSelect();
                 const pos = iconPositions[id] || { x: 0, y: 0 };
                 const physics = initIconPhysics(id);
                 physics.velX = 0;
@@ -9700,7 +10600,14 @@ Good luck.`;
                 }, []);
                 const playBootSound = () => {
                     if (!soundPlayed) {
-                        sounds.bootSequence();
+                        // First visit gets special wind-up sound, milestones get special melody
+                        if (visitCount === 1) {
+                            sounds.bootWindup();
+                        } else if (visitCount === 100 || visitCount === 500 || visitCount === 1000) {
+                            sounds.visitMilestone();
+                        } else {
+                            sounds.bootSequence();
+                        }
                         setSoundPlayed(true);
                     }
                 };
@@ -9911,6 +10818,7 @@ Good luck.`;
                     // Only show custom context menu when clicking directly on desktop background
                     if (e.target === e.currentTarget || e.target.classList.contains('desktop-bg-grid') || e.target.classList.contains('desktop-bg-solid') || e.target.classList.contains('desktop-bg-ascii')) {
                         e.preventDefault();
+                        sounds.menuOpen();
                         setContextMenu({ show: true, x: e.clientX, y: e.clientY });
                     }
                 };
