@@ -3401,8 +3401,8 @@
                                             onContextMenu={(e) => flag(e, r, c)}
                                             className={`w-6 h-6 border border-gray-100 font-mono text-[10px] font-bold flex items-center justify-center transition-colors relative ${getCellStyle(r, c)}`}
                                         >
-                                            {!revealed[r][c] && !flagged[r][c] && (
-                                                <span className="absolute inset-0 flex items-center justify-center text-black text-xs font-bold pointer-events-none" style={{ opacity: 0.2 }}>
+                                            {revealed[r][c] && grid[r][c] === 0 && (
+                                                <span className="absolute inset-0 flex items-center justify-center text-black text-xs font-bold pointer-events-none" style={{ opacity: 0.1 }}>
                                                     {getBackgroundLetter(r, c)}
                                                 </span>
                                             )}
