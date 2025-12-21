@@ -8433,11 +8433,13 @@ Good luck.`;
             // Desktop icons - MESSAGES only if intro not complete, otherwise full desktop
             // TRUTH is always in list but only visible/clickable when Third Eye scans it
             const allDesktopIcons = ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"];
+            // About mode hides APPS and TRASH for clean portfolio view
+            const aboutModeIcons = ["ABOUT", "FILES", "CONTACT"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
             const desktopIcons = !introComplete
                 ? (revealingApps ? ["MESSAGES", ...revealedApps] : ["MESSAGES"])
-                : allDesktopIcons;
+                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons);
 
             // Window State (Position x/y added for dragging) - content rendered separately
             // Base sizes are for 1920x1080, will be scaled for smaller screens
@@ -8786,6 +8788,14 @@ Good luck.`;
                 window.addEventListener('resize', handleResize);
                 return () => window.removeEventListener('resize', handleResize);
             }, []);
+
+            // Handle 'about' mode after boot - skip intro and open ABOUT
+            useEffect(() => {
+                if (booted && modeSelected === 'about' && !introComplete) {
+                    setIntroComplete(true);
+                    setTimeout(() => open('ABOUT'), 100);
+                }
+            }, [booted, modeSelected]);
 
             // Reposition icons that are off-screen on mobile
             useEffect(() => {
@@ -9818,9 +9828,7 @@ Good luck.`;
                                 <button
                                     onClick={() => {
                                         setModeSelected('about');
-                                        setBooted(true);
-                                        setIntroComplete(true);
-                                        setTimeout(() => open('ABOUT'), 100);
+                                        // Boot sequence will start, then skip intro
                                     }}
                                     className="group relative border-2 border-black bg-white hover:bg-black hover:text-white transition-all duration-150 px-12 py-8 min-w-[200px]"
                                 >
