@@ -1315,16 +1315,17 @@
                 }
             };
 
-            // Draw hidden "SUDO UNLOCK ZEN" pixels in the corner
+            // Draw hidden "SUDO UNLOCK ZEN" pixels in top center
             const drawHiddenMessage = () => {
                 const canvas = canvasRef.current;
                 if (!canvas) return;
                 const ctx = canvas.getContext('2d');
                 ctx.save();
-                ctx.fillStyle = '#f8f8f8'; // Very slightly off-white, nearly invisible
-                ctx.font = '6px monospace';
-                // Draw tiny hidden text in bottom-right corner
-                ctx.fillText('SUDO UNLOCK ZEN', canvas.width - 70, canvas.height - 4);
+                ctx.fillStyle = '#fefefe'; // Nearly invisible white pixels
+                ctx.font = '8px monospace';
+                ctx.textAlign = 'center';
+                // Draw tiny hidden text in TOP CENTER - resists being painted over
+                ctx.fillText('SUDO UNLOCK ZEN', canvas.width / 2, 12);
                 ctx.restore();
             };
 
@@ -2303,7 +2304,13 @@
         }
 
         // --- VOID.TXT - Text encrypts then fades into the void ---
-        const VoidApp = ({ onAchievement }) => {
+        const VoidApp = ({ onAchievement, thirdEyeActive }) => {
+            // Discarded notes revealed by Third Eye
+            const discardedNotes = [
+                { id: 38, text: 'Fix physics on smaller desktops.' },
+                { id: 39, text: 'Third eye seems to be the only app that can open twice. Intriguing. Stacking 2 of them together generates a ████████████.' },
+                { id: 40, text: "There shouldn't be 21 apps. We made only 20 apps... There must be a bug in the ████████. Note to fix it." }
+            ];
             // Each char: { id, char, timestamp, phase: 'visible'|'encrypting'|'fading', opacity }
             const [chars, setChars] = useState([]);
             const inputRef = useRef(null);
@@ -2410,6 +2417,16 @@
                         <span className="font-mono text-xs font-bold text-white">VOID.TXT</span>
                     </div>
                     <div className="flex-grow p-4 overflow-auto font-mono text-sm">
+                        {/* Discarded notes revealed by Third Eye */}
+                        {thirdEyeActive && (
+                            <div className="mb-4 space-y-2 opacity-60">
+                                {discardedNotes.map(note => (
+                                    <div key={note.id} className="text-gray-400 text-xs">
+                                        <span className="text-gray-600">[DISCARDED]</span> Note {note.id}: {note.text}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                         <div className="flex flex-wrap items-start">
                             <span className="mr-2 text-gray-600">{'>'}</span>
                             <div className="flex-grow">
@@ -2944,10 +2961,10 @@
             const LEVEL_WORDS = ['THE', 'PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
             const CELL_SIZE = 8; // Thinner walls
 
-            // Flash "THE" on app open
+            // Flash "THE" on app open (1 second as per Narrative Bible v3.0)
             useEffect(() => {
                 if (showOpenFlash) {
-                    const timer = setTimeout(() => setShowOpenFlash(false), 1500);
+                    const timer = setTimeout(() => setShowOpenFlash(false), 1000);
                     return () => clearTimeout(timer);
                 }
             }, []);
@@ -3192,15 +3209,16 @@
             const timerRef = useRef(null);
             const usedFlags = useRef(false);
 
-            const ROWS = 12;
-            const COLS = 16;
-            const MINES = 30;
+            const ROWS = 9;
+            const COLS = 9;
+            const MINES = 10;
 
-            // Hidden background message at 20% opacity
-            const HIDDEN_MESSAGE = 'RUN42INTHETERM';
+            // Hidden background message at 20% opacity - 81 chars for 9x9 grid
+            // Spells: "TO MOVE FORWARD YOU MUST SOMETIMES MOVE BACKWARD FIND OUT THE TRUTH REVEAL THE STARS SUDO SHOOTER"
+            const HIDDEN_MESSAGE = 'TOMOVEFORWARDYOUMUSTSOMETIMESMOVEBACKWARDFINDOUTTHETRUTHREVEALTHESTARSSUDOSHOOTER';
             const getBackgroundLetter = (r, c) => {
-                const idx = (r * COLS + c) % HIDDEN_MESSAGE.length;
-                return HIDDEN_MESSAGE[idx];
+                const idx = r * COLS + c;
+                return HIDDEN_MESSAGE[idx] || '';
             };
 
             const initGame = () => {
@@ -6550,13 +6568,28 @@ Good luck.`;
                 { text: '$ ls /home/mateus/', delay: 46000 },
                 { text: 'unit_black/', delay: 46500, isOutput: true },
                 { text: '$ ls /home/mateus/heart/', delay: 48500 },
-                { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true, final: true },
+                { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true },
+                // Glitch ending - Narrative Bible v3.0
+                { text: '', delay: 52000, glitch: true },
+                { text: 'ONLY ONE THING LEFT FOR BLACK.DOG', delay: 53000, isGlitchText: true },
+                { text: '— THE TRASH.', delay: 54500, isGlitchText: true, final: true },
             ];
+
+            const [isGlitching, setIsGlitching] = useState(false);
 
             useEffect(() => {
                 story.forEach(item => {
                     setTimeout(() => {
-                        setLines(prev => [...prev, { text: item.text, isOutput: item.isOutput }]);
+                        if (item.glitch) {
+                            setIsGlitching(true);
+                        }
+                        if (item.text) {
+                            setLines(prev => [...prev, {
+                                text: item.text,
+                                isOutput: item.isOutput,
+                                isGlitchText: item.isGlitchText
+                            }]);
+                        }
                         if (item.removeGold) {
                             setGoldDogVisible(false);
                             onRemoveGoldDog?.();
@@ -6566,18 +6599,26 @@ Good luck.`;
             }, []);
 
             return (
-                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none">
+                <div className={`h-full flex flex-col bg-black text-green-400 font-mono text-xs select-none ${isGlitching ? 'animate-pulse' : ''}`}>
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">DOG.TXT</span>
                     </div>
                     <div className="flex-grow overflow-auto p-3 space-y-0.5">
                         {lines.map((line, i) => (
-                            <div key={i} className={`whitespace-pre-wrap ${line.isOutput ? 'text-green-600' : 'text-green-300'}`}>
+                            <div
+                                key={i}
+                                className={`whitespace-pre-wrap ${
+                                    line.isGlitchText
+                                        ? 'text-red-500 text-sm font-bold mt-4 animate-pulse'
+                                        : line.isOutput ? 'text-green-600' : 'text-green-300'
+                                }`}
+                                style={line.isGlitchText ? { textShadow: '0 0 10px rgba(255,0,0,0.5)' } : {}}
+                            >
                                 {line.text}
                             </div>
                         ))}
-                        <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />
+                        {!isGlitching && <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />}
                     </div>
                 </div>
             );
@@ -8380,7 +8421,7 @@ Good luck.`;
                     case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
-                    case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
+                    case "VOID": return <VoidApp onAchievement={unlockAchievement} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
                     case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
@@ -9492,6 +9533,7 @@ Good luck.`;
                 const [lines, setLines] = useState([]);
                 const [inverted, setInverted] = useState(false);
                 const [soundPlayed, setSoundPlayed] = useState(false);
+                const [easterEggFlash, setEasterEggFlash] = useState(false);
                 const visitMessage = getVisitMessage(visitCount);
                 const msgs = [
                     'kernel: init ULTRA_INT v1.0.0',
@@ -9511,7 +9553,10 @@ Good luck.`;
                         if (i < msgs.length) { setLines(p => [...p, msgs[i]]); i++; }
                     }, 250);
                     const inv = setTimeout(() => setInverted(true), 1500);
-                    return () => { clearInterval(iv); clearTimeout(inv); };
+                    // Easter egg: brief flash of "LAST USER: UNKNOWN" - blink and you miss it
+                    const eggShow = setTimeout(() => setEasterEggFlash(true), 800);
+                    const eggHide = setTimeout(() => setEasterEggFlash(false), 950);
+                    return () => { clearInterval(iv); clearTimeout(inv); clearTimeout(eggShow); clearTimeout(eggHide); };
                 }, []);
                 const playBootSound = () => {
                     if (!soundPlayed) {
@@ -9535,6 +9580,12 @@ Good luck.`;
                             {lines.map((l, i) => <div key={i}>{l}</div>)}
                             {lines.length < msgs.length && <span className="inline-block w-1.5 h-3 bg-current animate-pulse" />}
                         </div>
+                        {/* Easter egg - blink and you miss it */}
+                        {easterEggFlash && (
+                            <div className="absolute top-4 left-4 text-[7px] text-gray-700 opacity-50">
+                                LAST USER: UNKNOWN | RECOVERED FROM BACKUP
+                            </div>
+                        )}
                     </div>
                 );
             };
