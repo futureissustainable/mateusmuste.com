@@ -7876,6 +7876,7 @@ Good luck.`;
         // --- OS SHELL ---
 
         const OS = () => {
+            const [modeSelected, setModeSelected] = useState(null); // null = show selector, 'story' or 'about'
             const [booted, setBooted] = useState(false);
             const [bootPhase, setBootPhase] = useState(0); // 0: mobile notice (mobile only), 1: kernel, 2: ready
             const [isMobile, setIsMobile] = useState(false);
@@ -9795,6 +9796,66 @@ Good luck.`;
 ║  SYS.OBSERVER v3.0    │    MODE: SCANNING    │    TARGETS: 3    │    STATUS: ACTIVE    ║
 ╚══════════════════════════════════════════════════════════════════════════════════════════╝
 `}</pre>
+                    </div>
+                );
+            }
+
+            // Mode selector - shows before boot every time
+            if (!modeSelected) {
+                return (
+                    <div className="h-screen w-screen bg-white flex flex-col items-center justify-center font-mono select-none">
+                        {/* Neo Swiss Brutalist Mode Selector */}
+                        <div className="flex flex-col items-center gap-12">
+                            {/* Title */}
+                            <div className="text-center">
+                                <div className="text-black text-[10px] tracking-[0.5em] uppercase mb-2">SELECT EXPERIENCE</div>
+                                <div className="w-32 h-[2px] bg-black mx-auto"></div>
+                            </div>
+
+                            {/* Mode Buttons */}
+                            <div className="flex flex-col md:flex-row gap-6 md:gap-12">
+                                {/* ABOUTME Button */}
+                                <button
+                                    onClick={() => {
+                                        setModeSelected('about');
+                                        setBooted(true);
+                                        setIntroComplete(true);
+                                        setTimeout(() => open('ABOUT'), 100);
+                                    }}
+                                    className="group relative border-2 border-black bg-white hover:bg-black hover:text-white transition-all duration-150 px-12 py-8 min-w-[200px]"
+                                >
+                                    <div className="absolute -top-3 left-4 bg-white px-2 text-[10px] tracking-widest group-hover:bg-black transition-all duration-150">01</div>
+                                    <div className="text-2xl font-bold tracking-tight mb-2">ABOUT</div>
+                                    <div className="text-[10px] tracking-widest opacity-60">PORTFOLIO</div>
+                                </button>
+
+                                {/* STORYMODE Button */}
+                                <button
+                                    onClick={() => {
+                                        setModeSelected('story');
+                                        // Normal boot sequence starts
+                                    }}
+                                    className="group relative border-2 border-black bg-white hover:bg-black hover:text-white transition-all duration-150 px-12 py-8 min-w-[200px]"
+                                >
+                                    <div className="absolute -top-3 left-4 bg-white px-2 text-[10px] tracking-widest group-hover:bg-black transition-all duration-150">02</div>
+                                    <div className="text-2xl font-bold tracking-tight mb-2">STORY</div>
+                                    <div className="text-[10px] tracking-widest opacity-60">EXPERIENCE</div>
+                                </button>
+                            </div>
+
+                            {/* Decorative line */}
+                            <div className="flex items-center gap-4 text-[10px] tracking-widest text-black/40">
+                                <div className="w-8 h-[1px] bg-black/20"></div>
+                                <span>MATEUS MUSTE</span>
+                                <div className="w-8 h-[1px] bg-black/20"></div>
+                            </div>
+                        </div>
+
+                        {/* Corner decorations */}
+                        <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-black"></div>
+                        <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-black"></div>
+                        <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-black"></div>
+                        <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-black"></div>
                     </div>
                 );
             }
