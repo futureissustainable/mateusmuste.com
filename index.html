@@ -3411,7 +3411,7 @@
                                             className={`w-6 h-6 border border-gray-100 font-mono text-[10px] font-bold flex items-center justify-center transition-colors relative ${getCellStyle(r, c)}`}
                                         >
                                             {!revealed[r][c] && !flagged[r][c] && (
-                                                <span className="absolute inset-0 flex items-center justify-center text-gray-300 opacity-20 pointer-events-none">
+                                                <span className="absolute inset-0 flex items-center justify-center text-black text-xs font-bold pointer-events-none" style={{ opacity: 0.2 }}>
                                                     {getBackgroundLetter(r, c)}
                                                 </span>
                                             )}
