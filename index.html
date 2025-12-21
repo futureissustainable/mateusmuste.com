@@ -5973,7 +5973,7 @@ Good luck.`;
                     </div>
 
                     {/* Globe container */}
-                    <div ref={containerRef} className="flex-grow relative overflow-hidden" style={{ minHeight: 0 }}>
+                    <div ref={containerRef} className="flex-grow relative overflow-hidden flex items-center justify-center" style={{ minHeight: 0 }}>
                         {/* Rings - behind globe, centered */}
                         {ringCount >= 1 && (
                             <div
@@ -6044,11 +6044,7 @@ Good luck.`;
                                 width: canvasSize,
                                 height: canvasSize,
                                 cursor: 'grab',
-                                touchAction: 'none',
-                                position: 'absolute',
-                                left: '50%',
-                                top: '50%',
-                                transform: 'translate(-50%, -50%)'
+                                touchAction: 'none'
                             }}
                             onPointerDown={handlePointerDown}
                             onPointerUp={handlePointerUp}
