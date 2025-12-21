@@ -7929,8 +7929,10 @@
                             let newX = win.x + physics.velX;
                             let newY = win.y + physics.velY;
 
-                            const winWidth = parseInt(win.w) || 400;
-                            const winHeight = parseInt(win.h) || 300;
+                            // Use SCALED dimensions for bounds (matches actual rendered size)
+                            const scaled = getScaledSize(win.w, win.h);
+                            const winWidth = scaled.w;
+                            const winHeight = scaled.h;
                             // Clamp bounds to ensure windows can always move (handle windows larger than screen)
                             const maxX = Math.max(0, window.innerWidth - winWidth);
                             const maxY = Math.max(0, window.innerHeight - 60 - winHeight); // Account for taskbar
@@ -8178,8 +8180,10 @@
 
                     setWindows(prev => {
                         const win = prev[drag.id];
-                        const winWidth = parseInt(win.w) || 400;
-                        const winHeight = parseInt(win.h) || 300;
+                        // Use SCALED dimensions for bounds (matches actual rendered size)
+                        const scaled = getScaledSize(win.w, win.h);
+                        const winWidth = scaled.w;
+                        const winHeight = scaled.h;
                         // Clamp bounds to handle windows larger than screen
                         const maxX = Math.max(0, window.innerWidth - winWidth);
                         const maxY = Math.max(0, window.innerHeight - 60 - winHeight); // Account for taskbar
@@ -8246,8 +8250,10 @@
 
                 setWindows(prev => {
                     const win = prev[drag.id];
-                    const winWidth = parseInt(win.w) || 400;
-                    const winHeight = parseInt(win.h) || 300;
+                    // Use SCALED dimensions for bounds (matches actual rendered size)
+                    const scaled = getScaledSize(win.w, win.h);
+                    const winWidth = scaled.w;
+                    const winHeight = scaled.h;
                     // Clamp bounds to handle windows larger than screen
                     const maxX = Math.max(0, window.innerWidth - winWidth);
                     const maxY = Math.max(0, window.innerHeight - 60 - winHeight);
@@ -8621,8 +8627,10 @@
                             if (!win.isOpen || win.isMin) return;
                             let newX = win.x;
                             let newY = win.y;
-                            const winW = parseInt(win.w) || 400;
-                            const winH = parseInt(win.h) || 300;
+                            // Use SCALED dimensions (matches actual rendered size)
+                            const scaled = getScaledSize(win.w, win.h);
+                            const winW = scaled.w;
+                            const winH = scaled.h;
                             // At least 50px of the title bar should be visible
                             if (newX < -winW + 50 || newX > screenW - 50) {
                                 newX = Math.max(0, Math.min(screenW - 100, newX));
