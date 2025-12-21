@@ -8287,11 +8287,16 @@ Good luck.`;
                     const trashRight = trashLeft + 96; // ~w-24 = 96px
                     const trashBottom = trashTop + 80;
 
-                    if (dogPos.x >= trashLeft - 30 && dogPos.x <= trashRight + 30 &&
-                        dogPos.y >= trashTop - 30 && dogPos.y <= trashBottom + 30) {
+                    // Increased hitbox by 50% (45px margin instead of 30px) for easier dropping
+                    if (dogPos.x >= trashLeft - 45 && dogPos.x <= trashRight + 45 &&
+                        dogPos.y >= trashTop - 45 && dogPos.y <= trashBottom + 45) {
                         // Dog was dropped on trash!
                         sounds.error();
                         setDogReleased(false);
+
+                        // Close PRIVATE.EXE and DOG.TXT windows
+                        close('PERSONAL');
+                        close('DOG_STORY');
 
                         // Update trash count
                         const newCount = dogTrashCount + 1;
