@@ -9014,11 +9014,13 @@ Good luck.`;
                 const iconSize = 80; // Approximate icon size
                 const checkEye = (eye) => {
                     if (!eye || !eye.isOpen || eye.isMin) return false;
+                    // Use SCALED dimensions (windows are scaled based on viewport)
+                    const scaled = getScaledSize(eye.w, eye.h);
                     // Check if icon center is within Third Eye window bounds
                     const iconCenterX = targetPos.x + iconSize / 2;
                     const iconCenterY = targetPos.y + iconSize / 2;
-                    return iconCenterX >= eye.x && iconCenterX <= eye.x + eye.w &&
-                           iconCenterY >= eye.y + 32 && iconCenterY <= eye.y + eye.h; // +32 for header
+                    return iconCenterX >= eye.x && iconCenterX <= eye.x + scaled.w &&
+                           iconCenterY >= eye.y + 32 && iconCenterY <= eye.y + scaled.h; // +32 for header
                 };
                 return checkEye(windows.THIRD_EYE) || checkEye(windows.THIRD_EYE_2);
             };
