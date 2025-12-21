@@ -2520,6 +2520,7 @@
         const DiceApp = ({ onAchievement }) => {
             const [result, setResult] = useState(null);
             const [isRolling, setIsRolling] = useState(false);
+            const [rollCount, setRollCount] = useState(0);
             const isRollingRef = useRef(false); // Ref to avoid stale closure
             const containerRef = useRef(null);
             const sceneRef = useRef(null);
@@ -2641,20 +2642,25 @@
                     if (progress < 1) {
                         requestAnimationFrame(animate);
                     } else {
-                        const roll = Math.floor(Math.random() * 20) + 1;
-                        setResult(roll);
-                        setIsRolling(false);
-                        isRollingRef.current = false;
-                        // On roll 20: DIVINE_ROLL achievement + reveal command (Narrative Bible v3.0)
-                        if (roll === 20) {
-                            consecutiveTwenties.current++;
-                            onAchievement?.('DIVINE_ROLL');
-                            if (consecutiveTwenties.current >= 3) {
-                                onAchievement?.('IMPOSSIBLE');
+                        // After 5 rolls, automatically give a 20
+                        setRollCount(prev => {
+                            const newCount = prev + 1;
+                            const roll = newCount >= 5 ? 20 : Math.floor(Math.random() * 20) + 1;
+                            setResult(roll);
+                            setIsRolling(false);
+                            isRollingRef.current = false;
+                            // On roll 20: DIVINE_ROLL achievement + reveal command (Narrative Bible v3.0)
+                            if (roll === 20) {
+                                consecutiveTwenties.current++;
+                                onAchievement?.('DIVINE_ROLL');
+                                if (consecutiveTwenties.current >= 3) {
+                                    onAchievement?.('IMPOSSIBLE');
+                                }
+                            } else {
+                                consecutiveTwenties.current = 0;
                             }
-                        } else {
-                            consecutiveTwenties.current = 0;
-                        }
+                            return newCount;
+                        });
                     }
                 };
 
@@ -2663,10 +2669,6 @@
 
             return (
                 <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b border-gray-200 bg-white flex justify-between items-center">
-                        <span className="font-mono text-[10px] font-bold tracking-wider">DICE.EXE</span>
-                        <span className="font-mono text-[10px] text-gray-400">D20</span>
-                    </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-4 bg-white">
                         <div className="mb-4" ref={containerRef} style={{ width: 200, height: 200 }} />
                         <button
