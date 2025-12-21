@@ -3979,7 +3979,6 @@
 
             useEffect(() => {
                 if (isPlaying) {
-                    clearInterval(intervalRef.current);
                     let step = currentStep;
                     intervalRef.current = setInterval(() => {
                         setCurrentStep(step);
@@ -3992,6 +3991,8 @@
                         step = (step + 1) % 16;
                     }, (60 / tempo) * 250);
                 }
+                // Cleanup when isPlaying changes or component unmounts
+                return () => clearInterval(intervalRef.current);
             }, [tempo, isPlaying]);
 
             return (
@@ -8166,9 +8167,6 @@ Good luck.`;
                 }
             }, []);
 
-            // Battery status
-            const [battery, setBattery] = useState({ level: null, charging: false });
-
             // Total visitors counter (using CountAPI)
             const [totalVisitors, setTotalVisitors] = useState(null);
 
@@ -8187,32 +8185,6 @@ Good luck.`;
                         setTotalVisitors(newCount);
                     });
                 return () => controller.abort();
-            }, []);
-
-            // Battery API with proper cleanup
-            useEffect(() => {
-                let batteryRef = null;
-                let updateBattery = null;
-
-                if ('getBattery' in navigator) {
-                    navigator.getBattery().then(batt => {
-                        batteryRef = batt;
-                        updateBattery = () => setBattery({ level: Math.round(batt.level * 100), charging: batt.charging });
-                        updateBattery();
-                        batt.addEventListener('levelchange', updateBattery);
-                        batt.addEventListener('chargingchange', updateBattery);
-                    }).catch(() => {
-                        // Battery API not available or failed
-                        setBattery({ level: null, charging: false });
-                    });
-                }
-
-                return () => {
-                    if (batteryRef && updateBattery) {
-                        batteryRef.removeEventListener('levelchange', updateBattery);
-                        batteryRef.removeEventListener('chargingchange', updateBattery);
-                    }
-                };
             }, []);
 
             const toggleMatrixMode = () => {
@@ -8445,7 +8417,7 @@ Good luck.`;
             // Base sizes are for 1920x1080, will be scaled for smaller screens
             const [windows, setWindows] = useState({
                 "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 8, isDesktop: true },
-                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: 700, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: 820, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: 1000, h: 800, isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: 800, h: 500, isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
@@ -10223,17 +10195,8 @@ Good luck.`;
                             {isMuted ? <Icons.SpeakerOff size={16} /> : <Icons.Speaker size={16} />}
                         </button>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
-                            {battery.level !== null ? (
-                                <>
-                                    <span className="text-gray-500">BATTERY:</span>
-                                    <span className="font-bold flex items-center gap-1">{battery.charging && <Icons.Charging size={12} />}{battery.level}%</span>
-                                </>
-                            ) : (
-                                <>
-                                    <span className="text-gray-500">POWER:</span>
-                                    <span className="font-bold">AC</span>
-                                </>
-                            )}
+                            <span className="text-gray-500">POWER:</span>
+                            <span className="font-bold">AC</span>
                         </div>
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
