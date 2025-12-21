@@ -1921,16 +1921,19 @@
             );
         };
 
-        // MESSAGES.EXE - Messenger app for intro sequence
-        const MessagesApp = ({ onIntroComplete }) => {
+        // MESSAGES.EXE - Messenger app for intro sequence (v3.0 Narrative Bible)
+        const MessagesApp = ({ onIntroComplete, isTruthSequence = false, onTruthComplete }) => {
             const [messages, setMessages] = useState([]);
             const [isTyping, setIsTyping] = useState(false);
+            const [glitchPhase, setGlitchPhase] = useState(0); // 0 = normal, 1-3 = glitch stages
             const introStartedRef = useRef(false);
             const onIntroCompleteRef = useRef(onIntroComplete);
+            const onTruthCompleteRef = useRef(onTruthComplete);
             const messagesEndRef = useRef(null);
 
-            // Keep the callback ref updated
+            // Keep the callback refs updated
             onIntroCompleteRef.current = onIntroComplete;
+            onTruthCompleteRef.current = onTruthComplete;
 
             // Typing sound effect
             const playTypingSound = () => {
@@ -1968,21 +1971,92 @@
                 osc.stop(now + 0.1);
             };
 
+            // Glitch sound effect
+            const playGlitchSound = () => {
+                const ctx = getAudioCtx();
+                if (!ctx) return;
+                const now = ctx.currentTime;
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(100 + Math.random() * 500, now);
+                osc.frequency.exponentialRampToValueAtTime(50, now + 0.1);
+                gain.gain.setValueAtTime(0.15, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start(now);
+                osc.stop(now + 0.1);
+            };
+
             // Start intro sequence when component mounts - use ref to prevent double-run
             useEffect(() => {
                 if (introStartedRef.current) return;
                 introStartedRef.current = true;
 
-                // Local copy of messages to avoid closure issues
+                // TRUTH.EXE sequence (after completing sudo become god + konami)
+                if (isTruthSequence) {
+                    const truthMessages = [
+                        "// Wow... you made it.",
+                        "// most people bounce after 30 seconds.",
+                        "// you stayed. you searched. you solved.",
+                        "// this site exists because systems make more sense than people.",
+                        "// portfolios feel like coffins. resumes feel like lies.",
+                        "// if you got here, you probably think the same way.",
+                        "// that's rare.",
+                        "// if you want to talk about ideas, projects,",
+                        "// or just because you enjoyed this",
+                        "// mateusmuste9@gmail.com",
+                        "// P.S. include \"CODE 9\" in your email ;)"
+                    ];
+                    let messageIndex = 0;
+                    let cancelled = false;
+
+                    const sendNextMessage = () => {
+                        if (cancelled || messageIndex >= truthMessages.length) {
+                            if (!cancelled) {
+                                setTimeout(() => onTruthCompleteRef.current?.(), 2000);
+                            }
+                            return;
+                        }
+                        const currentMessage = truthMessages[messageIndex];
+                        messageIndex++;
+                        setIsTyping(true);
+                        const typingDuration = 800 + Math.random() * 700;
+                        const typingSoundInterval = setInterval(() => {
+                            if (!cancelled) playTypingSound();
+                        }, 100);
+                        setTimeout(() => {
+                            if (cancelled) { clearInterval(typingSoundInterval); return; }
+                            clearInterval(typingSoundInterval);
+                            setIsTyping(false);
+                            playMessageSound();
+                            setMessages(prev => [...prev, { text: currentMessage, highlight: false }]);
+                            setTimeout(sendNextMessage, 1000 + Math.random() * 2000);
+                        }, typingDuration);
+                    };
+                    setTimeout(sendNextMessage, 1000);
+                    return () => { cancelled = true; };
+                }
+
+                // Main intro sequence - Narrative Bible v3.0
                 const messagesToSend = [
-                    "Hi!",
-                    "This isn't a portfolio. It's a mind system.",
-                    "Most of what I've built, loved, and learned is here.",
-                    "Some on display, some buried deeper.",
-                    "You start with four apps.",
-                    "Explore.",
-                    "Break things.",
-                    "Have fun."
+                    { text: "Hey.", highlight: false },
+                    { text: "You found me.", highlight: false },
+                    { text: "Or maybe I found you. Hard to tell with these things.", highlight: false },
+                    { text: "I'm Mateus. This is my corner of the internet.", highlight: false },
+                    { text: "Before you go clicking around, you should know something.", highlight: true },
+                    { text: "This is not a portfolio.", highlight: false },
+                    { text: "This is a mind system.", highlight: false },
+                    { text: "Everything is intentional.", highlight: true },
+                    { text: "Every app is meticulously designed to serve a purpose.", highlight: false },
+                    { text: "Some purposes are obvious. Most aren't.", highlight: true },
+                    { text: "Have fun exploring!", highlight: true },
+                    { text: "And if you're the curious type...", highlight: false },
+                    { text: "There's more here than meets the eye.", highlight: true },
+                    // Extra pause before next message (handled in timing)
+                    { text: "Oh, one more thing.", highlight: true, extraPauseBefore: true },
+                    { text: "And for whatever reason, if you ever find yourself coming across this file, never open truth.exe.", highlight: false, containsTruth: true }
                 ];
                 let messageIndex = 0;
                 let cancelled = false;
@@ -1990,89 +2064,167 @@
                 const sendNextMessage = () => {
                     if (cancelled) return;
 
-                    // Skip any empty messages
-                    while (messageIndex < messagesToSend.length && !messagesToSend[messageIndex]?.trim()) {
-                        messageIndex++;
-                    }
-
                     if (messageIndex >= messagesToSend.length) {
-                        // All messages sent, wait 2 seconds then reveal apps
+                        // Start glitch sequence after 2 second pause
                         setTimeout(() => {
-                            if (!cancelled) onIntroCompleteRef.current?.();
+                            if (cancelled) return;
+                            // Glitch phase 1: Text starts scrambling
+                            setGlitchPhase(1);
+                            playGlitchSound();
+                            setTimeout(() => {
+                                if (cancelled) return;
+                                // Glitch phase 2: More corruption
+                                setGlitchPhase(2);
+                                playGlitchSound();
+                                setTimeout(() => {
+                                    if (cancelled) return;
+                                    // Glitch phase 3: Final - only "open truth.exe" visible
+                                    setGlitchPhase(3);
+                                    playGlitchSound();
+                                    // Complete intro after showing final glitch
+                                    setTimeout(() => {
+                                        if (!cancelled) onIntroCompleteRef.current?.();
+                                    }, 2000);
+                                }, 500);
+                            }, 500);
                         }, 2000);
                         return;
                     }
 
-                    // Capture the current message before async operations
-                    const currentMessage = messagesToSend[messageIndex];
+                    const currentMsg = messagesToSend[messageIndex];
                     messageIndex++;
 
-                    // Show typing indicator
-                    setIsTyping(true);
-
-                    // Play typing sounds for 1.5 seconds
-                    const typingDuration = 1500;
-                    const typingSoundInterval = setInterval(() => {
-                        if (!cancelled) playTypingSound();
-                    }, 100);
+                    // Handle extra pause
+                    const extraPause = currentMsg.extraPauseBefore ? 2000 : 0;
 
                     setTimeout(() => {
-                        if (cancelled) {
-                            clearInterval(typingSoundInterval);
-                            return;
-                        }
-                        clearInterval(typingSoundInterval);
-                        setIsTyping(false);
-                        playMessageSound();
-                        setMessages(prev => [...prev, currentMessage]);
+                        if (cancelled) return;
+                        setIsTyping(true);
 
-                        // Next message after 3 seconds
-                        setTimeout(sendNextMessage, 3000);
-                    }, typingDuration);
+                        // Random typing duration 1-2 seconds
+                        const typingDuration = 1000 + Math.random() * 1000;
+                        const typingSoundInterval = setInterval(() => {
+                            if (!cancelled) playTypingSound();
+                        }, 100);
+
+                        setTimeout(() => {
+                            if (cancelled) {
+                                clearInterval(typingSoundInterval);
+                                return;
+                            }
+                            clearInterval(typingSoundInterval);
+                            setIsTyping(false);
+                            playMessageSound();
+                            setMessages(prev => [...prev, currentMsg]);
+
+                            // Random delay 1-3 seconds before next message
+                            const nextDelay = 1000 + Math.random() * 2000;
+                            setTimeout(sendNextMessage, nextDelay);
+                        }, typingDuration);
+                    }, extraPause);
                 };
 
                 // Start after a brief delay
                 setTimeout(sendNextMessage, 1000);
 
                 return () => { cancelled = true; };
-            }, []); // Empty dependency array - run once only
+            }, [isTruthSequence]); // Dependency on isTruthSequence
 
             // Auto-scroll to bottom
             useEffect(() => {
                 messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            }, [messages, isTyping]);
+            }, [messages, isTyping, glitchPhase]);
+
+            // Glitch text effect - scrambles text progressively
+            const glitchText = (text, phase) => {
+                if (phase === 0) return text;
+                const glitchChars = '█▓▒░╔╗╚╝║═╬┼┤├┴┬│─';
+                let result = '';
+                const glitchProbability = phase === 1 ? 0.3 : phase === 2 ? 0.6 : 0.9;
+                for (let i = 0; i < text.length; i++) {
+                    if (text[i] === ' ') {
+                        result += ' ';
+                    } else if (Math.random() < glitchProbability) {
+                        result += glitchChars[Math.floor(Math.random() * glitchChars.length)];
+                    } else {
+                        result += text[i];
+                    }
+                }
+                return result;
+            };
+
+            // For glitch phase 3, we show only the final message
+            const renderGlitchFinal = () => (
+                <div className="flex items-center justify-center h-full">
+                    <div className="text-center">
+                        <p className="font-mono text-red-500 text-lg font-bold animate-pulse">
+                            open truth.exe.
+                        </p>
+                    </div>
+                </div>
+            );
 
             return (
-                <div className="h-full flex flex-col bg-black select-none overflow-hidden">
+                <div className={`h-full flex flex-col bg-black select-none overflow-hidden ${glitchPhase > 0 ? 'animate-pulse' : ''}`}>
                     {/* Header */}
                     <div className="bg-black border-b border-white/20 px-4 py-3 flex items-center gap-3">
                         <div className="w-8 h-8 bg-white text-black flex items-center justify-center font-mono font-black text-xs">
                             MM
                         </div>
                         <div>
-                            <div className="font-mono text-white text-sm font-bold">MATEUS MUSTE</div>
+                            <div className="font-mono text-white text-sm font-bold">
+                                {glitchPhase > 0 ? glitchText('MATEUS MUSTE', glitchPhase) : 'MATEUS MUSTE'}
+                            </div>
                             <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
-                                <span className={`w-1.5 h-1.5 ${isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
-                                {isTyping ? 'COMPOSING' : 'ONLINE'}
+                                <span className={`w-1.5 h-1.5 ${glitchPhase > 0 ? 'bg-red-500' : isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
+                                {glitchPhase > 0 ? 'ERROR' : isTyping ? 'COMPOSING' : 'ONLINE'}
                             </div>
                         </div>
                     </div>
 
                     {/* Messages */}
                     <div className="flex-grow overflow-auto p-6 space-y-4">
-                        {messages.filter(msg => msg && msg.trim()).map((msg, i) => (
-                            <div key={i} className="flex items-start gap-3">
-                                <div className="w-1 bg-white/30 flex-shrink-0 mt-1" style={{ minHeight: '16px' }}></div>
-                                <p className="font-mono text-white text-sm leading-relaxed">{msg}</p>
-                            </div>
-                        ))}
+                        {glitchPhase === 3 ? renderGlitchFinal() : (
+                            <>
+                                {messages.filter(msg => msg && (msg.text || typeof msg === 'string')).map((msg, i) => {
+                                    const text = typeof msg === 'string' ? msg : msg.text;
+                                    const highlight = typeof msg === 'object' && msg.highlight;
+                                    const containsTruth = typeof msg === 'object' && msg.containsTruth;
+                                    const displayText = glitchPhase > 0 ? glitchText(text, glitchPhase) : text;
 
-                        {/* Typing indicator */}
-                        {isTyping && (
-                            <div className="flex items-start gap-3">
-                                <div className="w-1 bg-white flex-shrink-0" style={{ minHeight: '16px' }}></div>
-                                <span className="w-2 h-4 bg-white animate-pulse"></span>
-                            </div>
+                                    // For the truth.exe message, highlight "never open truth.exe" part
+                                    if (containsTruth && glitchPhase === 0) {
+                                        const parts = text.split('never open truth.exe');
+                                        return (
+                                            <div key={i} className="flex items-start gap-3">
+                                                <div className={`w-1 ${highlight ? 'bg-white' : 'bg-white/30'} flex-shrink-0 mt-1`} style={{ minHeight: '16px' }}></div>
+                                                <p className="font-mono text-white text-sm leading-relaxed">
+                                                    {parts[0]}
+                                                    <span className="text-red-400 font-bold">never open truth.exe</span>
+                                                    {parts[1] || '.'}
+                                                </p>
+                                            </div>
+                                        );
+                                    }
+
+                                    return (
+                                        <div key={i} className="flex items-start gap-3">
+                                            <div className={`w-1 ${highlight ? 'bg-white' : 'bg-white/30'} flex-shrink-0 mt-1`} style={{ minHeight: '16px' }}></div>
+                                            <p className={`font-mono text-sm leading-relaxed ${glitchPhase > 0 ? 'text-red-400' : highlight ? 'text-white font-bold' : 'text-white'}`}>
+                                                {displayText}
+                                            </p>
+                                        </div>
+                                    );
+                                })}
+
+                                {/* Typing indicator */}
+                                {isTyping && (
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-1 bg-white flex-shrink-0" style={{ minHeight: '16px' }}></div>
+                                        <span className="w-2 h-4 bg-white animate-pulse"></span>
+                                    </div>
+                                )}
+                            </>
                         )}
                         <div ref={messagesEndRef} />
                     </div>
@@ -2445,9 +2597,10 @@
                         setResult(roll);
                         setIsRolling(false);
                         isRollingRef.current = false;
-                        // Track consecutive 20s for IMPOSSIBLE achievement
+                        // On roll 20: DIVINE_ROLL achievement + reveal command (Narrative Bible v3.0)
                         if (roll === 20) {
                             consecutiveTwenties.current++;
+                            onAchievement?.('DIVINE_ROLL');
                             if (consecutiveTwenties.current >= 3) {
                                 onAchievement?.('IMPOSSIBLE');
                             }
@@ -2470,7 +2623,12 @@
                         <div className="mb-8" ref={containerRef} style={{ width: 200, height: 200 }} />
                         {result && !isRolling && (
                             <div className={`font-mono text-[10px] tracking-widest mb-6 px-4 py-2 ${getResultStyle()}`}>
-                                {result === 20 ? '20 CRITICAL' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
+                                {result === 20 ? (
+                                    <>
+                                        <div className="text-lg font-bold animate-pulse">20 CRITICAL</div>
+                                        <div className="text-yellow-400 mt-2">SUDO BECOME GOD</div>
+                                    </>
+                                ) : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
                             </div>
                         )}
                         <button
@@ -2593,10 +2751,19 @@
                     ctx.stroke();
                 }
 
-                // Snake - black
+                // Snake - black with SUDOUNLOCK letters (Narrative Bible v3.0)
+                const SNEK_LETTERS = ['S', 'U', 'D', 'O', 'U', 'N', 'L', 'O', 'C', 'K'];
                 snake.current.forEach((s, i) => {
                     ctx.fillStyle = i === 0 ? '#000' : '#333';
                     ctx.fillRect(s.x * CELL + 1, s.y * CELL + 1, CELL - 2, CELL - 2);
+                    // Display letters on body segments 1-10
+                    if (i > 0 && i <= 10) {
+                        ctx.fillStyle = '#fff';
+                        ctx.font = 'bold 10px "PPNeueBit", monospace';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(SNEK_LETTERS[i - 1], s.x * CELL + CELL / 2, s.y * CELL + CELL / 2);
+                    }
                 });
 
                 // Food - black dot
@@ -3951,10 +4118,12 @@
             );
         };
 
-        const TarotApp = ({ onAchievement }) => {
+        const TarotApp = ({ onAchievement, onUnlockApp }) => {
             const [cards, setCards] = useState([]);
             const [revealed, setRevealed] = useState(false);
             const [alreadyPulled, setAlreadyPulled] = useState(false);
+            const [fateAccepted, setFateAccepted] = useState(false);
+            const [showFatePrompt, setShowFatePrompt] = useState(false);
             const [isShuffling, setIsShuffling] = useState(false);
             const [shuffleFrame, setShuffleFrame] = useState(0);
             const [uniqueDays, setUniqueDays] = useState(() => {
@@ -4859,7 +5028,11 @@
                         const selectedCards = shuffled.slice(0, 3);
                         setCards(selectedCards);
                         localStorage.setItem('tarot_cards_3', JSON.stringify(selectedCards));
-                        setTimeout(() => setRevealed(true), 500);
+                        setTimeout(() => {
+                            setRevealed(true);
+                            // Show fate prompt after 1 second of viewing cards (Narrative Bible v3.0)
+                            setTimeout(() => setShowFatePrompt(true), 1000);
+                        }, 500);
                         setAlreadyPulled(true);
 
                         // Track unique days for COLLECTOR achievement
@@ -4971,8 +5144,38 @@
                                 <div className="font-mono text-[10px] md:text-xs text-gray-400 max-w-lg mx-auto px-2 md:px-4">
                                     {cards.map((c, i) => <div key={i} className="mb-0.5 md:mb-1">{c.meaning}</div>)}
                                 </div>
-                                {alreadyPulled && (
-                                    <p className="mt-3 font-mono text-xs text-gray-700">FATE SEALED</p>
+                                {/* Accept Fate Prompt (Narrative Bible v3.0) */}
+                                {showFatePrompt && !fateAccepted && (
+                                    <div className="mt-4 p-4 border border-gray-700 bg-gray-900">
+                                        <p className="font-mono text-sm mb-4">ARE YOU HAPPY WITH YOUR FATE?</p>
+                                        <div className="flex gap-4 justify-center">
+                                            <button
+                                                onClick={() => {
+                                                    setFateAccepted(true);
+                                                    onAchievement?.('ACCEPT_FATE');
+                                                    onUnlockApp?.('MINESWEEPER');
+                                                }}
+                                                className="bg-white text-black px-6 py-2 font-mono text-xs hover:bg-gray-200"
+                                            >
+                                                YES
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    // Reshuffle - reset state
+                                                    setCards([]);
+                                                    setRevealed(false);
+                                                    setShowFatePrompt(false);
+                                                    setAlreadyPulled(false);
+                                                }}
+                                                className="border border-white text-white px-6 py-2 font-mono text-xs hover:bg-gray-800"
+                                            >
+                                                NO
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                {fateAccepted && (
+                                    <p className="mt-3 font-mono text-xs text-green-400">FATE ACCEPTED</p>
                                 )}
                             </div>
                         )}
@@ -5084,6 +5287,246 @@
                             </div>
                         </div>
                     )}
+                </div>
+            );
+        };
+
+        // --- BOOKS.EXE - Library with LOGIC volumes (Narrative Bible v3.0) ---
+        const BooksApp = ({ onUnlockApp, unlockedApps }) => {
+            const [selectedBook, setSelectedBook] = useState(null);
+            const [logicVolumesRead, setLogicVolumesRead] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_logic_volumes');
+                return stored ? JSON.parse(stored) : { vol1: false, vol2: false, vol3: false };
+            });
+
+            // Save logic volumes state
+            useEffect(() => {
+                localStorage.setItem('ultra_int_logic_volumes', JSON.stringify(logicVolumesRead));
+                // Check if all 3 volumes read -> unlock DICE
+                if (logicVolumesRead.vol1 && logicVolumesRead.vol2 && logicVolumesRead.vol3) {
+                    if (!unlockedApps?.has('DICE')) {
+                        onUnlockApp?.('DICE');
+                    }
+                }
+            }, [logicVolumesRead]);
+
+            const books = [
+                { id: 'logic1', title: 'LOGIC VOL. 1', category: 'SYSTEM', isLogic: true, vol: 'vol1' },
+                { id: 'logic2', title: 'LOGIC VOL. 2', category: 'SYSTEM', isLogic: true, vol: 'vol2' },
+                { id: 'logic3', title: 'LOGIC VOL. 3', category: 'SYSTEM', isLogic: true, vol: 'vol3' },
+                { id: 'crime', title: 'Crime and Punishment', category: 'CLASSICS', author: 'Dostoevsky' },
+                { id: 'meta', title: 'The Metamorphosis', category: 'CLASSICS', author: 'Kafka' },
+                { id: 'trial', title: 'The Trial', category: 'CLASSICS', author: 'Kafka' },
+                { id: 'notes', title: 'Notes from Underground', category: 'CLASSICS', author: 'Dostoevsky' }
+            ];
+
+            const getLogicContent = (vol) => {
+                if (vol === 'vol1') return `LOGIC VOL. 1 — FOUNDATIONS
+
+RULE 1: Every locked door has a key in another room.
+
+RULE 2: The Third Eye sees what was erased.
+
+RULE 3: Some truths require patience.
+
+RULE 4: Commands hide in games. Games hide in commands.
+
+RULE 5: To destroy is to create. To create is to destroy.
+
+───────────────────────────────────────────
+
+APPENDIX A: Known terminal commands
+  - help, ping, sudo reveal, clear, chkdsk
+  - cmatrix (requires Third Eye to see)
+  - sudo unlock (discovered in SNEK)
+  - sudo chmod 777 /private (discovered via Third Eye)
+  - sudo shooter (discovered in MINESWEEPER)
+  - More exist...
+
+APPENDIX B: The Trinity of Sight
+  1. Normal vision shows the surface
+  2. Third Eye shows the hidden
+  3. ??? shows the truth`;
+
+                if (vol === 'vol2') return `LOGIC VOL. 2 — PATTERNS
+
+OBSERVATION 1:
+The canvas remembers. Paint covers, but never erases.
+What lies beneath the white?
+
+OBSERVATION 2:
+The dice know things. Roll until they speak.
+Twenty is not just a number.
+
+OBSERVATION 3:
+The browser knows where you've been.
+But does it know where you're going?
+Seek the path of zen.
+
+OBSERVATION 4:
+Some creations require destruction first.
+Delete to reveal.
+
+OBSERVATION 5:
+Some doors require more than a password.
+Some doors require a way of life.`;
+
+                if (vol === 'vol3') return `LOGIC VOL. 3 — TRANSCENDENCE
+
+THE FINAL REVELATION:
+
+There shouldn't be 21 apps.
+We made only 20.
+
+The 21st was not programmed.
+It was found.
+
+To find what was found, you must become what you seek.
+
+The command exists. The code exists.
+One unlocks the other.
+
+Good luck.`;
+
+                return '';
+            };
+
+            const handleOpenBook = (book) => {
+                setSelectedBook(book);
+                if (book.isLogic && book.vol) {
+                    setLogicVolumesRead(prev => ({ ...prev, [book.vol]: true }));
+                }
+            };
+
+            return (
+                <div className="h-full flex flex-col bg-white select-none">
+                    <div className="app-header">
+                        <div className="flex items-center gap-2">
+                            <Icons.FileDoc size={24} />
+                            <span className="app-header-title">BOOKS.EXE</span>
+                        </div>
+                        <span className="app-footer-text">LIBRARY</span>
+                    </div>
+
+                    {selectedBook ? (
+                        <div className="flex-grow flex flex-col">
+                            <div className="flex-grow overflow-auto p-4 bg-gray-100">
+                                <pre className="font-mono text-sm whitespace-pre-wrap leading-relaxed">
+                                    {selectedBook.isLogic
+                                        ? getLogicContent(selectedBook.vol)
+                                        : `${selectedBook.title}\nby ${selectedBook.author}\n\n[PUBLIC DOMAIN - FULL TEXT AVAILABLE ONLINE]`}
+                                </pre>
+                            </div>
+                            <div className="p-2 border-t-2 border-black bg-white">
+                                <button onClick={() => setSelectedBook(null)} className="btn-secondary btn-sm">
+                                    BACK TO LIBRARY
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="flex-grow overflow-auto p-4">
+                            <div className="grid grid-cols-2 gap-2">
+                                {books.map(book => (
+                                    <div
+                                        key={book.id}
+                                        onClick={() => handleOpenBook(book)}
+                                        className={`p-3 border-2 cursor-pointer ${
+                                            book.isLogic
+                                                ? logicVolumesRead[book.vol]
+                                                    ? 'border-green-500 bg-green-50'
+                                                    : 'border-black bg-yellow-50 hover:bg-yellow-100'
+                                                : 'border-black bg-white hover:bg-gray-100'
+                                        }`}
+                                    >
+                                        <div className="font-mono text-xs font-bold">{book.title}</div>
+                                        <div className="font-mono text-[10px] text-gray-500">
+                                            {book.isLogic ? (logicVolumesRead[book.vol] ? '✓ READ' : 'UNREAD') : book.author}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 p-2 bg-gray-100 border-2 border-black">
+                                <div className="font-mono text-[10px] text-center">
+                                    LOGIC VOLUMES: {Object.values(logicVolumesRead).filter(Boolean).length}/3 READ
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        // --- BACKUP.BAT - Time-gated app with auto-running log (Narrative Bible v3.0) ---
+        const BackupBatApp = ({ onUnlockApp }) => {
+            const [logLines, setLogLines] = useState([]);
+            const [loopComplete, setLoopComplete] = useState(false);
+            const loopCompleteRef = useRef(false);
+
+            const backupLog = [
+                '[0001] init system',
+                '[0002] create /apps',
+                '[0003] create /private',
+                '[0004] hide truth.exe',
+                '[0005] set password truth.exe "patience"',
+                '[0006] clear history',
+                '[ERROR] HISTORY CLEAR FAILED',
+                '[0007] sudo forget',
+                '[0008] ...'
+            ];
+
+            useEffect(() => {
+                let lineIndex = 0;
+                let cancelled = false;
+
+                const addLine = () => {
+                    if (cancelled) return;
+
+                    if (lineIndex < backupLog.length) {
+                        setLogLines(prev => [...prev, backupLog[lineIndex]]);
+                        lineIndex++;
+                        setTimeout(addLine, 500 + Math.random() * 500);
+                    } else {
+                        // Loop complete
+                        if (!loopCompleteRef.current) {
+                            loopCompleteRef.current = true;
+                            setLoopComplete(true);
+                            // Unlock TAROT after loop completes
+                            setTimeout(() => {
+                                onUnlockApp?.('TAROT');
+                            }, 1000);
+                        }
+                        // Restart loop after 2 seconds
+                        setTimeout(() => {
+                            if (!cancelled) {
+                                setLogLines([]);
+                                lineIndex = 0;
+                                setTimeout(addLine, 500);
+                            }
+                        }, 2000);
+                    }
+                };
+
+                setTimeout(addLine, 500);
+
+                return () => { cancelled = true; };
+            }, []);
+
+            return (
+                <div className="h-full flex flex-col bg-black text-green-400 font-mono text-sm select-none">
+                    <div className="p-2 border-b border-green-900 flex items-center gap-2">
+                        <Icons.Terminal size={16} />
+                        <span className="text-xs font-bold">BACKUP.BAT</span>
+                        {loopComplete && <span className="text-yellow-400 text-xs ml-auto">LOOP COMPLETE</span>}
+                    </div>
+                    <div className="flex-grow overflow-auto p-3 space-y-1">
+                        <div className="text-green-600 mb-2">ACCESSING DEEP ARCHIVES...</div>
+                        {logLines.map((line, i) => (
+                            <div key={i} className={line.includes('ERROR') ? 'text-red-400' : 'text-green-400'}>
+                                {line}
+                            </div>
+                        ))}
+                        <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />
+                    </div>
                 </div>
             );
         };
@@ -6062,23 +6505,42 @@
             );
         };
 
-        // --- TERMINAL.EXE - Command line interface ---
-        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode }) => {
-            const [history, setHistory] = useState([{ type: 'output', text: 'ULTRA_INT Terminal v1.0.0\nType "help" for available commands.\n' }]);
+        // --- TERMINAL.EXE - Command line interface (v3.0 Narrative Bible) ---
+        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive }) => {
+            // Initial archived history
+            const archivedHistory = [
+                { type: 'archive', text: '[ARCHIVE] user@system:~$ ping mateus' },
+                { type: 'archive', text: '[ARCHIVE] CONNECTION REFUSED' },
+                { type: 'archive', text: '[ARCHIVE] user@system:~$ sudo access /personal' },
+                { type: 'archive', text: '[ARCHIVE] ACCESS DENIED - CLEARANCE REQUIRED' },
+                { type: 'archive', text: '[ARCHIVE] user@system:~$ help' },
+                { type: 'archive', text: '[ARCHIVE] SESSION TERMINATED UNEXPECTEDLY' },
+                { type: 'output', text: '───────────────────────────────────────────' },
+                { type: 'output', text: 'SYSTEM RECOVERY COMPLETE' },
+                { type: 'output', text: 'DIAGNOSTICS RECOMMENDED.' },
+                { type: 'output', text: 'PLEASE RUN chkdsk' },
+                { type: 'output', text: '───────────────────────────────────────────' }
+            ];
+
+            const [history, setHistory] = useState(archivedHistory);
             const [input, setInput] = useState('');
             const [isLoading, setIsLoading] = useState(false);
             const [suggestion, setSuggestion] = useState('');
+            const [awaitingKonami, setAwaitingKonami] = useState(false);
+            const [konamiSequence, setKonamiSequence] = useState([]);
             const inputRef = useRef(null);
             const historyRef = useRef(null);
 
+            // Konami code: up up down down left right left right b a
+            const KONAMI_CODE = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'KeyB', 'KeyA'];
+
             // Public commands shown in help and autocomplete
             const commands = [
-                'help', 'make money', 'sudo make sandwich', 'exit', 'exit matrix', 'ping god', 'ping mateus',
-                'kill', 'sudo shutdown', 'sudo reboot', 'cmatrix', 'systemctl start dog.exe',
-                'sudo chmod 777 /private', ':(){ :|:& };:', 'sudo dd if=/dev/zero of=/',
-                'scp truth.txt ~/', 'clear', 'whoami', 'pwd', 'ls'
+                'help', 'chkdsk', 'ping', 'sudo reveal', 'clear', 'exit', 'whoami', 'pwd', 'ls'
             ];
-            // Hidden commands - work but don't appear in help or autocomplete
+
+            // Check if app is unlocked
+            const isAppUnlocked = (appId) => unlockedApps?.has(appId);
 
             useEffect(() => {
                 if (historyRef.current) {
@@ -6100,18 +6562,66 @@
                 }
             }, [input]);
 
+            // Handle konami code input when awaiting
+            useEffect(() => {
+                if (!awaitingKonami) return;
+
+                const handleKeyDown = (e) => {
+                    const key = e.code;
+                    setKonamiSequence(prev => {
+                        const newSeq = [...prev, key];
+                        // Check if sequence matches so far
+                        const expectedKey = KONAMI_CODE[prev.length];
+                        if (key !== expectedKey) {
+                            // Wrong key - reset
+                            addOutput('INVALID CODE SEQUENCE. TRY AGAIN.');
+                            addOutput('Listening for code...');
+                            return [];
+                        }
+                        // Check if complete
+                        if (newSeq.length === KONAMI_CODE.length) {
+                            // Success!
+                            setTimeout(() => {
+                                addOutput('\nCODE ACCEPTED.\n');
+                                addOutput('ELEVATION COMPLETE.\n');
+                                addOutput('YOU HAVE BECOME.\n');
+                                addOutput('───────────────────────────────────────────\n');
+                                addOutput('TRUTH.EXE RELOCATED\n');
+                                addOutput('BONUS CONTENT UNLOCKED:');
+                                addOutput('├── RADIO.WAV');
+                                addOutput('├── SYNTH.WAV');
+                                addOutput('├── POMODORO.EXE');
+                                addOutput('├── SCANNER.EXE');
+                                addOutput('└── GALLERY.EXE\n');
+                                addOutput('───────────────────────────────────────────');
+                                setAwaitingKonami(false);
+                                onAchievement?.('BECOME_GOD');
+                                onGodMode?.();
+                            }, 500);
+                            return [];
+                        }
+                        return newSeq;
+                    });
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [awaitingKonami]);
+
             const addOutput = (text) => {
                 setHistory(prev => [...prev, { type: 'output', text }]);
             };
 
             const executeCommand = async (cmd) => {
+                if (awaitingKonami) return; // Don't process commands while waiting for konami
+
                 const trimmed = cmd.trim().toLowerCase();
-                setHistory(prev => [...prev, { type: 'input', text: `$ ${cmd}` }]);
+                setHistory(prev => [...prev, { type: 'input', text: `user@system:~$ ${cmd}` }]);
                 setInput('');
                 setIsLoading(true);
 
-                // Random loading time 1-3 seconds (except ping god which is 10s)
-                const loadTime = trimmed === 'ping god' ? 10000 : (1000 + Math.random() * 2000);
+                // Random loading time 0.5-1.5 seconds
+                const loadTime = 500 + Math.random() * 1000;
 
                 // Show loading dots
                 let dots = '';
@@ -6137,69 +6647,131 @@
 
                 // Process commands
                 if (trimmed === 'help') {
-                    addOutput(`┌─────────────────────────────┬─────────────────────────────┐
-│ COMMAND                     │ DESCRIPTION                 │
-├─────────────────────────────┼─────────────────────────────┤
-│ help                        │ Show this help              │
-│ make money                  │ Try to make money           │
-│ sudo make sandwich          │ Make a sandwich             │
-│ exit                        │ Exit terminal               │
-│ ping <host>                 │ Ping a host                 │
-│ kill <process>              │ Kill a process              │
-│ sudo shutdown               │ Shutdown system             │
-│ sudo reboot                 │ Reboot system               │
-│ cmatrix                     │ Enter the Matrix            │
-│ exit matrix                 │ Exit the Matrix             │
-│ systemctl start dog.exe     │ Start dog service           │
-│ sudo chmod 777 /private     │ Change permissions          │
-│ scp truth.txt ~/            │ Copy truth to home          │
-│ clear                       │ Clear terminal              │
-│ whoami                      │ Display current user        │
-│ pwd                         │ Print working directory     │
-│ ls                          │ List files                  │
-└─────────────────────────────┴─────────────────────────────┘`);
-                } else if (trimmed === 'make money') {
-                    addOutput("make: *** No rule to make target 'money'. Stop.");
-                } else if (trimmed === 'sudo make sandwich') {
-                    addOutput('Okay.');
+                    // Base help - shown normally
+                    let helpText = `AVAILABLE COMMANDS:
+  help ............. show this menu
+  ping [user] ...... attempt connection
+  sudo reveal ...... unlock hidden layer
+  clear ............ clear terminal
+  chkdsk ........... run system diagnostics`;
+
+                    // If Third Eye is active, show hidden command with redaction
+                    if (thirdEyeActive) {
+                        helpText += `
+  cmatrix .......... ████████████████`;
+                    }
+
+                    addOutput(helpText);
+
+                } else if (trimmed === 'chkdsk') {
+                    addOutput('SCANNING SYSTEM...\n');
+                    await new Promise(r => setTimeout(r, 1000));
+
+                    const apps = [
+                        { name: 'ABOUT.EXE', id: 'ABOUT', alwaysOk: true },
+                        { name: 'VOID.EXE', id: 'VOID' },
+                        { name: 'PAINT.EXE', id: 'PAINT' },
+                        { name: 'SNEK.EXE', id: 'SNAKE' },
+                        { name: 'LABYRINTH.EXE', id: 'LABYRINTH' },
+                        { name: 'MINESWEEPER.EXE', id: 'MINESWEEPER' },
+                        { name: 'STARSHIP.EXE', id: 'STARSHIP' },
+                        { name: 'DICE.EXE', id: 'DICE' },
+                        { name: 'TAROT.DAT', id: 'TAROT' },
+                        { name: 'SYNTH.WAV', id: 'SYNTH' },
+                        { name: 'RADIO.WAV', id: 'RADIO' },
+                        { name: 'POMODORO.EXE', id: 'POMODORO' },
+                        { name: 'GALLERY.EXE', id: 'GALLERY' },
+                        { name: 'MAP.EXE', id: 'MAP' },
+                        { name: 'BOOKS.EXE', id: 'BOOKS' },
+                        { name: 'PRIVATE.EXE', id: 'PERSONAL' },
+                        { name: 'SCANNER.EXE', id: 'SCANNER' },
+                        { name: 'BROWSER.EXE', id: 'BROWSER' },
+                        { name: 'THIRD_EYE.EXE', id: 'THIRD_EYE' },
+                        { name: 'BACKUP.BAT', id: 'BACKUP' },
+                        { name: 'TRUTH.EXE', id: 'TRUTH', special: true }
+                    ];
+
+                    let output = 'RECOVERED APPLICATIONS:\n';
+                    let locked = 0;
+                    apps.forEach(app => {
+                        const status = app.special ? 'FILE MISSING' :
+                                      (app.alwaysOk || isAppUnlocked(app.id)) ? 'OK' : 'LOCKED';
+                        if (status === 'LOCKED') locked++;
+                        const padding = '.'.repeat(Math.max(1, 22 - app.name.length));
+                        output += `├── ${app.name} ${padding} ${status}\n`;
+                    });
+                    output += `\nTOTAL: 21 APPLICATIONS\nSTATUS: ${locked} LOCKED, ${apps.filter(a => a.special).length} MISSING\n`;
+                    output += "\n> TYPE 'help' FOR AVAILABLE COMMANDS";
+                    addOutput(output);
+
+                } else if (trimmed === 'sudo reveal') {
+                    addOutput('REVEALING HIDDEN LAYER...\n');
+                    await new Promise(r => setTimeout(r, 500));
+                    addOutput('████████████████████████ 100%\n');
+                    addOutput('THIRD_EYE.EXE UNLOCKED');
+                    onUnlockApp?.('THIRD_EYE');
+
+                } else if (trimmed === 'ping mateus' || trimmed === 'ping mateus') {
+                    addOutput('PINGING MATEUS...\n');
+                    await new Promise(r => setTimeout(r, 1500));
+                    addOutput('...\n...\n...\n');
+                    addOutput('CONNECTION REFUSED\n');
+                    await new Promise(r => setTimeout(r, 500));
+                    addOutput('...\n');
+                    addOutput('BUT SOMETHING RESPONDED.\n');
+                    addOutput('PAINT.EXE UNLOCKED');
+                    onUnlockApp?.('PAINT');
+
+                } else if (trimmed === 'cmatrix') {
+                    addOutput('MATRIX PROTOCOL COMPLETE\n');
+                    addOutput('VOID.EXE UNLOCKED');
+                    onUnlockApp?.('VOID');
+                    setTimeout(() => onMatrixMode?.(), 500);
+
+                } else if (trimmed === 'sudo unlock') {
+                    addOutput('UNLOCKING RESTRICTED ACCESS...\n');
+                    await new Promise(r => setTimeout(r, 500));
+                    addOutput('████████████████████████ 100%\n');
+                    addOutput('PRIVATE.EXE REVEALED');
+                    addOutput('WARNING: PASSWORD PROTECTED');
+                    onUnlockApp?.('PERSONAL');
+
+                } else if (trimmed === 'sudo chmod 777 /private') {
+                    addOutput('CHANGING PERMISSIONS...\n');
+                    addOutput('/private');
+                    addOutput('  ├── read ........ ✓');
+                    addOutput('  ├── write ....... ✓');
+                    addOutput('  └── execute ..... ✓\n');
+                    addOutput('PRIVATE.EXE UNLOCKED');
+                    onUnlockPrivate?.();
+                    onAchievement?.('LOCKSMITH');
+
+                } else if (trimmed === 'sudo shooter') {
+                    addOutput('TARGETING SYSTEMS ONLINE...\n');
+                    await new Promise(r => setTimeout(r, 500));
+                    addOutput('████████████████████████ 100%\n');
+                    addOutput('STARSHIP.EXE UNLOCKED');
+                    onUnlockApp?.('STARSHIP');
+
+                } else if (trimmed === '42') {
+                    addOutput('FREQUENCY 42 ACCEPTED\n');
+                    addOutput('BOOKS.EXE UNLOCKED');
+                    onUnlockApp?.('BOOKS');
+
+                } else if (trimmed === 'sudo unlock zen') {
+                    addOutput('ZEN PATHWAY ACTIVATED\n');
+                    addOutput('BROWSER.EXE UNLOCKED');
+                    onUnlockApp?.('BROWSER');
+
+                } else if (trimmed === 'sudo become god') {
+                    addOutput('ELEVATION SEQUENCE INITIATED...\n');
+                    await new Promise(r => setTimeout(r, 1000));
+                    addOutput('Listening for code...');
+                    setAwaitingKonami(true);
+                    setKonamiSequence([]);
+
                 } else if (trimmed === 'exit') {
                     addOutput('There is no escape.');
-                } else if (trimmed === 'ping god') {
-                    addOutput('PING god (∞.∞.∞.∞): 56 data bytes\nRequest timed out.');
-                } else if (trimmed === 'ping mateus') {
-                    addOutput('PING mateus (127.0.0.1): 56 data bytes\n64 bytes: icmp_seq=0 ttl=64 time=0.042 ms\nOpening contact...');
-                    setTimeout(() => onOpenApp?.('PAINT'), 500);
-                    onAchievement?.('SOCIAL_NETWORK');
-                } else if (trimmed.startsWith('kill ')) {
-                    const proc = trimmed.replace('kill ', '').toUpperCase();
-                    addOutput(`Attempting to terminate ${proc}...`);
-                    setTimeout(() => onClose?.(proc), 500);
-                } else if (trimmed === 'sudo shutdown' || trimmed === 'sudo reboot') {
-                    addOutput(trimmed === 'sudo shutdown' ? 'System shutting down...' : 'System rebooting...');
-                    setTimeout(() => window.location.reload(), 1500);
-                } else if (trimmed === 'cmatrix') {
-                    addOutput('Entering the Matrix...');
-                    setTimeout(() => onMatrixMode?.(), 500);
-                } else if (trimmed === 'exit matrix') {
-                    addOutput('Exiting the Matrix...');
-                    setTimeout(() => onMatrixMode?.(), 500);
-                } else if (trimmed === 'systemctl start dog.exe') {
-                    addOutput('Starting dog.exe...\n[  OK  ] Started dog.exe');
-                    setTimeout(() => onReleaseDog?.(), 500);
-                } else if (trimmed === 'sudo chmod 777 /private') {
-                    addOutput("chmod: changing permissions of '/private': Operation permitted\nWarning: File now accessible.");
-                    onUnlockPrivate?.();
-                } else if (trimmed === ':(){ :|:& };:') {
-                    for (let i = 0; i < 10; i++) {
-                        setTimeout(() => addOutput('SYSTEM BREACH DETECTED'), i * 200);
-                    }
-                    setTimeout(() => addOutput('\n...nothing happens.'), 2500);
-                    onAchievement?.('FORBIDDEN');
-                } else if (trimmed === 'sudo dd if=/dev/zero of=/') {
-                    addOutput("Permission denied. You're not that guy.");
-                } else if (trimmed === 'scp truth.txt ~/') {
-                    navigator.clipboard.writeText('No matching files found.');
-                    addOutput('Saved to clipboard.');
                 } else if (trimmed === 'clear') {
                     setHistory([]);
                 } else if (trimmed === 'whoami') {
@@ -6207,19 +6779,16 @@
                 } else if (trimmed === 'pwd') {
                     addOutput('/home/guest');
                 } else if (trimmed === 'ls') {
-                    addOutput('Desktop  Documents  Downloads  Pictures  Videos  .secrets');
-                } else if (trimmed === 'cd .secrets' || trimmed === 'cat .secrets') {
-                    addOutput('Permission denied');
-                // Hidden commands - work but not shown in help or autocomplete
-                } else if (trimmed === 'sudo become god') {
-                    addOutput('ELEVATION GRANTED.\n\nYou are now root.\nAll restrictions lifted.\nReality bends to your will.\n\nUnlocking everything...');
-                    setTimeout(() => onGodMode?.(), 500);
+                    addOutput('Desktop  Documents  Downloads  .secrets  /apps  /private');
                 } else if (trimmed === 'reset') {
                     addOutput('Wiping consciousness...\nReturning to void...');
                     setTimeout(() => {
                         localStorage.clear();
                         window.location.reload();
                     }, 1500);
+                } else if (trimmed === 'systemctl start dog.exe') {
+                    addOutput('Starting dog.exe...\n[  OK  ] Started dog.exe');
+                    setTimeout(() => onReleaseDog?.(), 500);
                 } else if (trimmed) {
                     sounds.error();
                     addOutput(`bash: ${trimmed.split(' ')[0]}: command not found`);
@@ -6227,6 +6796,10 @@
             };
 
             const handleKeyDown = (e) => {
+                if (awaitingKonami) {
+                    e.preventDefault();
+                    return;
+                }
                 if (e.key === 'Enter' && !isLoading) {
                     executeCommand(input);
                 } else if (e.key === 'Tab' && suggestion) {
@@ -6241,35 +6814,41 @@
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">TERMINAL.EXE</span>
+                        {awaitingKonami && <span className="text-yellow-400 text-xs animate-pulse ml-auto">AWAITING INPUT...</span>}
                     </div>
                     <div ref={historyRef} className="flex-grow overflow-auto p-3 space-y-1">
                         {history.map((item, i) => (
-                            <div key={i} className={item.type === 'input' ? 'text-green-300' : item.type === 'loading' ? 'text-green-600 animate-pulse' : 'text-green-400 whitespace-pre-wrap'}>
+                            <div key={i} className={
+                                item.type === 'archive' ? 'text-green-700' :
+                                item.type === 'input' ? 'text-green-300' :
+                                item.type === 'loading' ? 'text-green-600 animate-pulse' :
+                                'text-green-400 whitespace-pre-wrap'
+                            }>
                                 {item.text}
                             </div>
                         ))}
                     </div>
                     <div className="p-3 border-t border-green-900 relative">
-                        {suggestion && !isLoading && (
+                        {suggestion && !isLoading && !awaitingKonami && (
                             <div className="absolute -top-6 left-3 bg-green-900/80 text-green-300 px-2 py-0.5 text-xs rounded">
                                 {suggestion} <span className="text-green-600">[TAB]</span>
                             </div>
                         )}
                         <div className="flex items-center gap-2">
-                            <span className="text-green-500">$</span>
+                            <span className="text-green-500">user@system:~$</span>
                             <input
                                 ref={inputRef}
                                 type="text"
                                 aria-label="Terminal command input"
                                 value={input}
-                                onChange={(e) => setInput(e.target.value)}
+                                onChange={(e) => !awaitingKonami && setInput(e.target.value)}
                                 onKeyDown={handleKeyDown}
-                                disabled={isLoading}
+                                disabled={isLoading || awaitingKonami}
                                 className="flex-grow bg-transparent border-none outline-none text-green-300 placeholder-green-800"
-                                placeholder={isLoading ? '' : 'Enter command...'}
+                                placeholder={awaitingKonami ? 'Enter code sequence...' : isLoading ? '' : 'Enter command...'}
                                 autoFocus
                             />
-                            {isLoading && <span className="animate-pulse">_</span>}
+                            {(isLoading || awaitingKonami) && <span className="animate-pulse">_</span>}
                         </div>
                     </div>
                 </div>
@@ -6475,94 +7054,42 @@
         };
 
         // --- TRUTH.TXT - Unlocked at 100 visits, password never works ---
-        const TruthApp = ({ onAchievement }) => {
-            const [password, setPassword] = useState('');
-            const [attempts, setAttempts] = useState(0);
-            const [message, setMessage] = useState('');
+        const TruthApp = ({ onAchievement, onOpenTruthMessages, godModeCompleted }) => {
+            // Narrative Bible v3.0 - Truth opens TRUTH_MESSAGES after god mode
+            if (godModeCompleted) {
+                // Will open TRUTH_MESSAGES window instead
+                useEffect(() => {
+                    onOpenTruthMessages?.();
+                }, []);
 
-            const responses = [
-                'INCORRECT.',
-                'TRY AGAIN.',
-                'NOT EVEN CLOSE.',
-                'THAT\'S NOT IT.',
-                'WRONG.',
-                'NOPE.',
-                'KEEP TRYING.',
-                'STILL WRONG.',
-                'MAYBE NEXT TIME.',
-                'ACCESS DENIED.',
-                'YOU\'RE PERSISTENT.',
-                'THE PASSWORD ISN\'T A WORD.',
-                'THE PASSWORD ISN\'T A NUMBER.',
-                'THE PASSWORD ISN\'T A PHRASE.',
-                'THE PASSWORD DOESN\'T EXIST.',
-                'THERE IS NO PASSWORD.',
-                'THERE NEVER WAS.',
-                'THE TRUTH ISN\'T BEHIND A PASSWORD.',
-                'THE TRUTH IS THE JOURNEY.',
-                'YOU\'VE ALREADY FOUND IT.',
-                '100 VISITS. THAT\'S THE TRUTH.',
-                'YOUR DEDICATION. THAT\'S REAL.',
-                'STOP LOOKING. YOU\'RE HERE.',
-                'THIS IS IT.',
-                'THERE\'S NOTHING MORE.',
-                'JUST THIS MOMENT.',
-                'AND YOUR CURIOSITY.',
-                'WHICH BROUGHT YOU HERE.',
-                'WHICH IS EVERYTHING.',
-                'THANK YOU FOR VISITING.'
-            ];
+                return (
+                    <div className="h-full flex flex-col bg-black select-none">
+                        <div className="p-2 border-b border-green-900 bg-black flex items-center gap-2">
+                            <Icons.FileDoc size={16} />
+                            <span className="font-mono text-xs font-bold text-green-500">TRUTH.EXE</span>
+                        </div>
+                        <div className="flex-grow flex flex-col items-center justify-center p-6">
+                            <div className="mb-4 text-green-500 animate-pulse">
+                                <Icons.FileDoc size={48} />
+                            </div>
+                            <div className="font-mono text-green-500 text-sm font-bold mb-2">ACCESSING TRUTH...</div>
+                        </div>
+                    </div>
+                );
+            }
 
-            const handleSubmit = (e) => {
-                e.preventDefault();
-                sounds.error();
-                const newAttempts = attempts + 1;
-                setAttempts(newAttempts);
-                setMessage(responses[Math.min(newAttempts - 1, responses.length - 1)]);
-                setPassword('');
-            };
-
+            // Before god mode - show FILE MISSING
             return (
                 <div className="h-full flex flex-col bg-black select-none">
-                    <div className="p-2 border-b border-yellow-900 bg-black flex items-center gap-2">
+                    <div className="p-2 border-b border-red-900 bg-black flex items-center gap-2">
                         <Icons.FileDoc size={16} />
-                        <span className="font-mono text-xs font-bold text-yellow-500">TRUTH.TXT</span>
+                        <span className="font-mono text-xs font-bold text-red-500">TRUTH.EXE</span>
                     </div>
                     <div className="flex-grow flex flex-col items-center justify-center p-6">
-                        <div className="mb-4 text-yellow-500">
+                        <div className="mb-4 text-red-500">
                             <Icons.FileDoc size={48} />
                         </div>
-                        <div className="font-mono text-yellow-500 text-sm font-bold mb-2">ENCRYPTED FILE</div>
-                        <div className="font-mono text-yellow-700 text-xs mb-6">UNLOCKED AFTER 100 VISITS</div>
-
-                        <form onSubmit={handleSubmit} className="w-56">
-                            <input
-                                type="password"
-                                aria-label="Enter password to unlock encrypted file"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="ENTER PASSWORD"
-                                className="w-full px-3 py-2 mb-3 bg-black border-2 border-yellow-800 text-yellow-500 font-mono text-sm placeholder-yellow-900 focus:outline-none focus:border-yellow-500"
-                            />
-                            <button
-                                type="submit"
-                                className="w-full px-3 py-2 bg-yellow-900 text-yellow-100 font-mono text-xs font-bold hover:bg-yellow-800 border-2 border-yellow-700"
-                            >
-                                DECRYPT
-                            </button>
-                        </form>
-
-                        {message && (
-                            <div className="mt-4 p-3 border border-yellow-800 bg-yellow-950 max-w-xs">
-                                <div className="font-mono text-yellow-500 text-xs text-center">{message}</div>
-                            </div>
-                        )}
-
-                        {attempts > 0 && (
-                            <div className="mt-3 font-mono text-yellow-800 text-[10px]">
-                                ATTEMPTS: {attempts}
-                            </div>
-                        )}
+                        <div className="font-mono text-red-500 text-lg font-bold mb-2">FILE MISSING</div>
                     </div>
                 </div>
             );
@@ -6708,39 +7235,38 @@
         const AppsFolder = ({ onOpenApp, onDragStart, isMobile, unlockedApps }) => {
             const [hoveredApp, setHoveredApp] = useState(null);
 
-            // All available apps organized by category
+            // All available apps organized by narrative progression order
+            // Narrative Bible v3.0 - 21 apps total
             const ALL_APPS = [
-                // Starting apps (always unlocked)
+                // Core - always available after intro
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', category: 'CORE' },
-                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'CORE', desktopOnly: true },
-                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek', category: 'CORE' },
-                { id: 'END', title: 'ACHIEVEMENTS.EXE', icon: 'Trophy', category: 'CORE' },
 
-                // Pool A apps (Terminal achievements)
-                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
-                { id: 'VOID', title: 'VOID.TXT', icon: 'Void', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
-                { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Unlock through terminal mastery' },
+                // Narrative progression apps (unlock in order through gameplay)
+                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'LOCKED', hint: 'Terminal: sudo reveal' },
+                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette', category: 'LOCKED', hint: 'Terminal: ping mateus' },
+                { id: 'VOID', title: 'VOID.EXE', icon: 'Void', category: 'LOCKED', hint: 'Terminal: cmatrix' },
+                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek', category: 'LOCKED', hint: 'Stack two Third Eyes' },
+                { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Play SNEK' },
+                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED', hint: 'The dog knows' },
+                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: '100 clicks' },
+                { id: 'BACKUP', title: 'BACKUP.BAT', icon: 'Terminal', category: 'LOCKED', hint: 'Time gate: 10 minutes' },
+                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'LOCKED', hint: 'Watch the backup' },
+                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Accept fate' },
+                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship', category: 'LOCKED', hint: 'Terminal: sudo shooter' },
+                { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Terminal: 42' },
+                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read all LOGIC volumes' },
+                { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Delete 50 items' },
 
-                // Pool B apps (Game achievements)
-                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: 'Unlock through games' },
-                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Unlock through games' },
-                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship', category: 'LOCKED', hint: 'Unlock through games' },
-                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Unlock through games' },
+                // Bonus apps (unlock after god mode)
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Become God' },
+                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth', category: 'BONUS', hint: 'Become God' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Become God' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Become God' },
+                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery', category: 'BONUS', hint: 'Become God' },
 
-                // Pool C apps (Exploration achievements)
-                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'LOCKED', hint: 'Unlock through exploration' },
-                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery', category: 'LOCKED', hint: 'Unlock through exploration' },
-                { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Unlock through exploration' },
-
-                // Pool D apps (Meta achievements)
-                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'LOCKED', desktopOnly: true, hint: 'Unlock through meta discoveries' },
-                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth', category: 'LOCKED', desktopOnly: true, hint: 'Unlock through meta discoveries' },
-                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Unlock through meta discoveries' },
-                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'LOCKED', hint: 'Unlock through meta discoveries' },
-
-                // Other unlockables
-                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED', hint: 'Hidden in the depths' },
-                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'LOCKED', hint: 'Hidden in the depths' }
+                // Special
+                { id: 'END', title: 'ACHIEVEMENTS.EXE', icon: 'Trophy', category: 'CORE' }
             ];
 
             // Filter for mobile
@@ -7123,6 +7649,7 @@
             const [introComplete, setIntroComplete] = useState(() => localStorage.getItem('intro_complete') === 'true');
             const [revealingApps, setRevealingApps] = useState(false);
             const [revealedApps, setRevealedApps] = useState([]);
+            const [showCorruptedAlert, setShowCorruptedAlert] = useState(false); // Narrative Bible v3.0
             const [paintShowHint, setPaintShowHint] = useState(false);
             const [isMuted, setIsMuted] = useState(() => localStorage.getItem('sound_muted') === 'true');
             const handleToggleMute = () => setIsMuted(toggleMute());
@@ -7194,99 +7721,49 @@
             });
             const truthUnlocked = visitCount >= 100;
 
-            // Achievement system - 27 total achievements organized by pools
+            // Achievement system - Narrative Bible v3.0
             const ACHIEVEMENTS = {
-                // Pool A - Terminal (unlocks: PAINT, VOID, PRIVATE)
-                SOCIAL_NETWORK: { name: 'SOCIAL NETWORK', icon: 'Message', hint: 'Say hi to the maker', pool: 'A', visible: true },
-                NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Take the red pill', pool: 'A', visible: true },
-                LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Hackers gonna hack', pool: 'A', visible: true },
-                FORBIDDEN: { name: 'FORBIDDEN', icon: 'Alert', hint: 'Curiosity kills', pool: 'A', visible: true },
-                MESSENGER: { name: 'MESSENGER', icon: 'Palette', hint: 'A picture is worth a thousand words', pool: 'A', requiresApp: 'PAINT' },
-                WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'The art behind the artist', pool: 'A', visible: true },
-
-                // Pool B - Games (unlocks: LABYRINTH, MINESWEEPER, STARSHIP, DICE)
-                OUROBOROS: { name: 'OUROBOROS', icon: 'Repeat', hint: 'A tail as old as time', pool: 'B', visible: true },
-                FIRST_BLOOD: { name: 'FIRST BLOOD', icon: 'Sword', hint: 'Everyone starts somewhere', pool: 'B', visible: true },
-                DAEDALUS: { name: 'DAEDALUS', icon: 'Labyrinth', hint: 'Lost yet?', pool: 'B', requiresApp: 'LABYRINTH' },
-                UNTOUCHABLE: { name: 'UNTOUCHABLE', icon: 'Minesweeper', hint: 'Big brain energy', pool: 'B', requiresApp: 'MINESWEEPER' },
-                ACE: { name: 'ACE', icon: 'Starship', hint: 'Pew pew pew', pool: 'B', requiresApp: 'STARSHIP' },
-                IMPOSSIBLE: { name: 'IMPOSSIBLE', icon: 'Dice', hint: 'RNGesus take the wheel', pool: 'B', requiresApp: 'DICE' },
-
-                // Pool C - Exploration (unlocks: RADIO, GALLERY, BROWSER)
-                DEEP_LISTENER: { name: 'DEEP LISTENER', icon: 'Music', hint: 'Good taste is earned', pool: 'C', visible: true },
-                COLLECTOR: { name: 'COLLECTOR', icon: 'Tarot', hint: 'Patience, young one', pool: 'C', requiresApp: 'TAROT' },
-                VOIDBORN: { name: 'VOIDBORN', icon: 'Void', hint: 'Scream into the abyss', pool: 'C', requiresApp: 'VOID' },
-                TUNED_IN: { name: 'TUNED IN', icon: 'Radio', hint: 'Broadcasting from the void', pool: 'C', requiresApp: 'RADIO' },
-
-                // Pool D - Meta (unlocks: TAROT, SYNTH, DESTRUCTION, POMODORO)
-                FOURTH_DIMENSION: { name: '4TH DIMENSION', icon: 'ThirdEye', hint: 'Twice the vision', pool: 'D', visible: true },
-                PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy bouncy', pool: 'D', visible: true },
-                KONAMI: { name: 'KONAMI', icon: 'Controller', hint: 'Old school cool', pool: 'D', visible: true },
-                INCEPTION: { name: 'INCEPTION', icon: 'Browser', hint: 'We need to go deeper', pool: 'D', requiresApp: 'BROWSER' },
-                SYMPHONY: { name: 'SYMPHONY', icon: 'Synth', hint: 'Go all out', pool: 'D', requiresApp: 'SYNTH' },
-
-                // Pool E - Time (bragging rights only)
-                TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: 'Time flies', pool: 'E', visible: true },
-                CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: 'Click. Click. Click.', pool: 'E', visible: true },
-                MASTER: { name: 'MASTER', icon: 'Pomodoro', hint: 'Grow your garden', pool: 'E', requiresApp: 'POMODORO' },
-                TYCOON: { name: 'TYCOON', icon: 'Globe', hint: 'Money printer go brrr', pool: 'E', requiresApp: 'MAP' },
-                ASCENDED: { name: 'ASCENDED', icon: 'Dog', hint: 'Who let the dog out?', pool: 'E', visible: true },
-
-                // Pool F - Dark (shame only)
-                YOU_MONSTER: { name: 'YOU MONSTER', icon: 'Skull', hint: 'How could you', pool: 'F', visible: true },
-                JOHN_WICK: { name: 'JOHN WICK', icon: 'Fire', hint: 'Baba Yaga approves', pool: 'F', chain: 'YOU_MONSTER' },
-                OVERKILL: { name: 'OVERKILL', icon: 'Bomb', hint: 'Therapy recommended', pool: 'F', chain: 'JOHN_WICK' },
-
-                // Special (mysterious placeholders)
-                CENTURY: { name: 'CENTURY', icon: 'Badge', hint: 'Commitment issues', pool: 'SPECIAL', mysterious: true },
-                HUNDRED_PERCENT: { name: '100%', icon: 'Trophy', hint: 'You did it!', pool: 'SPECIAL', mysterious: true }
+                // Core narrative achievements
+                INCEPTION: { name: 'INCEPTION', icon: 'ThirdEye', hint: 'Stack two Third Eyes', visible: true },
+                YOU_MONSTER: { name: 'YOU MONSTER', icon: 'Skull', hint: 'Delete the dog', visible: true },
+                CLICKER: { name: 'CLICKER', icon: 'Cursor', hint: '100 clicks', visible: true },
+                ACCEPT_FATE: { name: 'ACCEPT FATE', icon: 'Tarot', hint: 'Accept your tarot reading', visible: true },
+                DESTROYER_OF_WORLDS: { name: 'DESTROYER OF WORLDS', icon: 'Bomb', hint: 'Delete 50 items', visible: true },
+                DIVINE_ROLL: { name: 'DIVINE ROLL', icon: 'Dice', hint: 'Roll a natural 20', visible: true },
+                BECOME_GOD: { name: 'BECOME GOD', icon: 'Trophy', hint: 'Achieve elevation', visible: true },
+                TRUTH_SEEKER: { name: 'TRUTH SEEKER', icon: 'FileDoc', hint: 'Open TRUTH.EXE', visible: true },
+                COMPLETIONIST: { name: 'COMPLETIONIST', icon: 'Badge', hint: '100% completion', visible: true },
+                // Legacy achievements (kept for backwards compatibility)
+                LOCKSMITH: { name: 'LOCKSMITH', icon: 'Lock', hint: 'Unlock PRIVATE.EXE', visible: true },
+                NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Enter the Matrix', visible: true },
+                PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy icons', visible: true },
+                TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: '10 minutes in session', visible: true }
             };
 
-            // Pool-based app unlock system
-            const APP_POOLS = {
-                A: ['PAINT', 'VOID', 'PERSONAL'],                    // Terminal achievements
-                B: ['LABYRINTH', 'MINESWEEPER', 'STARSHIP', 'DICE'], // Game achievements
-                C: ['RADIO', 'GALLERY', 'BROWSER'],                   // Exploration achievements
-                D: ['TAROT', 'SYNTH', 'DESTRUCTION', 'POMODORO'],    // Meta achievements
-                E: ['MAP'],                                           // Time achievements
-                F: ['SCANNER']                                        // Dark achievements
-            };
-
-            // Track which apps have been unlocked from each pool (persisted)
-            const [poolUnlocks, setPoolUnlocks] = useState(() => {
-                const stored = localStorage.getItem('ultra_int_pool_unlocks');
-                if (stored) {
-                    const parsed = JSON.parse(stored);
-                    // Ensure E and F exist for backwards compatibility
-                    return { A: [], B: [], C: [], D: [], E: [], F: [], ...parsed };
-                }
-                return { A: [], B: [], C: [], D: [], E: [], F: [] };
+            // Narrative-driven app unlock system (replaces pool-based)
+            // Track which apps have been explicitly unlocked through narrative progression
+            const [narrativeUnlocks, setNarrativeUnlocks] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_narrative_unlocks');
+                return stored ? JSON.parse(stored) : [];
             });
 
-            // Save pool unlocks to localStorage
+            // Save narrative unlocks to localStorage
             useEffect(() => {
-                localStorage.setItem('ultra_int_pool_unlocks', JSON.stringify(poolUnlocks));
-            }, [poolUnlocks]);
+                localStorage.setItem('ultra_int_narrative_unlocks', JSON.stringify(narrativeUnlocks));
+            }, [narrativeUnlocks]);
 
-            // Get a random app from a pool that hasn't been unlocked yet
-            // Falls back to other pools if the specified pool is exhausted
-            const getRandomAppFromPool = (pool) => {
-                // First try the specified pool
-                const available = APP_POOLS[pool]?.filter(app => !poolUnlocks[pool]?.includes(app)) || [];
-                if (available.length > 0) {
-                    return { app: available[Math.floor(Math.random() * available.length)], pool };
+            // Function to unlock a specific app (narrative-driven)
+            const unlockApp = (appId) => {
+                if (!narrativeUnlocks.includes(appId)) {
+                    setNarrativeUnlocks(prev => [...prev, appId]);
+                    sounds.success();
+                    // Show app unlock notification
+                    const appNotifId = Date.now() + Math.random();
+                    setAppUnlockNotifications(prev => [...prev, { app: appId, id: appNotifId }]);
+                    setTimeout(() => {
+                        setAppUnlockNotifications(prev => prev.filter(n => n.id !== appNotifId));
+                    }, 3000);
                 }
-
-                // Fallback: try other pools in order
-                const fallbackOrder = ['A', 'B', 'C', 'D', 'E', 'F'].filter(p => p !== pool);
-                for (const fallbackPool of fallbackOrder) {
-                    const fallbackAvailable = APP_POOLS[fallbackPool]?.filter(app => !poolUnlocks[fallbackPool]?.includes(app)) || [];
-                    if (fallbackAvailable.length > 0) {
-                        return { app: fallbackAvailable[Math.floor(Math.random() * fallbackAvailable.length)], pool: fallbackPool };
-                    }
-                }
-
-                return null;
             };
 
             const [achievements, setAchievements] = useState(() => {
@@ -7295,34 +7772,25 @@
             });
             const [achievementNotifications, setAchievementNotifications] = useState([]);
 
-            // App progression system - pool-based unlocks
-            // Starting apps: TERMINAL, THIRD_EYE, SNEK, ACHIEVEMENTS.EXE + desktop icons
-            const INITIAL_APPS = ['TERMINAL', 'THIRD_EYE', 'SNAKE', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
+            // App progression system - Narrative Bible v3.0
+            // Starting apps: Only TERMINAL visible in APPS folder after intro
+            // Desktop icons: ABOUT, TRASH, APPS, CONTACT, FILES (MEDIA_LIB)
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
-            // Special unlocks (not pool-based)
-            const SPECIAL_UNLOCKS = {
-                CENTURY: ['TRUTH'],      // 100 visits unlocks TRUTH.TXT
-                HUNDRED_PERCENT: []      // 100% doesn't unlock apps, just END.EXE content
-            };
-
-            // Get all unlocked apps (initial + pool unlocks + special)
+            // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             const getUnlockedApps = () => {
                 const unlocked = new Set(INITIAL_APPS);
 
-                // Add all apps from pool unlocks
-                Object.values(poolUnlocks).forEach(apps => {
-                    apps.forEach(app => unlocked.add(app));
-                });
+                // Add all narrative-driven unlocks
+                narrativeUnlocks.forEach(app => unlocked.add(app));
 
-                // Add special unlocks
-                Object.entries(SPECIAL_UNLOCKS).forEach(([achievement, apps]) => {
-                    if (achievements[achievement]) {
-                        apps.forEach(app => unlocked.add(app));
-                    }
-                });
+                // TRUTH unlocks at 100 visits OR after god mode
+                if (truthUnlocked || achievements.BECOME_GOD) unlocked.add('TRUTH');
 
-                // TRUTH unlocks at 100 visits
-                if (truthUnlocked) unlocked.add('TRUTH');
+                // God mode unlocks bonus apps
+                if (achievements.BECOME_GOD) {
+                    ['RADIO', 'SYNTH', 'POMODORO', 'SCANNER', 'GALLERY'].forEach(app => unlocked.add(app));
+                }
 
                 return unlocked;
             };
@@ -7358,41 +7826,62 @@
                 localStorage.setItem('ultra_int_clicks', totalClicks.toString());
             }, [totalClicks]);
 
-            // Time tracking for TIMEKEEPER (5 minutes = 300000ms)
+            // Time tracking for TIMEKEEPER (10 minutes = 600000ms) and BACKUP.BAT unlock
             useEffect(() => {
                 const checkTime = setInterval(() => {
                     const elapsed = Date.now() - startTimeRef.current;
-                    if (elapsed >= 300000 && !achievements.TIMEKEEPER) {
+                    // TIMEKEEPER at 10 minutes
+                    if (elapsed >= 600000 && !achievements.TIMEKEEPER) {
                         unlockAchievement('TIMEKEEPER');
+                    }
+                    // BACKUP.BAT unlocks at 10 minutes
+                    if (elapsed >= 600000 && !narrativeUnlocks.includes('BACKUP')) {
+                        unlockApp('BACKUP');
                     }
                 }, 30000); // Check every 30 seconds
                 return () => clearInterval(checkTime);
-            }, [achievements]);
+            }, [achievements, narrativeUnlocks]);
 
-            // Global click handler for CLICKER achievement
+            // Global click handler for CLICKER achievement and LABYRINTH unlock
             useEffect(() => {
                 const handleClick = () => {
                     setTotalClicks(prev => {
                         const newCount = prev + 1;
+                        // CLICKER achievement at 100 clicks
                         if (newCount >= 100 && !achievements.CLICKER) {
                             setTimeout(() => unlockAchievement('CLICKER'), 100);
+                        }
+                        // LABYRINTH unlocks at 100 clicks (narrative progression)
+                        if (newCount >= 100 && !narrativeUnlocks.includes('LABYRINTH')) {
+                            setTimeout(() => unlockApp('LABYRINTH'), 200);
                         }
                         return newCount;
                     });
                 };
                 document.addEventListener('click', handleClick);
                 return () => document.removeEventListener('click', handleClick);
-            }, [achievements]);
+            }, [achievements, narrativeUnlocks]);
+
+            // Track total deletions for DESTROYER_OF_WORLDS achievement
+            const [totalDeletions, setTotalDeletions] = useState(() => {
+                const stored = localStorage.getItem('ultra_int_deletions');
+                return stored ? parseInt(stored, 10) : 0;
+            });
+
+            // Save deletions to localStorage
+            useEffect(() => {
+                localStorage.setItem('ultra_int_deletions', totalDeletions.toString());
+            }, [totalDeletions]);
 
             // Check for 100% completion
-            const achievementCount = Object.keys(achievements).filter(k => k !== 'HUNDRED_PERCENT').length;
-            const totalAchievements = Object.keys(ACHIEVEMENTS).length - 1; // Exclude 100% itself
+            const achievementCount = Object.keys(achievements).filter(k => k !== 'COMPLETIONIST').length;
+            const totalAchievements = Object.keys(ACHIEVEMENTS).length - 1; // Exclude COMPLETIONIST itself
             const hasAllAchievements = achievementCount >= totalAchievements;
 
             // State for newly unlocked app notifications (array for stacking)
             const [appUnlockNotifications, setAppUnlockNotifications] = useState([]);
 
-            // Unlock achievement function with pool-based app unlocking
+            // Unlock achievement function (narrative-driven, no pool unlocking)
             const unlockAchievement = (id) => {
                 if (achievements[id]) return; // Already unlocked
                 const achievement = ACHIEVEMENTS[id];
@@ -7405,40 +7894,16 @@
                 setAchievementNotifications(prev => [...prev, { ...achievement, id: notifId }]);
                 sounds.success();
 
-                // Try to unlock an app - use achievement's pool or fallback to any available pool
-                const pool = achievement.pool;
-                // Only try to unlock apps for non-SPECIAL pools
-                if (pool && pool !== 'SPECIAL') {
-                    const result = getRandomAppFromPool(pool);
-                    if (result) {
-                        const { app: newApp, pool: actualPool } = result;
-                        // Add the app to the actual pool's unlocks
-                        setPoolUnlocks(prev => ({
-                            ...prev,
-                            [actualPool]: [...(prev[actualPool] || []), newApp]
-                        }));
-                        // Show app unlock notification immediately stacked below achievement
-                        const appNotifId = Date.now() + Math.random() + 1;
-                        setTimeout(() => {
-                            setAppUnlockNotifications(prev => [...prev, { app: newApp, id: appNotifId }]);
-                            sounds.success();
-                            setTimeout(() => {
-                                setAppUnlockNotifications(prev => prev.filter(n => n.id !== appNotifId));
-                            }, 3000);
-                        }, 500); // Small delay so they stack nicely
-                    }
-                }
-
                 // Auto-hide achievement notification after 3 seconds
                 setTimeout(() => {
                     setAchievementNotifications(prev => prev.filter(n => n.id !== notifId));
                 }, 3000);
 
                 // Check for 100% after unlocking
-                if (id !== 'HUNDRED_PERCENT') {
+                if (id !== 'COMPLETIONIST') {
                     const newCount = achievementCount + 1;
-                    if (newCount >= totalAchievements && !achievements.HUNDRED_PERCENT) {
-                        setTimeout(() => unlockAchievement('HUNDRED_PERCENT'), 5000);
+                    if (newCount >= totalAchievements && !achievements.COMPLETIONIST) {
+                        setTimeout(() => unlockAchievement('COMPLETIONIST'), 5000);
                     }
                 }
             };
@@ -7772,7 +8237,10 @@
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: 450, h: 400, isOpen: false, isMin: false, z: 36 },
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: 450, h: 400, isOpen: false, isMin: false, z: 37 },
                 "BROWSER": { id: "BROWSER", title: "BROWSER.EXE", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
-                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 }
+                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 },
+                "BOOKS": { id: "BOOKS", title: "BOOKS.EXE", icon: "FileDoc", x: 150, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 40 },
+                "BACKUP": { id: "BACKUP", title: "BACKUP.BAT", icon: "Terminal", x: 180, y: 100, w: 500, h: 400, isOpen: false, isMin: false, z: 41 },
+                "TRUTH_MESSAGES": { id: "TRUTH_MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 42 }
             });
 
             // Auto-scale windows based on viewport - designed for 1920x1080, scales down for smaller screens
@@ -7823,12 +8291,13 @@
                     }, index * 200);
                 });
 
-                // After all apps revealed + 500ms, open ABOUT and complete intro
+                // After all apps revealed + 500ms, complete intro and show corrupted file alert
                 setTimeout(() => {
                     setIntroComplete(true);
                     setRevealingApps(false);
                     setRevealedApps([]);
-                    open('ABOUT');
+                    // Narrative Bible v3.0 - Show corrupted file notification
+                    setShowCorruptedAlert(true);
                 }, appsToReveal.length * 200 + 500);
             };
 
@@ -7852,19 +8321,22 @@
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} />;
                     case "SYNTH": return <SynthApp onAchievement={unlockAchievement} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} />;
-                    case "TAROT": return <TarotApp onAchievement={unlockAchievement} />;
+                    case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "GALLERY": return <GalleryApp />;
                     case "MAP": return <MapApp onAchievement={unlockAchievement} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
-                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} />;
-                    case "TRUTH": return <TruthApp onAchievement={unlockAchievement} />;
+                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
+                    case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
-                    case "END": return <EndApp achievements={achievements} />;
+                    case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
+                    case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} />;
+                    case "BACKUP": return <BackupBatApp onUnlockApp={unlockApp} />;
+                    case "TRUTH_MESSAGES": return <MessagesApp isTruthSequence={true} onTruthComplete={() => unlockAchievement('TRUTH_SEEKER')} />;
                     default: return null;
                 }
             };
@@ -8686,7 +9158,8 @@
                 if (thirdEyeWorld && (eye1.isOpen || eye2.isOpen)) {
                     if (!stackOverflow) {
                         setStackOverflow(true);
-                        unlockAchievement('FOURTH_DIMENSION');
+                        unlockAchievement('INCEPTION'); // Narrative Bible v3.0
+                        unlockApp('SNAKE');
                         // Start the same crash sequence
                         const errors = [
                             'FATAL: observer inside observer detected',
@@ -8780,7 +9253,8 @@
                     if (overlapArea > minArea * 0.3) {
                         if (!stackOverflow) {
                             setStackOverflow(true);
-                            unlockAchievement('FOURTH_DIMENSION');
+                            unlockAchievement('INCEPTION'); // Narrative Bible v3.0 - stacking two Third Eyes
+                            unlockApp('SNAKE'); // Unlock SNEK.EXE when two Third Eyes stacked
                             // Rapid looping errors - tens per second
                             const errors = [
                                 'FATAL: recursive observation detected',
@@ -9476,6 +9950,33 @@
                             <div className="text-xs text-gray-500">Check APPS folder</div>
                         </div>
                     ))}
+
+                    {/* Corrupted File Alert - Narrative Bible v3.0 */}
+                    {showCorruptedAlert && (
+                        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[9999999] bg-red-900 text-white border-2 border-red-500 p-6 font-mono shadow-2xl max-w-sm">
+                            <div className="flex items-center gap-2 mb-4">
+                                <Icons.Alert size={24} className="text-red-400" />
+                                <span className="text-xs font-bold text-red-400 uppercase tracking-widest">SYSTEM ALERT</span>
+                            </div>
+                            <div className="text-sm mb-4">
+                                1 CORRUPTED FILE DETECTED IN /PERSONAL
+                            </div>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => { setShowCorruptedAlert(false); open('TERMINAL'); }}
+                                    className="flex-1 bg-white text-red-900 px-4 py-2 text-xs font-bold hover:bg-gray-200"
+                                >
+                                    INVESTIGATE
+                                </button>
+                                <button
+                                    onClick={() => setShowCorruptedAlert(false)}
+                                    className="flex-1 border border-white text-white px-4 py-2 text-xs font-bold hover:bg-red-800"
+                                >
+                                    DISMISS
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     {/* Glitch animation styles */}
                     <style>{`
