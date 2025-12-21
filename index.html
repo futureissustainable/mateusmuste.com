@@ -7058,12 +7058,32 @@ Good luck.`;
         };
 
         // --- THIRD_EYE.EXE - X-ray view of app code ---
-        const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions }) => {
+        const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions, onOpenTruth }) => {
             const thisWindow = windows[windowId];
             const windowX = thisWindow?.x || 0;
             const windowY = thisWindow?.y || 0;
+            const windowW = thisWindow?.w || 400;
+            const windowH = thisWindow?.h || 300;
             // Account for window header height (approx 32px)
             const headerHeight = 32;
+
+            // Check if TRUTH icon is within this Third Eye's bounds
+            const isTruthInBounds = () => {
+                const truthPos = iconPositions?.TRUTH;
+                if (!truthPos) return false;
+                const iconSize = 80;
+                const iconCenterX = truthPos.x + iconSize / 2;
+                const iconCenterY = truthPos.y + iconSize / 2;
+                return iconCenterX >= windowX && iconCenterX <= windowX + windowW &&
+                       iconCenterY >= windowY + headerHeight && iconCenterY <= windowY + windowH;
+            };
+
+            // Handle click on Third Eye - if TRUTH is in bounds, open it
+            const handleClick = () => {
+                if (isTruthInBounds() && onOpenTruth) {
+                    onOpenTruth();
+                }
+            };
 
             const appCode = {
                 SNAKE: `// SNEK.JS\nfunction eat() {\n  grow();\n  // ouroboros.exe\n  if (head === tail) become(god);\n}`,
@@ -7181,8 +7201,11 @@ Good luck.`;
             }
 
             return (
-                <div className="h-full w-full overflow-hidden relative bg-black pointer-events-none">
-                    {/* PORTAL VIEW - Alternate reality desktop - pointer-events-none allows clicking through to TRUTH icon */}
+                <div
+                    className="h-full w-full overflow-hidden relative bg-black cursor-pointer"
+                    onClick={handleClick}
+                >
+                    {/* PORTAL VIEW - Alternate reality desktop - clicking opens TRUTH if it's in bounds */}
                     <div
                         className="absolute"
                         style={{
@@ -8540,8 +8563,8 @@ Good luck.`;
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
                     case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
-                    case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
-                    case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} />;
+                    case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
+                    case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
                     case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
                     case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} />;
