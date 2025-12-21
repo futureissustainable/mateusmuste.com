@@ -2511,375 +2511,30 @@
             )
         }
 
-        // --- 3D MEDIA VIEWER - Bookshelf Style ---
-        const Media3DViewer = ({ items, mediaType }) => {
-            const containerRef = useRef(null);
-            const sceneRef = useRef(null);
-            const selectedRef = useRef(null);
-            const animationRef = useRef(null);
-            const [selectedItem, setSelectedItem] = useState(null);
-
-            // Color palettes
-            const colorPalettes = {
-                LITERATURE: [0x8B0000, 0x006400, 0x00008B, 0x4B0082, 0x8B4513, 0x2F4F4F, 0x800080, 0x191970],
-                AUDIO: [0x1a1a1a, 0x2d2d2d, 0x404040, 0x1a1a2e, 0x333333, 0x4a4a4a],
-                CINEMA_TV: [0x000000, 0x1a1a1a, 0x0a0a2a, 0x2a0a0a, 0x0a2a0a],
-                GAMES: [0x1a1a3e, 0x3e1a1a, 0x1a3e1a, 0x3e3e1a, 0x1a3e3e, 0x3e1a3e]
-            };
-
-            // Create spine texture with vertical text
-            const createSpineTexture = (text, width, height, bgColor) => {
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-
-                // Background
-                const bgHex = '#' + bgColor.toString(16).padStart(6, '0');
-                ctx.fillStyle = bgHex;
-                ctx.fillRect(0, 0, width, height);
-
-                // Add subtle gradient
-                const gradient = ctx.createLinearGradient(0, 0, width, 0);
-                gradient.addColorStop(0, 'rgba(255,255,255,0.1)');
-                gradient.addColorStop(0.5, 'rgba(255,255,255,0)');
-                gradient.addColorStop(1, 'rgba(0,0,0,0.2)');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(0, 0, width, height);
-
-                // Rotate for vertical text
-                ctx.save();
-                ctx.translate(width / 2, height / 2);
-                ctx.rotate(-Math.PI / 2);
-
-                // Text
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 28px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                // Truncate if too long
-                let displayText = text;
-                while (ctx.measureText(displayText).width > height - 40 && displayText.length > 3) {
-                    displayText = displayText.slice(0, -4) + '...';
-                }
-                ctx.fillText(displayText.toUpperCase(), 0, 0);
-                ctx.restore();
-
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                return texture;
-            };
-
-            // Create cover texture
-            const createCoverTexture = (text, subtitle, width, height, bgColor) => {
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-
-                // Background
-                const bgHex = '#' + bgColor.toString(16).padStart(6, '0');
-                ctx.fillStyle = bgHex;
-                ctx.fillRect(0, 0, width, height);
-
-                // Add texture/pattern
-                ctx.fillStyle = 'rgba(255,255,255,0.03)';
-                for (let i = 0; i < height; i += 4) {
-                    ctx.fillRect(0, i, width, 2);
-                }
-
-                // Title
-                ctx.fillStyle = '#ffffff';
-                ctx.font = 'bold 36px monospace';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-
-                // Word wrap
-                const words = text.split(' ');
-                const lines = [];
-                let currentLine = '';
-                const maxWidth = width - 60;
-
-                words.forEach(word => {
-                    const testLine = currentLine + (currentLine ? ' ' : '') + word;
-                    if (ctx.measureText(testLine).width > maxWidth && currentLine) {
-                        lines.push(currentLine);
-                        currentLine = word;
-                    } else {
-                        currentLine = testLine;
-                    }
-                });
-                lines.push(currentLine);
-
-                const lineHeight = 44;
-                const startY = height / 2 - (lines.length - 1) * lineHeight / 2 - (subtitle ? 20 : 0);
-                lines.forEach((line, i) => {
-                    ctx.fillText(line.toUpperCase(), width / 2, startY + i * lineHeight);
-                });
-
-                // Subtitle (artist)
-                if (subtitle) {
-                    ctx.font = '24px monospace';
-                    ctx.fillStyle = 'rgba(255,255,255,0.7)';
-                    ctx.fillText(subtitle, width / 2, startY + lines.length * lineHeight + 20);
-                }
-
-                const texture = new THREE.CanvasTexture(canvas);
-                texture.needsUpdate = true;
-                return texture;
-            };
-
-            // Create a media item (book/case/cassette)
-            const createItem = (item, index, type) => {
-                const colors = colorPalettes[type] || colorPalettes.LITERATURE;
-                const color = colors[index % colors.length];
-
-                // Dimensions based on type
-                let thickness, itemHeight, depth;
-                if (type === 'AUDIO') {
-                    thickness = 0.15;
-                    itemHeight = 0.7;
-                    depth = 0.7;
-                } else if (type === 'GAMES') {
-                    thickness = 0.18;
-                    itemHeight = 1.0;
-                    depth = 0.75;
-                } else if (type === 'CINEMA_TV') {
-                    thickness = 0.12;
-                    itemHeight = 1.0;
-                    depth = 0.7;
-                } else {
-                    // Books - vary height slightly
-                    thickness = 0.12 + Math.random() * 0.06;
-                    itemHeight = 0.9 + Math.random() * 0.15;
-                    depth = 0.6;
-                }
-
-                const geometry = new THREE.BoxGeometry(thickness, itemHeight, depth);
-
-                // Create textures
-                const spineTexture = createSpineTexture(item.title, 128, 512, color);
-                const coverTexture = createCoverTexture(item.title, item.artist, 512, 512, color);
-
-                // Materials: right, left(spine), top, bottom, front(cover), back
-                const materials = [
-                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }),
-                    new THREE.MeshStandardMaterial({ map: spineTexture, roughness: 0.6 }),
-                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }),
-                    new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 }),
-                    new THREE.MeshStandardMaterial({ map: coverTexture, roughness: 0.5 }),
-                    new THREE.MeshStandardMaterial({ color: type === 'LITERATURE' ? 0xf5f5dc : 0x111111, roughness: 0.9 }),
-                ];
-
-                const mesh = new THREE.Mesh(geometry, materials);
-                mesh.userData = {
-                    item,
-                    index,
-                    basePos: { x: 0, y: 0, z: 0 },
-                    baseRot: { x: 0, y: Math.PI / 2, z: 0 }, // Spine facing camera
-                    thickness
-                };
-
-                // Initial rotation - spine faces camera
-                mesh.rotation.y = Math.PI / 2;
-
-                return mesh;
-            };
-
-            useEffect(() => {
-                if (!containerRef.current || sceneRef.current) return;
-
-                const container = containerRef.current;
-                const width = container.clientWidth;
-                const height = container.clientHeight;
-
-                // Scene
-                const scene = new THREE.Scene();
-                scene.background = new THREE.Color(0xfafafa);
-
-                // Camera
-                const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
-                camera.position.set(0, 0.5, 5);
-                camera.lookAt(0, 0, 0);
-
-                // Renderer
-                const renderer = new THREE.WebGLRenderer({ antialias: true });
-                renderer.setSize(width, height);
-                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-                renderer.shadowMap.enabled = true;
-                container.appendChild(renderer.domElement);
-
-                // Lighting
-                const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-                scene.add(ambientLight);
-
-                const mainLight = new THREE.DirectionalLight(0xffffff, 0.6);
-                mainLight.position.set(3, 5, 5);
-                scene.add(mainLight);
-
-                const backLight = new THREE.DirectionalLight(0xffffff, 0.3);
-                backLight.position.set(-3, 2, -3);
-                scene.add(backLight);
-
-                // Create shelf
-                const shelfGeom = new THREE.BoxGeometry(8, 0.1, 1);
-                const shelfMat = new THREE.MeshStandardMaterial({ color: 0x2a2a2a, roughness: 0.9 });
-
-                // Calculate layout
-                const itemsPerShelf = mediaType === 'AUDIO' ? 8 : 12;
-                const numShelves = Math.ceil(items.length / itemsPerShelf);
-                const shelfSpacing = 1.4;
-
-                // Create items
-                const objects = [];
-                let xOffset = 0;
-                let currentShelf = 0;
-
-                items.forEach((item, index) => {
-                    const shelfIndex = Math.floor(index / itemsPerShelf);
-                    const posInShelf = index % itemsPerShelf;
-
-                    // Reset x for new shelf
-                    if (posInShelf === 0) {
-                        xOffset = 0;
-                        currentShelf = shelfIndex;
-
-                        // Add shelf plane
-                        const shelf = new THREE.Mesh(shelfGeom, shelfMat);
-                        shelf.position.set(0, -shelfIndex * shelfSpacing - 0.55, 0);
-                        scene.add(shelf);
-                    }
-
-                    const obj = createItem(item, index, mediaType);
-                    const thickness = obj.userData.thickness;
-
-                    // Position on shelf
-                    const shelfStartX = -3;
-                    obj.position.x = shelfStartX + xOffset + thickness / 2;
-                    obj.position.y = -shelfIndex * shelfSpacing;
-                    obj.position.z = 0;
-
-                    // Store base position
-                    obj.userData.basePos = {
-                        x: obj.position.x,
-                        y: obj.position.y,
-                        z: obj.position.z
-                    };
-
-                    xOffset += thickness + 0.02; // Small gap between items
-
-                    scene.add(obj);
-                    objects.push(obj);
-                });
-
-                // Center camera on shelves
-                const centerY = -((numShelves - 1) * shelfSpacing) / 2;
-                camera.position.y = centerY + 0.3;
-                camera.lookAt(0, centerY, 0);
-
-                // Raycaster
-                const raycaster = new THREE.Raycaster();
-                const mouse = new THREE.Vector2();
-
-                // Click handler
-                const onClick = (event) => {
-                    const rect = container.getBoundingClientRect();
-                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                    raycaster.setFromCamera(mouse, camera);
-                    const intersects = raycaster.intersectObjects(objects);
-
-                    if (intersects.length > 0) {
-                        const clicked = intersects[0].object;
-                        if (selectedRef.current === clicked) {
-                            // Deselect
-                            selectedRef.current = null;
-                            setSelectedItem(null);
-                        } else {
-                            // Select new item
-                            selectedRef.current = clicked;
-                            setSelectedItem(clicked.userData.item);
-                        }
-                    } else {
-                        // Click on background - deselect
-                        selectedRef.current = null;
-                        setSelectedItem(null);
-                    }
-                };
-
-                // Hover handler
-                const onMouseMove = (event) => {
-                    const rect = container.getBoundingClientRect();
-                    mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-                    mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-                    raycaster.setFromCamera(mouse, camera);
-                    const intersects = raycaster.intersectObjects(objects);
-                    container.style.cursor = intersects.length > 0 ? 'pointer' : 'default';
-                };
-
-                container.addEventListener('click', onClick);
-                container.addEventListener('mousemove', onMouseMove);
-
-                sceneRef.current = { scene, camera, renderer, objects };
-
-                // Animation
-                const animate = () => {
-                    objects.forEach(obj => {
-                        const { basePos, baseRot } = obj.userData;
-                        const isSelected = selectedRef.current === obj;
-
-                        // Target positions
-                        const targetZ = isSelected ? 2.5 : basePos.z;
-                        const targetRotY = isSelected ? 0 : baseRot.y; // Show cover when selected
-                        const targetX = isSelected ? 0 : basePos.x; // Center when selected
-
-                        // Smooth lerp
-                        obj.position.z += (targetZ - obj.position.z) * 0.08;
-                        obj.position.x += (targetX - obj.position.x) * 0.08;
-                        obj.rotation.y += (targetRotY - obj.rotation.y) * 0.08;
-                    });
-
-                    renderer.render(scene, camera);
-                    animationRef.current = requestAnimationFrame(animate);
-                };
-                animate();
-
-                // Resize
-                const onResize = () => {
-                    const w = container.clientWidth;
-                    const h = container.clientHeight;
-                    camera.aspect = w / h;
-                    camera.updateProjectionMatrix();
-                    renderer.setSize(w, h);
-                };
-                window.addEventListener('resize', onResize);
-
-                return () => {
-                    cancelAnimationFrame(animationRef.current);
-                    container.removeEventListener('click', onClick);
-                    container.removeEventListener('mousemove', onMouseMove);
-                    window.removeEventListener('resize', onResize);
-                    renderer.dispose();
-                    if (container && renderer.domElement) {
-                        container.removeChild(renderer.domElement);
-                    }
-                    sceneRef.current = null;
-                };
-            }, [items, mediaType]);
-
+        // --- MEDIA LIST - Clean Brutalist Design ---
+        const MediaList = ({ items, mediaType }) => {
             return (
-                <div className="relative w-full h-full" style={{ minHeight: '350px' }}>
-                    <div ref={containerRef} className="w-full h-full" />
-                    {selectedItem && (
-                        <div className="absolute bottom-4 left-4 right-4 bg-black text-white p-3 font-mono text-sm">
-                            <div className="font-bold text-lg">{selectedItem.title}</div>
-                            {selectedItem.artist && <div className="text-gray-400">{selectedItem.artist}</div>}
-                            <div className="text-xs text-gray-500 mt-1">Click again to close</div>
-                        </div>
-                    )}
+                <div className="h-full overflow-auto bg-white">
+                    <div className="divide-y-2 divide-black">
+                        {items.map((item, idx) => (
+                            <div
+                                key={idx}
+                                className="group flex items-baseline gap-4 px-4 py-3 hover:bg-black hover:text-white transition-colors cursor-default"
+                            >
+                                <span className="text-[10px] text-gray-400 group-hover:text-gray-500 w-6 tabular-nums">
+                                    {String(idx + 1).padStart(2, '0')}
+                                </span>
+                                <span className="font-mono text-sm font-bold tracking-tight flex-grow">
+                                    {item.title}
+                                </span>
+                                {item.artist && (
+                                    <span className="font-mono text-xs text-gray-500 group-hover:text-gray-400">
+                                        {item.artist}
+                                    </span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             );
         };
@@ -2924,11 +2579,11 @@
                             <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
                             <span className="app-footer-text">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
                         </div>
-                        <div className="flex-grow overflow-hidden bg-gray-100">
-                            <Media3DViewer items={MEDIA_DB[selectedFolder]} mediaType={selectedFolder} />
+                        <div className="flex-grow overflow-hidden">
+                            <MediaList items={MEDIA_DB[selectedFolder]} mediaType={selectedFolder} />
                         </div>
                         <div className="app-footer">
-                            <span className="app-footer-text">HOVER TO INTERACT - 3D VIEW</span>
+                            <span className="app-footer-text">{MEDIA_DB[selectedFolder].length} ITEMS</span>
                         </div>
                     </div>
                 );
