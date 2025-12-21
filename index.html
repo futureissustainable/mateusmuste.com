@@ -10577,7 +10577,6 @@ Good luck.`;
             const BootScreen = ({ visitCount }) => {
                 const [lines, setLines] = useState([]);
                 const [inverted, setInverted] = useState(false);
-                const [soundPlayed, setSoundPlayed] = useState(false);
                 const [easterEggFlash, setEasterEggFlash] = useState(false);
                 const visitMessage = getVisitMessage(visitCount);
                 const msgs = [
@@ -10593,6 +10592,12 @@ Good luck.`;
                     'kernel: boot complete'
                 ];
                 useEffect(() => {
+                    // Play boot sound automatically (user already clicked mode selector so audio is unlocked)
+                    sounds.bootWindup();
+                    if (visitCount === 100 || visitCount === 500 || visitCount === 1000) {
+                        setTimeout(() => sounds.visitMilestone(), 1300);
+                    }
+
                     let i = 0;
                     const iv = setInterval(() => {
                         if (i < msgs.length) { setLines(p => [...p, msgs[i]]); i++; }
@@ -10603,22 +10608,9 @@ Good luck.`;
                     const eggHide = setTimeout(() => setEasterEggFlash(false), 950);
                     return () => { clearInterval(iv); clearTimeout(inv); clearTimeout(eggShow); clearTimeout(eggHide); };
                 }, []);
-                const playBootSound = () => {
-                    if (!soundPlayed) {
-                        // Always play wind-up boot sound, milestones get extra melody
-                        sounds.bootWindup();
-                        if (visitCount === 100 || visitCount === 500 || visitCount === 1000) {
-                            // Play milestone sound after wind-up for special visits
-                            setTimeout(() => sounds.visitMilestone(), 1300);
-                        }
-                        setSoundPlayed(true);
-                    }
-                };
                 return (
                     <div
                         className={`h-screen w-screen font-mono flex flex-col items-center justify-center transition-colors duration-500 ${inverted ? 'bg-white text-black' : 'bg-black text-white'}`}
-                        onClick={playBootSound}
-                        onTouchStart={playBootSound}
                     >
                         <pre className="ascii-art text-[5px] sm:text-[7px] md:text-[9px] leading-tight select-none">{ASCII_ART.BOOT_LOGO}</pre>
                         <div className={`text-[10px] tracking-[0.3em] mt-2 self-start ml-[calc(50%-125px)] ${inverted ? 'text-gray-500' : 'text-gray-600'}`}>N0/SIDE 4Z H353</div>
