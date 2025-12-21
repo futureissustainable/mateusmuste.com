@@ -2205,7 +2205,7 @@
                                 {isRedacting ? redactText('MATEUS MUSTE') : 'MATEUS MUSTE'}
                             </div>
                             <div className="font-mono text-[10px] text-white/50 flex items-center gap-2">
-                                <span className={`w-1.5 h-1.5 ${isRedacting ? 'bg-red-500' : isTyping ? 'bg-yellow-400 animate-pulse' : 'bg-green-400'}`}></span>
+                                <span className={`w-1.5 h-1.5 ${isRedacting ? 'bg-red-500' : isTyping ? 'bg-white animate-pulse' : 'bg-green-400'}`}></span>
                                 {isRedacting ? 'ENCRYPTING' : isTyping ? 'COMPOSING' : 'ONLINE'}
                             </div>
                         </div>
@@ -3850,10 +3850,10 @@
                                                 <span className="font-bold">{highScore}</span>
                                             </div>
                                             <div className="flex justify-between gap-8">
-                                                <span className={unlockedRun42 ? "text-yellow-600 font-bold" : "text-gray-400"}>
+                                                <span className={unlockedRun42 ? "text-black font-bold" : "text-gray-400"}>
                                                     {unlockedRun42 ? "RUN 42" : "████████"}
                                                 </span>
-                                                <span className={unlockedRun42 ? "font-bold text-yellow-600" : "text-gray-400"}>0</span>
+                                                <span className={unlockedRun42 ? "font-bold text-black" : "text-gray-400"}>0</span>
                                             </div>
                                         </div>
                                     </div>
@@ -5621,7 +5621,7 @@ Good luck.`;
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">BACKUP.BAT</span>
-                        {loopComplete && <span className="text-yellow-400 text-xs ml-auto">LOOP COMPLETE</span>}
+                        {loopComplete && <span className="text-white text-xs ml-auto">LOOP COMPLETE</span>}
                     </div>
                     <div className="flex-grow overflow-auto p-3 space-y-1">
                         <div className="text-green-600 mb-2">ACCESSING DEEP ARCHIVES...</div>
@@ -6951,7 +6951,7 @@ Good luck.`;
                     <div className="p-2 border-b border-green-900 flex items-center gap-2">
                         <Icons.Terminal size={16} />
                         <span className="text-xs font-bold">TERMINAL.EXE</span>
-                        {awaitingKonami && <span className="text-yellow-400 text-xs animate-pulse ml-auto">AWAITING INPUT...</span>}
+                        {awaitingKonami && <span className="text-white text-xs animate-pulse ml-auto">AWAITING INPUT...</span>}
                     </div>
                     <div ref={historyRef} className="flex-grow overflow-auto p-3 space-y-1">
                         {history.map((item, i) => (
@@ -7312,11 +7312,11 @@ Good luck.`;
                                     disabled={revealPhase < 3}
                                     style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
                                 >
-                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-yellow-50 transition-colors">
+                                    <div className="bg-white border-4 border-black p-6 group-hover:bg-gray-100 transition-colors">
                                         <Icons.FileDoc size={64} />
                                     </div>
                                     <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
-                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-yellow-600" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
+                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-black" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
                                 </button>
                             </div>
                         </div>
