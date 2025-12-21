@@ -7137,10 +7137,10 @@ Good luck.`;
             }
 
             return (
-                <div className="h-full w-full overflow-hidden relative bg-black">
-                    {/* PORTAL VIEW - Alternate reality desktop */}
+                <div className="h-full w-full overflow-hidden relative bg-black pointer-events-none">
+                    {/* PORTAL VIEW - Alternate reality desktop - pointer-events-none allows clicking through to TRUTH icon */}
                     <div
-                        className="absolute pointer-events-none"
+                        className="absolute"
                         style={{
                             width: '100vw',
                             height: '100vh',
