@@ -976,42 +976,41 @@
 
             // ========== NEW SOUNDS ==========
 
-            // Iconic boot chime - deeply satisfying, like THX meets Windows 95
+            // Iconic boot chime - 2.5s, maximally satisfying
             bootWindup: () => {
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
 
-                // C major chord - universally satisfying, resolved
+                // C major chord - full and resolved
                 const chord = [
-                    { freq: 65.41, vol: 0.25 },   // C2 - deep foundation
-                    { freq: 130.81, vol: 0.22 }, // C3 - body
-                    { freq: 164.81, vol: 0.18 }, // E3 - major third
-                    { freq: 196.00, vol: 0.16 }, // G3 - fifth
-                    { freq: 261.63, vol: 0.14 }, // C4 - octave
-                    { freq: 329.63, vol: 0.10 }, // E4 - high third
-                    { freq: 523.25, vol: 0.06 }, // C5 - sparkle
+                    { freq: 65.41, vol: 0.28 },   // C2 - foundation
+                    { freq: 130.81, vol: 0.24 }, // C3 - body
+                    { freq: 164.81, vol: 0.20 }, // E3 - third
+                    { freq: 196.00, vol: 0.18 }, // G3 - fifth
+                    { freq: 261.63, vol: 0.15 }, // C4 - octave
+                    { freq: 329.63, vol: 0.11 }, // E4 - high third
+                    { freq: 523.25, vol: 0.07 }, // C5 - sparkle
                 ];
 
-                // Master output
                 const master = ctx.createGain();
-                master.gain.setValueAtTime(0.7, now);
+                master.gain.setValueAtTime(0.75, now);
                 master.connect(ctx.destination);
 
-                // Sub-bass impact at start
+                // Sub thump - quick punch
                 const sub = ctx.createOscillator();
                 const subGain = ctx.createGain();
                 sub.type = 'sine';
-                sub.frequency.setValueAtTime(50, now);
-                sub.frequency.exponentialRampToValueAtTime(30, now + 0.5);
-                subGain.gain.setValueAtTime(0.4, now);
-                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+                sub.frequency.setValueAtTime(55, now);
+                sub.frequency.exponentialRampToValueAtTime(35, now + 0.25);
+                subGain.gain.setValueAtTime(0.5, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
                 sub.connect(subGain);
                 subGain.connect(master);
                 sub.start(now);
-                sub.stop(now + 0.7);
+                sub.stop(now + 0.4);
 
-                // Main chord - staggered bloom
+                // Main chord - fast bloom, satisfying sustain
                 chord.forEach((note, i) => {
                     const osc = ctx.createOscillator();
                     const osc2 = ctx.createOscillator();
@@ -1022,21 +1021,20 @@
                     osc2.type = 'sine';
                     osc.frequency.value = note.freq;
                     osc2.frequency.value = note.freq;
-                    osc2.detune.value = 4; // Slight chorus
+                    osc2.detune.value = 5;
 
                     filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(200, now);
-                    filter.frequency.linearRampToValueAtTime(4000, now + 0.5);
-                    filter.frequency.setValueAtTime(4000, now + 2.0);
-                    filter.frequency.linearRampToValueAtTime(500, now + 3.5);
-                    filter.Q.value = 0.7;
+                    filter.frequency.setValueAtTime(300, now);
+                    filter.frequency.linearRampToValueAtTime(5000, now + 0.3);
+                    filter.frequency.linearRampToValueAtTime(1200, now + 2.0);
+                    filter.Q.value = 0.5;
 
-                    // Bloom attack - lower notes enter first
-                    const delay = i * 0.04;
+                    // Fast bloom
+                    const delay = i * 0.02;
                     gain.gain.setValueAtTime(0, now);
-                    gain.gain.linearRampToValueAtTime(note.vol, now + delay + 0.25);
-                    gain.gain.setValueAtTime(note.vol, now + 2.2);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 4.0);
+                    gain.gain.linearRampToValueAtTime(note.vol, now + delay + 0.12);
+                    gain.gain.setValueAtTime(note.vol * 0.9, now + 1.0);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 2.5);
 
                     osc.connect(filter);
                     osc2.connect(filter);
@@ -1045,32 +1043,24 @@
 
                     osc.start(now);
                     osc2.start(now);
-                    osc.stop(now + 4.1);
-                    osc2.stop(now + 4.1);
+                    osc.stop(now + 2.6);
+                    osc2.stop(now + 2.6);
                 });
 
-                // The "arrival" - high bell tone at peak
+                // Bell arrival - earlier and brighter
                 setTimeout(() => {
                     const bell = ctx.createOscillator();
-                    const bell2 = ctx.createOscillator();
                     const bellGain = ctx.createGain();
                     bell.type = 'sine';
-                    bell2.type = 'triangle';
                     bell.frequency.value = 1046.50; // C6
-                    bell2.frequency.value = 1046.50;
-                    bell2.detune.value = 2;
                     bellGain.gain.setValueAtTime(0, ctx.currentTime);
-                    bellGain.gain.linearRampToValueAtTime(0.12, ctx.currentTime + 0.1);
-                    bellGain.gain.setValueAtTime(0.12, ctx.currentTime + 0.8);
-                    bellGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2.5);
+                    bellGain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 0.05);
+                    bellGain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
                     bell.connect(bellGain);
-                    bell2.connect(bellGain);
                     bellGain.connect(ctx.destination);
                     bell.start();
-                    bell2.start();
-                    bell.stop(ctx.currentTime + 2.6);
-                    bell2.stop(ctx.currentTime + 2.6);
-                }, 600);
+                    bell.stop(ctx.currentTime + 1.6);
+                }, 350);
             },
 
             // Window minimize - quick descending swoosh
@@ -2117,10 +2107,10 @@
             "AUDIO": [
                 { title: "Demos EP", artist: "Daughter" },
                 { title: "Mr. Morale...", artist: "Kendrick Lamar" },
-                { title: "LP!", artist: "JPEGMAFIA" },
+                { title: "The Life of Pablo", artist: "Kanye West" },
                 { title: "Ison", artist: "Sevdaliza" },
                 { title: "If You're Reading This It's Too Late", artist: "Drake" },
-                { title: "The Life of Pablo", artist: "Kanye West" },
+                { title: "LP!", artist: "JPEGMAFIA" },
                 { title: "Miss Anthropocene", artist: "Grimes" },
                 { title: "The Eminem Show", artist: "Eminem" },
                 { title: "4 Your Eyez Only", artist: "J. Cole" },
