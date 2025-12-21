@@ -5423,13 +5423,14 @@
                     </div>
 
                     {/* Globe container */}
-                    <div ref={containerRef} className="flex-grow relative flex items-center justify-center">
-                        {/* Rings - behind globe, sized relative to container */}
+                    <div ref={containerRef} className="flex-grow relative overflow-hidden" style={{ minHeight: 0 }}>
+                        {/* Rings - behind globe, centered */}
                         {ringCount >= 1 && (
                             <div
                                 className="absolute rounded-full border-2 border-white/30 pointer-events-none"
                                 style={{
                                     width: '60%', height: '60%', maxWidth: 400, maxHeight: 400,
+                                    left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                                     animation: 'spin 20s linear infinite'
                                 }}
                             />
@@ -5439,6 +5440,7 @@
                                 className="absolute rounded-full border-2 border-white/20 pointer-events-none"
                                 style={{
                                     width: '70%', height: '70%', maxWidth: 480, maxHeight: 480,
+                                    left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                                     animation: 'spin 30s linear infinite reverse'
                                 }}
                             />
@@ -5448,6 +5450,7 @@
                                 className="absolute rounded-full border-2 border-white/15 pointer-events-none"
                                 style={{
                                     width: '80%', height: '80%', maxWidth: 560, maxHeight: 560,
+                                    left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
                                     animation: 'spin 40s linear infinite'
                                 }}
                             />
@@ -5463,8 +5466,9 @@
                                     height: `${55 + i * 5}%`,
                                     maxWidth: 360 + i * 40,
                                     maxHeight: 360 + i * 40,
+                                    left: '50%', top: '50%',
                                     animation: `spin ${8 + i * 3}s linear infinite ${i % 2 === 0 ? '' : 'reverse'}`,
-                                    transform: `rotate(${i * 60}deg)`
+                                    transform: `translate(-50%, -50%) rotate(${i * 60}deg)`
                                 }}
                             >
                                 <div
@@ -6133,24 +6137,27 @@
 
                 // Process commands
                 if (trimmed === 'help') {
-                    addOutput(`Available commands:
-  help                        - Show this help
-  make money                  - Try to make money
-  sudo make sandwich          - Make a sandwich
-  exit                        - Exit terminal
-  ping <host>                 - Ping a host
-  kill <process>              - Kill a process
-  sudo shutdown               - Shutdown system
-  sudo reboot                 - Reboot system
-  cmatrix                     - Enter the Matrix
-  exit matrix                 - Exit the Matrix
-  systemctl start dog.exe     - Start dog service
-  sudo chmod 777 /private     - Change permissions
-  scp truth.txt ~/            - Copy truth to home
-  clear                       - Clear terminal
-  whoami                      - Display current user
-  pwd                         - Print working directory
-  ls                          - List files`);
+                    addOutput(`┌─────────────────────────────┬─────────────────────────────┐
+│ COMMAND                     │ DESCRIPTION                 │
+├─────────────────────────────┼─────────────────────────────┤
+│ help                        │ Show this help              │
+│ make money                  │ Try to make money           │
+│ sudo make sandwich          │ Make a sandwich             │
+│ exit                        │ Exit terminal               │
+│ ping <host>                 │ Ping a host                 │
+│ kill <process>              │ Kill a process              │
+│ sudo shutdown               │ Shutdown system             │
+│ sudo reboot                 │ Reboot system               │
+│ cmatrix                     │ Enter the Matrix            │
+│ exit matrix                 │ Exit the Matrix             │
+│ systemctl start dog.exe     │ Start dog service           │
+│ sudo chmod 777 /private     │ Change permissions          │
+│ scp truth.txt ~/            │ Copy truth to home          │
+│ clear                       │ Clear terminal              │
+│ whoami                      │ Display current user        │
+│ pwd                         │ Print working directory     │
+│ ls                          │ List files                  │
+└─────────────────────────────┴─────────────────────────────┘`);
                 } else if (trimmed === 'make money') {
                     addOutput("make: *** No rule to make target 'money'. Stop.");
                 } else if (trimmed === 'sudo make sandwich') {
@@ -7156,14 +7163,7 @@
             const iconHoldTimer = useRef(null);
             const iconPendingDrag = useRef(null); // Stores pending drag info before hold completes
 
-            // Snap icon position to grid (160px grid - double spacing)
-            const snapToGrid = (x, y) => {
-                const gridSize = 160;
-                return {
-                    x: Math.round(x / gridSize) * gridSize + 8,
-                    y: Math.max(16, Math.round(y / gridSize) * gridSize)
-                };
-            };
+            // Icons are free-floating - no grid snap
             const [folderDrag, setFolderDrag] = useState(null); // { id, title, icon, startX, startY }
             const [extraDesktopIcons, setExtraDesktopIcons] = useState(() => {
                 const stored = localStorage.getItem('extra_desktop_icons');
@@ -7931,8 +7931,9 @@
 
                             const winWidth = parseInt(win.w) || 400;
                             const winHeight = parseInt(win.h) || 300;
-                            const maxX = window.innerWidth - winWidth;
-                            const maxY = window.innerHeight - 60 - winHeight; // Account for taskbar
+                            // Clamp bounds to ensure windows can always move (handle windows larger than screen)
+                            const maxX = Math.max(0, window.innerWidth - winWidth);
+                            const maxY = Math.max(0, window.innerHeight - 60 - winHeight); // Account for taskbar
                             const minY = isMobile ? 60 : 0; // Account for mobile top taskbar
 
                             // Edge magnetism (only when slow enough)
@@ -8179,8 +8180,9 @@
                         const win = prev[drag.id];
                         const winWidth = parseInt(win.w) || 400;
                         const winHeight = parseInt(win.h) || 300;
-                        const maxX = window.innerWidth - winWidth;
-                        const maxY = window.innerHeight - 60 - winHeight; // Account for taskbar
+                        // Clamp bounds to handle windows larger than screen
+                        const maxX = Math.max(0, window.innerWidth - winWidth);
+                        const maxY = Math.max(0, window.innerHeight - 60 - winHeight); // Account for taskbar
                         const minY = isMobile ? 60 : 0;
 
                         // Clamp position to screen bounds
@@ -8246,8 +8248,9 @@
                     const win = prev[drag.id];
                     const winWidth = parseInt(win.w) || 400;
                     const winHeight = parseInt(win.h) || 300;
-                    const maxX = window.innerWidth - winWidth;
-                    const maxY = window.innerHeight - 60 - winHeight;
+                    // Clamp bounds to handle windows larger than screen
+                    const maxX = Math.max(0, window.innerWidth - winWidth);
+                    const maxY = Math.max(0, window.innerHeight - 60 - winHeight);
                     const minY = isMobile ? 60 : 0;
 
                     const newX = Math.max(0, Math.min(maxX, touch.clientX - drag.offsetX));
@@ -8351,9 +8354,9 @@
 
                     lastIconMousePos.current = { x: e.clientX, y: e.clientY, time: now };
 
-                    // Constrain to screen bounds
-                    const maxX = window.innerWidth - ICON_SIZE;
-                    const maxY = window.innerHeight - ICON_SIZE - 16;
+                    // Constrain to screen bounds (clamp to ensure bounds are valid)
+                    const maxX = Math.max(0, window.innerWidth - ICON_SIZE);
+                    const maxY = Math.max(0, window.innerHeight - ICON_SIZE - 16);
                     const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                     const newX = Math.max(0, Math.min(maxX, e.clientX - iconDrag.offsetX));
@@ -8373,17 +8376,14 @@
                     iconHoldTimer.current = null;
                 }
 
-                // If drag was active, finalize position (skip grid snap on mobile)
+                // If drag was active, finalize position (no grid snap - free positioning)
                 if (iconDrag.active && iconDrag.id) {
                     sounds.dragStop();
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
-                        // On mobile: no grid snap, just use current position
-                        // On desktop: snap to grid
-                        const finalPos = isMobile ? current : snapToGrid(current.x, current.y);
-                        const adjusted = findNonCollidingPosition(iconDrag.id, finalPos.x, finalPos.y, prev);
-                        const newPositions = { ...prev, [iconDrag.id]: adjusted };
+                        // No grid snap - icons stay exactly where dropped
+                        const newPositions = { ...prev, [iconDrag.id]: current };
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
                     });
@@ -8446,8 +8446,9 @@
 
                 lastIconMousePos.current = { x: touch.clientX, y: touch.clientY, time: now };
 
-                const maxX = window.innerWidth - ICON_SIZE;
-                const maxY = window.innerHeight - ICON_SIZE - 16;
+                // Constrain to screen bounds (clamp to ensure bounds are valid)
+                const maxX = Math.max(0, window.innerWidth - ICON_SIZE);
+                const maxY = Math.max(0, window.innerHeight - ICON_SIZE - 16);
                 const minY = isMobile ? 56 : 0; // Account for mobile taskbar at top
 
                 const newX = Math.max(0, Math.min(maxX, touch.clientX - iconDrag.offsetX));
@@ -8470,8 +8471,8 @@
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
-                        const adjusted = findNonCollidingPosition(iconDrag.id, current.x, current.y, prev);
-                        const newPositions = { ...prev, [iconDrag.id]: adjusted };
+                        // No grid snap or collision avoidance - icons stay where dropped
+                        const newPositions = { ...prev, [iconDrag.id]: current };
                         localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
                         return newPositions;
                     });
@@ -8549,29 +8550,18 @@
                             let newX = prev[id].x + physics.velX;
                             let newY = prev[id].y + physics.velY;
 
-                            const maxX = window.innerWidth - ICON_SIZE;
-                            const maxY = window.innerHeight - ICON_SIZE - 16;
+                            // Clamp bounds to ensure icons stay on screen
+                            const maxX = Math.max(0, window.innerWidth - ICON_SIZE);
+                            const maxY = Math.max(0, window.innerHeight - ICON_SIZE - 16);
                             const minY = isMobile ? 56 : 0;
 
-                            // Constrain to screen bounds
+                            // Constrain to screen bounds (bounce off edges only, not other icons)
                             if (newX <= 0) { newX = 0; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
                             else if (newX >= maxX) { newX = maxX; physics.velX = -physics.velX * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velX)); }
                             if (newY <= minY) { newY = minY; physics.velY = -physics.velY * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velY)); }
                             else if (newY >= maxY) { newY = maxY; physics.velY = -physics.velY * BOUNCE_DAMPING; sounds.bounceIcon(Math.abs(physics.velY)); }
 
-                            // Bounce off other icons
-                            const collider = checkIconCollision(id, newX, newY, updated);
-                            if (collider) {
-                                const other = updated[collider];
-                                const dx = newX - other.x;
-                                const dy = newY - other.y;
-                                const len = Math.sqrt(dx * dx + dy * dy) || 1;
-                                physics.velX = (dx / len) * Math.abs(physics.velX) * BOUNCE_DAMPING;
-                                physics.velY = (dy / len) * Math.abs(physics.velY) * BOUNCE_DAMPING;
-                                sounds.bounceIcon(Math.max(Math.abs(physics.velX), Math.abs(physics.velY)));
-                                newX = prev[id].x;
-                                newY = prev[id].y;
-                            }
+                            // Icons are free-floating - no collision with other icons
 
                             updated[id] = { x: newX, y: newY };
                         });
@@ -8586,6 +8576,98 @@
                 animationId = requestAnimationFrame(iconPhysicsLoop);
                 return () => cancelAnimationFrame(animationId);
             }, [iconDrag.active, iconDrag.id, isMobile]);
+
+            // Bounds checking - recover out-of-bounds icons and windows on resize
+            useEffect(() => {
+                const checkBounds = () => {
+                    const screenW = window.innerWidth;
+                    const screenH = window.innerHeight;
+                    const taskbarH = 60;
+                    const topOffset = isMobile ? 56 : 0;
+
+                    // Check icons
+                    setIconPositions(prev => {
+                        let hasChanges = false;
+                        const updated = { ...prev };
+                        Object.keys(prev).forEach(id => {
+                            const pos = prev[id];
+                            let newX = pos.x;
+                            let newY = pos.y;
+                            // Clamp to visible area
+                            if (newX < 0 || newX > screenW - 40) {
+                                newX = Math.max(0, Math.min(screenW - 80, newX));
+                                hasChanges = true;
+                            }
+                            if (newY < topOffset || newY > screenH - taskbarH - 40) {
+                                newY = Math.max(topOffset, Math.min(screenH - taskbarH - 80, newY));
+                                hasChanges = true;
+                            }
+                            if (hasChanges) {
+                                updated[id] = { x: newX, y: newY };
+                            }
+                        });
+                        if (hasChanges) {
+                            localStorage.setItem('desktop_icon_positions', JSON.stringify(updated));
+                        }
+                        return hasChanges ? updated : prev;
+                    });
+
+                    // Check windows
+                    setWindows(prev => {
+                        let hasChanges = false;
+                        const updated = { ...prev };
+                        Object.keys(prev).forEach(id => {
+                            const win = prev[id];
+                            if (!win.isOpen || win.isMin) return;
+                            let newX = win.x;
+                            let newY = win.y;
+                            const winW = parseInt(win.w) || 400;
+                            const winH = parseInt(win.h) || 300;
+                            // At least 50px of the title bar should be visible
+                            if (newX < -winW + 50 || newX > screenW - 50) {
+                                newX = Math.max(0, Math.min(screenW - 100, newX));
+                                hasChanges = true;
+                            }
+                            if (newY < topOffset || newY > screenH - taskbarH - 30) {
+                                newY = Math.max(topOffset, Math.min(screenH - taskbarH - 50, newY));
+                                hasChanges = true;
+                            }
+                            if (hasChanges) {
+                                updated[id] = { ...win, x: newX, y: newY };
+                            }
+                        });
+                        return hasChanges ? updated : prev;
+                    });
+                };
+
+                // Check on resize
+                window.addEventListener('resize', checkBounds);
+                // Also check immediately on mount
+                checkBounds();
+
+                return () => window.removeEventListener('resize', checkBounds);
+            }, [isMobile]);
+
+            // Reset desktop icons to default positions
+            const resetIconPositions = () => {
+                const mobile = window.innerWidth < 768;
+                const iconSize = 100;
+                const padding = 16;
+                const topOffset = mobile ? 80 : 16;
+                const defaultPositions = {
+                    MESSAGES: { x: padding, y: topOffset },
+                    ABOUT: { x: padding, y: topOffset },
+                    SYSTEM: { x: padding, y: topOffset },
+                    FILES: { x: padding, y: topOffset + iconSize },
+                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    CONTACT: { x: padding, y: topOffset + iconSize * 3 },
+                    TRUTH: { x: padding, y: topOffset + iconSize * 4 },
+                    TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
+                };
+                setIconPositions(defaultPositions);
+                localStorage.setItem('desktop_icon_positions', JSON.stringify(defaultPositions));
+                setContextMenu({ show: false, x: 0, y: 0 });
+            };
 
             // THIRD_EYE stack detection - checks if two windows overlap OR thirdEyeWorld mode + any ThirdEye open
             useEffect(() => {
@@ -9166,6 +9248,14 @@
                             >
                                 <span className="w-4 h-4 border border-black bg-gray-100 font-mono text-[6px] leading-none flex items-center justify-center">01</span>
                                 ASCII {desktopBg === 'ascii' && '✓'}
+                            </button>
+                            <div className="px-3 py-2 border-t border-b border-gray-300 font-bold text-gray-500 mt-1">ICONS</div>
+                            <button
+                                onClick={resetIconPositions}
+                                className="w-full px-3 py-2 text-left hover:bg-black hover:text-white flex items-center gap-2"
+                            >
+                                <span className="w-4 h-4 border border-black bg-gray-100 flex items-center justify-center font-mono text-[8px]">↺</span>
+                                RESET POSITIONS
                             </button>
                         </div>
                     )}
