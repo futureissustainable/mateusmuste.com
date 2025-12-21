@@ -2304,13 +2304,7 @@
         }
 
         // --- VOID.TXT - Text encrypts then fades into the void ---
-        const VoidApp = ({ onAchievement, thirdEyeActive }) => {
-            // Discarded notes revealed by Third Eye
-            const discardedNotes = [
-                { id: 38, text: 'Fix physics on smaller desktops.' },
-                { id: 39, text: 'Third eye seems to be the only app that can open twice. Intriguing. Stacking 2 of them together generates a ████████████.' },
-                { id: 40, text: "There shouldn't be 21 apps. We made only 20 apps... There must be a bug in the ████████. Note to fix it." }
-            ];
+        const VoidApp = ({ onAchievement }) => {
             // Each char: { id, char, timestamp, phase: 'visible'|'encrypting'|'fading', opacity }
             const [chars, setChars] = useState([]);
             const inputRef = useRef(null);
@@ -2417,16 +2411,6 @@
                         <span className="font-mono text-xs font-bold text-white">VOID.TXT</span>
                     </div>
                     <div className="flex-grow p-4 overflow-auto font-mono text-sm">
-                        {/* Discarded notes revealed by Third Eye */}
-                        {thirdEyeActive && (
-                            <div className="mb-4 space-y-2 opacity-60">
-                                {discardedNotes.map(note => (
-                                    <div key={note.id} className="text-gray-400 text-xs">
-                                        <span className="text-gray-600">[DISCARDED]</span> Note {note.id}: {note.text}
-                                    </div>
-                                ))}
-                            </div>
-                        )}
                         <div className="flex flex-wrap items-start">
                             <span className="mr-2 text-gray-600">{'>'}</span>
                             <div className="flex-grow">
@@ -6996,7 +6980,7 @@ Good luck.`;
                 LABYRINTH: `// MAZE.RUNNER\nwhile (!escaped) {\n  turn_right();\n  move_forward();\n}`,
                 PAINT: `// ART.EXE\ncanvas.soil(pos, color);\n// art is destruction`,
                 TAROT: `// CARDS.FATE\ndeck.shuffle(∞);\nreveal(destiny);`,
-                VOID: `// VOID.NULL\nreturn undefined;\n// intentionally left meaningful`,
+                VOID: `// VOID.NULL - DISCARDED NOTES\n\n[DISCARDED] Note 38: Fix physics on smaller desktops.\n\n[DISCARDED] Note 39: Third eye seems to be the only app that can open twice. Intriguing. Stacking 2 of them together generates a ████████████.\n\n[DISCARDED] Note 40: There shouldn't be 21 apps. We made only 20 apps... There must be a bug in the ████████. Note to fix it.`,
                 RADIO: `// STREAM.WAV\naudio.play(frequency);`,
                 SYNTH: `// SOUND.WAVE\nnote.oscillate();`,
                 TERMINAL: `// CMD.EXE\nif (cmd === "exit") print("no escape");\n\n// HIDDEN COMMANDS:\n// cmatrix ████████████████`,
@@ -8427,7 +8411,7 @@ Good luck.`;
                     case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
                     case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
                     case "TRASH": return <TrashApp />;
-                    case "VOID": return <VoidApp onAchievement={unlockAchievement} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
+                    case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
                     case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
