@@ -9725,29 +9725,17 @@ Good luck.`;
             useEffect(() => {
                 if (!modeSelected) return; // Don't start boot until mode is selected
 
-                if (isMobile) {
-                    // Mobile: Show "best on desktop" notice first, then kernel boot
-                    setBootPhase(0);
-                    setTimeout(() => {
-                        setBootPhase(1); // kernel boot
-                        setTimeout(() => {
-                            setBootPhase(2);
-                            setBooted(true);
-                        }, 2000);
-                    }, 2000);
-                } else {
-                    // Desktop: Always show boot animation
-                    setBootPhase(1);
-                    // Close SYSTEM on boot
-                    setWindows(prev => ({
-                        ...prev,
-                        SYSTEM: { ...prev.SYSTEM, isOpen: false }
-                    }));
-                    setTimeout(() => {
-                        setBootPhase(2);
-                        setBooted(true);
-                    }, 2000);
-                }
+                // Same boot sequence for mobile and desktop
+                setBootPhase(1);
+                // Close SYSTEM on boot
+                setWindows(prev => ({
+                    ...prev,
+                    SYSTEM: { ...prev.SYSTEM, isOpen: false }
+                }));
+                setTimeout(() => {
+                    setBootPhase(2);
+                    setBooted(true);
+                }, 2000);
             }, [modeSelected]);
 
             // Handle 'about' mode after boot - skip intro and open ABOUT
@@ -10804,17 +10792,25 @@ Good luck.`;
                                     <div className="text-[10px] tracking-widest opacity-60">PORTFOLIO</div>
                                 </button>
 
-                                {/* STORYMODE Button */}
+                                {/* STORYMODE Button - disabled on mobile */}
                                 <button
                                     onClick={() => {
-                                        setModeSelected('story');
-                                        // Normal boot sequence starts
+                                        if (!isMobile) {
+                                            setModeSelected('story');
+                                        }
                                     }}
-                                    className="group relative border-2 border-black bg-white hover:bg-black hover:text-white transition-all duration-150 px-12 py-8 min-w-[200px]"
+                                    disabled={isMobile}
+                                    className={`group relative border-2 px-12 py-8 min-w-[200px] transition-all duration-150 ${
+                                        isMobile
+                                            ? 'border-black/30 bg-white text-black/30 cursor-not-allowed'
+                                            : 'border-black bg-white hover:bg-black hover:text-white'
+                                    }`}
                                 >
-                                    <div className="absolute -top-3 left-4 bg-white px-2 text-[10px] tracking-widest group-hover:bg-black transition-all duration-150">02</div>
+                                    <div className={`absolute -top-3 left-4 bg-white px-2 text-[10px] tracking-widest transition-all duration-150 ${isMobile ? 'text-black/30' : 'group-hover:bg-black'}`}>02</div>
                                     <div className="text-2xl font-bold tracking-tight mb-2">STORY</div>
-                                    <div className="text-[10px] tracking-widest opacity-60">EXPERIENCE</div>
+                                    <div className={`text-[10px] tracking-widest ${isMobile ? 'opacity-100' : 'opacity-60'}`}>
+                                        {isMobile ? 'DESKTOP ONLY' : 'EXPERIENCE'}
+                                    </div>
                                 </button>
                             </div>
 
@@ -10837,21 +10833,6 @@ Good luck.`;
 
             // Boot screens
             if (!booted) {
-                // Phase 0: Mobile notice (mobile only)
-                if (bootPhase === 0) {
-                    return (
-                        <div className="h-screen w-screen bg-black text-white font-mono flex flex-col items-center justify-center">
-                            <div className="text-center">
-                                <div className="text-xl font-bold mb-6 tracking-widest">BEST ON DESKTOP</div>
-                                <div className="flex gap-1 justify-center">
-                                    <div className="w-1.5 h-1.5 bg-white animate-pulse" style={{ animationDelay: '0ms' }}></div>
-                                    <div className="w-1.5 h-1.5 bg-white animate-pulse" style={{ animationDelay: '150ms' }}></div>
-                                    <div className="w-1.5 h-1.5 bg-white animate-pulse" style={{ animationDelay: '300ms' }}></div>
-                                </div>
-                            </div>
-                        </div>
-                    );
-                }
                 // Phase 1: Kernel boot
                 if (bootPhase === 1) {
                     return <BootScreen visitCount={visitCount} />;
