@@ -10106,8 +10106,9 @@ Good luck.`;
                 setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
             };
 
-            // Touch handlers for icon dragging (mobile)
+            // Touch handlers for icon dragging (disabled on mobile - too glitchy)
             const handleIconTouchStart = (e, id) => {
+                if (isMobile) return; // Disable icon dragging on mobile
                 if (e.touches.length !== 1) return;
                 e.preventDefault();
                 e.stopPropagation();
