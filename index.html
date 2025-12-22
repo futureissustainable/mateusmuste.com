@@ -6566,12 +6566,8 @@ Good luck.`;
                             setLoopComplete(true);
                             unlockTimerRef.current = setTimeout(() => {
                                 if (!mountedRef.current) return;
-                                try {
-                                    if (onUnlockAppRef.current && typeof onUnlockAppRef.current === 'function') {
-                                        onUnlockAppRef.current('TAROT');
-                                    }
-                                } catch (e) {
-                                    console.error('Error unlocking TAROT:', e);
+                                if (onUnlockAppRef.current && typeof onUnlockAppRef.current === 'function') {
+                                    onUnlockAppRef.current('TAROT');
                                 }
                             }, 1000);
                         });
@@ -6813,10 +6809,16 @@ Good luck.`;
                 if (!canvasRef.current) return;
 
                 let globe = null;
+                let retryCount = 0;
+                let initTimeout = null;
+                const maxRetries = 40; // ~2 seconds max wait
 
                 const initGlobe = () => {
                     if (!window.createGlobe || !containerRef.current) {
-                        setTimeout(initGlobe, 50);
+                        if (retryCount < maxRetries) {
+                            retryCount++;
+                            initTimeout = setTimeout(initGlobe, 50);
+                        }
                         return;
                     }
 
@@ -6864,6 +6866,7 @@ Good luck.`;
                 initGlobe();
 
                 return () => {
+                    if (initTimeout) clearTimeout(initTimeout);
                     if (globe) globe.destroy();
                 };
             }, []);
