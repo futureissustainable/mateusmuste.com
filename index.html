@@ -2620,8 +2620,8 @@
                         <span className="app-header-title">MEDIA_LIB</span>
                         <span className="app-footer-text">/ROOT/MEDIA</span>
                     </div>
-                    <div className="flex-grow p-6 flex items-start justify-center bg-gray-50">
-                        <div className="grid grid-cols-4 gap-8">
+                    <div className="flex-grow p-4 md:p-6 flex items-start justify-center bg-gray-50">
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
                             {folders.map(folder => {
                                 const FolderIcon = Icons[folder.icon];
                                 const isVisited = visitedFolders.includes(folder.key);
@@ -10106,8 +10106,9 @@ Good luck.`;
                 setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
             };
 
-            // Touch handlers for icon dragging (mobile)
+            // Touch handlers for icon dragging (disabled on mobile - too glitchy)
             const handleIconTouchStart = (e, id) => {
+                if (isMobile) return; // Disable icon dragging on mobile
                 if (e.touches.length !== 1) return;
                 e.preventDefault();
                 e.stopPropagation();
@@ -10771,7 +10772,7 @@ Good luck.`;
             // Mode selector - shows before boot every time
             if (!modeSelected) {
                 return (
-                    <div className="h-screen w-screen bg-white flex flex-col items-center justify-center font-mono select-none">
+                    <div className="min-h-screen w-screen bg-white flex flex-col items-center justify-center font-mono select-none" style={{ minHeight: '100dvh' }}>
                         {/* Neo Swiss Brutalist Mode Selector */}
                         <div className="flex flex-col items-center gap-12">
                             {/* Title */}
