@@ -6,7 +6,16 @@ import { useSounds } from '@/hooks';
 import { Window } from '@/components/ui/Window';
 import { Taskbar } from '@/components/ui/Taskbar';
 import { DesktopIcon } from '@/components/ui/DesktopIcon';
-import { AboutApp, ContactApp, TrashApp, BooksApp, GalleryApp } from '@/components/apps';
+import {
+  AboutApp,
+  ContactApp,
+  TrashApp,
+  BooksApp,
+  GalleryApp,
+  SnakeApp,
+  MinesweeperApp,
+  LabyrinthApp,
+} from '@/components/apps';
 
 // Boot screen component
 function BootScreen({ visitCount }: { visitCount: number }) {
@@ -149,6 +158,12 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <BooksApp onUnlockApp={callbacks.onUnlockApp} unlockedApps={callbacks.unlockedApps} />;
     case 'GALLERY':
       return <GalleryApp />;
+    case 'SNAKE':
+      return <SnakeApp onAchievement={callbacks.onAchievement} />;
+    case 'MINESWEEPER':
+      return <MinesweeperApp onAchievement={callbacks.onAchievement} />;
+    case 'LABYRINTH':
+      return <LabyrinthApp onAchievement={callbacks.onAchievement} />;
     default:
       // Placeholder for apps not yet implemented
       return (
