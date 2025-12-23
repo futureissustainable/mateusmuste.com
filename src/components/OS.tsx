@@ -6,6 +6,7 @@ import { useSounds } from '@/hooks';
 import { Window } from '@/components/ui/Window';
 import { Taskbar } from '@/components/ui/Taskbar';
 import { DesktopIcon } from '@/components/ui/DesktopIcon';
+import { AboutApp, ContactApp, TrashApp } from '@/components/apps';
 
 // Boot screen component
 function BootScreen({ visitCount }: { visitCount: number }) {
@@ -135,16 +136,31 @@ function ModeSelector({ onSelectMode }: { onSelectMode: (mode: 'about' | 'story'
   );
 }
 
-// Placeholder app content
-function PlaceholderApp({ id }: { id: string }) {
-  return (
-    <div className="h-full flex items-center justify-center bg-gray-50 p-4">
-      <div className="text-center">
-        <div className="text-2xl font-bold mb-2">{id}</div>
-        <div className="text-gray-500">App content placeholder</div>
-      </div>
-    </div>
-  );
+// Get app content by window ID
+function getAppContent(id: string, callbacks: AppCallbacks) {
+  switch (id) {
+    case 'ABOUT':
+      return <AboutApp onAchievement={callbacks.onAchievement} />;
+    case 'CONTACT':
+      return <ContactApp onOpenPaint={callbacks.onOpenPaint} />;
+    case 'TRASH':
+      return <TrashApp />;
+    default:
+      // Placeholder for apps not yet implemented
+      return (
+        <div className="h-full flex items-center justify-center bg-gray-50 p-4">
+          <div className="text-center">
+            <div className="text-2xl font-bold mb-2">{id}</div>
+            <div className="text-gray-500">Coming soon...</div>
+          </div>
+        </div>
+      );
+  }
+}
+
+interface AppCallbacks {
+  onAchievement?: (id: string) => void;
+  onOpenPaint?: () => void;
 }
 
 export function OS() {
@@ -285,7 +301,15 @@ export function OS() {
         .filter((w) => w.isOpen)
         .map((win) => (
           <Window key={win.id} id={win.id}>
-            <PlaceholderApp id={win.id} />
+            {getAppContent(win.id, {
+              onAchievement: (achievementId) => {
+                // TODO: Connect to achievement store
+                console.log('Achievement:', achievementId);
+              },
+              onOpenPaint: () => {
+                openWindow('PAINT');
+              },
+            })}
           </Window>
         ))}
 
