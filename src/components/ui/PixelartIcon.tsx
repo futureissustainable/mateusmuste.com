@@ -60,6 +60,10 @@ const iconMap: Record<IconName, string> = {
   Fire: 'fire',
   Bomb: 'bomb',
   Badge: 'badge',
+  Star: 'star',
+  Eye: 'eye',
+  Heart: 'heart',
+  ArrowLeft: 'arrow-left',
 };
 
 interface PixelartIconProps {

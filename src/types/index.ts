@@ -89,7 +89,11 @@ export type IconName =
   | 'Skull'
   | 'Fire'
   | 'Bomb'
-  | 'Badge';
+  | 'Badge'
+  | 'Star'
+  | 'Eye'
+  | 'Heart'
+  | 'ArrowLeft';
 
 export interface Position {
   x: number;
