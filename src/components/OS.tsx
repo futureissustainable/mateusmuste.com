@@ -263,8 +263,11 @@ export function OS() {
   const setContextMenu = useSettingsStore((state) => state.setContextMenu);
 
   // Achievement store
-  const { unlockAchievement, unlockApp, getUnlockedApps } = useAchievementStore();
+  const { unlockAchievement, unlockApp, incrementClicks } = useAchievementStore();
   const unlockedApps = useAchievementStore((state) => state.getUnlockedApps(modeSelected, visitCount));
+  const totalClicks = useAchievementStore((state) => state.totalClicks);
+  const startTime = useAchievementStore((state) => state.startTime);
+  const achievements = useAchievementStore((state) => state.achievements);
 
   const sounds = useSounds();
 
@@ -321,6 +324,27 @@ export function OS() {
     };
   }, [booted, updatePhysics]);
 
+  // TIMEKEEPER achievement check (10 minutes in session)
+  useEffect(() => {
+    if (!booted || achievements.TIMEKEEPER) return;
+
+    const checkTimekeeper = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      if (elapsed >= 10 * 60 * 1000) { // 10 minutes
+        unlockAchievement('TIMEKEEPER', sounds.achievementUnlock);
+      }
+    }, 30000); // Check every 30 seconds
+
+    return () => clearInterval(checkTimekeeper);
+  }, [booted, startTime, achievements.TIMEKEEPER, unlockAchievement, sounds]);
+
+  // CLICKER achievement check (100 clicks)
+  useEffect(() => {
+    if (totalClicks >= 100 && !achievements.CLICKER) {
+      unlockAchievement('CLICKER', sounds.achievementUnlock);
+    }
+  }, [totalClicks, achievements.CLICKER, unlockAchievement, sounds]);
+
   // Desktop icons to show
   const desktopIcons = introComplete
     ? modeSelected === 'about'
@@ -343,10 +367,11 @@ export function OS() {
     [sounds, setContextMenu]
   );
 
-  // Clear selection on desktop click
+  // Clear selection on desktop click and track clicks
   const handleDesktopClick = useCallback(() => {
     setSelectedIcon(null);
-  }, [setSelectedIcon]);
+    incrementClicks();
+  }, [setSelectedIcon, incrementClicks]);
 
   // Mode selector screen
   if (!modeSelected) {
