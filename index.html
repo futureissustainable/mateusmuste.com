@@ -8550,6 +8550,7 @@ Good luck.`;
                 // Core - always available after intro
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', category: 'CORE' },
                 { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship', category: 'CORE' },
+                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'CORE' },
 
                 // Narrative progression apps (unlock in order through gameplay)
                 { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'LOCKED', hint: 'Terminal: sudo reveal' },
@@ -8559,9 +8560,8 @@ Good luck.`;
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Play SNEK' },
                 { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED', hint: 'The dog knows' },
                 { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: '100 clicks' },
-                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'LOCKED', hint: 'Terminal unlock' },
-                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Accept fate' },
-                { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Terminal: 42' },
+                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Accept fate in Tarot' },
+                { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Score 1000 in Starship' },
                 { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read the truth' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Become god' },
@@ -9078,7 +9078,7 @@ Good luck.`;
             // App progression system - Narrative Bible v3.0
             // Starting apps: Only TERMINAL visible in APPS folder after intro
             // Desktop icons: ABOUT, TRASH, APPS, CONTACT, FILES (MEDIA_LIB)
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'STARSHIP'];
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'STARSHIP', 'TAROT'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
