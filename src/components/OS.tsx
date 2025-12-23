@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useMemo } from 'react';
 import { useWindowStore, useSettingsStore, useAchievementStore } from '@/stores';
+import { computeUnlockedApps } from '@/stores/achievementStore';
 import { useSounds } from '@/hooks';
 import { Window } from '@/components/ui/Window';
 import { Taskbar } from '@/components/ui/Taskbar';
@@ -284,13 +285,29 @@ export function OS() {
   const setContextMenu = useSettingsStore((state) => state.setContextMenu);
 
   // Achievement store
-  const { unlockAchievement, unlockApp, incrementClicks } = useAchievementStore();
-  const unlockedApps = useAchievementStore((state) => state.getUnlockedApps(modeSelected, visitCount));
+  const { unlockAchievement, unlockApp, incrementClicks, hydrate: hydrateAchievements } = useAchievementStore();
+  const narrativeUnlocks = useAchievementStore((state) => state.narrativeUnlocks);
   const totalClicks = useAchievementStore((state) => state.totalClicks);
   const startTime = useAchievementStore((state) => state.startTime);
   const achievements = useAchievementStore((state) => state.achievements);
 
+  // Settings hydrate
+  const hydrateSettings = useSettingsStore((state) => state.hydrate);
+
+  // Compute unlocked apps (memoized to prevent infinite loops)
+  const unlockedAppsArray = useMemo(
+    () => computeUnlockedApps(narrativeUnlocks, achievements, modeSelected, visitCount),
+    [narrativeUnlocks, achievements, modeSelected, visitCount]
+  );
+  const unlockedApps = useMemo(() => new Set(unlockedAppsArray), [unlockedAppsArray]);
+
   const sounds = useSounds();
+
+  // Hydrate stores on mount
+  useEffect(() => {
+    hydrateSettings();
+    hydrateAchievements();
+  }, [hydrateSettings, hydrateAchievements]);
 
   // Detect mobile on mount
   useEffect(() => {

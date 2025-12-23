@@ -16,7 +16,6 @@ export const ACHIEVEMENTS = {
   NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Enter the Matrix', visible: true },
   PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy icons', visible: true },
   TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: '10 minutes in session', visible: true },
-  // Additional achievements for apps
   WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'Read the about section', visible: true },
   SYSTEM_SCAN: { name: 'SYSTEM SCAN', icon: 'Terminal', hint: 'Check system info', visible: true },
   HACKER: { name: 'HACKER', icon: 'Terminal', hint: 'Find hidden files', visible: true },
@@ -38,6 +37,8 @@ export const ACHIEVEMENTS = {
   RADIO_HEAD: { name: 'RADIO HEAD', icon: 'Radio', hint: 'Listen for a minute', visible: true },
   ARTIST: { name: 'ARTIST', icon: 'Palette', hint: 'Create art', visible: true },
   MINESWEEPER: { name: 'MINESWEEPER', icon: 'Minesweeper', hint: 'Complete minesweeper', visible: true },
+  DOG_LOVER: { name: 'DOG LOVER', icon: 'Dog', hint: 'Read the dog story', visible: true },
+  BACKUP_COMPLETE: { name: 'BACKUP COMPLETE', icon: 'Cloud', hint: 'Complete backup', visible: true },
 } as const;
 
 // Initial apps that are always available
@@ -45,8 +46,7 @@ export const INITIAL_APPS = [
   'TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'
 ];
 
-interface AchievementStore {
-  // State
+interface AchievementState {
   achievements: UnlockedAchievements;
   narrativeUnlocks: string[];
   achievementNotifications: AchievementNotification[];
@@ -55,11 +55,10 @@ interface AchievementStore {
   startTime: number;
   privateUnlocked: boolean;
   dogTrashCount: number;
+  _hasHydrated: boolean;
+}
 
-  // Computed
-  getUnlockedApps: (mode: 'story' | 'about' | null, visitCount: number) => Set<string>;
-
-  // Actions
+interface AchievementActions {
   unlockAchievement: (id: string, playSound?: () => void) => void;
   unlockApp: (appId: string, playSound?: () => void) => void;
   removeAchievementNotification: (id: number) => void;
@@ -68,69 +67,89 @@ interface AchievementStore {
   setPrivateUnlocked: (unlocked: boolean) => void;
   incrementDogTrashCount: () => void;
   handleGodMode: (playSound?: () => void) => void;
+  hydrate: () => void;
 }
 
-// Get stored value with SSR safety
-const getStoredJSON = <T>(key: string, defaultValue: T): T => {
-  if (typeof window === 'undefined') return defaultValue;
-  const stored = localStorage.getItem(key);
-  if (!stored) return defaultValue;
-  try {
-    return JSON.parse(stored);
-  } catch {
-    return defaultValue;
-  }
-};
+type AchievementStore = AchievementState & AchievementActions;
 
-const getStoredNumber = (key: string, defaultValue: number): number => {
-  if (typeof window === 'undefined') return defaultValue;
-  const stored = localStorage.getItem(key);
-  return stored ? parseInt(stored, 10) : defaultValue;
+// Helper to compute unlocked apps (used outside of store)
+export function computeUnlockedApps(
+  narrativeUnlocks: string[],
+  achievements: UnlockedAchievements,
+  mode: 'story' | 'about' | null,
+  visitCount: number
+): string[] {
+  const unlocked = [...INITIAL_APPS];
+
+  if (mode === 'about') {
+    return unlocked;
+  }
+
+  narrativeUnlocks.forEach((app) => {
+    if (!unlocked.includes(app)) unlocked.push(app);
+  });
+
+  if (visitCount >= 100 || achievements.BECOME_GOD) {
+    if (!unlocked.includes('TRUTH')) unlocked.push('TRUTH');
+  }
+
+  if (achievements.BECOME_GOD) {
+    ['RADIO', 'SYNTH', 'POMODORO', 'SCANNER', 'GALLERY', 'DESTRUCTION'].forEach((app) => {
+      if (!unlocked.includes(app)) unlocked.push(app);
+    });
+  }
+
+  return unlocked;
+}
+
+// Default state for SSR
+const defaultState: AchievementState = {
+  achievements: {},
+  narrativeUnlocks: [],
+  achievementNotifications: [],
+  appUnlockNotifications: [],
+  totalClicks: 0,
+  startTime: Date.now(),
+  privateUnlocked: false,
+  dogTrashCount: 0,
+  _hasHydrated: false,
 };
 
 export const useAchievementStore = create<AchievementStore>((set, get) => ({
-  // Initial state
-  achievements: getStoredJSON('ultra_int_achievements', {}),
-  narrativeUnlocks: getStoredJSON('ultra_int_narrative_unlocks', []),
-  achievementNotifications: [],
-  appUnlockNotifications: [],
-  totalClicks: getStoredNumber('ultra_int_clicks', 0),
-  startTime: Date.now(),
-  privateUnlocked: false,
-  dogTrashCount: getStoredNumber('dog_trash_count', 0),
+  ...defaultState,
 
-  // Computed
-  getUnlockedApps: (mode, visitCount) => {
-    const { narrativeUnlocks, achievements } = get();
-    const unlocked = new Set(INITIAL_APPS);
+  hydrate: () => {
+    if (typeof window === 'undefined') return;
+    if (get()._hasHydrated) return;
 
-    // About mode: clean slate, no story unlocks
-    if (mode === 'about') {
-      return unlocked;
-    }
+    const getStoredJSON = <T>(key: string, defaultValue: T): T => {
+      const stored = localStorage.getItem(key);
+      if (!stored) return defaultValue;
+      try {
+        return JSON.parse(stored);
+      } catch {
+        return defaultValue;
+      }
+    };
 
-    // Story mode: add all narrative-driven unlocks
-    narrativeUnlocks.forEach((app) => unlocked.add(app));
+    const getStoredNumber = (key: string, defaultValue: number): number => {
+      const stored = localStorage.getItem(key);
+      return stored ? parseInt(stored, 10) : defaultValue;
+    };
 
-    // TRUTH unlocks at 100 visits OR after god mode
-    if (visitCount >= 100 || achievements.BECOME_GOD) {
-      unlocked.add('TRUTH');
-    }
-
-    // God mode unlocks bonus apps
-    if (achievements.BECOME_GOD) {
-      ['RADIO', 'SYNTH', 'POMODORO', 'SCANNER', 'GALLERY', 'DESTRUCTION'].forEach((app) =>
-        unlocked.add(app)
-      );
-    }
-
-    return unlocked;
+    set({
+      achievements: getStoredJSON('ultra_int_achievements', {}),
+      narrativeUnlocks: getStoredJSON('ultra_int_narrative_unlocks', []),
+      totalClicks: getStoredNumber('ultra_int_clicks', 0),
+      dogTrashCount: getStoredNumber('dog_trash_count', 0),
+      startTime: Date.now(),
+      _hasHydrated: true,
+    });
   },
 
-  // Actions
   unlockAchievement: (id, playSound) => {
     const { achievements } = get();
-    if (achievements[id]) return; // Already unlocked
+    if (achievements[id]) return;
 
     const achievement = ACHIEVEMENTS[id as keyof typeof ACHIEVEMENTS];
     if (!achievement) return;
@@ -151,28 +170,12 @@ export const useAchievementStore = create<AchievementStore>((set, get) => ({
         achievements: newAchievements,
         achievementNotifications: [
           ...state.achievementNotifications,
-          { ...achievement, id: notifId },
+          { id: notifId, name: achievement.name, icon: achievement.icon },
         ],
       };
     });
 
     playSound?.();
-
-    // Auto-hide notification after 3 seconds
-    setTimeout(() => {
-      get().removeAchievementNotification(notifId);
-    }, 3000);
-
-    // Check for completionist
-    const { achievements: currentAchievements } = get();
-    const achievementCount = Object.keys(currentAchievements).filter(
-      (k) => k !== 'COMPLETIONIST'
-    ).length;
-    const totalAchievements = Object.keys(ACHIEVEMENTS).length - 1;
-
-    if (achievementCount >= totalAchievements && !currentAchievements.COMPLETIONIST) {
-      setTimeout(() => get().unlockAchievement('COMPLETIONIST', playSound), 5000);
-    }
   },
 
   unlockApp: (appId, playSound) => {
@@ -192,16 +195,12 @@ export const useAchievementStore = create<AchievementStore>((set, get) => ({
         narrativeUnlocks: newUnlocks,
         appUnlockNotifications: [
           ...state.appUnlockNotifications,
-          { app: appId, id: notifId },
+          { id: notifId, app: appId },
         ],
       };
     });
 
     playSound?.();
-
-    setTimeout(() => {
-      get().removeAppNotification(notifId);
-    }, 3000);
   },
 
   removeAchievementNotification: (id) => {
@@ -218,65 +217,51 @@ export const useAchievementStore = create<AchievementStore>((set, get) => ({
 
   incrementClicks: () => {
     set((state) => {
-      const newCount = state.totalClicks + 1;
-
+      const newClicks = state.totalClicks + 1;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('ultra_int_clicks', newCount.toString());
+        localStorage.setItem('ultra_int_clicks', String(newClicks));
       }
-
-      return { totalClicks: newCount };
+      return { totalClicks: newClicks };
     });
   },
 
-  setPrivateUnlocked: (unlocked) => set({ privateUnlocked: unlocked }),
+  setPrivateUnlocked: (unlocked) => {
+    set({ privateUnlocked: unlocked });
+  },
 
   incrementDogTrashCount: () => {
     set((state) => {
       const newCount = state.dogTrashCount + 1;
-
       if (typeof window !== 'undefined') {
-        localStorage.setItem('dog_trash_count', newCount.toString());
+        localStorage.setItem('dog_trash_count', String(newCount));
       }
-
       return { dogTrashCount: newCount };
     });
   },
 
   handleGodMode: (playSound) => {
-    // Unlock all achievements
     const allAchievements: UnlockedAchievements = {};
     Object.keys(ACHIEVEMENTS).forEach((id) => {
       allAchievements[id] = { unlockedAt: Date.now() };
     });
 
-    // Unlock all apps
-    const ALL_UNLOCKABLE_APPS = [
-      'PAINT', 'SNAKE', 'VOID', 'RADIO', 'DICE', 'LABYRINTH',
-      'MINESWEEPER', 'STARSHIP', 'SYNTH', 'DESTRUCTION', 'TAROT',
-      'GALLERY', 'MAP', 'POMODORO', 'SCANNER', 'PERSONAL',
-      'DOG_STORY', 'THIRD_EYE', 'THIRD_EYE_2', 'BROWSER',
-      'BOOKS', 'BACKUP', 'TRUTH',
+    const allApps = [
+      'TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES',
+      'PAINT', 'SNAKE', 'MINESWEEPER', 'LABYRINTH', 'MAP', 'DICE', 'TAROT', 'VOID',
+      'STARSHIP', 'DESTRUCTION', 'SCANNER', 'RADIO', 'SYNTH', 'POMODORO', 'GALLERY',
+      'BOOKS', 'PERSONAL', 'BROWSER', 'BACKUP', 'DOG_STORY', 'THIRD_EYE', 'TRUTH'
     ];
 
     if (typeof window !== 'undefined') {
       localStorage.setItem('ultra_int_achievements', JSON.stringify(allAchievements));
-      localStorage.setItem('ultra_int_narrative_unlocks', JSON.stringify(ALL_UNLOCKABLE_APPS));
+      localStorage.setItem('ultra_int_narrative_unlocks', JSON.stringify(allApps));
     }
-
-    const notifId = Date.now();
 
     set({
       achievements: allAchievements,
-      narrativeUnlocks: ALL_UNLOCKABLE_APPS,
-      achievementNotifications: [
-        { id: notifId, name: 'GOD MODE', hint: 'All achievements and apps unlocked' },
-      ],
+      narrativeUnlocks: allApps,
     });
 
     playSound?.();
-
-    setTimeout(() => {
-      get().removeAchievementNotification(notifId);
-    }, 3000);
   },
 }));
