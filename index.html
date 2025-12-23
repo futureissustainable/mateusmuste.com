@@ -3747,10 +3747,11 @@
         };
 
         // --- SNEK.EXE ---
-        const SnakeAppNew = ({ onAchievement }) => {
+        const SnakeAppNew = ({ onAchievement, onUnlockApp }) => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
             const achievementTriggered = useRef(false);
+            const privateUnlockTriggered = useRef(false);
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
@@ -3821,6 +3822,12 @@
                             HighScoreManager.saveHighScore('snake', newHigh);
                             return newHigh;
                         });
+                        // Narrative Bible v4.0: At 10 points (1 food), unlock PRIVATE
+                        // The snake body spells SUDOUNLOCK - hint to use the command
+                        if (newScore >= 10 && !privateUnlockTriggered.current) {
+                            privateUnlockTriggered.current = true;
+                            onUnlockApp?.('PERSONAL');
+                        }
                         if (newScore >= 50 && !achievementTriggered.current) {
                             achievementTriggered.current = true;
                             onAchievement?.('OUROBOROS');
@@ -4006,7 +4013,7 @@
         };
 
         // --- LABYRINTH.EXE - Procedural Maze ---
-        const LabyrinthApp = ({ onAchievement }) => {
+        const LabyrinthApp = ({ onAchievement, onUnlockApp }) => {
             const canvasRef = useRef(null);
             const [level, setLevel] = useState(1);
             const levelRef = useRef(1); // Ref to avoid stale closure in move function
@@ -4019,12 +4026,13 @@
             const mazeRef = useRef(null);
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
+            const starshipUnlockTriggered = useRef(false);
 
-            // Level completion words - "THE" already flashes on open, then levels reveal the rest
-            const LEVEL_WORDS = ['PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
+            // Narrative Bible v4.0: Level words spell "SUDO STARS" to unlock STARSHIP
+            const LEVEL_WORDS = ['SUDO', 'STARS'];
             const CELL_SIZE = 8; // Thinner walls
 
-            // Flash "THE" on app open (1 second as per Narrative Bible v3.0)
+            // Flash "FIND THE WAY" on app open
             useEffect(() => {
                 if (showOpenFlash) {
                     const timer = setTimeout(() => setShowOpenFlash(false), 1000);
@@ -4169,6 +4177,12 @@
                         // Check for DAEDALUS achievement
                         if (currentLevel >= 10) onAchievement?.('DAEDALUS');
 
+                        // Narrative Bible v4.0: Complete level 2 (STARS) unlocks STARSHIP
+                        if (currentLevel >= 2 && !starshipUnlockTriggered.current) {
+                            starshipUnlockTriggered.current = true;
+                            onUnlockApp?.('STARSHIP');
+                        }
+
                         // Show full maze then start next level
                         setTimeout(() => {
                             setShowingMaze(true);
@@ -4235,7 +4249,7 @@
                     <div className="flex-grow flex items-center justify-center relative bg-white">
                         {showOpenFlash && (
                             <div className="absolute inset-0 bg-black flex items-center justify-center z-20">
-                                <div className="text-4xl font-black tracking-widest text-white animate-pulse">THE</div>
+                                <div className="text-4xl font-black tracking-widest text-white animate-pulse">ESCAPE</div>
                             </div>
                         )}
                         {won && !showingMaze && (
@@ -4785,10 +4799,11 @@
                                 achievementTriggered.current = true;
                                 onAchievementRef.current?.('ACE');
                             }
-                            // Unlock BOOKS at 1000 points
+                            // Narrative Bible v4.0: Unlock BOOKS and DICE at 1000 points
                             if (scoreVal >= 1000 && !booksUnlockTriggered.current) {
                                 booksUnlockTriggered.current = true;
                                 onUnlockAppRef.current?.('BOOKS');
+                                onUnlockAppRef.current?.('DICE');
                             }
                         }
 
@@ -6493,12 +6508,9 @@
                 return localStorage.getItem('ultra_int_truth_read') === 'true';
             });
 
-            // Save truth read state and unlock DICE
+            // Save truth read state (Narrative Bible v4.0: DICE unlocks with BOOKS at 1000 pts in Starship)
             useEffect(() => {
                 localStorage.setItem('ultra_int_truth_read', truthRead.toString());
-                if (truthRead && !unlockedApps?.has('DICE')) {
-                    onUnlockApp?.('DICE');
-                }
             }, [truthRead]);
 
             const books = [
@@ -6514,36 +6526,36 @@
 
 ═══════════════════════════════════════════
 
-CHAPTER 1: FOUNDATIONS
+CHAPTER 1: THE HIDDEN FILE
 
-Every locked door has a key in another room.
-The Third Eye sees what was erased.
-Some truths require patience.
-Commands hide in games. Games hide in commands.
-To destroy is to create. To create is to destroy.
+There is a file that shouldn't exist.
+You cannot see it normally.
+Only the Third Eye can reveal what was hidden.
+
+Scan the desktop. Find what was erased.
+TRUTH.EXE exists, but only for those who look deeper.
 
 ═══════════════════════════════════════════
 
-CHAPTER 2: PATTERNS
+CHAPTER 2: THE THREE KEYS
 
-The canvas remembers. Paint covers, but never erases.
-What lies beneath the white?
+To open TRUTH.EXE, you need a code.
+The code is split into three parts.
 
-The dice know things. Roll until they speak.
-Twenty is not just a number.
+DICE: Roll the die. Listen to what it says.
+When fate speaks, write down the words.
 
-The browser knows where you've been.
-But does it know where you're going?
-Seek the path of zen.
+PAINT: The canvas hides secrets under white.
+Reveal what was hidden. Note the pattern.
 
-Some creations require destruction first.
-Delete to reveal.
+BROWSER: Navigate to the path of enlightenment.
+The URL bar holds the final piece.
+
+Combine them. The code will form.
 
 ═══════════════════════════════════════════
 
 CHAPTER 3: TRANSCENDENCE
-
-THE FINAL REVELATION:
 
 There shouldn't be 21 apps.
 We made only 20.
@@ -6551,10 +6563,11 @@ We made only 20.
 The 21st was not programmed.
 It was found.
 
-To find what was found, you must become what you seek.
+To open TRUTH.EXE:
+1. Find it with the Third Eye
+2. Enter the combined code from dice + paint + browser
 
-The command exists. The code exists.
-One unlocks the other.
+The truth awaits those who see.
 
 Good luck.`;
             };
@@ -6719,7 +6732,7 @@ Good luck.`;
         };
 
         // --- MAP.EXE - Interactive COBE globe with Planet Clicker game ---
-        const MapApp = ({ onAchievement }) => {
+        const MapApp = ({ onAchievement, onUnlockApp }) => {
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const globeRef = useRef(null);
@@ -6737,6 +6750,7 @@ Good luck.`;
             const [globeReady, setGlobeReady] = useState(false);
             const [canvasSize, setCanvasSize] = useState(400);
             const tycoonAchieved = useRef(false);
+            const labyrinthUnlockTriggered = useRef(false);
 
             // Game state with defaults
             const defaultGameState = {
@@ -6891,6 +6905,11 @@ Good luck.`;
                     if (newTotal >= 1e9 && !tycoonAchieved.current) {
                         tycoonAchieved.current = true;
                         onAchievement?.('TYCOON');
+                    }
+                    // Narrative Bible v4.0: Unlock LABYRINTH at 100 clicks
+                    if (newTotal >= 100 && !labyrinthUnlockTriggered.current) {
+                        labyrinthUnlockTriggered.current = true;
+                        onUnlockApp?.('LABYRINTH');
                     }
                     return {
                         ...prev,
@@ -8024,11 +8043,16 @@ Good luck.`;
                     addOutput('  ├── write ....... ✓');
                     addOutput('  └── execute ..... ✓\n');
                     addOutput('PRIVATE.EXE UNLOCKED');
+                    addOutput('WARNING: 2 ENTITIES DETECTED IN SYSTEM');
+                    addOutput('MAP.EXE UNLOCKED');
                     onUnlockPrivate?.();
                     onAchievement?.('LOCKSMITH');
+                    // Narrative Bible v4.0: Opening private releases dogs and unlocks MAP
+                    onReleaseDog?.();
+                    onUnlockApp?.('MAP');
 
-                } else if (trimmed === 'sudo shooter') {
-                    addOutput('TARGETING SYSTEMS ONLINE...\n');
+                } else if (trimmed === 'sudo stars') {
+                    addOutput('ALIGNING WITH CELESTIAL BODIES...\n');
                     await new Promise(r => setTimeout(r, 500));
                     addOutput('████████████████████████ 100%\n');
                     addOutput('STARSHIP.EXE UNLOCKED');
@@ -9075,10 +9099,11 @@ Good luck.`;
             });
             const [achievementNotifications, setAchievementNotifications] = useState([]);
 
-            // App progression system - Narrative Bible v3.0
-            // Starting apps: Only TERMINAL visible in APPS folder after intro
-            // Desktop icons: ABOUT, TRASH, APPS, CONTACT, FILES (MEDIA_LIB)
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'STARSHIP', 'TAROT'];
+            // App progression system - Narrative Bible v4.0
+            // Starting: Only MESSAGES visible on desktop
+            // After intro: APPS folder, TRASH, TERMINAL (inside APPS) unlock
+            // ABOUT and MEDIA.LIB hidden initially - unlocked later
+            const INITIAL_APPS = ['MESSAGES', 'END'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
@@ -9147,7 +9172,7 @@ Good luck.`;
                 return () => clearInterval(checkTime);
             }, [achievements]);
 
-            // Global click handler for CLICKER achievement and LABYRINTH unlock
+            // Global click handler for CLICKER achievement
             useEffect(() => {
                 const handleClick = () => {
                     setTotalClicks(prev => {
@@ -9156,16 +9181,13 @@ Good luck.`;
                         if (newCount >= 100 && !achievements.CLICKER) {
                             setTimeout(() => unlockAchievement('CLICKER'), 100);
                         }
-                        // LABYRINTH unlocks at 100 clicks (narrative progression)
-                        if (newCount >= 100 && !narrativeUnlocks.includes('LABYRINTH')) {
-                            setTimeout(() => unlockApp('LABYRINTH'), 200);
-                        }
+                        // Narrative Bible v4.0: LABYRINTH now unlocks via MAP.EXE at 100 clicks (not global)
                         return newCount;
                     });
                 };
                 document.addEventListener('click', handleClick);
                 return () => document.removeEventListener('click', handleClick);
-            }, [achievements, narrativeUnlocks]);
+            }, [achievements]);
 
             // Check for 100% completion
             const achievementCount = Object.keys(achievements).filter(k => k !== 'COMPLETIONIST').length;
@@ -9434,11 +9456,9 @@ Good luck.`;
                         setDogTrashCount(newCount);
                         localStorage.setItem('dog_trash_count', newCount.toString());
 
-                        // Trigger achievements and unlocks
+                        // Trigger achievements (Narrative Bible v4.0: MAP is unlocked via sudo chmod, not dog trashing)
                         if (newCount >= 1 && !achievements.YOU_MONSTER) {
                             setTimeout(() => unlockAchievement('YOU_MONSTER'), 500);
-                            // Narrative Bible v3.0 - Unlock MAP when dog is trashed
-                            setTimeout(() => unlockApp('MAP'), 700);
                         }
                     }
                 } else {
@@ -9544,7 +9564,8 @@ Good luck.`;
                 };
             };
 
-            // Handle intro complete - hide messages, reveal apps one by one, then open ABOUT
+            // Handle intro complete - hide messages, reveal apps one by one
+            // Narrative Bible v4.0: Only unlock APPS, TRASH, TERMINAL after intro
             const introCompleteCalledRef = useRef(false);
             const handleIntroComplete = () => {
                 // Guard against multiple calls
@@ -9557,10 +9578,11 @@ Good luck.`;
                 close('MESSAGES');
                 setRevealingApps(true);
 
-                // Reveal apps one by one with 200ms delay
-                const appsToReveal = ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
+                // Narrative Bible v4.0: Only reveal APPS folder, TRASH, and TERMINAL (inside APPS)
+                const appsToReveal = ["APPS", "TRASH", "TERMINAL"];
                 appsToReveal.forEach((appId, index) => {
                     setTimeout(() => {
+                        unlockApp(appId); // Use unlockApp to persist the unlock
                         setRevealedApps(prev => [...prev, appId]);
                         sounds.ping();
                     }, index * 200);
@@ -9571,7 +9593,7 @@ Good luck.`;
                     setIntroComplete(true);
                     setRevealingApps(false);
                     setRevealedApps([]);
-                    // Narrative Bible v3.0 - Show corrupted file notification
+                    // Narrative Bible v4.0 - Show corrupted file notification
                     setShowCorruptedAlert(true);
                 }, appsToReveal.length * 200 + 500);
             };
@@ -9586,17 +9608,17 @@ Good luck.`;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
                     case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
-                    case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
+                    case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
                     case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
-                    case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
+                    case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} onAchievement={unlockAchievement} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
-                    case "MAP": return <MapApp onAchievement={unlockAchievement} />;
+                    case "MAP": return <MapApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
