@@ -3737,7 +3737,7 @@
                         <div className="h-12 flex items-center justify-center mt-4">
                             {result && !isRolling && (
                                 <div className="font-mono text-[10px] tracking-widest text-center">
-                                    {result === 20 ? '20 SUDO BECOME GOD' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
+                                    {result === 20 ? '20 SUDO EXTRACT REVELATION' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
                                 </div>
                             )}
                         </div>
@@ -4020,16 +4020,14 @@
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
 
-            // Level completion words - "THE" already flashes on open, then levels reveal the rest
-            const LEVEL_WORDS = ['PASSWORD', 'IS', 'ALWAYS', 'PATIENCE', 'TEN'];
+            // Level completion words - spell "SUDO STARS" to unlock star shooter
+            const LEVEL_WORDS = ['SUDO', 'STARS'];
             const CELL_SIZE = 8; // Thinner walls
 
-            // Flash "THE" on app open (1 second as per Narrative Bible v3.0)
+            // Initialize labyrinth on mount
             useEffect(() => {
-                if (showOpenFlash) {
-                    const timer = setTimeout(() => setShowOpenFlash(false), 1000);
-                    return () => clearTimeout(timer);
-                }
+                // No initial flash - levels spell out SUDO STARS
+                setShowOpenFlash(false);
             }, []);
 
             // Load high score from storage when IP is ready
@@ -4785,10 +4783,11 @@
                                 achievementTriggered.current = true;
                                 onAchievementRef.current?.('ACE');
                             }
-                            // Unlock BOOKS at 1000 points
+                            // Unlock BOOKS and DICE at 1000 points
                             if (scoreVal >= 1000 && !booksUnlockTriggered.current) {
                                 booksUnlockTriggered.current = true;
                                 onUnlockAppRef.current?.('BOOKS');
+                                onUnlockAppRef.current?.('DICE');
                             }
                         }
 
@@ -6493,12 +6492,9 @@
                 return localStorage.getItem('ultra_int_truth_read') === 'true';
             });
 
-            // Save truth read state and unlock DICE
+            // Save truth read state
             useEffect(() => {
                 localStorage.setItem('ultra_int_truth_read', truthRead.toString());
-                if (truthRead && !unlockedApps?.has('DICE')) {
-                    onUnlockApp?.('DICE');
-                }
             }, [truthRead]);
 
             const books = [
@@ -6719,7 +6715,8 @@ Good luck.`;
         };
 
         // --- MAP.EXE - Interactive COBE globe with Planet Clicker game ---
-        const MapApp = ({ onAchievement }) => {
+        const MapApp = ({ onAchievement, onUnlockApp }) => {
+            const labyrinthUnlocked = useRef(false);
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const globeRef = useRef(null);
@@ -6891,6 +6888,11 @@ Good luck.`;
                     if (newTotal >= 1e9 && !tycoonAchieved.current) {
                         tycoonAchieved.current = true;
                         onAchievement?.('TYCOON');
+                    }
+                    // Unlock LABYRINTH at 100 clicks in MAP
+                    if (newTotal >= 100 && !labyrinthUnlocked.current) {
+                        labyrinthUnlocked.current = true;
+                        setTimeout(() => onUnlockApp?.('LABYRINTH'), 200);
                     }
                     return {
                         ...prev,
@@ -8027,7 +8029,7 @@ Good luck.`;
                     onUnlockPrivate?.();
                     onAchievement?.('LOCKSMITH');
 
-                } else if (trimmed === 'sudo shooter') {
+                } else if (trimmed === 'sudo stars') {
                     addOutput('TARGETING SYSTEMS ONLINE...\n');
                     await new Promise(r => setTimeout(r, 500));
                     addOutput('████████████████████████ 100%\n');
@@ -8039,7 +8041,7 @@ Good luck.`;
                     addOutput('BROWSER.EXE UNLOCKED');
                     onUnlockApp?.('BROWSER');
 
-                } else if (trimmed === 'sudo become god') {
+                } else if (trimmed === 'sudo extract revelation') {
                     addOutput('ELEVATION SEQUENCE INITIATED...\n');
                     await new Promise(r => setTimeout(r, 1000));
                     addOutput('Listening for code...');
@@ -8564,12 +8566,12 @@ Good luck.`;
                 { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Score 1000 in Starship' },
                 { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read the truth' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
-                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Become god' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Extract revelation' },
 
                 // Bonus apps (unlock after god mode)
-                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Become God' },
-                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Become God' },
-                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Become God' },
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Extract revelation' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Extract revelation' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Extract revelation' },
 
                 // Special
                 { id: 'END', title: 'ACHIEVEMENTS', icon: 'Trophy', category: 'CORE' }
@@ -9033,7 +9035,7 @@ Good luck.`;
                 ACCEPT_FATE: { name: 'ACCEPT FATE', icon: 'Tarot', hint: 'Accept your tarot reading', visible: true },
                 DESTROYER_OF_WORLDS: { name: 'DESTROYER OF WORLDS', icon: 'Bomb', hint: 'Try to destroy everything', visible: true },
                 DIVINE_ROLL: { name: 'DIVINE ROLL', icon: 'Dice', hint: 'Roll a natural 20', visible: true },
-                BECOME_GOD: { name: 'BECOME GOD', icon: 'Trophy', hint: 'Achieve elevation', visible: true },
+                BECOME_GOD: { name: 'EXTRACT REVELATION', icon: 'Trophy', hint: 'Achieve elevation', visible: true },
                 TRUTH_SEEKER: { name: 'TRUTH SEEKER', icon: 'FileDoc', hint: 'Open TRUTH.EXE', visible: true },
                 COMPLETIONIST: { name: 'COMPLETIONIST', icon: 'Badge', hint: '100% completion', visible: true },
                 // Legacy achievements (kept for backwards compatibility)
@@ -9075,10 +9077,11 @@ Good luck.`;
             });
             const [achievementNotifications, setAchievementNotifications] = useState([]);
 
-            // App progression system - Narrative Bible v3.0
+            // App progression system - Story mode progression
             // Starting apps: Only TERMINAL visible in APPS folder after intro
-            // Desktop icons: ABOUT, TRASH, APPS, CONTACT, FILES (MEDIA_LIB)
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'STARSHIP', 'TAROT'];
+            // Desktop icons in story mode: APPS, TRASH (ABOUT and FILES hidden initially)
+            // STARSHIP unlocked via sudo stars, not initial
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'TAROT'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
@@ -9147,7 +9150,7 @@ Good luck.`;
                 return () => clearInterval(checkTime);
             }, [achievements]);
 
-            // Global click handler for CLICKER achievement and LABYRINTH unlock
+            // Global click handler for CLICKER achievement
             useEffect(() => {
                 const handleClick = () => {
                     setTotalClicks(prev => {
@@ -9156,16 +9159,12 @@ Good luck.`;
                         if (newCount >= 100 && !achievements.CLICKER) {
                             setTimeout(() => unlockAchievement('CLICKER'), 100);
                         }
-                        // LABYRINTH unlocks at 100 clicks (narrative progression)
-                        if (newCount >= 100 && !narrativeUnlocks.includes('LABYRINTH')) {
-                            setTimeout(() => unlockApp('LABYRINTH'), 200);
-                        }
                         return newCount;
                     });
                 };
                 document.addEventListener('click', handleClick);
                 return () => document.removeEventListener('click', handleClick);
-            }, [achievements, narrativeUnlocks]);
+            }, [achievements]);
 
             // Check for 100% completion
             const achievementCount = Object.keys(achievements).filter(k => k !== 'COMPLETIONIST').length;
@@ -9271,6 +9270,10 @@ Good luck.`;
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
                 unlockAchievement('LOCKSMITH');
+                // Unlock MAP and release dogs when PRIVATE is opened
+                unlockApp('MAP');
+                setDogReleased(true);
+                setGoldDogReleased(true);
             };
             const openDogStory = () => {
                 setDogReleased(true);
@@ -9434,11 +9437,9 @@ Good luck.`;
                         setDogTrashCount(newCount);
                         localStorage.setItem('dog_trash_count', newCount.toString());
 
-                        // Trigger achievements and unlocks
+                        // Trigger achievements
                         if (newCount >= 1 && !achievements.YOU_MONSTER) {
                             setTimeout(() => unlockAchievement('YOU_MONSTER'), 500);
-                            // Narrative Bible v3.0 - Unlock MAP when dog is trashed
-                            setTimeout(() => unlockApp('MAP'), 700);
                         }
                     }
                 } else {
@@ -9473,9 +9474,10 @@ Good luck.`;
             }, [dogDragging, dogDragOffset]);
 
             // Desktop icons - MESSAGES only if intro not complete, otherwise full desktop
+            // Story mode: only APPS and TRASH visible initially (ABOUT, FILES hidden until unlocked)
             // TRUTH is always in list but only visible/clickable when Third Eye scans it
-            const allDesktopIcons = ["ABOUT", "APPS", "FILES", "CONTACT", "TRUTH", "TRASH"];
-            // About mode hides APPS and TRASH for clean portfolio view
+            const allDesktopIcons = ["APPS", "CONTACT", "TRUTH", "TRASH"];
+            // About mode shows full portfolio view
             const aboutModeIcons = ["ABOUT", "FILES", "CONTACT"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
@@ -9557,8 +9559,9 @@ Good luck.`;
                 close('MESSAGES');
                 setRevealingApps(true);
 
-                // Reveal apps one by one with 200ms delay
-                const appsToReveal = ["ABOUT", "APPS", "FILES", "CONTACT", "TRASH"];
+                // Reveal apps one by one with 200ms delay (story mode: only APPS and TRASH initially)
+                // ABOUT.EXE and MEDIA_LIB are hidden - unlocked later in story progression
+                const appsToReveal = ["APPS", "TRASH"];
                 appsToReveal.forEach((appId, index) => {
                     setTimeout(() => {
                         setRevealedApps(prev => [...prev, appId]);
@@ -9596,7 +9599,7 @@ Good luck.`;
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} onAchievement={unlockAchievement} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
-                    case "MAP": return <MapApp onAchievement={unlockAchievement} />;
+                    case "MAP": return <MapApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
