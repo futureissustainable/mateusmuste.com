@@ -740,21 +740,109 @@
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
-                const notes = [174.61, 220.00, 261.63, 329.63, 392.00];
-                notes.forEach((freq, i) => {
-                    const osc = ctx.createOscillator();
-                    const gain = ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.value = freq;
-                    const start = now + i * 0.4;
-                    gain.gain.setValueAtTime(0, start);
-                    gain.gain.linearRampToValueAtTime(0.15, start + 0.05);
-                    gain.gain.exponentialRampToValueAtTime(0.001, start + 0.6);
-                    osc.start(start);
-                    osc.stop(start + 0.6);
+
+                // Industrial metallic arpeggio - minor key with tension
+                // A minor pentatonic with added industrial resonance
+                const notes = [
+                    { freq: 110.00, time: 0 },      // A2 - deep foundation
+                    { freq: 164.81, time: 0.12 },   // E3 - fifth
+                    { freq: 220.00, time: 0.24 },   // A3 - octave
+                    { freq: 293.66, time: 0.36 },   // D4 - fourth
+                    { freq: 329.63, time: 0.48 },   // E4 - fifth high
+                    { freq: 440.00, time: 0.62 },   // A4 - resolution
+                    { freq: 523.25, time: 0.78 },   // C5 - minor third color
+                    { freq: 659.25, time: 0.95 },   // E5 - final shimmer
+                ];
+
+                const masterGain = ctx.createGain();
+                masterGain.gain.value = 0.18;
+                masterGain.connect(ctx.destination);
+
+                notes.forEach(({ freq, time }, i) => {
+                    const start = now + time;
+                    const isLast = i === notes.length - 1;
+                    const duration = isLast ? 1.2 : 0.4;
+
+                    // Primary oscillator - square for metallic edge
+                    const osc1 = ctx.createOscillator();
+                    const gain1 = ctx.createGain();
+                    osc1.type = 'square';
+                    osc1.frequency.value = freq;
+
+                    // Secondary oscillator - detuned for metallic beating
+                    const osc2 = ctx.createOscillator();
+                    const gain2 = ctx.createGain();
+                    osc2.type = 'sawtooth';
+                    osc2.frequency.value = freq * 1.002; // slight detune
+
+                    // Third oscillator - sub harmonic for industrial weight
+                    const osc3 = ctx.createOscillator();
+                    const gain3 = ctx.createGain();
+                    osc3.type = 'triangle';
+                    osc3.frequency.value = freq * 0.5;
+
+                    // Bandpass filter for metallic resonance
+                    const filter = ctx.createBiquadFilter();
+                    filter.type = 'bandpass';
+                    filter.frequency.value = freq * 2;
+                    filter.Q.value = 8;
+
+                    // High shelf for shimmer
+                    const highShelf = ctx.createBiquadFilter();
+                    highShelf.type = 'highshelf';
+                    highShelf.frequency.value = 2000;
+                    highShelf.gain.value = 3;
+
+                    // Routing
+                    osc1.connect(gain1);
+                    osc2.connect(gain2);
+                    osc3.connect(gain3);
+                    gain1.connect(filter);
+                    gain2.connect(filter);
+                    gain3.connect(highShelf);
+                    filter.connect(highShelf);
+                    highShelf.connect(masterGain);
+
+                    // Envelope - sharp attack, metallic decay
+                    const vol = isLast ? 0.7 : 0.5 - (i * 0.02);
+                    gain1.gain.setValueAtTime(0, start);
+                    gain1.gain.linearRampToValueAtTime(vol * 0.6, start + 0.008);
+                    gain1.gain.exponentialRampToValueAtTime(vol * 0.3, start + 0.05);
+                    gain1.gain.exponentialRampToValueAtTime(0.001, start + duration);
+
+                    gain2.gain.setValueAtTime(0, start);
+                    gain2.gain.linearRampToValueAtTime(vol * 0.25, start + 0.008);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.8);
+
+                    gain3.gain.setValueAtTime(0, start);
+                    gain3.gain.linearRampToValueAtTime(vol * 0.15, start + 0.01);
+                    gain3.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.6);
+
+                    osc1.start(start);
+                    osc2.start(start);
+                    osc3.start(start);
+                    osc1.stop(start + duration + 0.1);
+                    osc2.stop(start + duration + 0.1);
+                    osc3.stop(start + duration + 0.1);
                 });
+
+                // Industrial noise burst at start
+                const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
+                const noiseData = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < noiseData.length; i++) {
+                    noiseData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
+                }
+                const noiseSource = ctx.createBufferSource();
+                noiseSource.buffer = noiseBuffer;
+                const noiseFilter = ctx.createBiquadFilter();
+                noiseFilter.type = 'highpass';
+                noiseFilter.frequency.value = 3000;
+                const noiseGain = ctx.createGain();
+                noiseGain.gain.value = 0.08;
+                noiseSource.connect(noiseFilter);
+                noiseFilter.connect(noiseGain);
+                noiseGain.connect(masterGain);
+                noiseSource.start(now);
             },
 
             laser: () => {
@@ -10835,12 +10923,10 @@ Good luck.`;
                 );
             }
 
-            // Boot screens
+            // Boot screens - show during any pre-boot state (fixes 1-frame flash)
+            // This catches both bootPhase 0 (right after mode selection) and bootPhase 1 (kernel boot)
             if (!booted) {
-                // Phase 1: Kernel boot
-                if (bootPhase === 1) {
-                    return <BootScreen visitCount={visitCount} />;
-                }
+                return <BootScreen visitCount={visitCount} />;
             }
 
             // Matrix Rain Canvas Component
