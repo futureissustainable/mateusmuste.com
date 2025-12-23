@@ -7,7 +7,31 @@ import {
   ContactApp,
   MessagesApp,
   TerminalApp,
+  PaintApp,
+  VoidApp,
+  RadioApp,
+  SynthApp,
+  TarotApp,
+  PomodoroApp,
+  GalleryApp,
+  BooksApp,
+  BackupBatApp,
+  MapApp,
+  HealthScannerApp,
+  ThirdEyeApp,
+  TruthApp,
+  PersonalApp,
+  BrowserApp,
+  DestructionApp,
+  EndApp,
 } from '@/components/apps';
+import {
+  SnakeApp,
+  MinesweeperApp,
+  StarshipApp,
+  DiceApp,
+  LabyrinthApp,
+} from '@/components/games';
 import { sounds } from '@/lib/audio';
 import { storage, STORAGE_KEYS, HighScoreManager } from '@/lib/storage';
 import { isMobileDevice, getScaledSize } from '@/lib/utils';
@@ -21,7 +45,39 @@ import type {
   Position,
   DragState,
   OSMode,
+  IconName,
 } from '@/types';
+
+// App/Game definitions for launcher
+const APP_DEFINITIONS = [
+  // Creative
+  { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette' as IconName, w: 700, h: 550, category: 'creative' },
+  { id: 'VOID', title: 'VOID.EXE', icon: 'Void' as IconName, w: 500, h: 400, category: 'creative' },
+  { id: 'SYNTH', title: 'SYNTH.EXE', icon: 'Synth' as IconName, w: 600, h: 450, category: 'creative' },
+  { id: 'RADIO', title: 'RADIO.EXE', icon: 'Radio' as IconName, w: 350, h: 300, category: 'creative' },
+  // Games
+  { id: 'SNAKE', title: 'SNAKE.EXE', icon: 'Snek' as IconName, w: 500, h: 550, category: 'games' },
+  { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper' as IconName, w: 450, h: 550, category: 'games' },
+  { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth' as IconName, w: 500, h: 550, category: 'games' },
+  { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship' as IconName, w: 600, h: 700, category: 'games' },
+  { id: 'DICE', title: 'DICE.EXE', icon: 'Dice' as IconName, w: 400, h: 500, category: 'games' },
+  // Productivity
+  { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro' as IconName, w: 400, h: 500, category: 'productivity' },
+  { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' as IconName, w: 700, h: 600, category: 'productivity' },
+  { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' as IconName, w: 800, h: 600, category: 'productivity' },
+  { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'Books' as IconName, w: 600, h: 500, category: 'productivity' },
+  // Utility
+  { id: 'TAROT', title: 'TAROT.EXE', icon: 'Tarot' as IconName, w: 500, h: 600, category: 'utility' },
+  { id: 'SCANNER', title: 'HEALTH_SCAN.EXE', icon: 'HealthScanner' as IconName, w: 400, h: 450, category: 'utility' },
+  { id: 'BACKUP', title: 'BACKUP.BAT', icon: 'Terminal' as IconName, w: 500, h: 400, category: 'utility' },
+  // Hidden/unlockable
+  { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' as IconName, w: 600, h: 500, category: 'hidden', hidden: true },
+  { id: 'TRUTH', title: 'TRUTH.EXE', icon: 'Lock' as IconName, w: 500, h: 400, category: 'hidden', hidden: true },
+  { id: 'PERSONAL', title: 'PERSONAL.EXE', icon: 'Lock' as IconName, w: 600, h: 500, category: 'hidden', hidden: true },
+  { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' as IconName, w: 900, h: 700, category: 'hidden', hidden: true },
+  { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' as IconName, w: 500, h: 400, category: 'hidden', hidden: true },
+  { id: 'END', title: 'END.EXE', icon: 'Trophy' as IconName, w: 600, h: 500, category: 'hidden', hidden: true },
+];
 
 // Binary Background Component
 const BinaryBackground = memo(() => {
@@ -282,6 +338,69 @@ const DesktopIcon = memo(({
 
 DesktopIcon.displayName = 'DesktopIcon';
 
+// App Launcher Component
+const AppLauncher = memo(({
+  unlockedApps,
+  onOpenApp,
+}: {
+  unlockedApps: Set<string>;
+  onOpenApp: (appId: string) => void;
+}) => {
+  const [activeTab, setActiveTab] = useState<'all' | 'games' | 'creative' | 'productivity' | 'utility'>('all');
+
+  const visibleApps = APP_DEFINITIONS.filter(app => {
+    if (app.hidden && !unlockedApps.has(app.id)) return false;
+    if (activeTab === 'all') return true;
+    return app.category === activeTab;
+  });
+
+  return (
+    <div className="h-full flex flex-col bg-white">
+      {/* Tab bar */}
+      <div className="flex border-b-2 border-black">
+        {(['all', 'games', 'creative', 'productivity', 'utility'] as const).map(tab => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`px-4 py-2 text-sm font-bold uppercase ${activeTab === tab ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      {/* App grid */}
+      <div className="flex-1 overflow-auto p-4">
+        <div className="grid grid-cols-4 gap-4">
+          {visibleApps.map(app => (
+            <button
+              key={app.id}
+              onClick={() => onOpenApp(app.id)}
+              className="flex flex-col items-center p-3 hover:bg-gray-100 border border-transparent hover:border-black"
+            >
+              <PixelartIcon name={app.icon} size={48} />
+              <span className="mt-2 text-xs text-center truncate w-full">{app.title}</span>
+            </button>
+          ))}
+        </div>
+
+        {visibleApps.length === 0 && (
+          <div className="text-center text-gray-500 mt-8">
+            No apps in this category yet.
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div className="p-2 border-t-2 border-black text-center text-sm text-gray-500">
+        Open TERMINAL.EXE to unlock hidden apps!
+      </div>
+    </div>
+  );
+});
+
+AppLauncher.displayName = 'AppLauncher';
+
 // Main OS Component
 function App() {
   // Mode selection state
@@ -300,17 +419,43 @@ function App() {
   const [, setTopZ] = useState(100);
   const topZRef = useRef(100);
 
+  // Build initial windows state
+  const buildInitialWindows = (): WindowsState => {
+    const base: WindowsState = {
+      MESSAGES: { id: 'MESSAGES', title: 'MESSAGES.EXE', icon: 'Email', x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 8, isDesktop: true },
+      ABOUT: { id: 'ABOUT', title: 'ABOUT.EXE', icon: 'Terminal', x: 150, y: 50, w: 820, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
+      SYSTEM: { id: 'SYSTEM', title: 'SYSTEM_INFO', icon: 'Terminal', x: 400, y: 50, w: 1000, h: 800, isOpen: false, isMin: false, z: 10, isDesktop: true },
+      FILES: { id: 'FILES', title: 'MEDIA_LIB', icon: 'Folder', x: 100, y: 80, w: 800, h: 500, isOpen: false, isMin: false, z: 11, isDesktop: true },
+      APPS: { id: 'APPS', title: 'APPS', icon: 'Apps', x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
+      CONTACT: { id: 'CONTACT', title: 'CONTACT', icon: 'Email', x: 200, y: 140, w: 320, h: 380, isOpen: false, isMin: false, z: 13, isDesktop: true },
+      TRASH: { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan', x: 250, y: 170, w: 500, h: 400, isOpen: false, isMin: false, z: 16, isDesktop: true },
+      TERMINAL: { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', x: 300, y: 100, w: 600, h: 450, isOpen: false, isMin: false, z: 17, isDesktop: false },
+    };
+
+    // Add all apps from APP_DEFINITIONS
+    APP_DEFINITIONS.forEach((app, i) => {
+      if (!base[app.id]) {
+        base[app.id] = {
+          id: app.id,
+          title: app.title,
+          icon: app.icon,
+          x: 100 + (i % 5) * 50,
+          y: 80 + Math.floor(i / 5) * 40,
+          w: app.w,
+          h: app.h,
+          isOpen: false,
+          isMin: false,
+          z: 20 + i,
+          isDesktop: false,
+        };
+      }
+    });
+
+    return base;
+  };
+
   // Window state
-  const [windows, setWindows] = useState<WindowsState>({
-    MESSAGES: { id: 'MESSAGES', title: 'MESSAGES.EXE', icon: 'Email', x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 8, isDesktop: true },
-    ABOUT: { id: 'ABOUT', title: 'ABOUT.EXE', icon: 'Terminal', x: 150, y: 50, w: 820, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
-    SYSTEM: { id: 'SYSTEM', title: 'SYSTEM_INFO', icon: 'Terminal', x: 400, y: 50, w: 1000, h: 800, isOpen: false, isMin: false, z: 10, isDesktop: true },
-    FILES: { id: 'FILES', title: 'MEDIA_LIB', icon: 'Folder', x: 100, y: 80, w: 800, h: 500, isOpen: false, isMin: false, z: 11, isDesktop: true },
-    APPS: { id: 'APPS', title: 'APPS', icon: 'Apps', x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
-    CONTACT: { id: 'CONTACT', title: 'CONTACT', icon: 'Email', x: 200, y: 140, w: 320, h: 380, isOpen: false, isMin: false, z: 13, isDesktop: true },
-    TRASH: { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan', x: 250, y: 170, w: 500, h: 400, isOpen: false, isMin: false, z: 16, isDesktop: true },
-    TERMINAL: { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', x: 300, y: 100, w: 600, h: 450, isOpen: false, isMin: false, z: 17, isDesktop: false },
-  });
+  const [windows, setWindows] = useState<WindowsState>(buildInitialWindows);
 
   // Unlocked apps tracking
   const [unlockedApps, setUnlockedApps] = useState<Set<string>>(() => {
@@ -322,6 +467,7 @@ function App() {
   useEffect(() => {
     storage.set(STORAGE_KEYS.UNLOCKED_APPS, Array.from(unlockedApps));
   }, [unlockedApps]);
+
   const [windowAnimations, setWindowAnimations] = useState<WindowAnimations>({});
 
   // Icon state
@@ -534,6 +680,12 @@ function App() {
     });
   }, []);
 
+  // Open app from launcher
+  const handleOpenApp = useCallback((appId: string) => {
+    close('APPS');
+    setTimeout(() => open(appId), 200);
+  }, [close, open]);
+
   // Render window content
   const getWindowContent = (id: string) => {
     switch (id) {
@@ -544,7 +696,7 @@ function App() {
           <ContactApp
             onOpenPaint={() => {
               close('CONTACT');
-              // Open paint when implemented
+              open('PAINT');
             }}
           />
         );
@@ -554,16 +706,10 @@ function App() {
         return <FileExplorer onAchievement={handleAchievement} />;
       case 'APPS':
         return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">APPS</h2>
-            <p className="text-gray-600 mb-4">Open TERMINAL to unlock more apps!</p>
-            <button
-              onClick={() => { close('APPS'); open('TERMINAL'); }}
-              className="btn-primary"
-            >
-              TERMINAL.EXE
-            </button>
-          </div>
+          <AppLauncher
+            unlockedApps={unlockedApps}
+            onOpenApp={handleOpenApp}
+          />
         );
       case 'MESSAGES':
         return (
@@ -584,6 +730,55 @@ function App() {
             unlockedApps={unlockedApps}
           />
         );
+      // Creative Apps
+      case 'PAINT':
+        return <PaintApp onAchievement={handleAchievement} />;
+      case 'VOID':
+        return <VoidApp onAchievement={handleAchievement} />;
+      case 'SYNTH':
+        return <SynthApp />;
+      case 'RADIO':
+        return <RadioApp />;
+      // Games
+      case 'SNAKE':
+        return <SnakeApp onAchievement={handleAchievement} />;
+      case 'MINESWEEPER':
+        return <MinesweeperApp onAchievement={handleAchievement} />;
+      case 'LABYRINTH':
+        return <LabyrinthApp onAchievement={handleAchievement} />;
+      case 'STARSHIP':
+        return <StarshipApp onAchievement={handleAchievement} />;
+      case 'DICE':
+        return <DiceApp onAchievement={handleAchievement} />;
+      // Productivity
+      case 'POMODORO':
+        return <PomodoroApp />;
+      case 'MAP':
+        return <MapApp onAchievement={handleAchievement} />;
+      case 'GALLERY':
+        return <GalleryApp />;
+      case 'BOOKS':
+        return <BooksApp />;
+      // Utility
+      case 'TAROT':
+        return <TarotApp onAchievement={handleAchievement} />;
+      case 'SCANNER':
+        return <HealthScannerApp />;
+      case 'BACKUP':
+        return <BackupBatApp />;
+      // Hidden/Unlockable
+      case 'THIRD_EYE':
+        return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} />;
+      case 'TRUTH':
+        return <TruthApp onAchievement={handleAchievement} />;
+      case 'PERSONAL':
+        return <PersonalApp />;
+      case 'BROWSER':
+        return <BrowserApp />;
+      case 'DESTRUCTION':
+        return <DestructionApp onAchievement={handleAchievement} />;
+      case 'END':
+        return <EndApp achievements={achievements} />;
       default:
         return (
           <div className="p-6 text-center">
