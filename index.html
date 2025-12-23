@@ -2026,6 +2026,34 @@
         // Initialize on load (uses cached IP, fetches fresh in background)
         HighScoreManager.init();
 
+        // --- ERROR BOUNDARY - Prevents window crashes from taking down the whole app ---
+        class WindowErrorBoundary extends React.Component {
+            constructor(props) {
+                super(props);
+                this.state = { hasError: false, error: null };
+            }
+            static getDerivedStateFromError(error) {
+                return { hasError: true, error };
+            }
+            componentDidCatch(error, errorInfo) {
+                console.error('Window Error:', error, errorInfo);
+            }
+            render() {
+                if (this.state.hasError) {
+                    return (
+                        <div className="h-full flex flex-col items-center justify-center bg-black text-red-500 font-mono p-4">
+                            <div className="text-xl font-bold mb-2">ERROR</div>
+                            <div className="text-xs text-center mb-4">Window crashed. Close and try again.</div>
+                            <div className="text-[10px] text-gray-500 max-w-full overflow-hidden text-ellipsis">
+                                {this.state.error?.message || 'Unknown error'}
+                            </div>
+                        </div>
+                    );
+                }
+                return this.props.children;
+            }
+        }
+
         // --- PIXELARTICONS (from unpkg CDN) ---
         const PixelartIcon = ({ name, size = 64, style = {}, className = '', ...props }) => (
             <img
@@ -11233,7 +11261,9 @@ Good luck.`;
                                 </div>
                                 {/* CONTENT */}
                                 <div className="flex-grow overflow-auto relative bg-white" onMouseDown={() => focus(win.id)}>
-                                    {getWindowContent(win.id)}
+                                    <WindowErrorBoundary key={win.id}>
+                                        {getWindowContent(win.id)}
+                                    </WindowErrorBoundary>
                                 </div>
                             </div>
                         );
