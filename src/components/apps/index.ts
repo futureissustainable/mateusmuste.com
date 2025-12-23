@@ -6,3 +6,5 @@ export { GalleryApp } from './GalleryApp';
 export { SnakeApp } from './SnakeApp';
 export { MinesweeperApp } from './MinesweeperApp';
 export { LabyrinthApp } from './LabyrinthApp';
+export { SynthApp } from './SynthApp';
+export { RadioApp } from './RadioApp';

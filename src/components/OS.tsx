@@ -15,6 +15,8 @@ import {
   SnakeApp,
   MinesweeperApp,
   LabyrinthApp,
+  SynthApp,
+  RadioApp,
 } from '@/components/apps';
 
 // Boot screen component
@@ -164,6 +166,10 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <MinesweeperApp onAchievement={callbacks.onAchievement} />;
     case 'LABYRINTH':
       return <LabyrinthApp onAchievement={callbacks.onAchievement} />;
+    case 'SYNTH':
+      return <SynthApp onAchievement={callbacks.onAchievement} />;
+    case 'RADIO':
+      return <RadioApp onAchievement={callbacks.onAchievement} />;
     default:
       // Placeholder for apps not yet implemented
       return (
