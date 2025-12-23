@@ -3681,10 +3681,10 @@
                     if (progress < 1) {
                         requestAnimationFrame(animate);
                     } else {
-                        // After 5 rolls, automatically give a 20
+                        // On the 5th roll, automatically give a 20, then back to RNG
                         setRollCount(prev => {
                             const newCount = prev + 1;
-                            const roll = newCount >= 5 ? 20 : Math.floor(Math.random() * 20) + 1;
+                            const roll = newCount === 5 ? 20 : Math.floor(Math.random() * 20) + 1;
                             setResult(roll);
                             setIsRolling(false);
                             isRollingRef.current = false;
@@ -3710,6 +3710,18 @@
                 animate();
             };
 
+            // Space key to roll
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.code === 'Space' || e.key === ' ') {
+                        e.preventDefault();
+                        rollDice();
+                    }
+                };
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [isRolling]);
+
             return (
                 <div className="h-full flex flex-col bg-white select-none">
                     <div className="flex-grow flex flex-col items-center justify-center p-4 bg-white">
@@ -3719,7 +3731,7 @@
                             disabled={isRolling}
                             className="bg-black text-white px-6 py-2 font-mono text-[10px] tracking-widest hover:bg-gray-800 disabled:bg-gray-300 transition-colors"
                         >
-                            {isRolling ? 'ROLLING' : 'ROLL'}
+                            {isRolling ? 'ROLLING' : 'ROLL [SPACE]'}
                         </button>
                         {/* Result below button with fixed height to prevent jumping */}
                         <div className="h-12 flex items-center justify-center mt-4">
@@ -3997,6 +4009,7 @@
         const LabyrinthApp = ({ onAchievement }) => {
             const canvasRef = useRef(null);
             const [level, setLevel] = useState(1);
+            const levelRef = useRef(1); // Ref to avoid stale closure in move function
             const [score, setScore] = useState(0);
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('labyrinth'));
             const [won, setWon] = useState(false);
@@ -4131,7 +4144,8 @@
                     draw();
 
                     if (nx === exitRef.current.x && ny === exitRef.current.y) {
-                        const points = level * 100;
+                        const currentLevel = levelRef.current;
+                        const points = currentLevel * 100;
                         setScore(s => {
                             const newScore = s + points;
                             setHighScore(h => {
@@ -4142,8 +4156,8 @@
                             return newScore;
                         });
                         // Show level word (0-indexed, so level 1 = index 0)
-                        if (level <= LEVEL_WORDS.length) {
-                            setLevelWord(LEVEL_WORDS[level - 1]);
+                        if (currentLevel <= LEVEL_WORDS.length) {
+                            setLevelWord(LEVEL_WORDS[currentLevel - 1]);
                         } else {
                             setLevelWord('CLEAR');
                         }
@@ -4153,14 +4167,16 @@
                         // FIRST_BLOOD - win any game
                         onAchievement?.('FIRST_BLOOD');
                         // Check for DAEDALUS achievement
-                        if (level >= 10) onAchievement?.('DAEDALUS');
+                        if (currentLevel >= 10) onAchievement?.('DAEDALUS');
 
                         // Show full maze then start next level
                         setTimeout(() => {
                             setShowingMaze(true);
                             setTimeout(() => {
-                                setLevel(l => l + 1);
-                                startLevel(level + 1);
+                                const nextLevel = levelRef.current + 1;
+                                levelRef.current = nextLevel;
+                                setLevel(nextLevel);
+                                startLevel(nextLevel);
                             }, 2000);
                         }, 1000);
                     }
@@ -4171,6 +4187,7 @@
             };
 
             const giveUp = () => {
+                levelRef.current = 1;
                 setLevel(1);
                 setScore(0);
                 startLevel(1);
@@ -6469,87 +6486,62 @@
             );
         };
 
-        // --- BOOKS.EXE - Library with LOGIC volumes (Narrative Bible v3.0) ---
+        // --- BOOKS.EXE - Library with truth saga and classics ---
         const BooksApp = ({ onUnlockApp, unlockedApps }) => {
             const [selectedBook, setSelectedBook] = useState(null);
-            const [logicVolumesRead, setLogicVolumesRead] = useState(() => {
-                const stored = localStorage.getItem('ultra_int_logic_volumes');
-                return stored ? JSON.parse(stored) : { vol1: false, vol2: false, vol3: false };
+            const [truthRead, setTruthRead] = useState(() => {
+                return localStorage.getItem('ultra_int_truth_read') === 'true';
             });
 
-            // Save logic volumes state
+            // Save truth read state and unlock DICE
             useEffect(() => {
-                localStorage.setItem('ultra_int_logic_volumes', JSON.stringify(logicVolumesRead));
-                // Check if all 3 volumes read -> unlock DICE
-                if (logicVolumesRead.vol1 && logicVolumesRead.vol2 && logicVolumesRead.vol3) {
-                    if (!unlockedApps?.has('DICE')) {
-                        onUnlockApp?.('DICE');
-                    }
+                localStorage.setItem('ultra_int_truth_read', truthRead.toString());
+                if (truthRead && !unlockedApps?.has('DICE')) {
+                    onUnlockApp?.('DICE');
                 }
-            }, [logicVolumesRead]);
+            }, [truthRead]);
 
             const books = [
-                { id: 'logic1', title: 'LOGIC VOL. 1', category: 'SYSTEM', isLogic: true, vol: 'vol1' },
-                { id: 'logic2', title: 'LOGIC VOL. 2', category: 'SYSTEM', isLogic: true, vol: 'vol2' },
-                { id: 'logic3', title: 'LOGIC VOL. 3', category: 'SYSTEM', isLogic: true, vol: 'vol3' },
+                { id: 'truth', title: 'TRUTH.EXE: A SAGA', category: 'SYSTEM', isTruth: true },
                 { id: 'crime', title: 'Crime and Punishment', category: 'CLASSICS', author: 'Dostoevsky' },
                 { id: 'meta', title: 'The Metamorphosis', category: 'CLASSICS', author: 'Kafka' },
                 { id: 'trial', title: 'The Trial', category: 'CLASSICS', author: 'Kafka' },
                 { id: 'notes', title: 'Notes from Underground', category: 'CLASSICS', author: 'Dostoevsky' }
             ];
 
-            const getLogicContent = (vol) => {
-                if (vol === 'vol1') return `LOGIC VOL. 1 — FOUNDATIONS
+            const getTruthContent = () => {
+                return `TRUTH.EXE: A SAGA
 
-RULE 1: Every locked door has a key in another room.
+═══════════════════════════════════════════
 
-RULE 2: The Third Eye sees what was erased.
+CHAPTER 1: FOUNDATIONS
 
-RULE 3: Some truths require patience.
+Every locked door has a key in another room.
+The Third Eye sees what was erased.
+Some truths require patience.
+Commands hide in games. Games hide in commands.
+To destroy is to create. To create is to destroy.
 
-RULE 4: Commands hide in games. Games hide in commands.
+═══════════════════════════════════════════
 
-RULE 5: To destroy is to create. To create is to destroy.
+CHAPTER 2: PATTERNS
 
-───────────────────────────────────────────
-
-APPENDIX A: Known terminal commands
-  - help, ping, sudo reveal, clear, chkdsk
-  - cmatrix (requires Third Eye to see)
-  - sudo unlock (discovered in SNEK)
-  - sudo chmod 777 /private (discovered via Third Eye)
-  - sudo shooter (discovered in MINESWEEPER)
-  - More exist...
-
-APPENDIX B: The Trinity of Sight
-  1. Normal vision shows the surface
-  2. Third Eye shows the hidden
-  3. ??? shows the truth`;
-
-                if (vol === 'vol2') return `LOGIC VOL. 2 — PATTERNS
-
-OBSERVATION 1:
 The canvas remembers. Paint covers, but never erases.
 What lies beneath the white?
 
-OBSERVATION 2:
 The dice know things. Roll until they speak.
 Twenty is not just a number.
 
-OBSERVATION 3:
 The browser knows where you've been.
 But does it know where you're going?
 Seek the path of zen.
 
-OBSERVATION 4:
 Some creations require destruction first.
 Delete to reveal.
 
-OBSERVATION 5:
-Some doors require more than a password.
-Some doors require a way of life.`;
+═══════════════════════════════════════════
 
-                if (vol === 'vol3') return `LOGIC VOL. 3 — TRANSCENDENCE
+CHAPTER 3: TRANSCENDENCE
 
 THE FINAL REVELATION:
 
@@ -6565,14 +6557,12 @@ The command exists. The code exists.
 One unlocks the other.
 
 Good luck.`;
-
-                return '';
             };
 
             const handleOpenBook = (book) => {
                 setSelectedBook(book);
-                if (book.isLogic && book.vol) {
-                    setLogicVolumesRead(prev => ({ ...prev, [book.vol]: true }));
+                if (book.isTruth) {
+                    setTruthRead(true);
                 }
             };
 
@@ -6590,8 +6580,8 @@ Good luck.`;
                         <div className="flex-grow flex flex-col">
                             <div className="flex-grow overflow-auto p-4 bg-gray-100">
                                 <pre className="font-mono text-sm whitespace-pre-wrap leading-relaxed">
-                                    {selectedBook.isLogic
-                                        ? getLogicContent(selectedBook.vol)
+                                    {selectedBook.isTruth
+                                        ? getTruthContent()
                                         : `${selectedBook.title}\nby ${selectedBook.author}\n\n[PUBLIC DOMAIN - FULL TEXT AVAILABLE ONLINE]`}
                                 </pre>
                             </div>
@@ -6609,8 +6599,8 @@ Good luck.`;
                                         key={book.id}
                                         onClick={() => handleOpenBook(book)}
                                         className={`p-3 border-2 cursor-pointer ${
-                                            book.isLogic
-                                                ? logicVolumesRead[book.vol]
+                                            book.isTruth
+                                                ? truthRead
                                                     ? 'border-green-500 bg-green-50'
                                                     : 'border-black bg-yellow-50 hover:bg-yellow-100'
                                                 : 'border-black bg-white hover:bg-gray-100'
@@ -6618,7 +6608,7 @@ Good luck.`;
                                     >
                                         <div className="font-mono text-xs font-bold">{book.title}</div>
                                         <div className="font-mono text-[10px] text-gray-500">
-                                            {book.isLogic ? (logicVolumesRead[book.vol] ? '✓ READ' : 'UNREAD') : book.author}
+                                            {book.isTruth ? (truthRead ? '✓ READ' : 'UNREAD') : book.author}
                                         </div>
                                     </div>
                                 ))}
@@ -7866,10 +7856,8 @@ Good luck.`;
                                 addOutput('TRUTH.EXE RELOCATED\n');
                                 addOutput('BONUS CONTENT UNLOCKED:');
                                 addOutput('├── RADIO.WAV');
-                                addOutput('├── SYNTH.WAV');
                                 addOutput('├── POMODORO.EXE');
-                                addOutput('├── SCANNER.EXE');
-                                addOutput('└── GALLERY.EXE\n');
+                                addOutput('└── SCANNER.EXE\n');
                                 addOutput('───────────────────────────────────────────');
                                 setAwaitingKonami(false);
                                 onAchievement?.('BECOME_GOD');
@@ -7967,17 +7955,14 @@ Good luck.`;
                         { name: 'STARSHIP.EXE', id: 'STARSHIP' },
                         { name: 'DICE.EXE', id: 'DICE' },
                         { name: 'TAROT.DAT', id: 'TAROT' },
-                        { name: 'SYNTH.WAV', id: 'SYNTH' },
                         { name: 'RADIO.WAV', id: 'RADIO' },
                         { name: 'POMODORO.EXE', id: 'POMODORO' },
-                        { name: 'GALLERY.EXE', id: 'GALLERY' },
                         { name: 'MAP.EXE', id: 'MAP' },
                         { name: 'BOOKS.EXE', id: 'BOOKS' },
                         { name: 'PRIVATE.EXE', id: 'PERSONAL' },
                         { name: 'SCANNER.EXE', id: 'SCANNER' },
                         { name: 'BROWSER.EXE', id: 'BROWSER' },
                         { name: 'THIRD_EYE.EXE', id: 'THIRD_EYE' },
-                        { name: 'BACKUP.BAT', id: 'BACKUP' },
                         { name: 'TRUTH.EXE', id: 'TRUTH', special: true }
                     ];
 
@@ -8184,13 +8169,11 @@ Good luck.`;
                 TAROT: `// CARDS.FATE\ndeck.shuffle(∞);\nreveal(destiny);`,
                 VOID: `// VOID.NULL - DISCARDED NOTES\n\n[DISCARDED] Note 38: Fix physics on smaller desktops.\n\n[DISCARDED] Note 39: Third eye seems to be the only app that can open twice. Intriguing. Stacking 2 of them together generates a ████████████.\n\n[DISCARDED] Note 40: There shouldn't be 21 apps. We made only 20 apps... There must be a bug in the ████████. Note to fix it.`,
                 RADIO: `// STREAM.WAV\naudio.play(frequency);`,
-                SYNTH: `// SOUND.WAVE\nnote.oscillate();`,
                 TERMINAL: `// CMD.EXE\nif (cmd === "exit") print("no escape");\n\n// HIDDEN COMMANDS:\n// cmatrix ████████████████`,
                 SYSTEM: `// KERNEL.SYS\nif (konami_code()) observe_all();`,
                 POMODORO: `// TIME.LOOP\nwork(25); rest(5);`,
                 MAP: `// GLOBE.ROTATE\nrender_sphere(phi++);`,
                 BROWSER: `// EXPLORE.NET\nif (url === self) reboot();`,
-                GALLERY: `// IMAGES.VIEW\nphotos.forEach(display);`,
                 DESTRUCTION: `// CHAOS.EXE\nreality.invert();\ndog.release();`,
                 CONTACT: `// MAIL.SEND\nclipboard.copy(email);`,
                 TRASH: `// RECYCLE.BIN\ndelete item;`,
@@ -8514,16 +8497,16 @@ Good luck.`;
             }
 
             return (
-                <div className="h-full flex flex-col bg-black select-none">
-                    <div className="p-2 border-b border-red-900 bg-black flex items-center gap-2">
+                <div className="h-full flex flex-col bg-black select-none overflow-hidden">
+                    <div className="p-2 border-b border-red-900 bg-black flex items-center gap-2 text-red-500">
                         <Icons.Lock size={16} />
-                        <span className="font-mono text-xs font-bold text-red-500">PRIVATE.EXE</span>
+                        <span className="font-mono text-xs font-bold">PRIVATE.EXE</span>
                     </div>
-                    <div className="flex-grow flex flex-col items-center justify-center p-6">
+                    <div className="flex-grow flex flex-col items-center justify-center p-6 text-red-500">
                         <div className="mb-4">
                             <Icons.Lock size={48} />
                         </div>
-                        <div className="font-mono text-red-500 text-sm font-bold mb-4">SECURE AREA</div>
+                        <div className="font-mono text-sm font-bold mb-4">SECURE AREA</div>
 
                         <form onSubmit={handleSubmit} className={`w-56 ${shaking ? 'animate-shake' : ''}`}>
                             <input
@@ -8563,10 +8546,10 @@ Good luck.`;
             const [hoveredApp, setHoveredApp] = useState(null);
 
             // All available apps organized by narrative progression order
-            // Narrative Bible v3.0 - 21 apps total
             const ALL_APPS = [
                 // Core - always available after intro
                 { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', category: 'CORE' },
+                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship', category: 'CORE' },
 
                 // Narrative progression apps (unlock in order through gameplay)
                 { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'LOCKED', hint: 'Terminal: sudo reveal' },
@@ -8576,24 +8559,20 @@ Good luck.`;
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Play SNEK' },
                 { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED', hint: 'The dog knows' },
                 { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: '100 clicks' },
-                { id: 'BACKUP', title: 'BACKUP.BAT', icon: 'Terminal', category: 'LOCKED', hint: 'Time gate: 10 minutes' },
-                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'LOCKED', hint: 'Watch the backup' },
+                { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'LOCKED', hint: 'Terminal unlock' },
                 { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Accept fate' },
-                { id: 'STARSHIP', title: 'STARSHIP.EXE', icon: 'Starship', category: 'LOCKED', hint: 'Terminal: sudo shooter' },
                 { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Terminal: 42' },
-                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read all LOGIC volumes' },
+                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read the truth' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Become god' },
 
                 // Bonus apps (unlock after god mode)
                 { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Become God' },
-                { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth', category: 'BONUS', hint: 'Become God' },
                 { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Become God' },
                 { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Become God' },
-                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery', category: 'BONUS', hint: 'Become God' },
 
                 // Special
-                { id: 'END', title: 'ACHIEVEMENTS.EXE', icon: 'Trophy', category: 'CORE' }
+                { id: 'END', title: 'ACHIEVEMENTS', icon: 'Trophy', category: 'CORE' }
             ];
 
             // Filter for mobile
@@ -8674,16 +8653,14 @@ Good luck.`;
                 { id: 'VOID', title: 'VOID.TXT', icon: 'Void' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser' },
                 // About
-                { id: 'GALLERY', title: 'GALLERY.EXE', icon: 'Gallery' },
                 { id: 'MAP', title: 'MAP.EXE', icon: 'Globe' },
                 { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock' },
                 { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction' },
                 { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan' },
-                { id: 'END', title: 'END.EXE', icon: 'Trophy' },
+                { id: 'END', title: 'ACHIEVEMENTS', icon: 'Trophy' },
                 // Desktop only
                 ...(!isMobile ? [
                     { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye' },
-                    { id: 'SYNTH', title: 'SYNTH_001.WAV', icon: 'Synth' },
                     { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot' }
                 ] : [])
             ];
@@ -8785,30 +8762,24 @@ Good luck.`;
 
             return (
                 <div className="h-full flex flex-col bg-white select-none overflow-hidden">
-                    <div className="app-header flex-shrink-0">
-                        <div className="flex items-center gap-2">
-                            <Icons.Email size={16} />
-                            <span className="app-header-title">CONTACT</span>
-                        </div>
-                    </div>
-                    <div className="flex-1 min-h-0 flex flex-col items-center justify-center bg-gray-50 p-4">
-                        <Icons.Email size={32} />
-                        <div className="font-mono text-lg font-bold mt-2 mb-1">GET IN TOUCH</div>
-                        <div className="font-mono text-xs text-gray-500 mb-4">{email}</div>
+                    <div className="flex-1 min-h-0 flex flex-col items-center justify-center p-6">
+                        <Icons.Email size={48} />
+                        <div className="font-mono text-xl font-bold mt-4 mb-2">GET IN TOUCH</div>
+                        <div className="font-mono text-sm text-gray-500 mb-6">{email}</div>
 
-                        <div className="flex flex-col gap-2 w-full max-w-xs">
+                        <div className="flex flex-col gap-3 w-full max-w-xs">
                             <div className="flex gap-2">
-                                <button onClick={copyEmail} className="btn-primary flex-1 btn-sm">
+                                <button onClick={copyEmail} className="btn-primary flex-1">
                                     {copied ? 'COPIED!' : 'COPY EMAIL'}
                                 </button>
-                                <a href={`mailto:${email}`} className="btn-secondary flex-1 text-center btn-sm" onClick={() => sounds.click()}>
+                                <a href={`mailto:${email}`} className="btn-secondary flex-1 text-center" onClick={() => sounds.click()}>
                                     OPEN MAIL
                                 </a>
                             </div>
 
-                            <div className="border-t-2 border-black my-1"></div>
+                            <div className="border-t-2 border-black my-2"></div>
 
-                            <button onClick={openDrawMessage} className="btn-secondary w-full flex items-center justify-center gap-2 btn-sm">
+                            <button onClick={openDrawMessage} className="btn-secondary w-full flex items-center justify-center gap-2">
                                 <Icons.Palette size={16} />
                                 DIRECT CONTACT
                             </button>
@@ -9107,7 +9078,7 @@ Good luck.`;
             // App progression system - Narrative Bible v3.0
             // Starting apps: Only TERMINAL visible in APPS folder after intro
             // Desktop icons: ABOUT, TRASH, APPS, CONTACT, FILES (MEDIA_LIB)
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'STARSHIP'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
@@ -9127,7 +9098,7 @@ Good luck.`;
 
                 // God mode unlocks bonus apps
                 if (achievements.BECOME_GOD) {
-                    ['RADIO', 'SYNTH', 'POMODORO', 'SCANNER', 'GALLERY', 'DESTRUCTION'].forEach(app => unlocked.add(app));
+                    ['RADIO', 'POMODORO', 'SCANNER', 'DESTRUCTION'].forEach(app => unlocked.add(app));
                 }
 
                 return unlocked;
@@ -9164,7 +9135,7 @@ Good luck.`;
                 localStorage.setItem('ultra_int_clicks', totalClicks.toString());
             }, [totalClicks]);
 
-            // Time tracking for TIMEKEEPER (10 minutes = 600000ms) and BACKUP.BAT unlock
+            // Time tracking for TIMEKEEPER (10 minutes = 600000ms)
             useEffect(() => {
                 const checkTime = setInterval(() => {
                     const elapsed = Date.now() - startTimeRef.current;
@@ -9172,13 +9143,9 @@ Good luck.`;
                     if (elapsed >= 600000 && !achievements.TIMEKEEPER) {
                         unlockAchievement('TIMEKEEPER');
                     }
-                    // BACKUP.BAT unlocks at 10 minutes
-                    if (elapsed >= 600000 && !narrativeUnlocks.includes('BACKUP')) {
-                        unlockApp('BACKUP');
-                    }
                 }, 30000); // Check every 30 seconds
                 return () => clearInterval(checkTime);
-            }, [achievements, narrativeUnlocks]);
+            }, [achievements]);
 
             // Global click handler for CLICKER achievement and LABYRINTH unlock
             useEffect(() => {
@@ -9247,10 +9214,10 @@ Good luck.`;
                 // Unlock ALL apps via narrative unlocks (so they persist)
                 const ALL_UNLOCKABLE_APPS = [
                     'PAINT', 'SNAKE', 'VOID', 'RADIO', 'DICE', 'LABYRINTH',
-                    'MINESWEEPER', 'STARSHIP', 'SYNTH', 'DESTRUCTION', 'TAROT',
-                    'GALLERY', 'MAP', 'POMODORO', 'SCANNER', 'PERSONAL',
+                    'MINESWEEPER', 'STARSHIP', 'DESTRUCTION', 'TAROT',
+                    'MAP', 'POMODORO', 'SCANNER', 'PERSONAL',
                     'DOG_STORY', 'THIRD_EYE', 'THIRD_EYE_2', 'BROWSER',
-                    'BOOKS', 'BACKUP', 'TRUTH'
+                    'BOOKS', 'TRUTH'
                 ];
                 setNarrativeUnlocks(ALL_UNLOCKABLE_APPS);
 
@@ -9520,7 +9487,7 @@ Good luck.`;
             // Base sizes are for 1920x1080, will be scaled for smaller screens
             const [windows, setWindows] = useState({
                 "MESSAGES": { id: "MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 8, isDesktop: true },
-                "ABOUT": { id: "ABOUT", title: "ABOUT.EXE", icon: "Terminal", x: 150, y: 50, w: 820, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
+                "ABOUT": { id: "ABOUT", title: "ABOUT", icon: "Terminal", x: 150, y: 50, w: 820, h: 700, isOpen: false, isMin: false, z: 9, isDesktop: true },
                 "SYSTEM": { id: "SYSTEM", title: "SYSTEM_INFO", icon: "Terminal", x: 400, y: 50, w: 1000, h: 800, isOpen: true, isMin: false, z: 10, isDesktop: true },
                 "FILES": { id: "FILES", title: "MEDIA_LIB", icon: "Folder", x: 100, y: 80, w: 800, h: 500, isOpen: false, isMin: false, z: 11, isDesktop: true },
                 "APPS": { id: "APPS", title: "APPS", icon: "Apps", x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
@@ -9534,11 +9501,9 @@ Good luck.`;
                 "LABYRINTH": { id: "LABYRINTH", title: "LABYRINTH.EXE", icon: "Labyrinth", x: 100, y: 50, w: 600, h: 500, isOpen: false, isMin: false, z: 21 },
                 "MINESWEEPER": { id: "MINESWEEPER", title: "MINESWEEPER.EXE", icon: "Minesweeper", x: 120, y: 40, w: 500, h: 560, isOpen: false, isMin: false, z: 26 },
                 "STARSHIP": { id: "STARSHIP", title: "STARSHIP.EXE", icon: "Starship", x: 80, y: 40, w: 540, h: 480, isOpen: false, isMin: false, z: 27 },
-                "SYNTH": { id: "SYNTH", title: "SYNTH_001.WAV", icon: "Synth", x: 150, y: 80, w: 500, h: 350, isOpen: false, isMin: false, z: 22 },
-                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: 400, h: 400, isOpen: false, isMin: false, z: 23 },
+                                "DESTRUCTION": { id: "DESTRUCTION", title: "DESTRUCTION.EXE", icon: "Destruction", x: 200, y: 110, w: 400, h: 400, isOpen: false, isMin: false, z: 23 },
                 "TAROT": { id: "TAROT", title: "TAROT.DAT", icon: "Tarot", x: 100, y: 60, w: 520, h: 550, isOpen: false, isMin: false, z: 24 },
-                "GALLERY": { id: "GALLERY", title: "GALLERY.EXE", icon: "Gallery", x: 100, y: 80, w: 500, h: 500, isOpen: false, isMin: false, z: 28 },
-                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: 360, h: 400, isOpen: false, isMin: false, z: 29 },
+                                "MAP": { id: "MAP", title: "MAP.EXE", icon: "Globe", x: 150, y: 100, w: 360, h: 400, isOpen: false, isMin: false, z: 29 },
                 "POMODORO": { id: "POMODORO", title: "POMODORO.EXE", icon: "Pomodoro", x: 200, y: 60, w: 350, h: 620, isOpen: false, isMin: false, z: 30 },
                 "SCANNER": { id: "SCANNER", title: "SCANNER.EXE", icon: "HealthScanner", x: 150, y: 50, w: 600, h: 700, isOpen: false, isMin: false, z: 31 },
                 "PERSONAL": { id: "PERSONAL", title: "PRIVATE.EXE", icon: "Lock", x: 200, y: 80, w: 320, h: 340, isOpen: false, isMin: false, z: 32 },
@@ -9548,10 +9513,9 @@ Good luck.`;
                 "THIRD_EYE": { id: "THIRD_EYE", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 140, y: 90, w: 450, h: 400, isOpen: false, isMin: false, z: 36 },
                 "THIRD_EYE_2": { id: "THIRD_EYE_2", title: "THIRD_EYE.EXE", icon: "ThirdEye", x: 200, y: 150, w: 450, h: 400, isOpen: false, isMin: false, z: 37 },
                 "BROWSER": { id: "BROWSER", title: "KONAMI by zen", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
-                "END": { id: "END", title: "END.EXE", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 },
+                "END": { id: "END", title: "ACHIEVEMENTS", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 },
                 "BOOKS": { id: "BOOKS", title: "BOOKS.EXE", icon: "FileDoc", x: 150, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 40 },
-                "BACKUP": { id: "BACKUP", title: "BACKUP.BAT", icon: "Terminal", x: 180, y: 100, w: 500, h: 400, isOpen: false, isMin: false, z: 41 },
-                "TRUTH_MESSAGES": { id: "TRUTH_MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 42 }
+                                "TRUTH_MESSAGES": { id: "TRUTH_MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 42 }
             });
 
             // Auto-scale windows based on viewport - designed for 1920x1080, scales down for smaller screens
@@ -9630,10 +9594,8 @@ Good luck.`;
                     case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
                     case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
-                    case "SYNTH": return <SynthApp onAchievement={unlockAchievement} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} onAchievement={unlockAchievement} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
-                    case "GALLERY": return <GalleryApp />;
                     case "MAP": return <MapApp onAchievement={unlockAchievement} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
@@ -9646,7 +9608,6 @@ Good luck.`;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
                     case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
                     case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} />;
-                    case "BACKUP": return <BackupBatApp onUnlockApp={unlockApp} />;
                     case "TRUTH_MESSAGES": return <MessagesApp isTruthSequence={true} onTruthComplete={() => { unlockAchievement('TRUTH_SEEKER'); setTimeout(() => close('TRUTH_MESSAGES'), 10000); }} />;
                     default: return null;
                 }
@@ -10185,6 +10146,9 @@ Good luck.`;
                 return checkEye(windows.THIRD_EYE) || checkEye(windows.THIRD_EYE_2);
             };
 
+            // Protected icons that cannot be trashed
+            const PROTECTED_ICONS = ['ABOUT', 'APPS', 'FILES', 'CONTACT', 'TRASH', 'TRUTH', 'MESSAGES'];
+
             const handleIconMouseUp = (openCallback) => {
                 // Clear hold timer
                 if (iconHoldTimer.current) {
@@ -10195,6 +10159,38 @@ Good luck.`;
                 // If drag was active, finalize position (no grid snap - free positioning)
                 if (iconDrag.active && iconDrag.id) {
                     sounds.dragStop();
+
+                    // Check if dropped on trash
+                    const trashPos = iconPositions['TRASH'];
+                    const iconPos = iconPositions[iconDrag.id];
+                    const draggedId = iconDrag.id;
+
+                    if (trashPos && iconPos && !PROTECTED_ICONS.includes(draggedId)) {
+                        // Check overlap with trash icon (roughly 80x80 icon size)
+                        const trashBounds = { x: trashPos.x, y: trashPos.y, w: 100, h: 100 };
+                        const iconCenter = { x: iconPos.x + 40, y: iconPos.y + 40 };
+
+                        if (iconCenter.x >= trashBounds.x && iconCenter.x <= trashBounds.x + trashBounds.w &&
+                            iconCenter.y >= trashBounds.y && iconCenter.y <= trashBounds.y + trashBounds.h) {
+                            // Remove icon from desktop
+                            sounds.click();
+                            setExtraDesktopIcons(prev => {
+                                const newExtras = prev.filter(id => id !== draggedId);
+                                localStorage.setItem('extra_desktop_icons', JSON.stringify(newExtras));
+                                return newExtras;
+                            });
+                            setIconPositions(prev => {
+                                const newPositions = { ...prev };
+                                delete newPositions[draggedId];
+                                localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
+                                return newPositions;
+                            });
+                            setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
+                            iconPendingDrag.current = null;
+                            return;
+                        }
+                    }
+
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
@@ -10293,6 +10289,36 @@ Good luck.`;
 
                 if (iconDrag.active && iconDrag.id) {
                     sounds.dragStop();
+
+                    // Check if dropped on trash
+                    const trashPos = iconPositions['TRASH'];
+                    const iconPos = iconPositions[iconDrag.id];
+                    const draggedId = iconDrag.id;
+
+                    if (trashPos && iconPos && !PROTECTED_ICONS.includes(draggedId)) {
+                        const trashBounds = { x: trashPos.x, y: trashPos.y, w: 100, h: 100 };
+                        const iconCenter = { x: iconPos.x + 40, y: iconPos.y + 40 };
+
+                        if (iconCenter.x >= trashBounds.x && iconCenter.x <= trashBounds.x + trashBounds.w &&
+                            iconCenter.y >= trashBounds.y && iconCenter.y <= trashBounds.y + trashBounds.h) {
+                            sounds.click();
+                            setExtraDesktopIcons(prev => {
+                                const newExtras = prev.filter(id => id !== draggedId);
+                                localStorage.setItem('extra_desktop_icons', JSON.stringify(newExtras));
+                                return newExtras;
+                            });
+                            setIconPositions(prev => {
+                                const newPositions = { ...prev };
+                                delete newPositions[draggedId];
+                                localStorage.setItem('desktop_icon_positions', JSON.stringify(newPositions));
+                                return newPositions;
+                            });
+                            setIconDrag({ id: null, offsetX: 0, offsetY: 0, active: false });
+                            iconPendingDrag.current = null;
+                            return;
+                        }
+                    }
+
                     setIconPositions(prev => {
                         const current = prev[iconDrag.id];
                         if (!current) return prev;
@@ -11089,7 +11115,6 @@ Good luck.`;
                                         SNAKE: '// SNEK.JS\neat(); grow();',
                                         DICE: '// RNG.GOD\nroll(d20);',
                                         PAINT: '// ART.EXE\ndraw(pos);',
-                                        SYNTH: '// WAVE.SYS\noscillate();',
                                     };
                                     return (
                                         <div
