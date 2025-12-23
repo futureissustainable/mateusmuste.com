@@ -741,82 +741,73 @@
                 if (!ctx) return;
                 const now = ctx.currentTime;
 
-                // Industrial metallic arpeggio - minor key with tension
-                // A minor pentatonic with added industrial resonance
+                // Classic startup chime style - clear, iconic, metallic
+                // Inspired by Mac/Windows/PlayStation chimes but with industrial edge
                 const notes = [
-                    { freq: 110.00, time: 0 },      // A2 - deep foundation
-                    { freq: 164.81, time: 0.12 },   // E3 - fifth
-                    { freq: 220.00, time: 0.24 },   // A3 - octave
-                    { freq: 293.66, time: 0.36 },   // D4 - fourth
-                    { freq: 329.63, time: 0.48 },   // E4 - fifth high
-                    { freq: 440.00, time: 0.62 },   // A4 - resolution
-                    { freq: 523.25, time: 0.78 },   // C5 - minor third color
-                    { freq: 659.25, time: 0.95 },   // E5 - final shimmer
+                    { freq: 523.25, time: 0.00 },     // C5 - opening
+                    { freq: 659.25, time: 0.15 },     // E5 - rise
+                    { freq: 783.99, time: 0.30 },     // G5 - peak
+                    { freq: 1046.50, time: 0.50 },    // C6 - resolution (hold)
                 ];
 
                 const masterGain = ctx.createGain();
-                masterGain.gain.value = 0.18;
+                masterGain.gain.value = 0.25;
                 masterGain.connect(ctx.destination);
+
+                // Metallic resonator - adds industrial shimmer
+                const resonator = ctx.createBiquadFilter();
+                resonator.type = 'peaking';
+                resonator.frequency.value = 3500;
+                resonator.Q.value = 15;
+                resonator.gain.value = 4;
+                resonator.connect(masterGain);
 
                 notes.forEach(({ freq, time }, i) => {
                     const start = now + time;
                     const isLast = i === notes.length - 1;
-                    const duration = isLast ? 1.2 : 0.4;
+                    const duration = isLast ? 1.8 : 0.6;
 
-                    // Primary oscillator - square for metallic edge
+                    // Primary tone - clean triangle for bell-like clarity
                     const osc1 = ctx.createOscillator();
                     const gain1 = ctx.createGain();
-                    osc1.type = 'square';
+                    osc1.type = 'triangle';
                     osc1.frequency.value = freq;
 
-                    // Secondary oscillator - detuned for metallic beating
+                    // Harmonic - octave above for brightness
                     const osc2 = ctx.createOscillator();
                     const gain2 = ctx.createGain();
-                    osc2.type = 'sawtooth';
-                    osc2.frequency.value = freq * 1.002; // slight detune
+                    osc2.type = 'sine';
+                    osc2.frequency.value = freq * 2;
 
-                    // Third oscillator - sub harmonic for industrial weight
+                    // Metallic detune - slight sharp for industrial beating
                     const osc3 = ctx.createOscillator();
                     const gain3 = ctx.createGain();
                     osc3.type = 'triangle';
-                    osc3.frequency.value = freq * 0.5;
+                    osc3.frequency.value = freq * 1.003;
 
-                    // Bandpass filter for metallic resonance
-                    const filter = ctx.createBiquadFilter();
-                    filter.type = 'bandpass';
-                    filter.frequency.value = freq * 2;
-                    filter.Q.value = 8;
-
-                    // High shelf for shimmer
-                    const highShelf = ctx.createBiquadFilter();
-                    highShelf.type = 'highshelf';
-                    highShelf.frequency.value = 2000;
-                    highShelf.gain.value = 3;
-
-                    // Routing
+                    // Connect through resonator
                     osc1.connect(gain1);
                     osc2.connect(gain2);
                     osc3.connect(gain3);
-                    gain1.connect(filter);
-                    gain2.connect(filter);
-                    gain3.connect(highShelf);
-                    filter.connect(highShelf);
-                    highShelf.connect(masterGain);
+                    gain1.connect(resonator);
+                    gain2.connect(resonator);
+                    gain3.connect(resonator);
 
-                    // Envelope - sharp attack, metallic decay
-                    const vol = isLast ? 0.7 : 0.5 - (i * 0.02);
+                    // Bell-like envelope - instant attack, smooth decay
+                    const vol = isLast ? 0.6 : 0.45;
+
                     gain1.gain.setValueAtTime(0, start);
-                    gain1.gain.linearRampToValueAtTime(vol * 0.6, start + 0.008);
-                    gain1.gain.exponentialRampToValueAtTime(vol * 0.3, start + 0.05);
+                    gain1.gain.linearRampToValueAtTime(vol, start + 0.003);
+                    gain1.gain.setValueAtTime(vol, start + 0.05);
                     gain1.gain.exponentialRampToValueAtTime(0.001, start + duration);
 
                     gain2.gain.setValueAtTime(0, start);
-                    gain2.gain.linearRampToValueAtTime(vol * 0.25, start + 0.008);
-                    gain2.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.8);
+                    gain2.gain.linearRampToValueAtTime(vol * 0.15, start + 0.003);
+                    gain2.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.5);
 
                     gain3.gain.setValueAtTime(0, start);
-                    gain3.gain.linearRampToValueAtTime(vol * 0.15, start + 0.01);
-                    gain3.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.6);
+                    gain3.gain.linearRampToValueAtTime(vol * 0.2, start + 0.003);
+                    gain3.gain.exponentialRampToValueAtTime(0.001, start + duration * 0.7);
 
                     osc1.start(start);
                     osc2.start(start);
@@ -826,23 +817,21 @@
                     osc3.stop(start + duration + 0.1);
                 });
 
-                // Industrial noise burst at start
-                const noiseBuffer = ctx.createBuffer(1, ctx.sampleRate * 0.08, ctx.sampleRate);
-                const noiseData = noiseBuffer.getChannelData(0);
-                for (let i = 0; i < noiseData.length; i++) {
-                    noiseData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (ctx.sampleRate * 0.02));
-                }
-                const noiseSource = ctx.createBufferSource();
-                noiseSource.buffer = noiseBuffer;
-                const noiseFilter = ctx.createBiquadFilter();
-                noiseFilter.type = 'highpass';
-                noiseFilter.frequency.value = 3000;
-                const noiseGain = ctx.createGain();
-                noiseGain.gain.value = 0.08;
-                noiseSource.connect(noiseFilter);
-                noiseFilter.connect(noiseGain);
-                noiseGain.connect(masterGain);
-                noiseSource.start(now);
+                // Subtle metallic click at start
+                const clickOsc = ctx.createOscillator();
+                const clickGain = ctx.createGain();
+                const clickFilter = ctx.createBiquadFilter();
+                clickOsc.type = 'square';
+                clickOsc.frequency.value = 1200;
+                clickFilter.type = 'highpass';
+                clickFilter.frequency.value = 800;
+                clickOsc.connect(clickFilter);
+                clickFilter.connect(clickGain);
+                clickGain.connect(masterGain);
+                clickGain.gain.setValueAtTime(0.12, now);
+                clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
+                clickOsc.start(now);
+                clickOsc.stop(now + 0.03);
             },
 
             laser: () => {
