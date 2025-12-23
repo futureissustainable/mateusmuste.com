@@ -1,5 +1,13 @@
 import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { PixelartIcon, Window } from '@/components/ui';
+import {
+  FileExplorer,
+  AboutApp,
+  TrashApp,
+  ContactApp,
+  MessagesApp,
+  TerminalApp,
+} from '@/components/apps';
 import { sounds } from '@/lib/audio';
 import { storage, STORAGE_KEYS, HighScoreManager } from '@/lib/storage';
 import { isMobileDevice, getScaledSize } from '@/lib/utils';
@@ -301,7 +309,19 @@ function App() {
     APPS: { id: 'APPS', title: 'APPS', icon: 'Apps', x: 150, y: 110, w: 700, h: 500, isOpen: false, isMin: false, z: 12, isDesktop: true },
     CONTACT: { id: 'CONTACT', title: 'CONTACT', icon: 'Email', x: 200, y: 140, w: 320, h: 380, isOpen: false, isMin: false, z: 13, isDesktop: true },
     TRASH: { id: 'TRASH', title: 'TRASH.BIN', icon: 'TrashCan', x: 250, y: 170, w: 500, h: 400, isOpen: false, isMin: false, z: 16, isDesktop: true },
+    TERMINAL: { id: 'TERMINAL', title: 'TERMINAL.EXE', icon: 'Terminal', x: 300, y: 100, w: 600, h: 450, isOpen: false, isMin: false, z: 17, isDesktop: false },
   });
+
+  // Unlocked apps tracking
+  const [unlockedApps, setUnlockedApps] = useState<Set<string>>(() => {
+    const stored = storage.get(STORAGE_KEYS.UNLOCKED_APPS, []);
+    return new Set(stored);
+  });
+
+  // Save unlocked apps
+  useEffect(() => {
+    storage.set(STORAGE_KEYS.UNLOCKED_APPS, Array.from(unlockedApps));
+  }, [unlockedApps]);
   const [windowAnimations, setWindowAnimations] = useState<WindowAnimations>({});
 
   // Icon state
@@ -329,7 +349,7 @@ function App() {
   const [drag, setDrag] = useState<DragState>({ id: null, offsetX: 0, offsetY: 0 });
 
   // Achievement state
-  const [achievements] = useState<UnlockedAchievements>(() =>
+  const [achievements, setAchievements] = useState<UnlockedAchievements>(() =>
     storage.get(STORAGE_KEYS.ACHIEVEMENTS, {})
   );
   const [achievementNotifications] = useState<AchievementNotification[]>([]);
@@ -494,60 +514,44 @@ function App() {
     }
   }, [drag.id, handleMouseMove, handleMouseUp]);
 
+  // Achievement handler
+  const handleAchievement = useCallback((achievementId: string) => {
+    setAchievements(prev => {
+      if (prev[achievementId]) return prev;
+      sounds.achievementUnlock();
+      return { ...prev, [achievementId]: { unlockedAt: Date.now() } };
+    });
+  }, []);
+
+  // App unlock handler
+  const handleUnlockApp = useCallback((appId: string) => {
+    setUnlockedApps(prev => {
+      if (prev.has(appId)) return prev;
+      sounds.appUnlock();
+      const newSet = new Set(prev);
+      newSet.add(appId);
+      return newSet;
+    });
+  }, []);
+
   // Render window content
   const getWindowContent = (id: string) => {
     switch (id) {
       case 'ABOUT':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">ABOUT.EXE</h2>
-            <p className="mb-4">Welcome to my interactive portfolio OS!</p>
-            <p className="mb-4">I'm Mateus Muste, a creative developer building unique web experiences.</p>
-            <div className="border-t-2 border-black pt-4 mt-4">
-              <h3 className="font-bold mb-2">SKILLS</h3>
-              <ul className="list-disc list-inside">
-                <li>React / TypeScript</li>
-                <li>Node.js / Python</li>
-                <li>Creative Coding</li>
-                <li>Game Development</li>
-              </ul>
-            </div>
-          </div>
-        );
+        return <AboutApp onAchievement={handleAchievement} />;
       case 'CONTACT':
         return (
-          <div className="p-6 text-center">
-            <h2 className="text-2xl font-bold mb-4">CONTACT</h2>
-            <p className="mb-4">Get in touch!</p>
-            <a
-              href="mailto:hello@mateusmuste.com"
-              className="btn-primary inline-block"
-            >
-              hello@mateusmuste.com
-            </a>
-          </div>
+          <ContactApp
+            onOpenPaint={() => {
+              close('CONTACT');
+              // Open paint when implemented
+            }}
+          />
         );
       case 'TRASH':
-        return (
-          <div className="p-6 text-center">
-            <h2 className="text-xl font-bold mb-4">TRASH.BIN</h2>
-            <PixelartIcon name="TrashCan" size={64} />
-            <p className="mt-4 text-gray-600">Empty. Nothing here... yet.</p>
-          </div>
-        );
+        return <TrashApp />;
       case 'FILES':
-        return (
-          <div className="p-6">
-            <h2 className="text-2xl font-bold mb-4">MEDIA LIBRARY</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {['CINEMA', 'LITERATURE', 'GAMES', 'AUDIO'].map(cat => (
-                <button key={cat} className="btn-secondary p-4">
-                  {cat}
-                </button>
-              ))}
-            </div>
-          </div>
-        );
+        return <FileExplorer onAchievement={handleAchievement} />;
       case 'APPS':
         return (
           <div className="p-6">
@@ -563,24 +567,22 @@ function App() {
         );
       case 'MESSAGES':
         return (
-          <div className="p-6">
-            <h2 className="text-xl font-bold mb-4">MESSAGES.EXE</h2>
-            <div className="bg-gray-100 p-4 border-2 border-black mb-4">
-              <p className="mb-2">Welcome to MATEUSMUSTE OS!</p>
-              <p className="text-gray-600">This is an interactive portfolio experience.</p>
-            </div>
-            <button
-              onClick={() => {
-                setIntroComplete(true);
-                storage.setBoolean(STORAGE_KEYS.INTRO_COMPLETE, true);
-                close('MESSAGES');
-                setTimeout(() => open('ABOUT'), 500);
-              }}
-              className="btn-primary btn-full"
-            >
-              BEGIN
-            </button>
-          </div>
+          <MessagesApp
+            onIntroComplete={() => {
+              setIntroComplete(true);
+              storage.setBoolean(STORAGE_KEYS.INTRO_COMPLETE, true);
+              close('MESSAGES');
+              setTimeout(() => open('ABOUT'), 500);
+            }}
+          />
+        );
+      case 'TERMINAL':
+        return (
+          <TerminalApp
+            onAchievement={handleAchievement}
+            onUnlockApp={handleUnlockApp}
+            unlockedApps={unlockedApps}
+          />
         );
       default:
         return (

@@ -130,6 +130,7 @@ export const STORAGE_KEYS = {
   // Achievements & Unlocks
   ACHIEVEMENTS: 'ultra_int_achievements',
   NARRATIVE_UNLOCKS: 'ultra_int_narrative_unlocks',
+  UNLOCKED_APPS: 'ultra_int_unlocked_apps',
 
   // Desktop State
   ICON_POSITIONS: 'desktop_icon_positions',
