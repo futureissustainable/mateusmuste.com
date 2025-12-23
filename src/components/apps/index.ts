@@ -4,3 +4,7 @@ export { TrashApp } from './TrashApp';
 export { ContactApp } from './ContactApp';
 export { MessagesApp } from './MessagesApp';
 export { TerminalApp } from './TerminalApp';
+export { PaintApp } from './PaintApp';
+export { VoidApp } from './VoidApp';
+export { RadioApp } from './RadioApp';
+export { SynthApp } from './SynthApp';
