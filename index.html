@@ -3737,7 +3737,7 @@
                         <div className="h-12 flex items-center justify-center mt-4">
                             {result && !isRolling && (
                                 <div className="font-mono text-[10px] tracking-widest text-center">
-                                    {result === 20 ? '20 SUDO BECOME GOD' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
+                                    {result === 20 ? '20 SUDO EXTRACT REVELATION' : result === 1 ? '1 USELESS' : `RESULT: ${result}`}
                                 </div>
                             )}
                         </div>
@@ -8041,7 +8041,7 @@ Good luck.`;
                     addOutput('BROWSER.EXE UNLOCKED');
                     onUnlockApp?.('BROWSER');
 
-                } else if (trimmed === 'sudo become god') {
+                } else if (trimmed === 'sudo extract revelation') {
                     addOutput('ELEVATION SEQUENCE INITIATED...\n');
                     await new Promise(r => setTimeout(r, 1000));
                     addOutput('Listening for code...');
@@ -8566,12 +8566,12 @@ Good luck.`;
                 { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Score 1000 in Starship' },
                 { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read the truth' },
                 { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
-                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Become god' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Extract revelation' },
 
                 // Bonus apps (unlock after god mode)
-                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Become God' },
-                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Become God' },
-                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Become God' },
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Extract revelation' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Extract revelation' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Extract revelation' },
 
                 // Special
                 { id: 'END', title: 'ACHIEVEMENTS', icon: 'Trophy', category: 'CORE' }
@@ -9035,7 +9035,7 @@ Good luck.`;
                 ACCEPT_FATE: { name: 'ACCEPT FATE', icon: 'Tarot', hint: 'Accept your tarot reading', visible: true },
                 DESTROYER_OF_WORLDS: { name: 'DESTROYER OF WORLDS', icon: 'Bomb', hint: 'Try to destroy everything', visible: true },
                 DIVINE_ROLL: { name: 'DIVINE ROLL', icon: 'Dice', hint: 'Roll a natural 20', visible: true },
-                BECOME_GOD: { name: 'BECOME GOD', icon: 'Trophy', hint: 'Achieve elevation', visible: true },
+                BECOME_GOD: { name: 'EXTRACT REVELATION', icon: 'Trophy', hint: 'Achieve elevation', visible: true },
                 TRUTH_SEEKER: { name: 'TRUTH SEEKER', icon: 'FileDoc', hint: 'Open TRUTH.EXE', visible: true },
                 COMPLETIONIST: { name: 'COMPLETIONIST', icon: 'Badge', hint: '100% completion', visible: true },
                 // Legacy achievements (kept for backwards compatibility)
