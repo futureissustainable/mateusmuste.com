@@ -154,8 +154,7 @@ export function MinesweeperApp({ onAchievement }: MinesweeperAppProps) {
     if (unrevealed === MINES) {
       setWon(true);
       sounds.success();
-      onAchievement?.('FIRST_BLOOD');
-      if (!usedFlags.current) onAchievement?.('UNTOUCHABLE');
+      onAchievement?.('MINESWEEPER');
     }
   };
 

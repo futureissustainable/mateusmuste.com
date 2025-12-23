@@ -16,6 +16,28 @@ export const ACHIEVEMENTS = {
   NEO: { name: 'NEO', icon: 'RainAlt', hint: 'Enter the Matrix', visible: true },
   PHYSICS: { name: 'PHYSICS', icon: 'Expand', hint: 'Bouncy icons', visible: true },
   TIMEKEEPER: { name: 'TIMEKEEPER', icon: 'Clock', hint: '10 minutes in session', visible: true },
+  // Additional achievements for apps
+  WORK_IN_PROGRESS: { name: 'WORK IN PROGRESS', icon: 'Terminal', hint: 'Read the about section', visible: true },
+  SYSTEM_SCAN: { name: 'SYSTEM SCAN', icon: 'Terminal', hint: 'Check system info', visible: true },
+  HACKER: { name: 'HACKER', icon: 'Terminal', hint: 'Find hidden files', visible: true },
+  SUDO_MASTER: { name: 'SUDO MASTER', icon: 'Terminal', hint: 'Use sudo commands', visible: true },
+  REVEALER: { name: 'REVEALER', icon: 'ThirdEye', hint: 'Reveal secrets', visible: true },
+  SYNTHESIST: { name: 'SYNTHESIST', icon: 'Synth', hint: 'Play 20 notes', visible: true },
+  EXPLORER: { name: 'EXPLORER', icon: 'Globe', hint: 'Explore the map', visible: true },
+  OUROBOROS: { name: 'OUROBOROS', icon: 'Snek', hint: 'Complete snake secret', visible: true },
+  MAZE_MASTER: { name: 'MAZE MASTER', icon: 'Labyrinth', hint: 'Complete 5 mazes', visible: true },
+  CRITICAL_HIT: { name: 'CRITICAL HIT', icon: 'Dice', hint: 'Roll a natural 20', visible: true },
+  FORTUNE_TELLER: { name: 'FORTUNE TELLER', icon: 'Tarot', hint: 'Do 3 tarot readings', visible: true },
+  FOCUSED: { name: 'FOCUSED', icon: 'Pomodoro', hint: 'Complete a pomodoro', visible: true },
+  INBOX_ZERO: { name: 'INBOX ZERO', icon: 'Email', hint: 'Read all messages', visible: true },
+  VOID_GAZER: { name: 'VOID GAZER', icon: 'Void', hint: 'Stare into the void', visible: true },
+  ACE_PILOT: { name: 'ACE PILOT', icon: 'Starship', hint: 'Score 100 in Starship', visible: true },
+  DESTROYER: { name: 'DESTROYER', icon: 'Destruction', hint: 'Destroy all blocks', visible: true },
+  DIAGNOSTICIAN: { name: 'DIAGNOSTICIAN', icon: 'HealthScanner', hint: 'Run a system scan', visible: true },
+  INNER_CIRCLE: { name: 'INNER CIRCLE', icon: 'Lock', hint: 'Access private files', visible: true },
+  RADIO_HEAD: { name: 'RADIO HEAD', icon: 'Radio', hint: 'Listen for a minute', visible: true },
+  ARTIST: { name: 'ARTIST', icon: 'Palette', hint: 'Create art', visible: true },
+  MINESWEEPER: { name: 'MINESWEEPER', icon: 'Minesweeper', hint: 'Complete minesweeper', visible: true },
 } as const;
 
 // Initial apps that are always available

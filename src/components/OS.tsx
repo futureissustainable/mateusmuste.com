@@ -262,6 +262,10 @@ export function OS() {
   const { openWindow, setSelectedIcon, resetIconPositions } = useWindowStore();
   const setContextMenu = useSettingsStore((state) => state.setContextMenu);
 
+  // Achievement store
+  const { unlockAchievement, unlockApp, getUnlockedApps } = useAchievementStore();
+  const unlockedApps = useAchievementStore((state) => state.getUnlockedApps(modeSelected, visitCount));
+
   const sounds = useSounds();
 
   // Detect mobile on mount
@@ -377,8 +381,7 @@ export function OS() {
           <Window key={win.id} id={win.id}>
             {getAppContent(win.id, {
               onAchievement: (achievementId) => {
-                // TODO: Connect to achievement store
-                console.log('Achievement:', achievementId);
+                unlockAchievement(achievementId, sounds.achievementUnlock);
               },
               onOpenPaint: () => {
                 openWindow('PAINT');
@@ -387,20 +390,60 @@ export function OS() {
                 openWindow(windowId);
               },
               onUnlockApp: (appId) => {
-                // TODO: Connect to achievement store
-                console.log('Unlock app:', appId);
+                unlockApp(appId, sounds.appUnlock);
               },
               onComplete: () => {
                 // Handle intro completion
                 setIntroComplete(true);
               },
-              unlockedApps: new Set(), // TODO: Get from achievement store
+              unlockedApps,
             })}
           </Window>
         ))}
 
+      {/* Achievement Notifications */}
+      <AchievementNotifications />
+
       {/* Taskbar */}
       <Taskbar />
+    </div>
+  );
+}
+
+// Achievement notification display component
+function AchievementNotifications() {
+  const achievementNotifications = useAchievementStore((state) => state.achievementNotifications);
+  const appUnlockNotifications = useAchievementStore((state) => state.appUnlockNotifications);
+
+  if (achievementNotifications.length === 0 && appUnlockNotifications.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2">
+      {achievementNotifications.map((notif) => (
+        <div
+          key={notif.id}
+          className="bg-black text-white px-4 py-3 font-mono text-sm border-2 border-white animate-pulse"
+        >
+          <div className="text-yellow-400 font-bold text-xs tracking-widest mb-1">
+            ACHIEVEMENT UNLOCKED
+          </div>
+          <div className="font-bold">{notif.name}</div>
+          {notif.hint && <div className="text-gray-400 text-xs mt-1">{notif.hint}</div>}
+        </div>
+      ))}
+      {appUnlockNotifications.map((notif) => (
+        <div
+          key={notif.id}
+          className="bg-white text-black px-4 py-3 font-mono text-sm border-2 border-black animate-pulse"
+        >
+          <div className="text-green-600 font-bold text-xs tracking-widest mb-1">
+            APP UNLOCKED
+          </div>
+          <div className="font-bold">{notif.app}.EXE</div>
+        </div>
+      ))}
     </div>
   );
 }
