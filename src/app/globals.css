@@ -1,0 +1,240 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Local Font Definitions */
+@font-face {
+  font-family: 'PPMondwest';
+  src: url('/fonts/PPMondwest-Regular.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PPNeueBit';
+  src: url('/fonts/PPNeueBit-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* VT323 is loaded via link tag in layout.tsx */
+
+:root {
+  --bg: #E8E8E8;
+  --fg: #000000;
+  --white: #ffffff;
+  --black: #000000;
+  --crimson: #DC143C;
+  --code-green: #00FF41;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--fg);
+  font-family: 'PPNeueBit', sans-serif;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile viewport height fix */
+.mobile-safe-height {
+  height: 100vh;
+  height: 100svh;
+}
+
+@supports (height: 100dvh) {
+  .mobile-safe-height {
+    height: 100dvh;
+  }
+}
+
+/* Mobile safe area support */
+@supports (padding: env(safe-area-inset-top)) {
+  .mobile-taskbar-top {
+    top: env(safe-area-inset-top, 0px) !important;
+    padding-top: 4px;
+  }
+  .mobile-safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+}
+
+/* Global hover transitions */
+button, a, [role="button"], .cursor-pointer {
+  transition: all 50ms ease-out;
+}
+
+/* Headings use PPNeueBit */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'PPNeueBit', sans-serif !important;
+  line-height: 0.6 !important;
+}
+
+/* Heading font utility - PPMondwest ONLY for MATEUS MUSTE */
+.font-heading {
+  font-family: 'PPMondwest', sans-serif !important;
+  line-height: 0.6 !important;
+}
+
+/* ASCII art font */
+.ascii-art {
+  font-family: 'VT323', 'Courier New', 'Consolas', monospace !important;
+  letter-spacing: 0 !important;
+}
+
+/* Force PPNeueBit on all form elements */
+input, textarea, select, button, code, kbd, samp {
+  font-family: 'PPNeueBit', sans-serif !important;
+}
+
+canvas {
+  touch-action: none;
+}
+
+/* Brutalist Shadows */
+.window-shadow {
+  box-shadow: 10px 10px 0 0 var(--black);
+}
+
+.icon-shadow {
+  box-shadow: 4px 4px 0 0 var(--black);
+}
+
+.btn-shadow {
+  box-shadow: 2px 2px 0 0 var(--black);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--white);
+  border-left: 2px solid var(--black);
+  border-top: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--black);
+  border: 2px solid var(--white);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+/* Background Patterns */
+.desktop-bg-grid {
+  background-color: #f0f0f0;
+  background-image: radial-gradient(#c0c0c0 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+.desktop-bg-solid {
+  background-color: #e0e0e0;
+}
+
+.desktop-bg-ascii {
+  background-color: #f0f0f0;
+}
+
+/* Icon drag shake */
+.icon-dragging {
+  animation: iconShake 0.15s ease-in-out infinite;
+  transform: scale(1.1) translateY(-8px);
+  z-index: 99999 !important;
+}
+
+@keyframes iconShake {
+  0%, 100% { transform: rotate(-1deg) scale(1.1) translateY(-8px); }
+  50% { transform: rotate(1deg) scale(1.1) translateY(-8px); }
+}
+
+/* Matrix Mode */
+.matrix-mode {
+  background: var(--black) !important;
+  background-image: none !important;
+}
+
+.matrix-mode * {
+  color: var(--code-green) !important;
+  border-color: var(--code-green) !important;
+}
+
+.matrix-mode .bg-white,
+.matrix-mode .bg-gray-50,
+.matrix-mode .bg-gray-100 {
+  background-color: var(--black) !important;
+}
+
+.matrix-rain {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.15;
+}
+
+/* Design System Buttons */
+@layer components {
+  .btn-primary {
+    @apply px-6 py-3 bg-black text-white font-bold border-2 border-black cursor-pointer;
+    transition: filter 0.15s;
+  }
+  .btn-primary:hover {
+    filter: invert(1);
+  }
+  .btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply px-6 py-3 bg-white text-black font-bold border-2 border-black cursor-pointer;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover {
+    @apply bg-black text-white;
+  }
+
+  .btn-xs { @apply px-2 py-1 text-base; }
+  .btn-sm { @apply px-4 py-2 text-base; }
+  .btn-lg { @apply px-8 py-4 text-lg; }
+
+  .btn-icon {
+    @apply p-1 bg-white border border-black cursor-pointer;
+  }
+  .btn-icon:hover {
+    @apply bg-gray-100;
+  }
+
+  .btn-toolbar {
+    @apply px-2 py-1 font-bold uppercase border border-black cursor-pointer bg-white;
+  }
+  .btn-toolbar:hover {
+    @apply bg-gray-100;
+  }
+  .btn-toolbar.active {
+    @apply bg-black text-white;
+  }
+
+  .app-header {
+    @apply p-2 border-b-2 border-black bg-white flex justify-between items-center;
+  }
+  .app-header-title {
+    @apply font-bold text-base;
+  }
+
+  .app-footer {
+    @apply p-2 border-t-2 border-black bg-white text-center;
+  }
+}
