@@ -19,6 +19,19 @@ import {
   RadioApp,
   MapApp,
   SystemInfoApp,
+  PaintApp,
+  TerminalApp,
+  DiceApp,
+  TarotApp,
+  PomodoroApp,
+  FilesApp,
+  AppsApp,
+  MessagesApp,
+  VoidApp,
+  StarshipApp,
+  DestructionApp,
+  ScannerApp,
+  PersonalApp,
 } from '@/components/apps';
 
 // Boot screen component
@@ -176,6 +189,32 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <MapApp onAchievement={callbacks.onAchievement} />;
     case 'SYSTEM':
       return <SystemInfoApp onAchievement={callbacks.onAchievement} />;
+    case 'PAINT':
+      return <PaintApp onAchievement={callbacks.onAchievement} />;
+    case 'TERMINAL':
+      return <TerminalApp onAchievement={callbacks.onAchievement} onOpenWindow={callbacks.onOpenWindow} onUnlockApp={callbacks.onUnlockApp} />;
+    case 'DICE':
+      return <DiceApp onAchievement={callbacks.onAchievement} />;
+    case 'TAROT':
+      return <TarotApp onAchievement={callbacks.onAchievement} />;
+    case 'POMODORO':
+      return <PomodoroApp onAchievement={callbacks.onAchievement} />;
+    case 'FILES':
+      return <FilesApp onOpenWindow={callbacks.onOpenWindow} />;
+    case 'APPS':
+      return <AppsApp onOpenWindow={callbacks.onOpenWindow} />;
+    case 'MESSAGES':
+      return <MessagesApp onAchievement={callbacks.onAchievement} onComplete={callbacks.onComplete} />;
+    case 'VOID':
+      return <VoidApp onAchievement={callbacks.onAchievement} />;
+    case 'STARSHIP':
+      return <StarshipApp onAchievement={callbacks.onAchievement} />;
+    case 'DESTRUCTION':
+      return <DestructionApp onAchievement={callbacks.onAchievement} />;
+    case 'SCANNER':
+      return <ScannerApp onAchievement={callbacks.onAchievement} />;
+    case 'PERSONAL':
+      return <PersonalApp onAchievement={callbacks.onAchievement} />;
     default:
       // Placeholder for apps not yet implemented
       return (
@@ -192,7 +231,9 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
 interface AppCallbacks {
   onAchievement?: (id: string) => void;
   onOpenPaint?: () => void;
+  onOpenWindow?: (id: string) => void;
   onUnlockApp?: (appId: string) => void;
+  onComplete?: () => void;
   unlockedApps?: Set<string>;
 }
 
@@ -342,9 +383,16 @@ export function OS() {
               onOpenPaint: () => {
                 openWindow('PAINT');
               },
+              onOpenWindow: (windowId) => {
+                openWindow(windowId);
+              },
               onUnlockApp: (appId) => {
                 // TODO: Connect to achievement store
                 console.log('Unlock app:', appId);
+              },
+              onComplete: () => {
+                // Handle intro completion
+                setIntroComplete(true);
               },
               unlockedApps: new Set(), // TODO: Get from achievement store
             })}
