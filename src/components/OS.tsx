@@ -32,6 +32,12 @@ import {
   DestructionApp,
   ScannerApp,
   PersonalApp,
+  TruthApp,
+  DogStoryApp,
+  ThirdEyeApp,
+  BrowserApp,
+  BackupApp,
+  EndApp,
 } from '@/components/apps';
 
 // Boot screen component
@@ -215,6 +221,20 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <ScannerApp onAchievement={callbacks.onAchievement} />;
     case 'PERSONAL':
       return <PersonalApp onAchievement={callbacks.onAchievement} />;
+    case 'TRUTH':
+      return <TruthApp onAchievement={callbacks.onAchievement} />;
+    case 'DOG_STORY':
+      return <DogStoryApp onAchievement={callbacks.onAchievement} />;
+    case 'THIRD_EYE':
+      return <ThirdEyeApp onAchievement={callbacks.onAchievement} instanceId="1" onOpenSecondEye={() => callbacks.onOpenWindow?.('THIRD_EYE_2')} />;
+    case 'THIRD_EYE_2':
+      return <ThirdEyeApp onAchievement={callbacks.onAchievement} instanceId="2" />;
+    case 'BROWSER':
+      return <BrowserApp onAchievement={callbacks.onAchievement} />;
+    case 'BACKUP':
+      return <BackupApp onAchievement={callbacks.onAchievement} />;
+    case 'END':
+      return <EndApp onAchievement={callbacks.onAchievement} achievementCount={Object.keys(callbacks.achievements || {}).length} />;
     default:
       // Placeholder for apps not yet implemented
       return (
@@ -235,6 +255,7 @@ interface AppCallbacks {
   onUnlockApp?: (appId: string) => void;
   onComplete?: () => void;
   unlockedApps?: Set<string>;
+  achievements?: Record<string, { unlockedAt: number }>;
 }
 
 export function OS() {
@@ -422,6 +443,7 @@ export function OS() {
                 setIntroComplete(true);
               },
               unlockedApps,
+              achievements,
             })}
           </Window>
         ))}
