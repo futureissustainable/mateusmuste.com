@@ -1,0 +1,419 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Local Font Definitions */
+@font-face {
+    font-family: 'PPMondwest';
+    src: url('./assets/fonts/PPMondwest-Regular.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'PPNeueBit';
+    src: url('./assets/fonts/PPNeueBit-Bold.otf') format('opentype');
+    font-weight: bold;
+    font-style: normal;
+    font-display: swap;
+}
+
+:root {
+    --bg: #E8E8E8;
+    --fg: #000000;
+    --white: #ffffff;
+    --black: #000000;
+    /* Warm neutral grays */
+    --gray-50: #FAFAFA;
+    --gray-100: #F0F0F0;
+    --gray-200: #E0E0E0;
+    --gray-300: #C0C0C0;
+    --gray-400: #909090;
+    --gray-500: #606060;
+    --gray-600: #333333;
+    /* Accent colors */
+    --crimson: #DC143C;
+    --code-green: #00FF41;
+    /* Shadows */
+    --shadow-color: var(--black);
+    /* Font sizes */
+    --font-size-base: 16px;
+    --font-size-lg: 20px;
+    --font-size-xl: 24px;
+}
+
+body {
+    background-color: var(--bg);
+    color: var(--fg);
+    font-family: 'PPNeueBit', sans-serif !important;
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Mobile viewport height fix - accounts for browser chrome */
+.mobile-safe-height {
+    height: 100vh; /* fallback */
+    height: 100svh; /* small viewport - always safe */
+}
+
+@supports (height: 100dvh) {
+    .mobile-safe-height {
+        height: 100dvh; /* dynamic viewport - adjusts with browser chrome */
+    }
+}
+
+/* Mobile safe area support */
+@supports (padding: env(safe-area-inset-top)) {
+    .mobile-taskbar-top {
+        top: env(safe-area-inset-top, 0px) !important;
+        padding-top: 4px;
+    }
+
+    /* Bottom safe area for home indicator */
+    .mobile-safe-bottom {
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+}
+
+/* Global hover transitions */
+button, a, [role="button"], .cursor-pointer {
+    transition: all 50ms ease-out;
+}
+
+/* Override Tailwind font utilities to use PPNeueBit */
+.font-mono, .font-sans, .font-serif {
+    font-family: 'PPNeueBit', sans-serif !important;
+}
+
+/* Headings use PPNeueBit */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'PPNeueBit', sans-serif !important;
+    line-height: 0.6 !important;
+    letter-spacing: normal !important;
+}
+
+/* Heading font utility class - PPMondwest ONLY for MATEUS MUSTE */
+.font-heading {
+    font-family: 'PPMondwest', sans-serif !important;
+    line-height: 0.6 !important;
+    letter-spacing: normal !important;
+}
+
+/* Body font utility class */
+.font-body {
+    font-family: 'PPNeueBit', sans-serif !important;
+}
+
+/* ASCII art font - TRUE monospace for proper character alignment */
+.ascii-art {
+    font-family: 'VT323', 'Courier New', 'Consolas', monospace !important;
+    letter-spacing: 0 !important;
+}
+
+/* Minimum font size enforcement - 16px minimum for all text */
+html {
+    font-size: 16px;
+}
+
+/* Override all small Tailwind text sizes to minimum 16px (except ASCII art) */
+.text-xs:not(.ascii-art), .text-sm:not(.ascii-art),
+[class*="text-[6px]"]:not(.ascii-art), [class*="text-[7px]"]:not(.ascii-art), [class*="text-[8px]"]:not(.ascii-art),
+[class*="text-[9px]"]:not(.ascii-art), [class*="text-[10px]"]:not(.ascii-art), [class*="text-[11px]"]:not(.ascii-art),
+[class*="text-[12px]"]:not(.ascii-art), [class*="text-[13px]"]:not(.ascii-art), [class*="text-[14px]"]:not(.ascii-art),
+[class*="text-[15px]"]:not(.ascii-art) {
+    font-size: 16px !important;
+}
+
+/* Standardized font sizes - multiples of 4 */
+.text-base { font-size: 16px !important; }
+.text-lg { font-size: 20px !important; }
+.text-xl { font-size: 24px !important; }
+.text-2xl { font-size: 28px !important; }
+.text-3xl { font-size: 32px !important; }
+.text-4xl { font-size: 36px !important; }
+.text-5xl { font-size: 40px !important; }
+
+/* Universal font fallback - ensure ALL text uses our fonts */
+*, *::before, *::after {
+    font-family: inherit;
+}
+
+/* Force PPNeueBit on all form elements and inputs */
+input, textarea, select, button, code, kbd, samp {
+    font-family: 'PPNeueBit', sans-serif !important;
+}
+
+/* Pre elements use PPNeueBit unless they have .ascii-art class */
+pre:not(.ascii-art) {
+    font-family: 'PPNeueBit', sans-serif !important;
+}
+
+/* Ensure bold/black text stays in PPNeueBit */
+.font-bold, .font-black, .font-semibold, .font-medium, .font-extrabold {
+    font-family: inherit !important;
+}
+
+/* Brutalist Styles */
+.window-shadow {
+    box-shadow: 10px 10px 0 0 var(--shadow-color);
+}
+
+.icon-shadow {
+    box-shadow: 4px 4px 0 0 var(--shadow-color);
+}
+
+.btn-shadow {
+    box-shadow: 2px 2px 0 0 var(--shadow-color);
+}
+
+/* Design System - Standardized Components */
+
+/* Primary Button: solid black */
+.btn-primary {
+    padding: 0.75rem 1.5rem;
+    background: var(--black);
+    color: var(--white);
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    border: 2px solid var(--black);
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+.btn-primary:hover { filter: invert(1); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Secondary Button: outlined */
+.btn-secondary {
+    padding: 0.75rem 1.5rem;
+    background: var(--white);
+    color: var(--black);
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    border: 2px solid var(--black);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+.btn-secondary:hover { background: var(--black); color: var(--white); }
+
+/* Button Sizes */
+.btn-xs { padding: 0.25rem 0.5rem; font-size: var(--font-size-base); }
+.btn-sm { padding: 0.5rem 1rem; font-size: var(--font-size-base); }
+.btn-lg { padding: 1rem 2rem; font-size: var(--font-size-lg); }
+.btn-full { width: 100%; }
+
+/* Icon Button (square, compact) */
+.btn-icon {
+    padding: 0.25rem;
+    background: var(--white);
+    border: 1px solid var(--black);
+    cursor: pointer;
+}
+.btn-icon:hover { background: var(--gray-100); }
+
+/* Toolbar Button (selectable toggle) */
+.btn-toolbar {
+    padding: 0.25rem 0.5rem;
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid var(--black);
+    cursor: pointer;
+    background: var(--white);
+}
+.btn-toolbar:hover { background: var(--gray-100); }
+.btn-toolbar.active { background: var(--black); color: var(--white); }
+
+/* App Header */
+.app-header {
+    padding: 0.5rem;
+    border-bottom: 2px solid var(--black);
+    background: var(--white);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.app-header-title {
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    font-weight: 700;
+}
+.app-header-subtitle {
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    color: var(--gray-500);
+}
+
+/* App Footer/Status Bar */
+.app-footer {
+    padding: 0.5rem;
+    border-top: 2px solid var(--black);
+    background: var(--white);
+    text-align: center;
+}
+.app-footer-text {
+    font-family: 'PPNeueBit', sans-serif !important;
+    font-size: var(--font-size-base);
+    color: var(--gray-500);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--white);
+    border-left: 2px solid var(--black);
+    border-top: 2px solid var(--black);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--black);
+    border: 2px solid var(--white);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--gray-600);
+}
+
+/* Background Patterns */
+.desktop-bg-grid {
+    background-color: var(--gray-100);
+    background-image: radial-gradient(var(--gray-300) 1px, transparent 1px);
+    background-size: 20px 20px;
+}
+.desktop-bg-solid {
+    background-color: var(--gray-200);
+}
+.desktop-bg-ascii {
+    background-color: var(--gray-100);
+}
+
+canvas {
+    touch-action: none;
+}
+
+/* Window fold animations */
+@keyframes window-fold-in {
+    0% {
+        opacity: 0;
+        transform: perspective(800px) rotateX(-90deg) scaleY(0);
+        transform-origin: top center;
+    }
+    100% {
+        opacity: 1;
+        transform: perspective(800px) rotateX(0deg) scaleY(1);
+        transform-origin: top center;
+    }
+}
+
+@keyframes window-fold-out {
+    0% {
+        opacity: 1;
+        transform: perspective(800px) rotateX(0deg) scaleY(1);
+        transform-origin: top center;
+    }
+    100% {
+        opacity: 0;
+        transform: perspective(800px) rotateX(-90deg) scaleY(0);
+        transform-origin: top center;
+    }
+}
+
+.window-opening {
+    animation: window-fold-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.window-closing {
+    animation: window-fold-out 0.15s cubic-bezier(0.55, 0, 1, 0.45) forwards;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* ThirdEye stack overflow animations */
+@keyframes glitch {
+    0% { transform: translateX(0); }
+    25% { transform: translateX(-2px); }
+    50% { transform: translateX(2px); }
+    75% { transform: translateX(-1px); }
+    100% { transform: translateX(0); }
+}
+
+/* Matrix Mode - requires !important to override all theme colors */
+.matrix-mode {
+    background: var(--black) !important;
+    background-image: none !important;
+}
+.matrix-mode * {
+    color: var(--code-green) !important;
+    border-color: var(--code-green) !important;
+}
+.matrix-mode .bg-white,
+.matrix-mode .bg-gray-50,
+.matrix-mode .bg-gray-100 {
+    background-color: var(--black) !important;
+}
+.matrix-mode button,
+.matrix-mode .border,
+.matrix-mode .border-2,
+.matrix-mode .border-4 {
+    border-color: var(--code-green) !important;
+}
+.matrix-mode svg {
+    filter: brightness(0) invert(1) sepia(1) saturate(50) hue-rotate(70deg);
+}
+.matrix-mode canvas {
+    filter: hue-rotate(70deg) saturate(3) brightness(0.8);
+}
+.matrix-rain {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.15;
+}
+
+/* Icon drag shake animation */
+@keyframes iconShake {
+    0%, 100% { transform: rotate(-1deg); }
+    50% { transform: rotate(1deg); }
+}
+.icon-dragging {
+    animation: iconShake 0.15s ease-in-out infinite;
+    transform: scale(1.1) translateY(-8px);
+    z-index: 99999 !important;
+}
+
+/* Stack overflow flash animation */
+@keyframes stackFlash {
+    0%, 100% { opacity: 1; background: var(--black); }
+    50% { opacity: 0.7; background: var(--crimson); }
+}
+
+/* Fade in animation for revealing apps */
+@keyframes fadeIn {
+    0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-fade-in {
+    animation: fadeIn 0.3s ease-out forwards;
+}
