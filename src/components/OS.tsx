@@ -17,6 +17,8 @@ import {
   LabyrinthApp,
   SynthApp,
   RadioApp,
+  MapApp,
+  SystemInfoApp,
 } from '@/components/apps';
 
 // Boot screen component
@@ -170,6 +172,10 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <SynthApp onAchievement={callbacks.onAchievement} />;
     case 'RADIO':
       return <RadioApp onAchievement={callbacks.onAchievement} />;
+    case 'MAP':
+      return <MapApp onAchievement={callbacks.onAchievement} />;
+    case 'SYSTEM':
+      return <SystemInfoApp onAchievement={callbacks.onAchievement} />;
     default:
       // Placeholder for apps not yet implemented
       return (

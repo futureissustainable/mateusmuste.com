@@ -8,3 +8,5 @@ export { MinesweeperApp } from './MinesweeperApp';
 export { LabyrinthApp } from './LabyrinthApp';
 export { SynthApp } from './SynthApp';
 export { RadioApp } from './RadioApp';
+export { MapApp } from './MapApp';
+export { SystemInfoApp } from './SystemInfoApp';
