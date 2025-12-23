@@ -6,7 +6,7 @@ import { useSounds } from '@/hooks';
 import { Window } from '@/components/ui/Window';
 import { Taskbar } from '@/components/ui/Taskbar';
 import { DesktopIcon } from '@/components/ui/DesktopIcon';
-import { AboutApp, ContactApp, TrashApp } from '@/components/apps';
+import { AboutApp, ContactApp, TrashApp, BooksApp, GalleryApp } from '@/components/apps';
 
 // Boot screen component
 function BootScreen({ visitCount }: { visitCount: number }) {
@@ -145,6 +145,10 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
       return <ContactApp onOpenPaint={callbacks.onOpenPaint} />;
     case 'TRASH':
       return <TrashApp />;
+    case 'BOOKS':
+      return <BooksApp onUnlockApp={callbacks.onUnlockApp} unlockedApps={callbacks.unlockedApps} />;
+    case 'GALLERY':
+      return <GalleryApp />;
     default:
       // Placeholder for apps not yet implemented
       return (
@@ -161,6 +165,8 @@ function getAppContent(id: string, callbacks: AppCallbacks) {
 interface AppCallbacks {
   onAchievement?: (id: string) => void;
   onOpenPaint?: () => void;
+  onUnlockApp?: (appId: string) => void;
+  unlockedApps?: Set<string>;
 }
 
 export function OS() {
@@ -309,6 +315,11 @@ export function OS() {
               onOpenPaint: () => {
                 openWindow('PAINT');
               },
+              onUnlockApp: (appId) => {
+                // TODO: Connect to achievement store
+                console.log('Unlock app:', appId);
+              },
+              unlockedApps: new Set(), // TODO: Get from achievement store
             })}
           </Window>
         ))}
