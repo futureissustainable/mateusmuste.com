@@ -8716,16 +8716,32 @@ Good luck.`;
                 }
             }, [isTerminalVisible]);
 
-            // Check if VOID window is visible in the portal view
-            const isVoidVisible = windows.VOID?.isOpen && !windows.VOID?.isMin;
+            // Check if VOID window is actually visible THROUGH this Third Eye (overlapping)
+            const isVoidOverlapping = () => {
+                const voidWin = windows.VOID;
+                if (!voidWin?.isOpen || voidWin?.isMin) return false;
+                // Check if VOID window overlaps with this Third Eye's portal area
+                const voidX = voidWin.x || 0;
+                const voidY = voidWin.y || 0;
+                const voidW = voidWin.w || 400;
+                const voidH = voidWin.h || 300;
+                // Portal area is the Third Eye window minus header
+                const portalLeft = windowX;
+                const portalTop = windowY + headerHeight;
+                const portalRight = windowX + windowW;
+                const portalBottom = windowY + windowH;
+                // Check for rectangle overlap
+                return !(voidX + voidW < portalLeft || voidX > portalRight ||
+                         voidY + voidH < portalTop || voidY > portalBottom);
+            };
             const voidScanRef = useRef(false);
 
             useEffect(() => {
-                if (isVoidVisible && !voidScanRef.current) {
+                if (isVoidOverlapping() && !voidScanRef.current) {
                     voidScanRef.current = true;
                     onDogEvent?.('voidScan');
                 }
-            }, [isVoidVisible]);
+            }, [windows.VOID?.isOpen, windows.VOID?.isMin, windows.VOID?.x, windows.VOID?.y, windowX, windowY]);
 
             // Trigger triggerInception when stack overflow occurs
             const inceptionTriggeredRef = useRef(false);
