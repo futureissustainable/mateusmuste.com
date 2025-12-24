@@ -2369,20 +2369,16 @@
                         zIndex: 10
                     }}
                 >
-                    <div className="bg-white border-4 border-black p-4 font-mono text-base relative shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                        {renderText()}
-                        {!typingComplete && <span className="animate-pulse">▌</span>}
-                        {/* Speech bubble tail - points down normally, up if bubble is below */}
+                    <div className="bg-black border-2 border-white px-4 py-3 font-mono text-xs uppercase tracking-widest text-white relative">
+                        <div className="leading-relaxed">
+                            {renderText()}
+                            {!typingComplete && <span className="animate-pulse text-white/60">_</span>}
+                        </div>
+                        {/* Minimal connector line */}
                         {!isBelow ? (
-                            <>
-                                <div className="absolute top-full left-8 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[12px] border-l-transparent border-r-transparent border-t-black" />
-                                <div className="absolute top-full left-8 mt-[-4px] ml-[2px] w-0 h-0 border-l-[10px] border-r-[10px] border-t-[10px] border-l-transparent border-r-transparent border-t-white" />
-                            </>
+                            <div className="absolute top-full left-8 w-px h-3 bg-white" />
                         ) : (
-                            <>
-                                <div className="absolute bottom-full left-8 w-0 h-0 border-l-[12px] border-r-[12px] border-b-[12px] border-l-transparent border-r-transparent border-b-black" />
-                                <div className="absolute bottom-full left-8 mb-[-4px] ml-[2px] w-0 h-0 border-l-[10px] border-r-[10px] border-b-[10px] border-l-transparent border-r-transparent border-b-white" />
-                            </>
+                            <div className="absolute bottom-full left-8 w-px h-3 bg-white" />
                         )}
                     </div>
                 </div>
@@ -2621,6 +2617,10 @@
                 { text: "YOU'RE STILL HERE?", emotion: "thinking" },
                 { text: "MAYBE YOU HAVE YOUR REASONS FOR BEING AWAKE.", emotion: "thinking" },
                 { text: "I WON'T ASK. I'LL JUST BE HERE.", emotion: "thinking" }
+            ],
+            RESUME_DIALOGUE: [
+                { text: "WAIT...", emotion: "thinking", waitAfter: 1500 },
+                { text: "WHERE WERE WE?", emotion: "thinking" }
             ]
         };
 
@@ -9470,10 +9470,13 @@ Good luck.`;
             const [dogCompanionStoryPhase, setDogCompanionStoryPhase] = useState(() => localStorage.getItem('dog_story_phase') || 'inactive');
             const [playerName, setPlayerName] = useState(() => localStorage.getItem('player_name') || 'USER');
             const [dogCompanionWaitingFor, setDogCompanionWaitingFor] = useState(null); // Action to wait for
+            const [dogCompanionCurrentDialogueKey, setDogCompanionCurrentDialogueKey] = useState(null); // Track which dialogue sequence is active
+            const [dogCompanionDialogueIndex, setDogCompanionDialogueIndex] = useState(0); // Track position in dialogue
             const [dogErrorWindows, setDogErrorWindows] = useState([]); // Error windows spawned by dog
             const dogCompanionVelRef = useRef({ x: 0, y: 0 });
             const dogIdleTimerRef = useRef(null);
             const lastIdleDialogueRef = useRef(0);
+            const dogResumeCheckedRef = useRef(false); // Track if we've checked for resume
             // Goldy state
             const [goldyVisible, setGoldyVisible] = useState(false);
             const [goldyFlipped, setGoldyFlipped] = useState(false);
@@ -9489,6 +9492,16 @@ Good luck.`;
             useEffect(() => {
                 localStorage.setItem('player_name', playerName);
             }, [playerName]);
+            // Save current dialogue progress for resume on reload
+            useEffect(() => {
+                if (dogCompanionCurrentDialogueKey) {
+                    localStorage.setItem('dog_dialogue_key', dogCompanionCurrentDialogueKey);
+                    localStorage.setItem('dog_dialogue_index', dogCompanionDialogueIndex.toString());
+                } else {
+                    localStorage.removeItem('dog_dialogue_key');
+                    localStorage.removeItem('dog_dialogue_index');
+                }
+            }, [dogCompanionCurrentDialogueKey, dogCompanionDialogueIndex]);
 
             // Legacy dog state (kept for backward compatibility)
             const [dogReleased, setDogReleased] = useState(false);
@@ -10015,7 +10028,7 @@ Good luck.`;
             };
 
             // Dog companion dialogue controller
-            const startDogDialogue = (dialogueKey, customDialogues = null) => {
+            const startDogDialogue = (dialogueKey, customDialogues = null, startIndex = 0) => {
                 const dialogues = customDialogues || DOG_DIALOGUES[dialogueKey];
                 if (!dialogues || dialogues.length === 0) return;
 
@@ -10025,8 +10038,19 @@ Good luck.`;
                     text: d.text.replace(/{playerName}/g, playerName)
                 }));
 
-                setDogCompanionDialogueQueue(processedDialogues.slice(1));
-                const first = processedDialogues[0];
+                // Track current dialogue key and index (skip for idle dialogues and resume)
+                const isIdleDialogue = dialogueKey === 'IDLE_GENERAL' || dialogueKey === 'IDLE_POST_GAME' || dialogueKey === 'RESUME_DIALOGUE';
+                if (!isIdleDialogue && !customDialogues) {
+                    setDogCompanionCurrentDialogueKey(dialogueKey);
+                    setDogCompanionDialogueIndex(startIndex);
+                }
+
+                // Start from specified index
+                const startDialogues = processedDialogues.slice(startIndex);
+                if (startDialogues.length === 0) return;
+
+                setDogCompanionDialogueQueue(startDialogues.slice(1));
+                const first = startDialogues[0];
                 setDogCompanionDialogue(first);
                 setDogCompanionEmotion(first.emotion || 'speaking');
                 if (first.waitForAction) {
@@ -10057,14 +10081,18 @@ Good luck.`;
                         setDogCompanionDialogueQueue(prev => prev.slice(1));
                         setDogCompanionDialogue(next);
                         setDogCompanionEmotion(next.emotion || 'speaking');
+                        // Track dialogue progress
+                        setDogCompanionDialogueIndex(prev => prev + 1);
                         if (next.waitForAction) {
                             setDogCompanionWaitingFor(next.waitForAction);
                         }
                     } else {
-                        // Dialogue complete
+                        // Dialogue complete - clear tracking
                         setDogCompanionDialogue(null);
                         setDogCompanionEmotion('idle');
                         setDogCompanionWaitingFor(null);
+                        setDogCompanionCurrentDialogueKey(null);
+                        setDogCompanionDialogueIndex(0);
                     }
                 }, waitTime);
             };
@@ -10235,6 +10263,57 @@ Good luck.`;
                 scheduleIdle();
                 return () => clearTimeout(dogIdleTimerRef.current);
             }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
+
+            // Resume dialogue on page reload (if was mid-dialogue)
+            useEffect(() => {
+                if (dogResumeCheckedRef.current) return;
+                dogResumeCheckedRef.current = true;
+
+                // Check if there's a saved dialogue to resume
+                const savedKey = localStorage.getItem('dog_dialogue_key');
+                const savedIndex = parseInt(localStorage.getItem('dog_dialogue_index') || '0', 10);
+
+                if (!savedKey || !dogCompanionActive) return;
+
+                // Don't resume for idle phases or if dog is inactive
+                const idlePhases = ['inactive', 'POST_GAME', 'ACT3_SACRIFICE'];
+                if (idlePhases.includes(dogCompanionStoryPhase)) {
+                    localStorage.removeItem('dog_dialogue_key');
+                    localStorage.removeItem('dog_dialogue_index');
+                    return;
+                }
+
+                // Check if the dialogue key exists
+                if (!DOG_DIALOGUES[savedKey]) {
+                    localStorage.removeItem('dog_dialogue_key');
+                    localStorage.removeItem('dog_dialogue_index');
+                    return;
+                }
+
+                // Wait 3 seconds, then show "where were we?" and resume
+                setTimeout(() => {
+                    // Show first resume line: "WAIT..."
+                    const resumeDialogues = DOG_DIALOGUES.RESUME_DIALOGUE;
+                    setDogCompanionDialogue(resumeDialogues[0]);
+                    setDogCompanionEmotion(resumeDialogues[0].emotion || 'thinking');
+
+                    // Calculate time for first line (typing + waitAfter)
+                    const firstLineTime = (resumeDialogues[0].text.length * 40) + (resumeDialogues[0].waitAfter || 1500) + 1000;
+
+                    // Show second line: "WHERE WERE WE?"
+                    setTimeout(() => {
+                        setDogCompanionDialogue(resumeDialogues[1]);
+                        setDogCompanionEmotion(resumeDialogues[1].emotion || 'thinking');
+
+                        // Calculate time for second line then resume
+                        const secondLineTime = (resumeDialogues[1].text.length * 40) + 2000;
+
+                        setTimeout(() => {
+                            startDogDialogue(savedKey, null, savedIndex);
+                        }, secondLineTime);
+                    }, firstLineTime);
+                }, 3000);
+            }, [dogCompanionActive, dogCompanionStoryPhase]);
 
             // Dog companion dragging handlers with 100ms hold timer
             const dogHoldTimerRef = useRef(null);
@@ -12313,19 +12392,21 @@ Good luck.`;
                             {/* Name input when waiting for enterName */}
                             {dogCompanionWaitingFor === 'enterName' && (
                                 <div
-                                    className="absolute bg-black/90 border-2 border-cyan-400 p-2 font-mono text-xs"
+                                    className="fixed bg-black border-2 border-white p-4 font-mono"
                                     style={{
-                                        bottom: 100,
-                                        left: '50%',
-                                        transform: 'translateX(-50%)',
-                                        minWidth: 200
+                                        bottom: dogCompanionPos.y + 110,
+                                        left: dogCompanionPos.x,
+                                        minWidth: 240,
+                                        zIndex: 999999
                                     }}
                                 >
+                                    <div className="text-white text-[10px] uppercase tracking-widest mb-3 opacity-60">ENTER YOUR NAME</div>
                                     <form onSubmit={(e) => {
                                         e.preventDefault();
-                                        const input = e.target.elements.nameInput;
-                                        if (input.value.trim()) {
-                                            setPlayerName(input.value.trim());
+                                        const formData = new FormData(e.target);
+                                        const nameValue = formData.get('nameInput');
+                                        if (nameValue && nameValue.trim()) {
+                                            setPlayerName(nameValue.trim().toUpperCase());
                                             setDogCompanionWaitingFor(null);
                                             setDogCompanionDialogue(null);
                                             setDogCompanionDialogueQueue([]);
@@ -12335,15 +12416,23 @@ Good luck.`;
                                         <input
                                             name="nameInput"
                                             type="text"
-                                            placeholder="Enter your name..."
-                                            className="w-full bg-black border border-cyan-400 text-cyan-400 px-2 py-1 text-xs font-mono focus:outline-none focus:border-cyan-300"
+                                            placeholder="_"
+                                            className="w-full bg-transparent border-b-2 border-white text-white px-0 py-2 text-sm font-mono uppercase tracking-widest focus:outline-none placeholder:text-white/30"
                                             autoFocus
+                                            autoComplete="off"
                                             maxLength={20}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.target.form.requestSubmit();
+                                                }
+                                            }}
                                         />
-                                        <button type="submit" className="w-full mt-1 bg-cyan-400/20 border border-cyan-400 text-cyan-400 px-2 py-1 text-xs hover:bg-cyan-400/40">
-                                            SUBMIT
+                                        <button type="submit" className="w-full mt-4 bg-white text-black px-4 py-2 text-xs font-mono uppercase tracking-widest hover:bg-white/80 transition-colors">
+                                            CONFIRM
                                         </button>
                                     </form>
+                                    {/* Connector line to dog */}
+                                    <div className="absolute top-full left-8 w-px h-3 bg-white" />
                                 </div>
                             )}
                             <DogCompanionSprite emotion={dogCompanionEmotion} scale={3} />
