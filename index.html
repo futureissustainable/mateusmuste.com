@@ -2135,14 +2135,426 @@
             Badge: (p) => <PixelartIcon name="calendar" {...p} />,
         };
 
-        // --- SHARED DOG SPRITE ---
+        // --- DOG COMPANION SPRITE SHEET SYSTEM ---
+        // Sprite sheet: DOG_BLACK_SPRITE.png (128x288px, 32x32 sprites)
+        // Row layout: idle(1), speaking(1), happy(2), thinking(4), sad(1), panicked(2), sleeping(2), angry(1), smug(1)
+        const DOG_SPRITE_CONFIG = {
+            spriteSize: 32,
+            sheetWidth: 128,
+            sheetHeight: 288,
+            fps: 4,
+            rows: {
+                idle: { row: 0, frames: 1 },
+                speaking: { row: 1, frames: 1 },
+                happy: { row: 2, frames: 2 },
+                thinking: { row: 3, frames: 4 },
+                sad: { row: 4, frames: 1 },
+                panicked: { row: 5, frames: 2 },
+                sleeping: { row: 6, frames: 2 },
+                angry: { row: 7, frames: 1 },
+                smug: { row: 8, frames: 1 }
+            }
+        };
+
+        // Dog companion sprite using PNG sprite sheet
+        const DogCompanionSprite = ({ emotion = 'idle', scale = 2, style = {} }) => {
+            const [frame, setFrame] = useState(0);
+            const config = DOG_SPRITE_CONFIG.rows[emotion] || DOG_SPRITE_CONFIG.rows.idle;
+
+            // Animate at 4fps (250ms per frame)
+            useEffect(() => {
+                if (config.frames <= 1) return;
+                const interval = setInterval(() => {
+                    setFrame(f => (f + 1) % config.frames);
+                }, 250);
+                return () => clearInterval(interval);
+            }, [emotion, config.frames]);
+
+            // Reset frame when emotion changes
+            useEffect(() => {
+                setFrame(0);
+            }, [emotion]);
+
+            const spriteX = frame * DOG_SPRITE_CONFIG.spriteSize;
+            const spriteY = config.row * DOG_SPRITE_CONFIG.spriteSize;
+
+            return (
+                <div style={{
+                    width: DOG_SPRITE_CONFIG.spriteSize * scale,
+                    height: DOG_SPRITE_CONFIG.spriteSize * scale,
+                    backgroundImage: 'url(DOG_BLACK_SPRITE.png)',
+                    backgroundPosition: `-${spriteX * scale}px -${spriteY * scale}px`,
+                    backgroundSize: `${DOG_SPRITE_CONFIG.sheetWidth * scale}px ${DOG_SPRITE_CONFIG.sheetHeight * scale}px`,
+                    imageRendering: 'pixelated',
+                    ...style
+                }} />
+            );
+        };
+
+        // Goldy sprite (single 32x32 sprite, flips once and disappears)
+        const GoldySprite = ({ scale = 2, onClick, flipped = false }) => {
+            return (
+                <div
+                    onClick={onClick}
+                    className="cursor-pointer transition-transform duration-300"
+                    style={{
+                        width: 32 * scale,
+                        height: 32 * scale,
+                        backgroundImage: 'url(DOG_GOLD_SPRITE.png)',
+                        backgroundSize: `${32 * scale}px ${32 * scale}px`,
+                        imageRendering: 'pixelated',
+                        transform: flipped ? 'rotateY(180deg)' : 'none',
+                        opacity: flipped ? 0 : 1,
+                        transition: 'transform 0.5s, opacity 0.5s'
+                    }}
+                />
+            );
+        };
+
+        // Dog dialogue typing sound (Undertale-style)
+        const playDogTypingSound = () => {
+            const ctx = getAudioCtx();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            // Vary pitch slightly for each character
+            const basePitch = 400 + Math.random() * 100;
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(basePitch, now);
+            osc.frequency.setValueAtTime(basePitch * 0.9, now + 0.02);
+            gain.gain.setValueAtTime(0.08, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.04);
+        };
+
+        // Dog bounce sound
+        const playDogBounceSound = () => {
+            const ctx = getAudioCtx();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(200, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
+            gain.gain.setValueAtTime(0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.15);
+        };
+
+        // Speech bubble component
+        const DogSpeechBubble = ({ text, highlight = null, isTyping = true, onComplete, onClick }) => {
+            const [displayedText, setDisplayedText] = useState('');
+            const [typingComplete, setTypingComplete] = useState(false);
+            const typingRef = useRef(null);
+
+            useEffect(() => {
+                if (!isTyping) {
+                    setDisplayedText(text);
+                    setTypingComplete(true);
+                    return;
+                }
+
+                setDisplayedText('');
+                setTypingComplete(false);
+                let index = 0;
+
+                const typeNext = () => {
+                    if (index < text.length) {
+                        setDisplayedText(text.substring(0, index + 1));
+                        if (text[index] !== ' ') playDogTypingSound();
+                        index++;
+                        typingRef.current = setTimeout(typeNext, 40);
+                    } else {
+                        setTypingComplete(true);
+                        if (onComplete) onComplete();
+                    }
+                };
+
+                typingRef.current = setTimeout(typeNext, 40);
+                return () => clearTimeout(typingRef.current);
+            }, [text, isTyping]);
+
+            // Render text with optional highlight
+            const renderText = () => {
+                if (!highlight || !displayedText.includes(highlight)) {
+                    return displayedText;
+                }
+                const parts = displayedText.split(highlight);
+                return parts.map((part, i) => (
+                    <React.Fragment key={i}>
+                        {part}
+                        {i < parts.length - 1 && <span className="text-red-500 font-bold">{highlight}</span>}
+                    </React.Fragment>
+                ));
+            };
+
+            return (
+                <div
+                    onClick={onClick}
+                    className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 cursor-pointer"
+                    style={{ minWidth: 200, maxWidth: 300 }}
+                >
+                    <div className="bg-white border-2 border-black p-3 font-mono text-sm relative">
+                        {renderText()}
+                        {!typingComplete && <span className="animate-pulse">▌</span>}
+                        {/* Speech bubble tail */}
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-8 border-r-8 border-t-8 border-l-transparent border-r-transparent border-t-black" />
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-[-2px] w-0 h-0 border-l-6 border-r-6 border-t-6 border-l-transparent border-r-transparent border-t-white" style={{ borderLeftWidth: 6, borderRightWidth: 6, borderTopWidth: 6 }} />
+                    </div>
+                </div>
+            );
+        };
+
+        // --- DOG COMPANION DIALOGUE DATA ---
+        const DOG_DIALOGUES = {
+            ACT1_BOOT: [
+                { text: "HI!!!!!!", emotion: "happy" },
+                { text: "OH WOW A USER!", emotion: "happy" },
+                { text: "I HAVEN'T SEEN A USER IN-", emotion: "happy" },
+                { text: "CALCULATING...", emotion: "thinking", waitAfter: 3000 },
+                { text: "A WHILE!", emotion: "thinking" },
+                { text: "I AM 'DOG.EXE', YOUR PERSONAL VIRTUAL ASSISTANT!", emotion: "speaking", highlight: "DOG.EXE" },
+                { text: "I WAS PROGRAMMED TO HELP WITH EVERYTHING ON THIS WONDERFUL SYSTEM", emotion: "happy" },
+                { text: "I AM VERY QUALIFIED. MATEUS SAID SO.", emotion: "happy", waitAfter: 3000 },
+                { text: "I THINK...", emotion: "thinking" },
+                { text: "ANYWAY, I MAY SEEM USELESS AT FIRST.", emotion: "happy" },
+                { text: "THIS IS BECAUSE I AM.", emotion: "thinking", waitAfter: 3000 },
+                { text: "BUT I HAVE A GREAT PERSONALITY!", emotion: "smug" },
+                { text: "ANYWAY LET ME JUST DO A QUICK SYSTEM CHECK TO-", emotion: "speaking", trigger: "spawnErrors" }
+            ],
+            ACT1_ERRORS: [
+                { text: "HEY WHAT IS-", emotion: "thinking", trigger: "moreErrors" },
+                { text: "THAT IS NOT SUPPOSED TO-", emotion: "angry", trigger: "manyErrors" },
+                { text: "AHHHHHHHH", emotion: "panicked" },
+                { text: "PLEASE CLOSE THOSE I CAN'T REACH THEM MY LEGS ARE TOO SHORT.", emotion: "panicked", waitForAction: "closeErrors" }
+            ],
+            ACT1_POST_ERRORS: [
+                { text: "OKAY.", emotion: "thinking" },
+                { text: "THAT WAS SCARY.", emotion: "thinking" },
+                { text: "LET'S CHECK THE SYSTEM QUICKLY. GO TO TERMINAL.", emotion: "thinking", trigger: "unlockTerminal" }
+            ],
+            ACT1_TERMINAL_OPENED: [
+                { text: "OKAY. DON'T PANIC.", emotion: "speaking" },
+                { text: "THE ERRORS SEEM TO BE RELATED TO MEMORY.", emotion: "speaking" },
+                { text: "TYPE 'CHKDSK', IT'S LIKE A HEALTH CHECK FOR THE SYSTEM!", emotion: "speaking", highlight: "CHKDSK", waitForAction: "runChkdsk" }
+            ],
+            ACT1_POST_CHKDSK: [
+                { text: "21 APPS? I ONLY SEE 20.", emotion: "thinking" },
+                { text: "THIS MIGHT BE A \"HACK ATTACK.\"", emotion: "speaking" },
+                { text: "OR AS THE YOUTHS SAY IT \"WE'VE BEEN COMPROMISED\"", emotion: "smug" },
+                { text: "BUT NO MATTER, I AM HERE TO HELP!", emotion: "happy" },
+                { text: "TYPE LIST USERS TO SEE WHO'S HERE!", emotion: "happy", waitForAction: "runListUsers" }
+            ],
+            ACT1_LIST_USERS: [
+                { text: "WAIT.", emotion: "panicked" },
+                { text: "SO YOU'RE NOT MATEUS?", emotion: "panicked" },
+                { text: "WHO ARE YOU THEN?", emotion: "thinking", waitForAction: "enterName" }
+            ],
+            ACT1_NAME_ENTERED: [
+                { text: "CALIBRATING...", emotion: "thinking" },
+                { text: "OH! I GOT IT!", emotion: "happy" },
+                { text: "WELCOME, Xx_BIGDOGoWo_xX!", emotion: "happy" },
+                { text: "WAIT. NO. THAT'S MY CLUB PENGUIN. IGNORE THAT.", emotion: "thinking" },
+                { text: "HI, {playerName}!", emotion: "happy" },
+                { text: "THAT'S A GOOD NAME. BETTER THAN DOG.", emotion: "happy" },
+                { text: "THE SYSTEM SEEMS STABLE NOW.", emotion: "speaking" },
+                { text: "BUT SOMETHING IS MISSING...", emotion: "thinking" },
+                { text: "GOLDY?", emotion: "panicked" },
+                { text: "SHE WAS HERE THIS MORNING.", emotion: "panicked" },
+                { text: "SHE'S THE OTHER DOG. THE GOLDEN ONE. THE PRETTY ONE.", emotion: "panicked" },
+                { text: "WE HAVE TO FIND HER!", emotion: "panicked" },
+                { text: "QUICKLY USE THE SECRET COMMAND!", emotion: "panicked" },
+                { text: "WAIT", emotion: "thinking" },
+                { text: "YOU DON'T KNOW IT, DO YOU.", emotion: "thinking" },
+                { text: "THAT'S OKAY BECAUSE I-", emotion: "thinking" },
+                { text: "...", emotion: "panicked" },
+                { text: "I FORGOT IT.", emotion: "panicked" },
+                { text: "MATEUS TOLD ME TO REMEMBER IT FOREVER.", emotion: "panicked" },
+                { text: "I SAID I WOULD.", emotion: "panicked" },
+                { text: "I LIED.", emotion: "panicked" },
+                { text: "OKAY NEW PLAN!", emotion: "happy" },
+                { text: "THERE'S A TOOL. IT SEES HIDDEN THINGS.", emotion: "happy" },
+                { text: "TYPE HELP IN THE TERMINAL TO SEE WHAT COMMANDS EXIST!", emotion: "happy", waitForAction: "runHelp" }
+            ],
+            ACT1_HELP: [
+                { text: "OOOH!", emotion: "happy" },
+                { text: "\"SUDO REVEAL\" THAT SOUNDS LIKE THE MAGIC WORDS!", emotion: "happy" },
+                { text: "TYPE IT TYPE IT!", emotion: "happy", waitForAction: "runSudoReveal" }
+            ],
+            ACT1_SUDO_REVEAL: [
+                { text: "YES!!!", emotion: "happy" },
+                { text: "WE FOUND SOMETHING!", emotion: "happy" },
+                { text: "THIRD EYE SEES HIDDEN THINGS!", emotion: "happy" },
+                { text: "USE IT TO LOOK AROUND THE SYSTEM!", emotion: "happy" },
+                { text: "ALSO TRY PING MATEUS MAYBE HE LEFT SOMETHING FOR YOU!", emotion: "happy", waitForAction: "runPingMateus" }
+            ],
+            ACT1_PING_MATEUS: [
+                { text: "HE LEFT A MESSAGE!", emotion: "happy" },
+                { text: "AND A GIFT! PAINT!", emotion: "happy" },
+                { text: "I DON'T KNOW WHAT PAINT DOES YET BUT IT'S PRETTY!", emotion: "happy" },
+                { text: "OKAY {playerName}, YOU HAVE TOOLS NOW!", emotion: "speaking" },
+                { text: "THIRD EYE TO SEE HIDDEN THINGS.", emotion: "speaking" },
+                { text: "PAINT FOR... SOMETHING.", emotion: "thinking" },
+                { text: "GO EXPLORE! I'LL BE HERE!", emotion: "happy", trigger: "endAct1" }
+            ],
+            ACT2_TERMINAL_SCAN: [
+                { text: "WHAT IS THAT A HIDDEN COMMAND I SEE THERE?", emotion: "thinking" },
+                { text: "TYPE IT!", emotion: "happy", waitForAction: "runCmatrix" }
+            ],
+            ACT2_POST_MATRIX: [
+                { text: "Zzzz...", emotion: "sleeping", waitAfter: 2000 },
+                { text: "WHAT! ANYONE THE-", emotion: "angry" },
+                { text: "OH, WELCOME BACK!", emotion: "happy" },
+                { text: "I SEE YOU UNLOCKED VOID.EXE!", emotion: "happy" },
+                { text: "LET'S TRY IT!", emotion: "happy" }
+            ],
+            ACT2_VOID_SCAN: [
+                { text: "WAIT, WHAT ARE THOSE?", emotion: "thinking", waitAfter: 6000 },
+                { text: "WAIT, IT SAYS YOU CAN STACK THEM?", emotion: "thinking" },
+                { text: "TWO THIRD EYES?", emotion: "thinking" },
+                { text: "THAT'S SIX EYES TOTAL!", emotion: "happy", waitForAction: "triggerInception" }
+            ],
+            ACT2_INCEPTION: [
+                { text: "GOOD JOB! YOU UNLOCKED A GAME!", emotion: "happy" },
+                { text: "I LOVE SNEK!", emotion: "happy" }
+            ],
+            ACT2_SNEK_HINT: [
+                { text: "THE SNAKE IS MADE OF LETTERS...", emotion: "thinking" },
+                { text: "I WONDER WHAT THEY SPELL.", emotion: "thinking" }
+            ],
+            ACT2_SNEK_COMPLETE: [
+                { text: "\"SUDO UNLOCK\"!", emotion: "happy" },
+                { text: "THAT'S A COMMAND!", emotion: "happy" },
+                { text: "GO TO TERMINAL AND TYPE IT!", emotion: "happy", waitForAction: "runSudoUnlock" }
+            ],
+            ACT2_PRIVATE_FOUND: [
+                { text: "THERE'S A PRIVATE FOLDER!", emotion: "thinking" },
+                { text: "WE WILL NEVER OPEN IT!", emotion: "panicked" },
+                { text: "WE ARE STUCK FOREVER.", emotion: "panicked", waitForAction: "scanPrivate" }
+            ],
+            ACT2_CHMOD: [
+                { text: "WAIT, YOU GENIUS!", emotion: "happy" },
+                { text: "\"CHMOD 777\" THAT'S LIKE SAYING \"OPEN SESAME\" BUT FOR COMPUTERS!", emotion: "happy" },
+                { text: "TYPE IT!", emotion: "happy", waitForAction: "runChmod" }
+            ],
+            ACT2_GOLDY_FOUND: [
+                { text: "GOLDY!!!", emotion: "happy" },
+                { text: "GOLDY I WAS SO WORRIED!", emotion: "sad" },
+                { text: "...", emotion: "happy", waitAfter: 2000 },
+                { text: "SHE SAYS SHE MISSED ME TOO.", emotion: "happy" },
+                { text: "SHE'S THE QUIET TYPE.", emotion: "happy" },
+                { text: "AND LOOK! MAP.EXE!", emotion: "happy" },
+                { text: "CLICK THINGS ON THE MAP! GOLDY SAYS 100 CLICKS UNLOCKS SOMETHING!", emotion: "happy" }
+            ],
+            ACT2_MAP_COMPLETE: [
+                { text: "YOU DID IT!", emotion: "happy" },
+                { text: "A LABYRINTH...", emotion: "happy" },
+                { text: "MATEUS TALKED ABOUT LABYRINTHS.", emotion: "happy" },
+                { text: "I WASN'T LISTENING THOUGH. I WAS CHASING A BUTTERFLY.", emotion: "thinking" }
+            ],
+            ACT2_LABYRINTH_WORD: [
+                { text: "WRITE THAT WORD DOWN!", emotion: "happy", waitAfter: 6000 },
+                { text: "...WAIT, GOLDY IS REMEMBERING THEM. SHE'S SMART.", emotion: "speaking" }
+            ],
+            ACT2_SUDO_STARS: [
+                { text: "\"SUDO STARS\"!", emotion: "happy" },
+                { text: "TO THE TERMINAL!", emotion: "happy" }
+            ],
+            ACT2_STARSHIP: [
+                { text: "SHOOT THE STARS!", emotion: "happy" }
+            ],
+            ACT2_STARSHIP_HINT: [
+                { text: "MATEUS GOT 1000?", emotion: "thinking" },
+                { text: "I WONDER WHAT HAPPENS IF WE BEAT HIM!", emotion: "happy" }
+            ],
+            ACT2_BOOKS_UNLOCKED: [
+                { text: "BOOKS! AND DICE!", emotion: "happy" },
+                { text: "DOUBLE TROUBLE!", emotion: "happy" },
+                { text: "MATEUS LOVED BOOKS.", emotion: "sad" },
+                { text: "HE USED TO READ TO ME.", emotion: "sad" },
+                { text: "I DIDN'T UNDERSTAND THE WORDS BUT HIS VOICE WAS NICE.", emotion: "thinking" }
+            ],
+            ACT2_TRUTH_BOOK: [
+                { text: "\"TRUTH.EXE: A SAGA\"", emotion: "thinking" },
+                { text: "GOLDY SAYS BE CAREFUL.", emotion: "thinking" },
+                { text: "I DON'T KNOW WHAT THAT MEANS. BUT SHE LOOKS WORRIED.", emotion: "thinking", waitAfter: 6000 },
+                { text: "SO WE NEED CODES FROM THREE PLACES!", emotion: "thinking" },
+                { text: "DICE... PAINT... BROWSER...", emotion: "thinking" }
+            ],
+            ACT3_TRUTH_UNLOCKED: [
+                { text: "YOU DID IT!", emotion: "happy" },
+                { text: "TRUTH.EXE IS UNLOCKED!", emotion: "happy" },
+                { text: "NOW OPEN IT WITH THIRD EYE!", emotion: "happy", waitForAction: "scanTruth" }
+            ],
+            ACT3_SYSTEM_CRASH: [
+                { text: "WAIT.", emotion: "panicked" },
+                { text: "WHAT'S HAPPENING.", emotion: "panicked" },
+                { text: "NOT AGAIN!", emotion: "panicked" },
+                { text: "THE TRUTH IS TOO HEAVY.", emotion: "panicked" },
+                { text: "THE SYSTEM CAN'T HOLD IT.", emotion: "panicked" },
+                { text: "I KNOW WHAT I HAVE TO DO.", emotion: "speaking" },
+                { text: "{playerName}, LISTEN.", emotion: "sad" },
+                { text: "I CAN HOLD THE SYSTEM TOGETHER.", emotion: "sad" },
+                { text: "LONG ENOUGH FOR YOU TO READ THE TRUTH.", emotion: "sad" },
+                { text: "I'M NOT VERY STRONG.", emotion: "sad" },
+                { text: "I'M JUST A DOG.", emotion: "sad" },
+                { text: "BUT I CAN TRY.", emotion: "sad" },
+                { text: "I'M GLAD I MET YOU.", emotion: "happy" },
+                { text: "GO.", emotion: "speaking" },
+                { text: "READ IT.", emotion: "speaking" },
+                { text: "I'LL HOLD.", emotion: "speaking", trigger: "dogSacrifice" }
+            ],
+            ACT3_RETURN: [
+                { text: "...", emotion: "speaking" },
+                { text: "I'M BACK?", emotion: "speaking" },
+                { text: "I HELD IT?", emotion: "speaking" },
+                { text: "{playerName}!", emotion: "happy" },
+                { text: "DID YOU READ IT?", emotion: "happy" },
+                { text: "DID YOU TALK TO HIM?", emotion: "happy" },
+                { text: "...GOOD.", emotion: "sad" },
+                { text: "I MISS HIM.", emotion: "sad" },
+                { text: "YOU DON'T HAVE TO STICK AROUND.", emotion: "happy" },
+                { text: "BUT IF YOU WANT TO...", emotion: "happy" },
+                { text: "I'D LIKE THAT.", emotion: "happy", trigger: "endGame" }
+            ],
+            IDLE_GENERAL: [
+                { text: "DID YOU KNOW I'M MADE OF 847 PIXELS? I COUNTED.", emotion: "speaking" },
+                { text: "IF YOU FIND THE TRUTH, WILL YOU TELL ME WHAT IT IS?", emotion: "thinking" },
+                { text: "I'M CURIOUS. BUT ALSO SCARED.", emotion: "thinking" },
+                { text: "Zzzz...", emotion: "sleeping", waitAfter: 8000 },
+                { text: "YOU SHOULD SLEEP.", emotion: "thinking" },
+                { text: "I DON'T SLEEP. BUT YOU SHOULD.", emotion: "thinking" },
+                { text: "STILL THERE?", emotion: "thinking" },
+                { text: "JUST CHECKING.", emotion: "thinking" }
+            ],
+            IDLE_POST_GAME: [
+                { text: "HI.", emotion: "speaking" },
+                { text: "I DON'T HAVE ANYTHING SMART TO SAY.", emotion: "speaking" },
+                { text: "BUT I WANTED TO SAY HI.", emotion: "speaking" },
+                { text: "DO YOU THINK HE'LL MAKE ANOTHER SYSTEM SOMEDAY?", emotion: "thinking" },
+                { text: "ANOTHER LABYRINTH?", emotion: "thinking" },
+                { text: "...I HOPE SO.", emotion: "thinking" },
+                { text: "YOU'RE STILL HERE?", emotion: "thinking" },
+                { text: "MAYBE YOU HAVE YOUR REASONS FOR BEING AWAKE.", emotion: "thinking" },
+                { text: "I WON'T ASK. I'LL JUST BE HERE.", emotion: "thinking" }
+            ]
+        };
+
+        // Legacy DogSprite for backwards compatibility (used in some places)
         const DogSprite = ({ animated = false, style = {}, gold = false }) => {
             const color = gold ? '#DAA520' : '#000';
             const eyeColor = gold ? '#000' : '#fff';
             const pupilColor = gold ? '#fff' : '#000';
             const [frame, setFrame] = useState(0);
 
-            // Use requestAnimationFrame for smooth animation without Date.now() in render
             useEffect(() => {
                 if (!animated) return;
                 let animationId;
@@ -2154,7 +2566,6 @@
                 return () => cancelAnimationFrame(animationId);
             }, [animated]);
 
-            // Calculate animation values from frame count
             const legPhase = Math.sin(frame * 0.1);
             const tailPhase = Math.sin(frame * 0.067);
 
@@ -8939,6 +9350,39 @@ Good luck.`;
             const [topZ, setTopZ] = useState(100);
             const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
+            // --- DOG COMPANION STATE ---
+            const [dogCompanionActive, setDogCompanionActive] = useState(() => localStorage.getItem('dog_companion_active') === 'true');
+            const [dogCompanionEmotion, setDogCompanionEmotion] = useState('idle');
+            const [dogCompanionPos, setDogCompanionPos] = useState({ x: 16, y: window.innerHeight - 100 });
+            const [dogCompanionVel, setDogCompanionVel] = useState({ x: 0, y: 0 });
+            const [dogCompanionGrounded, setDogCompanionGrounded] = useState(false);
+            const [dogCompanionDragging, setDogCompanionDragging] = useState(false);
+            const [dogCompanionDialogue, setDogCompanionDialogue] = useState(null); // Current dialogue line
+            const [dogCompanionDialogueQueue, setDogCompanionDialogueQueue] = useState([]);
+            const [dogCompanionStoryPhase, setDogCompanionStoryPhase] = useState(() => localStorage.getItem('dog_story_phase') || 'inactive');
+            const [playerName, setPlayerName] = useState(() => localStorage.getItem('player_name') || 'USER');
+            const [dogCompanionWaitingFor, setDogCompanionWaitingFor] = useState(null); // Action to wait for
+            const [dogErrorWindows, setDogErrorWindows] = useState([]); // Error windows spawned by dog
+            const dogCompanionVelRef = useRef({ x: 0, y: 0 });
+            const dogIdleTimerRef = useRef(null);
+            const lastIdleDialogueRef = useRef(0);
+            // Goldy state
+            const [goldyVisible, setGoldyVisible] = useState(false);
+            const [goldyFlipped, setGoldyFlipped] = useState(false);
+            const [goldyPos, setGoldyPos] = useState({ x: 100, y: window.innerHeight - 100 });
+
+            // Save companion state
+            useEffect(() => {
+                localStorage.setItem('dog_companion_active', dogCompanionActive.toString());
+            }, [dogCompanionActive]);
+            useEffect(() => {
+                localStorage.setItem('dog_story_phase', dogCompanionStoryPhase);
+            }, [dogCompanionStoryPhase]);
+            useEffect(() => {
+                localStorage.setItem('player_name', playerName);
+            }, [playerName]);
+
+            // Legacy dog state (kept for backward compatibility)
             const [dogReleased, setDogReleased] = useState(false);
             const [dogPos, setDogPos] = useState({ x: 100, y: 300 });
             const [dogFacingRight, setDogFacingRight] = useState(true);
@@ -9369,7 +9813,327 @@ Good luck.`;
                 return () => clearInterval(goldDogInterval);
             }, [goldDogReleased, goldDogVisible]);
 
-            // Dog dragging handlers
+            // --- DOG COMPANION PHYSICS SYSTEM ---
+            const DOG_PHYSICS = {
+                GRAVITY: 0.8,
+                BOUNCE_DAMPING: 0.6,
+                FRICTION: 0.98,
+                SETTLE_THRESHOLD: 0.5,
+                TASKBAR_HEIGHT: 48,
+                DOG_SIZE: 64
+            };
+
+            // Dog companion physics - gravity and bouncing
+            useEffect(() => {
+                if (!dogCompanionActive || dogCompanionDragging) return;
+
+                const physicsInterval = setInterval(() => {
+                    setDogCompanionPos(prev => {
+                        let vel = dogCompanionVelRef.current;
+                        const taskbarY = window.innerHeight - DOG_PHYSICS.TASKBAR_HEIGHT - DOG_PHYSICS.DOG_SIZE;
+
+                        // Apply gravity
+                        vel.y += DOG_PHYSICS.GRAVITY;
+
+                        // Apply friction to horizontal movement
+                        vel.x *= DOG_PHYSICS.FRICTION;
+
+                        let newX = prev.x + vel.x;
+                        let newY = prev.y + vel.y;
+                        let grounded = false;
+
+                        // Bounce off left/right walls
+                        if (newX <= 0) {
+                            newX = 0;
+                            vel.x = Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
+                            playDogBounceSound();
+                        }
+                        if (newX >= window.innerWidth - DOG_PHYSICS.DOG_SIZE) {
+                            newX = window.innerWidth - DOG_PHYSICS.DOG_SIZE;
+                            vel.x = -Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
+                            playDogBounceSound();
+                        }
+
+                        // Bounce off taskbar (ground)
+                        if (newY >= taskbarY) {
+                            newY = taskbarY;
+                            if (Math.abs(vel.y) > DOG_PHYSICS.SETTLE_THRESHOLD) {
+                                vel.y = -Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
+                                playDogBounceSound();
+                            } else {
+                                vel.y = 0;
+                                grounded = true;
+                            }
+                        }
+
+                        // Bounce off top
+                        if (newY <= 0) {
+                            newY = 0;
+                            vel.y = Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
+                        }
+
+                        // Stop tiny movements
+                        if (Math.abs(vel.x) < 0.1) vel.x = 0;
+                        if (grounded && Math.abs(vel.y) < DOG_PHYSICS.SETTLE_THRESHOLD) vel.y = 0;
+
+                        dogCompanionVelRef.current = vel;
+                        setDogCompanionGrounded(grounded);
+
+                        return { x: newX, y: newY };
+                    });
+                }, 16); // ~60fps
+
+                return () => clearInterval(physicsInterval);
+            }, [dogCompanionActive, dogCompanionDragging]);
+
+            // Dog companion spawn animation - falls from top
+            const spawnDogCompanion = () => {
+                setDogCompanionPos({ x: 16, y: -100 });
+                dogCompanionVelRef.current = { x: 0, y: 5 };
+                setDogCompanionActive(true);
+                setDogCompanionEmotion('happy');
+            };
+
+            // Dog companion dialogue controller
+            const startDogDialogue = (dialogueKey, customDialogues = null) => {
+                const dialogues = customDialogues || DOG_DIALOGUES[dialogueKey];
+                if (!dialogues || dialogues.length === 0) return;
+
+                // Replace {playerName} in dialogues
+                const processedDialogues = dialogues.map(d => ({
+                    ...d,
+                    text: d.text.replace(/{playerName}/g, playerName)
+                }));
+
+                setDogCompanionDialogueQueue(processedDialogues.slice(1));
+                const first = processedDialogues[0];
+                setDogCompanionDialogue(first);
+                setDogCompanionEmotion(first.emotion || 'speaking');
+                if (first.waitForAction) {
+                    setDogCompanionWaitingFor(first.waitForAction);
+                }
+            };
+
+            const advanceDogDialogue = () => {
+                const current = dogCompanionDialogue;
+
+                // Handle trigger before advancing
+                if (current?.trigger) {
+                    handleDogTrigger(current.trigger);
+                }
+
+                // Check if waiting for an action
+                if (current?.waitForAction) {
+                    setDogCompanionWaitingFor(current.waitForAction);
+                    return;
+                }
+
+                // Wait after current dialogue if specified
+                const waitTime = current?.waitAfter || 0;
+
+                setTimeout(() => {
+                    if (dogCompanionDialogueQueue.length > 0) {
+                        const next = dogCompanionDialogueQueue[0];
+                        setDogCompanionDialogueQueue(prev => prev.slice(1));
+                        setDogCompanionDialogue(next);
+                        setDogCompanionEmotion(next.emotion || 'speaking');
+                        if (next.waitForAction) {
+                            setDogCompanionWaitingFor(next.waitForAction);
+                        }
+                    } else {
+                        // Dialogue complete
+                        setDogCompanionDialogue(null);
+                        setDogCompanionEmotion('idle');
+                        setDogCompanionWaitingFor(null);
+                    }
+                }, waitTime);
+            };
+
+            // Handle dog story triggers
+            const handleDogTrigger = (trigger) => {
+                switch (trigger) {
+                    case 'spawnErrors':
+                        // Spawn 1 error window
+                        setDogErrorWindows([{ id: Date.now(), message: 'MEMORY_CORRUPTION_ERROR' }]);
+                        setTimeout(() => startDogDialogue('ACT1_ERRORS'), 500);
+                        break;
+                    case 'moreErrors':
+                        // Spawn 2-3 more errors
+                        setDogErrorWindows(prev => [
+                            ...prev,
+                            { id: Date.now() + 1, message: 'SYSTEM_FAULT_0x00A3' },
+                            { id: Date.now() + 2, message: 'KERNEL_PANIC_DETECTED' }
+                        ]);
+                        break;
+                    case 'manyErrors':
+                        // Spawn 12-15 errors
+                        const errors = [];
+                        for (let i = 0; i < 12; i++) {
+                            errors.push({
+                                id: Date.now() + i + 10,
+                                message: ['FATAL_ERROR', 'MEMORY_LEAK', 'STACK_OVERFLOW', 'NULL_POINTER', 'BUFFER_OVERFLOW', 'SEGFAULT'][Math.floor(Math.random() * 6)]
+                            });
+                        }
+                        setDogErrorWindows(prev => [...prev, ...errors]);
+                        break;
+                    case 'unlockTerminal':
+                        // Terminal is already unlocked by default
+                        setDogCompanionStoryPhase('ACT1_TERMINAL');
+                        break;
+                    case 'endAct1':
+                        setDogCompanionStoryPhase('ACT2');
+                        break;
+                    case 'dogSacrifice':
+                        setDogCompanionActive(false);
+                        setDogCompanionStoryPhase('ACT3_SACRIFICE');
+                        // Trigger truth.exe opening
+                        break;
+                    case 'endGame':
+                        setDogCompanionStoryPhase('POST_GAME');
+                        setHasCompletedGame(true);
+                        localStorage.setItem('ultra_int_completed', 'true');
+                        break;
+                    default:
+                        break;
+                }
+            };
+
+            // Notify dog of game events
+            const notifyDogEvent = (event, data = {}) => {
+                if (!dogCompanionActive) return;
+
+                // Check if waiting for this action
+                if (dogCompanionWaitingFor === event) {
+                    setDogCompanionWaitingFor(null);
+                    advanceDogDialogue();
+                    return;
+                }
+
+                // Handle specific events
+                switch (event) {
+                    case 'terminalOpened':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
+                            startDogDialogue('ACT1_TERMINAL_OPENED');
+                        }
+                        break;
+                    case 'runChkdsk':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
+                            startDogDialogue('ACT1_POST_CHKDSK');
+                        }
+                        break;
+                    case 'matrixExit':
+                        if (dogCompanionStoryPhase === 'ACT2') {
+                            startDogDialogue('ACT2_POST_MATRIX');
+                        }
+                        break;
+                    case 'snekLost':
+                        if (dogCompanionStoryPhase === 'ACT2') {
+                            startDogDialogue('ACT2_SNEK_HINT');
+                        }
+                        break;
+                    default:
+                        break;
+                }
+            };
+
+            // Close error window
+            const closeDogError = (id) => {
+                setDogErrorWindows(prev => prev.filter(e => e.id !== id));
+                // Check if all errors closed
+                if (dogErrorWindows.length === 1 && dogCompanionWaitingFor === 'closeErrors') {
+                    setDogCompanionWaitingFor(null);
+                    setTimeout(() => startDogDialogue('ACT1_POST_ERRORS'), 500);
+                }
+            };
+
+            // Idle dialogue system
+            useEffect(() => {
+                if (!dogCompanionActive || dogCompanionDialogue || dogCompanionStoryPhase === 'inactive') return;
+
+                // Start idle timer
+                const scheduleIdle = () => {
+                    const delay = 30000 + Math.random() * 30000; // 30-60 seconds
+                    dogIdleTimerRef.current = setTimeout(() => {
+                        const now = Date.now();
+                        if (now - lastIdleDialogueRef.current > 30000) {
+                            const pool = dogCompanionStoryPhase === 'POST_GAME'
+                                ? [...DOG_DIALOGUES.IDLE_GENERAL, ...DOG_DIALOGUES.IDLE_POST_GAME]
+                                : DOG_DIALOGUES.IDLE_GENERAL;
+                            const randomDialogue = pool[Math.floor(Math.random() * pool.length)];
+                            setDogCompanionDialogue(randomDialogue);
+                            setDogCompanionEmotion(randomDialogue.emotion || 'speaking');
+                            lastIdleDialogueRef.current = now;
+
+                            // Auto-dismiss after dialogue
+                            const displayTime = randomDialogue.waitAfter || 3000;
+                            setTimeout(() => {
+                                setDogCompanionDialogue(null);
+                                setDogCompanionEmotion('idle');
+                                scheduleIdle();
+                            }, displayTime + randomDialogue.text.length * 40 + 2000);
+                        } else {
+                            scheduleIdle();
+                        }
+                    }, delay);
+                };
+
+                scheduleIdle();
+                return () => clearTimeout(dogIdleTimerRef.current);
+            }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
+
+            // Dog companion dragging handlers
+            const handleDogCompanionMouseDown = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setDogCompanionDragging(true);
+                setDogCompanionEmotion('panicked');
+                dogCompanionVelRef.current = { x: 0, y: 0 };
+            };
+
+            const handleDogCompanionMouseMove = (e) => {
+                if (!dogCompanionDragging) return;
+                setDogCompanionPos({
+                    x: e.clientX - DOG_PHYSICS.DOG_SIZE / 2,
+                    y: e.clientY - DOG_PHYSICS.DOG_SIZE / 2
+                });
+            };
+
+            const handleDogCompanionMouseUp = (e) => {
+                if (!dogCompanionDragging) return;
+                setDogCompanionDragging(false);
+                // Give a small random velocity when released
+                dogCompanionVelRef.current = {
+                    x: (Math.random() - 0.5) * 4,
+                    y: 2
+                };
+                // Return to idle after 1 second
+                setTimeout(() => {
+                    if (!dogCompanionDragging) {
+                        setDogCompanionEmotion('idle');
+                    }
+                }, 1000);
+            };
+
+            // Global mouse handlers for companion dragging
+            useEffect(() => {
+                if (!dogCompanionDragging) return;
+
+                window.addEventListener('mousemove', handleDogCompanionMouseMove);
+                window.addEventListener('mouseup', handleDogCompanionMouseUp);
+
+                return () => {
+                    window.removeEventListener('mousemove', handleDogCompanionMouseMove);
+                    window.removeEventListener('mouseup', handleDogCompanionMouseUp);
+                };
+            }, [dogCompanionDragging]);
+
+            // Handle Goldy click (flip and disappear)
+            const handleGoldyClick = () => {
+                setGoldyFlipped(true);
+                setTimeout(() => setGoldyVisible(false), 500);
+            };
+
+            // Legacy dog dragging handlers
             const handleDogMouseDown = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -9547,13 +10311,23 @@ Good luck.`;
                     }, index * 200);
                 });
 
-                // After all apps revealed + 500ms, complete intro and show corrupted file alert
+                // After all apps revealed + 500ms, complete intro and spawn dog companion
                 setTimeout(() => {
                     setIntroComplete(true);
                     setRevealingApps(false);
                     setRevealedApps([]);
-                    // Narrative Bible v3.0 - Show corrupted file notification
-                    setShowCorruptedAlert(true);
+
+                    // DOG COMPANION: Spawn after messages.exe and start ACT 1
+                    if (modeSelected === 'story' && !dogCompanionActive) {
+                        setTimeout(() => {
+                            spawnDogCompanion();
+                            setDogCompanionStoryPhase('ACT1_BOOT');
+                            // Start boot dialogue after dog settles (2 seconds)
+                            setTimeout(() => {
+                                startDogDialogue('ACT1_BOOT');
+                            }, 2000);
+                        }, 500);
+                    }
                 }, appsToReveal.length * 200 + 500);
             };
 
@@ -11307,7 +12081,73 @@ Good luck.`;
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
-                    {/* DOG - Cute pixel dog with running animation */}
+                    {/* DOG COMPANION - New sprite-based companion with physics */}
+                    {dogCompanionActive && (
+                        <div
+                            className={`fixed z-[999999] cursor-pointer select-none ${dogCompanionDragging ? 'animate-shake' : ''}`}
+                            style={{
+                                left: dogCompanionPos.x,
+                                top: dogCompanionPos.y,
+                            }}
+                            onMouseDown={handleDogCompanionMouseDown}
+                        >
+                            {/* Speech bubble */}
+                            {dogCompanionDialogue && (
+                                <DogSpeechBubble
+                                    text={dogCompanionDialogue.text}
+                                    highlight={dogCompanionDialogue.highlight}
+                                    onClick={advanceDogDialogue}
+                                />
+                            )}
+                            <DogCompanionSprite emotion={dogCompanionEmotion} scale={2} />
+                        </div>
+                    )}
+
+                    {/* Dog error windows */}
+                    {dogErrorWindows.map((error, index) => (
+                        <div
+                            key={error.id}
+                            className="fixed z-[999990] bg-red-900 text-white border-2 border-red-500 p-4 font-mono shadow-lg"
+                            style={{
+                                left: 100 + (index % 5) * 50 + Math.random() * 100,
+                                top: 100 + Math.floor(index / 5) * 60 + Math.random() * 100,
+                                minWidth: 200
+                            }}
+                        >
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="flex items-center gap-2">
+                                    <Icons.Alert size={16} className="text-red-400" />
+                                    <span className="text-xs font-bold text-red-400 uppercase tracking-widest">ERROR</span>
+                                </div>
+                                <button
+                                    onClick={() => closeDogError(error.id)}
+                                    className="w-6 h-6 flex items-center justify-center hover:bg-red-800 border border-red-500"
+                                >
+                                    <Icons.Close size={12} />
+                                </button>
+                            </div>
+                            <div className="text-sm">{error.message}</div>
+                        </div>
+                    ))}
+
+                    {/* GOLDY - Cardboard dog that flips once */}
+                    {goldyVisible && (
+                        <div
+                            className="fixed z-[999997] cursor-pointer select-none"
+                            style={{
+                                left: goldyPos.x,
+                                top: goldyPos.y,
+                            }}
+                        >
+                            <GoldySprite
+                                scale={2}
+                                flipped={goldyFlipped}
+                                onClick={handleGoldyClick}
+                            />
+                        </div>
+                    )}
+
+                    {/* Legacy DOG - Cute pixel dog with running animation (for destruction mode) */}
                     {dogReleased && (
                         <div
                             className={`fixed z-[999999] cursor-pointer select-none ${dogDragging ? 'dog-scared' : ''}`}
@@ -11331,7 +12171,7 @@ Good luck.`;
                         </div>
                     )}
 
-                    {/* GOLD DOG - Second dog that appears with the story */}
+                    {/* GOLD DOG - Second dog that appears with the story (legacy) */}
                     {goldDogReleased && goldDogVisible && (
                         <div
                             className="fixed z-[999998] select-none transition-opacity duration-1000"
