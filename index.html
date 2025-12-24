@@ -9511,10 +9511,10 @@ Good luck.`;
                     ABOUT: { x: padding, y: topOffset },
                     SYSTEM: { x: padding, y: topOffset },
                     FILES: { x: padding, y: topOffset + iconSize },
-                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    APPS: { x: padding, y: topOffset },
                     CONTACT: { x: padding, y: topOffset + iconSize * 3 },
                     TRUTH: { x: padding, y: topOffset + iconSize * 4 },
-                    TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
+                    TRASH: { x: padding, y: topOffset + iconSize }
                 };
             });
             const [iconDrag, setIconDrag] = useState({ id: null, offsetX: 0, offsetY: 0, active: false });
@@ -10416,18 +10416,15 @@ Good luck.`;
             }, [dogDragging, dogDragOffset]);
 
             // Desktop icons - MESSAGES only if intro not complete, otherwise full desktop
-            // Story mode: only APPS and TRASH visible initially (ABOUT, FILES hidden until unlocked)
+            // Story mode: only APPS, TRASH, TRUTH visible (no CONTACT)
             // TRUTH is always in list but only visible/clickable when Third Eye scans it
-            const allDesktopIcons = ["APPS", "CONTACT", "TRUTH", "TRASH"];
-            // About mode shows full portfolio view
+            const storyModeIcons = ["APPS", "TRASH", "TRUTH"];
             const aboutModeIcons = ["ABOUT", "FILES", "CONTACT"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
-            // In story mode (dogCompanionActive), hide CONTACT
-            const desktopIcons = (!introComplete
+            const desktopIcons = !introComplete
                 ? (revealingApps ? ["MESSAGES", ...revealedApps] : ["MESSAGES"])
-                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons))
-                .filter(id => !(dogCompanionActive && id === 'CONTACT'));
+                : (modeSelected === 'about' ? aboutModeIcons : storyModeIcons);
 
             // Window State (Position x/y added for dragging) - content rendered separately
             // Base sizes are for 1920x1080, will be scaled for smaller screens
@@ -11481,10 +11478,10 @@ Good luck.`;
                     ABOUT: { x: padding, y: topOffset },
                     SYSTEM: { x: padding, y: topOffset },
                     FILES: { x: padding, y: topOffset + iconSize },
-                    APPS: { x: padding, y: topOffset + iconSize * 2 },
+                    APPS: { x: padding, y: topOffset },
                     CONTACT: { x: padding, y: topOffset + iconSize * 3 },
                     TRUTH: { x: padding, y: topOffset + iconSize * 4 },
-                    TRASH: { x: Math.min(window.innerWidth - 100, padding), y: Math.min(window.innerHeight - 120, topOffset + iconSize * 5) }
+                    TRASH: { x: padding, y: topOffset + iconSize }
                 };
                 setIconPositions(defaultPositions);
                 localStorage.setItem('desktop_icon_positions', JSON.stringify(defaultPositions));
