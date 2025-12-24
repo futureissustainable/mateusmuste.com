@@ -2226,21 +2226,23 @@
             );
         };
 
-        // Goldy sprite (single 32x32 sprite, flips once and disappears)
-        const GoldySprite = ({ scale = 2, onClick, flipped = false }) => {
+        // Goldy sprite (32x32 cardboard fake dog that folds down when clicked)
+        const GoldySprite = ({ scale = 2, onClick, falling = false }) => {
             return (
                 <div
                     onClick={onClick}
-                    className="cursor-pointer transition-transform duration-300"
+                    className="cursor-pointer"
                     style={{
                         width: 32 * scale,
                         height: 32 * scale,
                         backgroundImage: 'url(DOG_GOLD_SPRITE.png)',
                         backgroundSize: `${32 * scale}px ${32 * scale}px`,
                         imageRendering: 'pixelated',
-                        transform: flipped ? 'rotateY(180deg)' : 'none',
-                        opacity: flipped ? 0 : 1,
-                        transition: 'transform 0.5s, opacity 0.5s'
+                        // Fold forward like cardboard falling (opposite of window-fold-in animation)
+                        transform: falling ? 'perspective(800px) rotateX(90deg) scaleY(0)' : 'perspective(800px) rotateX(0deg) scaleY(1)',
+                        transformOrigin: 'bottom center',
+                        opacity: falling ? 0 : 1,
+                        transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s'
                     }}
                 />
             );
@@ -9340,10 +9342,11 @@ Good luck.`;
             const lastIdleDialogueRef = useRef(0);
             const dogResumeCheckedRef = useRef(false); // Track if we've checked for resume
             const dogTriggerQueueRef = useRef([]); // Queue for triggers that arrive while dog is busy
-            // Goldy state
+            // Goldy state - cardboard fake dog that sits on taskbar next to dog.exe
             const [goldyVisible, setGoldyVisible] = useState(false);
-            const [goldyFlipped, setGoldyFlipped] = useState(false);
-            const [goldyPos, setGoldyPos] = useState({ x: 100, y: window.innerHeight - 100 });
+            const [goldyFalling, setGoldyFalling] = useState(false);
+            // Position goldy on taskbar: x next to dog companion (dog is at 16, size 96), y on top of taskbar (48px)
+            const [goldyPos, setGoldyPos] = useState({ x: 120, y: window.innerHeight - 48 - 64 });
 
             // Save companion state
             useEffect(() => {
@@ -9431,11 +9434,6 @@ Good luck.`;
             const [pyramidScreen, setPyramidScreen] = useState(false);
             const stackTimerRef = useRef(null);
             const errorIntervalRef = useRef(null);
-            const [goldDogReleased, setGoldDogReleased] = useState(false);
-            const [goldDogVisible, setGoldDogVisible] = useState(true);
-            const [goldDogPos, setGoldDogPos] = useState({ x: 200, y: 200 });
-            const [goldDogFacingRight, setGoldDogFacingRight] = useState(false);
-            const goldDogVelRef = useRef({ x: -3, y: 4 });
             const [visitCount, setVisitCount] = useState(() => {
                 const stored = localStorage.getItem('ultra_int_visits');
                 const count = stored ? parseInt(stored, 10) + 1 : 1;
@@ -9691,14 +9689,13 @@ Good luck.`;
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
                 unlockAchievement('LOCKSMITH');
-                // Unlock MAP and release dogs when PRIVATE is opened
+                // Unlock MAP and spawn goldy (cardboard dog on taskbar)
                 unlockApp('MAP');
-                setDogReleased(true);
-                setGoldDogReleased(true);
+                setGoldyVisible(true);
             };
             const openDogStory = () => {
-                setDogReleased(true);
-                setGoldDogReleased(true);
+                // Spawn goldy (cardboard dog on taskbar)
+                setGoldyVisible(true);
                 // Bring DOG_STORY to front on top of everything
                 sounds.windowOpen();
                 topZRef.current += 1;
@@ -9712,7 +9709,10 @@ Good luck.`;
                 setWindowAnimations(p => ({ ...p, DOG_STORY: 'opening' }));
                 setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n.DOG_STORY; return n; }), 200);
             };
-            const removeGoldDog = () => setGoldDogVisible(false);
+            const removeGoldDog = () => {
+                setGoldyFalling(true);
+                setTimeout(() => setGoldyVisible(false), 500);
+            };
 
             // Handle dog stealing the destruction button - dog starts running around!
             const handleDogSteal = () => {
@@ -9775,42 +9775,6 @@ Good luck.`;
 
                 return () => clearInterval(dogInterval);
             }, [dogReleased]);
-
-            // Gold dog bouncing logic
-            useEffect(() => {
-                if (!goldDogReleased || !goldDogVisible) return;
-
-                const goldDogInterval = setInterval(() => {
-                    setGoldDogPos(prev => {
-                        const vel = goldDogVelRef.current;
-                        let newX = prev.x + vel.x;
-                        let newY = prev.y + vel.y;
-
-                        if (newX >= window.innerWidth - 80) {
-                            newX = window.innerWidth - 80;
-                            goldDogVelRef.current.x = -Math.abs(vel.x);
-                            setGoldDogFacingRight(false);
-                        }
-                        if (newX <= 0) {
-                            newX = 0;
-                            goldDogVelRef.current.x = Math.abs(vel.x);
-                            setGoldDogFacingRight(true);
-                        }
-                        if (newY >= window.innerHeight - 100) {
-                            newY = window.innerHeight - 100;
-                            goldDogVelRef.current.y = -Math.abs(vel.y);
-                        }
-                        if (newY <= 60) {
-                            newY = 60;
-                            goldDogVelRef.current.y = Math.abs(vel.y);
-                        }
-
-                        return { x: newX, y: newY };
-                    });
-                }, 30);
-
-                return () => clearInterval(goldDogInterval);
-            }, [goldDogReleased, goldDogVisible]);
 
             // --- DOG COMPANION PHYSICS SYSTEM ---
             const DOG_PHYSICS = {
@@ -10395,9 +10359,9 @@ Good luck.`;
                 };
             }, [dogCompanionGrounded, dogCompanionEmotion, dogCompanionDragging, dogCompanionDialogue]);
 
-            // Handle Goldy click (flip and disappear)
+            // Handle Goldy click (fold down like cardboard falling and disappear forever)
             const handleGoldyClick = () => {
-                setGoldyFlipped(true);
+                setGoldyFalling(true);
                 setTimeout(() => setGoldyVisible(false), 500);
             };
 
@@ -12453,7 +12417,7 @@ Good luck.`;
                         </div>
                     ))}
 
-                    {/* GOLDY - Cardboard dog that flips once */}
+                    {/* GOLDY - Cardboard fake dog that sits on taskbar, folds down when clicked */}
                     {goldyVisible && (
                         <div
                             className="fixed z-[999997] cursor-pointer select-none"
@@ -12464,7 +12428,7 @@ Good luck.`;
                         >
                             <GoldySprite
                                 scale={2}
-                                flipped={goldyFlipped}
+                                falling={goldyFalling}
                                 onClick={handleGoldyClick}
                             />
                         </div>
@@ -12491,20 +12455,6 @@ Good luck.`;
                                     {React.createElement(Icons[windows[carriedIcon]?.icon], { size: 24 })}
                                 </div>
                             )}
-                        </div>
-                    )}
-
-                    {/* GOLD DOG - Second dog that appears with the story (legacy) */}
-                    {goldDogReleased && goldDogVisible && (
-                        <div
-                            className="fixed z-[999998] select-none transition-opacity duration-1000"
-                            style={{
-                                left: goldDogPos.x,
-                                top: goldDogPos.y,
-                                transform: `scaleX(${goldDogFacingRight ? 1 : -1})`,
-                            }}
-                        >
-                            <DogSprite animated gold />
                         </div>
                     )}
 
