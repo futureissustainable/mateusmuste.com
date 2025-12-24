@@ -3991,17 +3991,17 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
-            const snake = useRef([{ x: 15, y: 10 }]);
-            const food = useRef({ x: 20, y: 10 });
+            const snake = useRef([{ x: 5, y: 4 }]);
+            const food = useRef({ x: 7, y: 4 });
             const dir = useRef({ x: 1, y: 0 });
             const nextDir = useRef({ x: 1, y: 0 });
             const runningRef = useRef(false);
             const lastTimeRef = useRef(0);
             const frameRef = useRef(null);
 
-            const GRID_W = 30;
-            const GRID_H = 20;
-            const CELL = 20;
+            const GRID_W = 10;
+            const GRID_H = 8;
+            const CELL = 40;
 
             // Load high score from storage when IP is ready
             useEffect(() => {
@@ -4013,7 +4013,7 @@
             }, []);
 
             const start = () => {
-                snake.current = [{ x: 15, y: 10 }, { x: 14, y: 10 }, { x: 13, y: 10 }];
+                snake.current = [{ x: 5, y: 4 }, { x: 4, y: 4 }, { x: 3, y: 4 }];
                 dir.current = { x: 1, y: 0 };
                 nextDir.current = { x: 1, y: 0 };
                 food.current = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
