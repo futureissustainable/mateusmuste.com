@@ -10386,13 +10386,13 @@ Good luck.`;
                             setDogCompanionEmotion(randomDialogue.emotion || 'speaking');
                             lastIdleDialogueRef.current = now;
 
-                            // Auto-dismiss after dialogue
+                            // Auto-dismiss after dialogue (6 second pause after finishing)
                             const displayTime = randomDialogue.waitAfter || 3000;
                             setTimeout(() => {
                                 setDogCompanionDialogue(null);
                                 setDogCompanionEmotion('idle');
                                 scheduleIdle();
-                            }, displayTime + randomDialogue.text.length * 40 + 2000);
+                            }, displayTime + randomDialogue.text.length * 40 + 6000);
                         } else {
                             scheduleIdle();
                         }
