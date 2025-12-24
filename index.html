@@ -2434,58 +2434,61 @@
         };
 
         // --- DATA ---
+        // Placeholder cover - replace with actual covers
+        const PLACEHOLDER_COVER = 'https://mir-s3-cdn-cf.behance.net/project_modules/hd_webp/646ee452003795.5608cb3c699ab.jpg';
+
         const MEDIA_DB = {
             "CINEMA_TV": [
-                { title: "Blade Runner 2049" },
-                { title: "Mr. Robot" },
-                { title: "True Detective" },
-                { title: "Succession" },
-                { title: "The Bear" },
-                { title: "Ex Machina" },
-                { title: "Fight Club" },
-                { title: "Better Call Saul" },
-                { title: "Whiplash" },
-                { title: "Black Mirror" }
+                { title: "Blade Runner 2049", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Mr. Robot", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "True Detective", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Succession", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Bear", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Ex Machina", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Better Call Saul", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Whiplash", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Black Mirror", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "LITERATURE": [
-                { title: "Brothers Karamazov" },
-                { title: "Looking for Alaska" },
-                { title: "Atlas Shrugged" },
-                { title: "Pale Blue Dot" },
-                { title: "Lean Startup" },
-                { title: "Fight Club" },
-                { title: "Principles by Ray Dalio" },
-                { title: "The Fountainhead" },
-                { title: "Crime & Punishment" },
-                { title: "1984" },
-                { title: "Master & Margarita" },
-                { title: "American Psycho" },
-                { title: "Elon Musk Biography" },
-                { title: "How to Get Filthy Rich in Rising Asia" },
-                { title: "Fathers and Sons" },
-                { title: "Geometry for Ocelots" }
+                { title: "Brothers Karamazov", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Looking for Alaska", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Atlas Shrugged", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Pale Blue Dot", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Lean Startup", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Principles by Ray Dalio", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Fountainhead", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Crime & Punishment", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "1984", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Master & Margarita", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "American Psycho", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Elon Musk Biography", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "How to Get Filthy Rich in Rising Asia", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fathers and Sons", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Geometry for Ocelots", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "GAMES": [
-                { title: "Dark Souls III" },
-                { title: "The Last of Us Pt II" },
-                { title: "Outer Wilds" },
-                { title: "God of War Ragnarok" },
-                { title: "Blue Prince" },
-                { title: "Cyberpunk 2077" },
-                { title: "Night in the Woods" }
+                { title: "Dark Souls III", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Last of Us Pt II", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Outer Wilds", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "God of War Ragnarok", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Blue Prince", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Cyberpunk 2077", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Night in the Woods", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "AUDIO": [
-                { title: "Demos EP", artist: "Daughter" },
-                { title: "Mr. Morale...", artist: "Kendrick Lamar" },
-                { title: "The Life of Pablo", artist: "Kanye West" },
-                { title: "Ison", artist: "Sevdaliza" },
-                { title: "If You're Reading This It's Too Late", artist: "Drake" },
-                { title: "LP!", artist: "JPEGMAFIA" },
-                { title: "Miss Anthropocene", artist: "Grimes" },
-                { title: "The Eminem Show", artist: "Eminem" },
-                { title: "4 Your Eyez Only", artist: "J. Cole" },
-                { title: "Yeezus", artist: "Kanye West" },
-                { title: "This story is dedicated...", artist: "Grimes" }
+                { title: "Demos EP", artist: "Daughter", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Mr. Morale...", artist: "Kendrick Lamar", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Life of Pablo", artist: "Kanye West", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Ison", artist: "Sevdaliza", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "If You're Reading This It's Too Late", artist: "Drake", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "LP!", artist: "JPEGMAFIA", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Miss Anthropocene", artist: "Grimes", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Eminem Show", artist: "Eminem", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "4 Your Eyez Only", artist: "J. Cole", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Yeezus", artist: "Kanye West", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "This story is dedicated...", artist: "Grimes", cover: PLACEHOLDER_COVER, link: "" }
             ]
         };
 
@@ -2919,8 +2922,17 @@
             const lastMoveTime = useRef(Date.now());
             const lastMoveX = useRef(0);
             const animationRef = useRef(null);
+            const dragStartTime = useRef(0);
 
-            const COVER_IMAGE = 'https://mir-s3-cdn-cf.behance.net/project_modules/hd_webp/646ee452003795.5608cb3c699ab.jpg';
+            // Aspect ratios: AUDIO = 1:1, others = 4:5 (portrait)
+            const getAspectRatio = (categoryKey) => categoryKey === 'AUDIO' ? 1 : 0.8;
+            const getCoverDimensions = (categoryKey) => {
+                const isSquare = categoryKey === 'AUDIO';
+                return {
+                    width: 140,
+                    height: isSquare ? 140 : 175 // 4:5 ratio = 140 * 1.25
+                };
+            };
 
             // Track category visits for achievement
             useEffect(() => {
@@ -2956,6 +2968,7 @@
                 setDragStart({ x: clientX, index: currentIndex });
                 lastMoveX.current = clientX;
                 lastMoveTime.current = Date.now();
+                dragStartTime.current = Date.now();
                 setVelocity(0);
             };
 
@@ -3010,38 +3023,53 @@
                 }
             };
 
-            const getCoverStyle = (index) => {
+            const getCoverStyle = (index, item) => {
                 const offset = index - currentIndex;
                 const absOffset = Math.abs(offset);
+                const dims = getCoverDimensions(item.categoryKey);
 
                 // Core positioning
-                const translateX = offset * 90;
-                const translateZ = -absOffset * 120;
+                const translateX = offset * 85;
+                const translateZ = -absOffset * 100;
                 const rotateY = offset * -45;
-                const scale = 1 - absOffset * 0.15;
-                const opacity = Math.max(0, 1 - absOffset * 0.25);
+                const scale = 1 - absOffset * 0.12;
+                const opacity = Math.max(0, 1 - absOffset * 0.2);
                 const zIndex = 100 - absOffset;
 
                 // Only show 5 covers on each side
                 if (absOffset > 5) {
-                    return { display: 'none' };
+                    return { display: 'none', dims };
                 }
 
                 return {
                     position: 'absolute',
                     left: '50%',
                     top: '50%',
-                    width: '160px',
-                    height: '160px',
-                    marginLeft: '-80px',
-                    marginTop: '-80px',
+                    width: `${dims.width}px`,
+                    height: `${dims.height}px`,
+                    marginLeft: `${-dims.width / 2}px`,
+                    marginTop: `${-dims.height / 2}px`,
                     transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
                     opacity,
                     zIndex,
                     transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
                     cursor: 'pointer',
                     transformStyle: 'preserve-3d',
+                    dims,
                 };
+            };
+
+            const handleCoverClick = (index, item) => {
+                // Only navigate if it was a quick tap (not a drag)
+                const dragDuration = Date.now() - dragStartTime.current;
+                const wasDrag = dragDuration > 200 || Math.abs(dragStart.x - lastMoveX.current) > 10;
+
+                if (index === currentIndex && !wasDrag && item.link) {
+                    window.open(item.link, '_blank', 'noopener,noreferrer');
+                } else if (!wasDrag && index !== currentIndex) {
+                    setCurrentIndex(index);
+                    sounds.click();
+                }
             };
 
             const currentItem = allItems[currentIndex];
@@ -3096,19 +3124,15 @@
                             style={{ transformStyle: 'preserve-3d' }}
                         >
                             {allItems.map((item, index) => {
-                                const style = getCoverStyle(index);
+                                const style = getCoverStyle(index, item);
                                 if (style.display === 'none') return null;
+                                const { dims, ...styleWithoutDims } = style;
 
                                 return (
                                     <div
                                         key={index}
-                                        style={style}
-                                        onClick={() => {
-                                            if (!isDragging && index !== currentIndex) {
-                                                setCurrentIndex(index);
-                                                sounds.click();
-                                            }
-                                        }}
+                                        style={styleWithoutDims}
+                                        onClick={() => handleCoverClick(index, item)}
                                     >
                                         {/* Cover */}
                                         <div
@@ -3123,7 +3147,7 @@
                                             }}
                                         >
                                             <img
-                                                src={COVER_IMAGE}
+                                                src={item.cover}
                                                 alt={item.title}
                                                 className="w-full h-full object-cover"
                                                 style={{
@@ -3146,15 +3170,15 @@
                                             className="absolute w-full overflow-hidden"
                                             style={{
                                                 top: '100%',
-                                                height: '60px',
+                                                height: `${dims.height * 0.35}px`,
                                                 transform: 'scaleY(-1)',
-                                                opacity: 0.15,
-                                                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)',
-                                                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, transparent 100%)',
+                                                opacity: 0.12,
+                                                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)',
+                                                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)',
                                             }}
                                         >
                                             <img
-                                                src={COVER_IMAGE}
+                                                src={item.cover}
                                                 alt=""
                                                 className="w-full h-full object-cover object-bottom"
                                                 style={{ filter: 'blur(1px)' }}
