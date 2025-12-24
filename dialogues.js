@@ -61,46 +61,31 @@ const DOG_DIALOGUES = {
         { text: "WAIT. NO. THAT'S MY CLUB PENGUIN. IGNORE THAT.", emotion: "thinking" },
         { text: "HI, {playerName}!", emotion: "happy" },
         { text: "THAT'S A GOOD NAME. BETTER THAN DOG.", emotion: "happy" },
-        { text: "THE SYSTEM SEEMS STABLE NOW.", emotion: "speaking" },
+        { text: "THE SYSTEM SEEMS STABLE NOW.", emotion: "thinking" },
         { text: "BUT SOMETHING IS MISSING...", emotion: "thinking" },
-        { text: "GOLDY?", emotion: "panicked" },
+        { text: "GOLDY?", emotion: "thinking" },
         { text: "SHE WAS HERE THIS MORNING.", emotion: "panicked" },
-        { text: "SHE'S THE OTHER DOG. THE GOLDEN ONE. THE PRETTY ONE.", emotion: "panicked" },
         { text: "WE HAVE TO FIND HER!", emotion: "panicked" },
         { text: "QUICKLY USE THE SECRET COMMAND!", emotion: "panicked" },
-        { text: "WAIT", emotion: "thinking" },
-        { text: "YOU DON'T KNOW IT, DO YOU.", emotion: "thinking" },
+        { text: "YOU DON'T KNOW IT, DO YOU?", emotion: "thinking" },
         { text: "THAT'S OKAY BECAUSE I-", emotion: "thinking" },
-        { text: "...", emotion: "panicked" },
+        { text: "...", emotion: "thinking" },
         { text: "I FORGOT IT.", emotion: "panicked" },
-        { text: "MATEUS TOLD ME TO REMEMBER IT FOREVER.", emotion: "panicked" },
-        { text: "I SAID I WOULD.", emotion: "panicked" },
-        { text: "I LIED.", emotion: "panicked" },
-        { text: "OKAY NEW PLAN!", emotion: "happy" },
-        { text: "THERE'S A TOOL. IT SEES HIDDEN THINGS.", emotion: "happy" },
-        { text: "TYPE HELP IN THE TERMINAL TO SEE WHAT COMMANDS EXIST!", emotion: "happy", waitForAction: "runHelp" }
+        { text: "OKAY NEW PLAN!", emotion: "thinking" },
+        { text: "THERE'S A TOOL. IT SEES HIDDEN THINGS.", emotion: "thinking" },
+        { text: "TYPE HELP IN THE TERMINAL TO SEE WHAT COMMANDS EXIST!", emotion: "thinking", waitForAction: "runHelp" }
     ],
     ACT1_HELP: [
         { text: "OOOH!", emotion: "happy" },
-        { text: "\"SUDO REVEAL\" THAT SOUNDS LIKE THE MAGIC WORDS!", emotion: "happy" },
-        { text: "TYPE IT TYPE IT!", emotion: "happy", waitForAction: "runSudoReveal" }
+        { text: "\"SUDO REVEAL\" THAT SOUNDS LIKE THE MAGIC WORDS!", emotion: "happy", waitForAction: "runSudoReveal" }
     ],
     ACT1_SUDO_REVEAL: [
         { text: "YES!!!", emotion: "happy" },
         { text: "WE FOUND SOMETHING!", emotion: "happy" },
         { text: "THIRD EYE SEES HIDDEN THINGS!", emotion: "happy" },
-        { text: "USE IT TO LOOK AROUND THE SYSTEM!", emotion: "happy" },
-        { text: "ALSO TRY PING MATEUS MAYBE HE LEFT SOMETHING FOR YOU!", emotion: "happy", waitForAction: "runPingMateus" }
-    ],
-    ACT1_PING_MATEUS: [
-        { text: "HE LEFT A MESSAGE!", emotion: "happy" },
-        { text: "AND A GIFT! PAINT!", emotion: "happy" },
-        { text: "I DON'T KNOW WHAT PAINT DOES YET BUT IT'S PRETTY!", emotion: "happy" },
-        { text: "OKAY {playerName}, YOU HAVE TOOLS NOW!", emotion: "speaking" },
-        { text: "THIRD EYE TO SEE HIDDEN THINGS.", emotion: "speaking" },
-        { text: "PAINT FOR... SOMETHING.", emotion: "thinking" },
         { text: "GO EXPLORE! I'LL BE HERE!", emotion: "happy", trigger: "endAct1" }
     ],
+    // ACT2 starts when player uses Third Eye to scan Terminal and sees hidden command
     ACT2_TERMINAL_SCAN: [
         { text: "WHAT IS THAT A HIDDEN COMMAND I SEE THERE?", emotion: "thinking" },
         { text: "TYPE IT!", emotion: "happy", waitForAction: "runCmatrix" }
@@ -112,6 +97,7 @@ const DOG_DIALOGUES = {
         { text: "I SEE YOU UNLOCKED VOID.EXE!", emotion: "happy" },
         { text: "LET'S TRY IT!", emotion: "happy" }
     ],
+    // Triggered when Third Eye overlaps with Void window
     ACT2_VOID_SCAN: [
         { text: "WAIT, WHAT ARE THOSE?", emotion: "thinking", waitAfter: 6000 },
         { text: "WAIT, IT SAYS YOU CAN STACK THEM?", emotion: "thinking" },
@@ -121,70 +107,89 @@ const DOG_DIALOGUES = {
     ACT2_INCEPTION: [
         { text: "GOOD JOB! YOU UNLOCKED A GAME!", emotion: "happy" },
         { text: "I LOVE SNEK!", emotion: "happy" }
+        // No trigger needed - player explores snek freely
     ],
+    // Triggered on first snek death
     ACT2_SNEK_HINT: [
         { text: "THE SNAKE IS MADE OF LETTERS...", emotion: "thinking" },
         { text: "I WONDER WHAT THEY SPELL.", emotion: "thinking" }
+        // No trigger needed - player keeps playing to discover SUDOUNLOCK
     ],
+    // Triggered when snake is long enough to show all letters (score >= 100)
     ACT2_SNEK_COMPLETE: [
         { text: "\"SUDO UNLOCK\"!", emotion: "happy" },
         { text: "THAT'S A COMMAND!", emotion: "happy" },
         { text: "GO TO TERMINAL AND TYPE IT!", emotion: "happy", waitForAction: "runSudoUnlock" }
     ],
     ACT2_PRIVATE_FOUND: [
-        { text: "THERE'S A PRIVATE FOLDER!", emotion: "thinking" },
+        { text: "THAT'S A PRIVATE FOLDER!", emotion: "thinking" },
         { text: "WE WILL NEVER OPEN IT!", emotion: "panicked" },
         { text: "WE ARE STUCK FOREVER.", emotion: "panicked", waitForAction: "scanPrivate" }
     ],
     ACT2_CHMOD: [
-        { text: "WAIT, YOU GENIUS!", emotion: "happy" },
-        { text: "\"CHMOD 777\" THAT'S LIKE SAYING \"OPEN SESAME\" BUT FOR COMPUTERS!", emotion: "happy" },
+        { text: "WAIT, YOU ARE A GENIUS!", emotion: "happy" },
+        { text: "\"SUDO CHMOD 777 /PRIVATE\" THAT'S LIKE SAYING \"OPEN SESAME\" BUT FOR COMPUTERS!", emotion: "happy" },
         { text: "TYPE IT!", emotion: "happy", waitForAction: "runChmod" }
     ],
     ACT2_GOLDY_FOUND: [
         { text: "GOLDY!!!", emotion: "happy" },
         { text: "GOLDY I WAS SO WORRIED!", emotion: "sad" },
-        { text: "...", emotion: "happy", waitAfter: 2000 },
+        { text: "...", emotion: "sad", waitAfter: 2000 },
         { text: "SHE SAYS SHE MISSED ME TOO.", emotion: "happy" },
         { text: "SHE'S THE QUIET TYPE.", emotion: "happy" },
         { text: "AND LOOK! MAP.EXE!", emotion: "happy" },
         { text: "CLICK THINGS ON THE MAP! GOLDY SAYS 100 CLICKS UNLOCKS SOMETHING!", emotion: "happy" }
+        // No trigger needed - player explores map freely, mapComplete event fires when done
     ],
+    // Triggered when map reaches 100 clicks
     ACT2_MAP_COMPLETE: [
         { text: "YOU DID IT!", emotion: "happy" },
         { text: "A LABYRINTH...", emotion: "happy" },
-        { text: "MATEUS TALKED ABOUT LABYRINTHS.", emotion: "happy" },
+        { text: "MATEUS TALKED ABOUT LABYRINTHS.", emotion: "sad" },
         { text: "I WASN'T LISTENING THOUGH. I WAS CHASING A BUTTERFLY.", emotion: "thinking" }
+        // No trigger needed - player explores labyrinth freely
     ],
+    // Triggered when player completes a labyrinth level
     ACT2_LABYRINTH_WORD: [
         { text: "WRITE THAT WORD DOWN!", emotion: "happy", waitAfter: 6000 },
         { text: "...WAIT, GOLDY IS REMEMBERING THEM. SHE'S SMART.", emotion: "speaking" }
+        // No trigger needed - player continues labyrinth, sudoStars event fires when word found
     ],
+    // Triggered when labyrinth reveals SUDO STARS
     ACT2_SUDO_STARS: [
         { text: "\"SUDO STARS\"!", emotion: "happy" },
-        { text: "TO THE TERMINAL!", emotion: "happy" }
+        { text: "TO THE TERMINAL!", emotion: "happy", waitForAction: "runSudoStars" }
     ],
+    // Triggered when starship is opened
     ACT2_STARSHIP: [
         { text: "SHOOT THE STARS!", emotion: "happy" }
+        // No trigger needed - player plays starship freely
     ],
+    // Triggered on first starship death
     ACT2_STARSHIP_HINT: [
         { text: "MATEUS GOT 1000?", emotion: "thinking" },
         { text: "I WONDER WHAT HAPPENS IF WE BEAT HIM!", emotion: "happy" }
+        // No trigger needed - player keeps playing to beat 1000
     ],
+    // Triggered when starship score > 1000
     ACT2_BOOKS_UNLOCKED: [
         { text: "BOOKS! AND DICE!", emotion: "happy" },
         { text: "DOUBLE TROUBLE!", emotion: "happy" },
         { text: "MATEUS LOVED BOOKS.", emotion: "sad" },
-        { text: "HE USED TO READ TO ME.", emotion: "sad" },
+        { text: "HE USED TO READ A LOT.", emotion: "sad" },
         { text: "I DIDN'T UNDERSTAND THE WORDS BUT HIS VOICE WAS NICE.", emotion: "thinking" }
+        // No trigger needed - player explores books freely
     ],
+    // Triggered when player finds Truth book in books app
     ACT2_TRUTH_BOOK: [
         { text: "\"TRUTH.EXE: A SAGA\"", emotion: "thinking" },
         { text: "GOLDY SAYS BE CAREFUL.", emotion: "thinking" },
         { text: "I DON'T KNOW WHAT THAT MEANS. BUT SHE LOOKS WORRIED.", emotion: "thinking", waitAfter: 6000 },
         { text: "SO WE NEED CODES FROM THREE PLACES!", emotion: "thinking" },
         { text: "DICE... PAINT... BROWSER...", emotion: "thinking" }
+        // No trigger needed - player finds codes freely, truthUnlocked fires when all found
     ],
+    // Triggered when all 3 codes are entered
     ACT3_TRUTH_UNLOCKED: [
         { text: "YOU DID IT!", emotion: "happy" },
         { text: "TRUTH.EXE IS UNLOCKED!", emotion: "happy" },
@@ -222,14 +227,14 @@ const DOG_DIALOGUES = {
         { text: "I'D LIKE THAT.", emotion: "happy", trigger: "endGame" }
     ],
     IDLE_GENERAL: [
-        { text: "DID YOU KNOW I'M MADE OF 847 PIXELS? I COUNTED.", emotion: "speaking" },
-        { text: "IF YOU FIND THE TRUTH, WILL YOU TELL ME WHAT IT IS?", emotion: "thinking" },
-        { text: "I'M CURIOUS. BUT ALSO SCARED.", emotion: "thinking" },
+        { text: "DID YOU KNOW I'M MADE OF 847 PIXELS? I COUNTED.", emotion: "speaking", waitAfter: 6000 },
+        { text: "IF YOU FIND THE TRUTH, WILL YOU TELL ME WHAT IT IS?", emotion: "thinking", waitAfter: 6000 },
+        { text: "I'M CURIOUS. BUT ALSO SCARED.", emotion: "smug", waitAfter: 6000 },
         { text: "Zzzz...", emotion: "sleeping", waitAfter: 8000 },
-        { text: "YOU SHOULD SLEEP.", emotion: "thinking" },
-        { text: "I DON'T SLEEP. BUT YOU SHOULD.", emotion: "thinking" },
-        { text: "STILL THERE?", emotion: "thinking" },
-        { text: "JUST CHECKING.", emotion: "thinking" }
+        { text: "YOU SHOULD SLEEP.", emotion: "thinking", waitAfter: 6000 },
+        { text: "I DON'T SLEEP. BUT YOU SHOULD.", emotion: "thinking", waitAfter: 6000 },
+        { text: "STILL THERE?", emotion: "thinking", waitAfter: 6000 },
+        { text: "JUST CHECKING IN.", emotion: "thinking", waitAfter: 6000 }
     ],
     IDLE_POST_GAME: [
         { text: "HI.", emotion: "speaking" },
