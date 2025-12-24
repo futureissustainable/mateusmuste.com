@@ -4216,10 +4216,12 @@
         };
 
         // --- SNEK.EXE ---
-        const SnakeAppNew = ({ onAchievement }) => {
+        const SnakeAppNew = ({ onAchievement, onDogEvent }) => {
             const canvasRef = useRef(null);
             const [score, setScore] = useState(0);
             const achievementTriggered = useRef(false);
+            const snekLostTriggered = useRef(false);
+            const snekCompleteTriggered = useRef(false);
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
@@ -4294,6 +4296,11 @@
                             achievementTriggered.current = true;
                             onAchievement?.('OUROBOROS');
                         }
+                        // Trigger snekComplete when snake shows all SUDOUNLOCK letters (100 points = 13 segments)
+                        if (newScore >= 100 && !snekCompleteTriggered.current) {
+                            snekCompleteTriggered.current = true;
+                            onDogEvent?.('snekComplete');
+                        }
                         return newScore;
                     });
                     food.current = {
@@ -4348,6 +4355,11 @@
                 setGameOver(true);
                 setGameStarted(false);
                 sounds.gameOver();
+                // Trigger snekLost on first loss
+                if (!snekLostTriggered.current) {
+                    snekLostTriggered.current = true;
+                    onDogEvent?.('snekLost');
+                }
             };
 
             // Game loop using requestAnimationFrame
@@ -4475,7 +4487,7 @@
         };
 
         // --- LABYRINTH.EXE - Procedural Maze ---
-        const LabyrinthApp = ({ onAchievement }) => {
+        const LabyrinthApp = ({ onAchievement, onDogEvent }) => {
             const canvasRef = useRef(null);
             const [level, setLevel] = useState(1);
             const levelRef = useRef(1); // Ref to avoid stale closure in move function
@@ -4488,6 +4500,8 @@
             const mazeRef = useRef(null);
             const playerRef = useRef({ x: 1, y: 1 });
             const exitRef = useRef({ x: 0, y: 0 });
+            const labyrinthWordTriggered = useRef(false);
+            const sudoStarsTriggered = useRef(false);
 
             // Level completion words - spell "SUDO STARS" to unlock star shooter
             const LEVEL_WORDS = ['SUDO', 'STARS'];
@@ -4635,6 +4649,17 @@
                         onAchievement?.('FIRST_BLOOD');
                         // Check for DAEDALUS achievement
                         if (currentLevel >= 10) onAchievement?.('DAEDALUS');
+
+                        // Trigger dog dialogue for labyrinth words
+                        if (currentLevel <= LEVEL_WORDS.length && !labyrinthWordTriggered.current) {
+                            labyrinthWordTriggered.current = true;
+                            setTimeout(() => onDogEvent?.('labyrinthWord'), 500);
+                        }
+                        // After level 2, both SUDO and STARS have been shown - trigger sudoStars
+                        if (currentLevel === 2 && !sudoStarsTriggered.current) {
+                            sudoStarsTriggered.current = true;
+                            setTimeout(() => onDogEvent?.('sudoStars'), 2500);
+                        }
 
                         // Show full maze then start next level
                         setTimeout(() => {
@@ -4963,7 +4988,7 @@
         };
 
         // --- STARSHIP.EXE - Low Poly Star Fox Style Game ---
-        const StarshipApp = ({ onAchievement, onUnlockApp }) => {
+        const StarshipApp = ({ onAchievement, onUnlockApp, onDogEvent }) => {
             const containerRef = useRef(null);
             const gameRef = useRef(null);
             const keysRef = useRef({ left: false, right: false, up: false, down: false, shoot: false });
@@ -4974,10 +4999,14 @@
             const [started, setStarted] = useState(false);
             const achievementTriggered = useRef(false);
             const booksUnlockTriggered = useRef(false);
+            const starshipOpenTriggered = useRef(false);
+            const starshipLostTriggered = useRef(false);
             const onAchievementRef = useRef(onAchievement);
             const onUnlockAppRef = useRef(onUnlockApp);
+            const onDogEventRef = useRef(onDogEvent);
             onAchievementRef.current = onAchievement;
             onUnlockAppRef.current = onUnlockApp;
+            onDogEventRef.current = onDogEvent;
 
             // Load high score from storage when IP is ready
             useEffect(() => {
@@ -5178,6 +5207,11 @@
                     if (!isStarted && e.code === 'Space') {
                         isStarted = true;
                         setStarted(true);
+                        // Trigger starshipOpen on first start
+                        if (!starshipOpenTriggered.current) {
+                            starshipOpenTriggered.current = true;
+                            onDogEventRef.current?.('starshipOpen');
+                        }
                         return;
                     }
                     if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
@@ -5257,6 +5291,7 @@
                                 booksUnlockTriggered.current = true;
                                 onUnlockAppRef.current?.('BOOKS');
                                 onUnlockAppRef.current?.('DICE');
+                                onDogEventRef.current?.('booksUnlocked');
                             }
                         }
 
@@ -5267,6 +5302,11 @@
                             setGameOver(true);
                             sounds.starshipDamage();
                             sounds.explosion();
+                            // Trigger starshipLost on first loss
+                            if (!starshipLostTriggered.current) {
+                                starshipLostTriggered.current = true;
+                                onDogEventRef.current?.('starshipLost');
+                            }
                             // Save high score on game over
                             setHighScore(h => {
                                 const newHigh = Math.max(h, scoreVal);
@@ -6955,11 +6995,12 @@
         };
 
         // --- BOOKS.EXE - Library with truth saga and classics ---
-        const BooksApp = ({ onUnlockApp, unlockedApps }) => {
+        const BooksApp = ({ onUnlockApp, unlockedApps, onDogEvent }) => {
             const [selectedBook, setSelectedBook] = useState(null);
             const [truthRead, setTruthRead] = useState(() => {
                 return localStorage.getItem('ultra_int_truth_read') === 'true';
             });
+            const truthBookTriggered = useRef(false);
 
             // Save truth read state
             useEffect(() => {
@@ -7028,6 +7069,11 @@ Good luck.`;
                 setSelectedBook(book);
                 if (book.isTruth) {
                     setTruthRead(true);
+                    // Trigger truthBook event on first read
+                    if (!truthBookTriggered.current) {
+                        truthBookTriggered.current = true;
+                        onDogEvent?.('truthBookFound');
+                    }
                 }
             };
 
@@ -7184,8 +7230,9 @@ Good luck.`;
         };
 
         // --- MAP.EXE - Interactive COBE globe with Planet Clicker game ---
-        const MapApp = ({ onAchievement, onUnlockApp }) => {
+        const MapApp = ({ onAchievement, onUnlockApp, onDogEvent }) => {
             const labyrinthUnlocked = useRef(false);
+            const mapCompleteTriggered = useRef(false);
             const canvasRef = useRef(null);
             const containerRef = useRef(null);
             const globeRef = useRef(null);
@@ -7362,6 +7409,11 @@ Good luck.`;
                     if (newTotal >= 100 && !labyrinthUnlocked.current) {
                         labyrinthUnlocked.current = true;
                         setTimeout(() => onUnlockApp?.('LABYRINTH'), 200);
+                    }
+                    // Notify dog when map clicks reach 100
+                    if (newTotal >= 100 && !mapCompleteTriggered.current) {
+                        mapCompleteTriggered.current = true;
+                        setTimeout(() => onDogEvent?.('mapComplete'), 400);
                     }
                     return {
                         ...prev,
@@ -8653,6 +8705,28 @@ Good luck.`;
                 }
             }, [isPersonalVisible]);
 
+            // Check if TERMINAL window is visible in the portal view
+            const isTerminalVisible = windows.TERMINAL?.isOpen && !windows.TERMINAL?.isMin;
+            const terminalScanRef = useRef(false);
+
+            useEffect(() => {
+                if (isTerminalVisible && !terminalScanRef.current) {
+                    terminalScanRef.current = true;
+                    onDogEvent?.('terminalScan');
+                }
+            }, [isTerminalVisible]);
+
+            // Check if VOID window is visible in the portal view
+            const isVoidVisible = windows.VOID?.isOpen && !windows.VOID?.isMin;
+            const voidScanRef = useRef(false);
+
+            useEffect(() => {
+                if (isVoidVisible && !voidScanRef.current) {
+                    voidScanRef.current = true;
+                    onDogEvent?.('voidScan');
+                }
+            }, [isVoidVisible]);
+
             // Trigger triggerInception when stack overflow occurs
             const inceptionTriggeredRef = useRef(false);
             useEffect(() => {
@@ -9770,6 +9844,9 @@ Good luck.`;
                 setTimeout(() => {
                     setAchievementNotifications(prev => prev.filter(n => n.id !== godNotifId));
                 }, 3000);
+
+                // Notify dog that truth is unlocked
+                notifyDogEvent('truthUnlocked');
             };
 
             // Check century achievement on mount
@@ -10214,6 +10291,68 @@ Good luck.`;
                             startDogDialogue('ACT2_SNEK_HINT');
                         }
                         break;
+                    case 'snekComplete':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_SNEK_COMPLETE');
+                        }
+                        break;
+                    case 'mapComplete':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_MAP_COMPLETE');
+                        }
+                        break;
+                    case 'labyrinthWord':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_LABYRINTH_WORD');
+                        }
+                        break;
+                    case 'sudoStars':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_SUDO_STARS');
+                        }
+                        break;
+                    case 'starshipOpen':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_STARSHIP');
+                        }
+                        break;
+                    case 'starshipLost':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_STARSHIP_HINT');
+                        }
+                        break;
+                    case 'booksUnlocked':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_BOOKS_UNLOCKED');
+                        }
+                        break;
+                    case 'truthBookFound':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_TRUTH_BOOK');
+                        }
+                        break;
+                    case 'truthUnlocked':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT3_TRUTH_UNLOCKED');
+                        }
+                        break;
+                    case 'dogReturn':
+                        if (dogCompanionStoryPhase === 'ACT3_SACRIFICE') {
+                            // Dog comes back after sacrifice
+                            setDogCompanionActive(true);
+                            setTimeout(() => startDogDialogue('ACT3_RETURN'), 1000);
+                        }
+                        break;
+                    case 'terminalScan':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_TERMINAL_SCAN');
+                        }
+                        break;
+                    case 'voidScan':
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT2_VOID_SCAN');
+                        }
+                        break;
                     default:
                         break;
                 }
@@ -10619,17 +10758,17 @@ Good luck.`;
                     case "APPS": return <AppsFolder onOpenApp={open} onDragStart={handleFolderDragStart} isMobile={isMobile} unlockedApps={unlockedApps} />;
                     case "CONTACT": return <ContactApp onOpenPaint={() => { setPaintShowHint(true); open('PAINT'); close('CONTACT'); }} />;
                     case "PAINT": return <PaintApp showHint={paintShowHint} onAchievement={unlockAchievement} />;
-                    case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} />;
+                    case "SNAKE": return <SnakeAppNew onAchievement={unlockAchievement} onDogEvent={notifyDogEvent} />;
                     case "TRASH": return <TrashApp />;
                     case "VOID": return <VoidApp onAchievement={unlockAchievement} />;
                     case "RADIO": return <RadioApp onAchievement={unlockAchievement} />;
                     case "DICE": return <DiceApp onAchievement={unlockAchievement} />;
-                    case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} />;
+                    case "LABYRINTH": return <LabyrinthApp onAchievement={unlockAchievement} onDogEvent={notifyDogEvent} />;
                     case "MINESWEEPER": return <MinesweeperApp onAchievement={unlockAchievement} />;
-                    case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
+                    case "STARSHIP": return <StarshipApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} onDogEvent={notifyDogEvent} />;
                     case "DESTRUCTION": return <DestructionApp onDogSteal={handleDogSteal} onAchievement={unlockAchievement} />;
                     case "TAROT": return <TarotApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
-                    case "MAP": return <MapApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} />;
+                    case "MAP": return <MapApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} onDogEvent={notifyDogEvent} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
@@ -10640,8 +10779,8 @@ Good luck.`;
                     case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} onDogEvent={notifyDogEvent} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
                     case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
-                    case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} />;
-                    case "TRUTH_MESSAGES": return <MessagesApp isTruthSequence={true} onTruthComplete={() => { unlockAchievement('TRUTH_SEEKER'); setTimeout(() => close('TRUTH_MESSAGES'), 10000); }} />;
+                    case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} onDogEvent={notifyDogEvent} />;
+                    case "TRUTH_MESSAGES": return <MessagesApp isTruthSequence={true} onTruthComplete={() => { unlockAchievement('TRUTH_SEEKER'); notifyDogEvent('dogReturn'); setTimeout(() => close('TRUTH_MESSAGES'), 10000); }} />;
                     default: return null;
                 }
             };
