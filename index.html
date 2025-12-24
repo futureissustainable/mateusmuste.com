@@ -10340,22 +10340,33 @@ Good luck.`;
 
             // Close error window
             const closeDogError = (id) => {
-                setDogErrorWindows(prev => prev.filter(e => e.id !== id));
-                // Check if all errors closed
-                if (dogErrorWindows.length === 1 && dogCompanionWaitingFor === 'closeErrors') {
-                    setDogCompanionWaitingFor(null);
-                    setTimeout(() => startDogDialogue('ACT1_POST_ERRORS'), 500);
-                }
+                setDogErrorWindows(prev => {
+                    const remaining = prev.filter(e => e.id !== id);
+                    // Check if all errors closed (use remaining.length, not stale state)
+                    if (remaining.length === 0 && dogCompanionWaitingFor === 'closeErrors') {
+                        setTimeout(() => {
+                            setDogCompanionWaitingFor(null);
+                            startDogDialogue('ACT1_POST_ERRORS');
+                        }, 500);
+                    }
+                    return remaining;
+                });
             };
 
-            // Idle dialogue system
+            // Idle dialogue system - only runs when dog is completely free
             useEffect(() => {
-                if (!dogCompanionActive || dogCompanionDialogue || dogCompanionStoryPhase === 'inactive') return;
+                // Don't start idle if dog is busy with anything
+                if (!dogCompanionActive || dogCompanionDialogue || dogCompanionWaitingFor || dogCompanionStoryPhase === 'inactive') return;
 
                 // Start idle timer
                 const scheduleIdle = () => {
                     const delay = 30000 + Math.random() * 30000; // 30-60 seconds
                     dogIdleTimerRef.current = setTimeout(() => {
+                        // Double-check dog is still free before showing idle dialogue
+                        if (dogCompanionDialogue || dogCompanionWaitingFor) {
+                            scheduleIdle();
+                            return;
+                        }
                         const now = Date.now();
                         if (now - lastIdleDialogueRef.current > 30000) {
                             const pool = dogCompanionStoryPhase === 'POST_GAME'
@@ -10371,7 +10382,13 @@ Good luck.`;
                             setTimeout(() => {
                                 setDogCompanionDialogue(null);
                                 setDogCompanionEmotion('idle');
-                                scheduleIdle();
+                                // Process any queued triggers after idle dialogue ends
+                                if (dogTriggerQueueRef.current.length > 0) {
+                                    const nextEvent = dogTriggerQueueRef.current.shift();
+                                    setTimeout(() => processEventTrigger(nextEvent), 500);
+                                } else {
+                                    scheduleIdle();
+                                }
                             }, displayTime + randomDialogue.text.length * 40 + 6000);
                         } else {
                             scheduleIdle();
@@ -10381,7 +10398,7 @@ Good luck.`;
 
                 scheduleIdle();
                 return () => clearTimeout(dogIdleTimerRef.current);
-            }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
+            }, [dogCompanionActive, dogCompanionDialogue, dogCompanionWaitingFor, dogCompanionStoryPhase]);
 
             // Resume dialogue on page reload (if was mid-dialogue)
             useEffect(() => {
