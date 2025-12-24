@@ -10150,35 +10150,12 @@ Good luck.`;
                 }
 
                 // Handle specific events based on story phase
+                // NOTE: Events with waitForAction (runChkdsk, runHelp, etc.) are handled
+                // by the check above. This switch only handles automatic/ambient events.
                 switch (event) {
                     case 'terminalOpened':
                         if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
                             startDogDialogue('ACT1_TERMINAL_OPENED');
-                        }
-                        break;
-                    case 'runChkdsk':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_POST_CHKDSK');
-                        }
-                        break;
-                    case 'runListUsers':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_LIST_USERS');
-                        }
-                        break;
-                    case 'runHelp':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_HELP');
-                        }
-                        break;
-                    case 'runSudoReveal':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_SUDO_REVEAL');
-                        }
-                        break;
-                    case 'runPingMateus':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_PING_MATEUS');
                         }
                         break;
                     case 'matrixExit':
