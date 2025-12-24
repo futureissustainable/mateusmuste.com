@@ -2137,14 +2137,14 @@
 
         // --- DOG COMPANION SPRITE SHEET SYSTEM ---
         // Sprite sheet: DOG_BLACK_SPRITE.png (128x288px, 32x32 sprites)
-        // Row layout: idle(1), speaking(1), happy(2), thinking(4), sad(1), panicked(2), sleeping(2), angry(1), smug(1)
+        // Row layout: idle(3 breathing), speaking(1), happy(2), thinking(4), sad(1), panicked(2), sleeping(2), angry(1), smug(1)
         const DOG_SPRITE_CONFIG = {
             spriteSize: 32,
             sheetWidth: 128,
             sheetHeight: 288,
             fps: 4,
             rows: {
-                idle: { row: 0, frames: 1 },
+                idle: { row: 0, frames: 3, breathe: true },  // Special breathing animation
                 speaking: { row: 1, frames: 1 },
                 happy: { row: 2, frames: 2 },
                 thinking: { row: 3, frames: 4 },
@@ -2159,20 +2159,52 @@
         // Dog companion sprite using PNG sprite sheet
         const DogCompanionSprite = ({ emotion = 'idle', scale = 2, style = {} }) => {
             const [frame, setFrame] = useState(0);
+            const [isBreathing, setIsBreathing] = useState(false);
             const config = DOG_SPRITE_CONFIG.rows[emotion] || DOG_SPRITE_CONFIG.rows.idle;
+            const breatheTimerRef = useRef(null);
+            const breatheAnimRef = useRef(null);
 
-            // Animate at 4fps (250ms per frame)
+            // Special idle breathing animation: hold frame 0, every 1s play full 3-frame cycle
             useEffect(() => {
-                if (config.frames <= 1) return;
-                const interval = setInterval(() => {
-                    setFrame(f => (f + 1) % config.frames);
-                }, 250);
-                return () => clearInterval(interval);
-            }, [emotion, config.frames]);
+                if (config.breathe) {
+                    const startBreatheCycle = () => {
+                        setIsBreathing(true);
+                        let breatheFrame = 0;
+
+                        // Play 3 frames at 4fps (250ms each)
+                        breatheAnimRef.current = setInterval(() => {
+                            breatheFrame++;
+                            if (breatheFrame >= config.frames) {
+                                // Animation complete, return to frame 0
+                                clearInterval(breatheAnimRef.current);
+                                setFrame(0);
+                                setIsBreathing(false);
+                            } else {
+                                setFrame(breatheFrame);
+                            }
+                        }, 250);
+                    };
+
+                    // Start first breathe after 1 second, then repeat
+                    breatheTimerRef.current = setInterval(startBreatheCycle, 1000 + (config.frames * 250));
+
+                    return () => {
+                        clearInterval(breatheTimerRef.current);
+                        clearInterval(breatheAnimRef.current);
+                    };
+                } else if (config.frames > 1) {
+                    // Normal looping animation at 4fps
+                    const interval = setInterval(() => {
+                        setFrame(f => (f + 1) % config.frames);
+                    }, 250);
+                    return () => clearInterval(interval);
+                }
+            }, [emotion, config.frames, config.breathe]);
 
             // Reset frame when emotion changes
             useEffect(() => {
                 setFrame(0);
+                setIsBreathing(false);
             }, [emotion]);
 
             const spriteX = frame * DOG_SPRITE_CONFIG.spriteSize;
@@ -2250,7 +2282,7 @@
         };
 
         // Speech bubble component - positions smartly to avoid screen clipping
-        const DogSpeechBubble = ({ text, highlight = null, isTyping = true, onComplete, onClick, dogX = 0, dogY = 0 }) => {
+        const DogSpeechBubble = ({ text, highlight = null, isTyping = true, onComplete, dogX = 0, dogY = 0 }) => {
             const [displayedText, setDisplayedText] = useState('');
             const [typingComplete, setTypingComplete] = useState(false);
             const typingRef = useRef(null);
@@ -2329,8 +2361,7 @@
             return (
                 <div
                     ref={bubbleRef}
-                    onClick={onClick}
-                    className="absolute cursor-pointer"
+                    className="absolute"
                     style={{
                         left: bubbleStyle.left,
                         bottom: bubbleStyle.bottom,
@@ -8165,7 +8196,7 @@ Good luck.`;
         };
 
         // --- TERMINAL.EXE - Command line interface (v3.0 Narrative Bible) ---
-        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive }) => {
+        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive, onDogEvent }) => {
             // Initial archived history
             const archivedHistory = [
                 { type: 'archive', text: '[ARCHIVE] user@system:~$ ping mateus' },
@@ -8374,19 +8405,20 @@ Good luck.`;
                     }
 
                     addOutput(helpText);
+                    onDogEvent?.('runHelp');
 
                 } else if (trimmed === 'list user') {
                     addOutput(`REGISTERED USERS:
   MATEUS ........... ADMIN
   ████████ ......... ████████
   UNKNOWN .......... CURRENT`);
+                    onDogEvent?.('runListUsers');
 
                 } else if (trimmed === 'chkdsk') {
                     addOutput('SCANNING SYSTEM...\n');
                     await new Promise(r => setTimeout(r, 1000));
 
                     const apps = [
-                        { name: 'ABOUT.EXE', id: 'ABOUT', alwaysOk: true },
                         { name: 'VOID.EXE', id: 'VOID' },
                         { name: 'PAINT.EXE', id: 'PAINT' },
                         { name: 'SNEK.EXE', id: 'SNAKE' },
@@ -8403,6 +8435,10 @@ Good luck.`;
                         { name: 'SCANNER.EXE', id: 'SCANNER' },
                         { name: 'BROWSER.EXE', id: 'BROWSER' },
                         { name: 'THIRD_EYE.EXE', id: 'THIRD_EYE' },
+                        { name: 'THIRD_EYE_2.EXE', id: 'THIRD_EYE_2' },
+                        { name: 'DESTRUCTION.EXE', id: 'DESTRUCTION' },
+                        { name: 'DOG.EXE', id: 'DOG_STORY' },
+                        { name: 'DOG_GOLD.EXE', id: 'GOLDY' },
                         { name: 'TRUTH.EXE', id: 'TRUTH', special: true }
                     ];
 
@@ -8410,7 +8446,7 @@ Good luck.`;
                     let locked = 0;
                     apps.forEach(app => {
                         const status = app.special ? 'FILE MISSING' :
-                                      (app.alwaysOk || isAppUnlocked(app.id)) ? 'OK' : 'LOCKED';
+                                      isAppUnlocked(app.id) ? 'OK' : 'LOCKED';
                         if (status === 'LOCKED') locked++;
                         const padding = '.'.repeat(Math.max(1, 22 - app.name.length));
                         output += `├── ${app.name} ${padding} ${status}\n`;
@@ -8418,6 +8454,7 @@ Good luck.`;
                     output += `\nTOTAL: 21 APPLICATIONS\nSTATUS: ${locked} LOCKED, ${apps.filter(a => a.special).length} MISSING\n`;
                     output += "\n> TYPE 'help' FOR AVAILABLE COMMANDS";
                     addOutput(output);
+                    onDogEvent?.('runChkdsk');
 
                 } else if (trimmed === 'sudo reveal') {
                     addOutput('REVEALING HIDDEN LAYER...\n');
@@ -8425,6 +8462,7 @@ Good luck.`;
                     addOutput('████████████████████████ 100%\n');
                     addOutput('THIRD_EYE.EXE UNLOCKED');
                     onUnlockApp?.('THIRD_EYE');
+                    onDogEvent?.('runSudoReveal');
 
                 } else if (trimmed === 'ping mateus' || trimmed === 'ping mateus') {
                     addOutput('PINGING MATEUS...\n');
@@ -8436,6 +8474,7 @@ Good luck.`;
                     addOutput('BUT SOMETHING RESPONDED.\n');
                     addOutput('PAINT.EXE UNLOCKED');
                     onUnlockApp?.('PAINT');
+                    onDogEvent?.('runPingMateus');
 
                 } else if (trimmed === 'cmatrix') {
                     addOutput('MATRIX PROTOCOL INITIATED...\n');
@@ -9548,7 +9587,7 @@ Good luck.`;
             // Starting apps: Only TERMINAL visible in APPS folder after intro
             // Desktop icons in story mode: APPS, TRASH (ABOUT and FILES hidden initially)
             // STARSHIP unlocked via sudo stars, not initial
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'TAROT'];
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
@@ -10078,7 +10117,7 @@ Good luck.`;
                     return;
                 }
 
-                // Handle specific events
+                // Handle specific events based on story phase
                 switch (event) {
                     case 'terminalOpened':
                         if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
@@ -10086,8 +10125,28 @@ Good luck.`;
                         }
                         break;
                     case 'runChkdsk':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
                             startDogDialogue('ACT1_POST_CHKDSK');
+                        }
+                        break;
+                    case 'runListUsers':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_LIST_USERS');
+                        }
+                        break;
+                    case 'runHelp':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_HELP');
+                        }
+                        break;
+                    case 'runSudoReveal':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_SUDO_REVEAL');
+                        }
+                        break;
+                    case 'runPingMateus':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_PING_MATEUS');
                         }
                         break;
                     case 'matrixExit':
@@ -10150,13 +10209,23 @@ Good luck.`;
                 return () => clearTimeout(dogIdleTimerRef.current);
             }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
 
-            // Dog companion dragging handlers
+            // Dog companion dragging handlers with 100ms hold timer
+            const dogHoldTimerRef = useRef(null);
+            const dogPendingDragRef = useRef(false);
+
             const handleDogCompanionMouseDown = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setDogCompanionDragging(true);
-                setDogCompanionEmotion('panicked');
-                dogCompanionVelRef.current = { x: 0, y: 0 };
+                dogPendingDragRef.current = true;
+
+                // Start 100ms hold timer before enabling drag
+                dogHoldTimerRef.current = setTimeout(() => {
+                    if (dogPendingDragRef.current) {
+                        setDogCompanionDragging(true);
+                        setDogCompanionEmotion('panicked');
+                        dogCompanionVelRef.current = { x: 0, y: 0 };
+                    }
+                }, 100);
             };
 
             const handleDogCompanionMouseMove = (e) => {
@@ -10168,6 +10237,13 @@ Good luck.`;
             };
 
             const handleDogCompanionMouseUp = (e) => {
+                // Cancel hold timer if released early
+                if (dogHoldTimerRef.current) {
+                    clearTimeout(dogHoldTimerRef.current);
+                    dogHoldTimerRef.current = null;
+                }
+                dogPendingDragRef.current = false;
+
                 if (!dogCompanionDragging) return;
                 setDogCompanionDragging(false);
                 // Give a small random velocity when released
@@ -10180,25 +10256,36 @@ Good luck.`;
 
             // Global mouse handlers for companion dragging
             useEffect(() => {
-                if (!dogCompanionDragging) return;
+                // Always listen for mouseup to cancel pending drags
+                const handleGlobalMouseUp = (e) => {
+                    if (dogHoldTimerRef.current) {
+                        clearTimeout(dogHoldTimerRef.current);
+                        dogHoldTimerRef.current = null;
+                    }
+                    dogPendingDragRef.current = false;
+                    handleDogCompanionMouseUp(e);
+                };
 
-                window.addEventListener('mousemove', handleDogCompanionMouseMove);
-                window.addEventListener('mouseup', handleDogCompanionMouseUp);
+                window.addEventListener('mouseup', handleGlobalMouseUp);
+
+                if (dogCompanionDragging) {
+                    window.addEventListener('mousemove', handleDogCompanionMouseMove);
+                }
 
                 return () => {
+                    window.removeEventListener('mouseup', handleGlobalMouseUp);
                     window.removeEventListener('mousemove', handleDogCompanionMouseMove);
-                    window.removeEventListener('mouseup', handleDogCompanionMouseUp);
                 };
             }, [dogCompanionDragging]);
 
-            // Return to idle after being grounded for 1 second (after being dropped)
+            // Return to idle after being grounded for 0.1 second (after being dropped)
             const groundedTimerRef = useRef(null);
             useEffect(() => {
                 // Only trigger when grounded and in panicked state (was just dropped)
                 if (dogCompanionGrounded && dogCompanionEmotion === 'panicked' && !dogCompanionDragging) {
                     groundedTimerRef.current = setTimeout(() => {
                         setDogCompanionEmotion('idle');
-                    }, 1000);
+                    }, 100);
                 } else {
                     // Clear timer if no longer grounded or emotion changed
                     if (groundedTimerRef.current) {
@@ -10441,7 +10528,7 @@ Good luck.`;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
-                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
+                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} onDogEvent={notifyDogEvent} />;
                     case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
@@ -10719,6 +10806,11 @@ Good luck.`;
                 setWindowAnimations(p => ({ ...p, [targetId]: 'opening' }));
                 setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n[targetId]; return n; }), 200);
                 setTopZ(newZ);
+
+                // Notify dog when terminal opens
+                if (id === 'TERMINAL') {
+                    notifyDogEvent('terminalOpened');
+                }
             }
             const close = (id) => {
                 sounds.windowClose();
@@ -12182,7 +12274,10 @@ Good luck.`;
                                 <DogSpeechBubble
                                     text={dogCompanionDialogue.text}
                                     highlight={dogCompanionDialogue.highlight}
-                                    onClick={advanceDogDialogue}
+                                    onComplete={() => {
+                                        // Auto-advance after 1 second when typing completes
+                                        setTimeout(() => advanceDogDialogue(), 1000);
+                                    }}
                                     dogX={dogCompanionPos.x}
                                     dogY={dogCompanionPos.y}
                                 />
