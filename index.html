@@ -10138,56 +10138,51 @@ Good luck.`;
                 }
             };
 
+            // Mapping from waitForAction events to the next dialogue sequence
+            const WAIT_ACTION_TO_NEXT_DIALOGUE = {
+                'runChkdsk': 'ACT1_POST_CHKDSK',
+                'runListUsers': 'ACT1_LIST_USERS',
+                'runHelp': 'ACT1_HELP',
+                'runSudoReveal': 'ACT1_SUDO_REVEAL',
+                'runPingMateus': 'ACT1_PING_MATEUS',
+                'runCmatrix': 'ACT2_POST_MATRIX',
+                'triggerInception': 'ACT2_INCEPTION',
+                'runSudoUnlock': 'ACT2_PRIVATE_FOUND',
+                'scanPrivate': 'ACT2_CHMOD',
+                'runChmod': 'ACT2_GOLDY_FOUND',
+                'scanTruth': 'ACT3_SYSTEM_CRASH',
+            };
+
             // Notify dog of game events
             const notifyDogEvent = (event, data = {}) => {
                 if (!dogCompanionActive) return;
 
-                // Check if waiting for this action
+                // Check if waiting for this action - start the next dialogue sequence
                 if (dogCompanionWaitingFor === event) {
                     setDogCompanionWaitingFor(null);
-                    advanceDogDialogue(true);  // Skip wait check since action was just completed
+                    setDogCompanionDialogue(null);
+                    setDogCompanionDialogueQueue([]);
+                    const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[event];
+                    if (nextDialogue) {
+                        setTimeout(() => startDogDialogue(nextDialogue), 500);
+                    }
                     return;
                 }
 
-                // Handle specific events based on story phase
+                // Handle automatic/ambient events (no waitForAction before them)
                 switch (event) {
                     case 'terminalOpened':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
                             startDogDialogue('ACT1_TERMINAL_OPENED');
                         }
                         break;
-                    case 'runChkdsk':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_POST_CHKDSK');
-                        }
-                        break;
-                    case 'runListUsers':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_LIST_USERS');
-                        }
-                        break;
-                    case 'runHelp':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_HELP');
-                        }
-                        break;
-                    case 'runSudoReveal':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_SUDO_REVEAL');
-                        }
-                        break;
-                    case 'runPingMateus':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_PING_MATEUS');
-                        }
-                        break;
                     case 'matrixExit':
-                        if (dogCompanionStoryPhase === 'ACT2') {
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
                             startDogDialogue('ACT2_POST_MATRIX');
                         }
                         break;
                     case 'snekLost':
-                        if (dogCompanionStoryPhase === 'ACT2') {
+                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
                             startDogDialogue('ACT2_SNEK_HINT');
                         }
                         break;
@@ -10428,9 +10423,11 @@ Good luck.`;
             const aboutModeIcons = ["ABOUT", "FILES", "CONTACT"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
-            const desktopIcons = !introComplete
+            // In story mode (dogCompanionActive), hide CONTACT
+            const desktopIcons = (!introComplete
                 ? (revealingApps ? ["MESSAGES", ...revealedApps] : ["MESSAGES"])
-                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons);
+                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons))
+                .filter(id => !(dogCompanionActive && id === 'CONTACT'));
 
             // Window State (Position x/y added for dragging) - content rendered separately
             // Base sizes are for 1920x1080, will be scaled for smaller screens
@@ -12333,7 +12330,9 @@ Good luck.`;
                                         if (input.value.trim()) {
                                             setPlayerName(input.value.trim());
                                             setDogCompanionWaitingFor(null);
-                                            startDogDialogue('ACT1_NAME_ENTERED');
+                                            setDogCompanionDialogue(null);
+                                            setDogCompanionDialogueQueue([]);
+                                            setTimeout(() => startDogDialogue('ACT1_NAME_ENTERED'), 500);
                                         }
                                     }}>
                                         <input
