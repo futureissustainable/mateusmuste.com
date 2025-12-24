@@ -9551,6 +9551,7 @@ Good luck.`;
             const dogIdleTimerRef = useRef(null);
             const lastIdleDialogueRef = useRef(0);
             const dogResumeCheckedRef = useRef(false); // Track if we've checked for resume
+            const dogTriggerQueueRef = useRef([]); // Queue for triggers that arrive while dog is busy
             // Goldy state
             const [goldyVisible, setGoldyVisible] = useState(false);
             const [goldyFlipped, setGoldyFlipped] = useState(false);
@@ -10170,6 +10171,12 @@ Good luck.`;
                         setDogCompanionWaitingFor(null);
                         setDogCompanionCurrentDialogueKey(null);
                         setDogCompanionDialogueIndex(0);
+
+                        // Process queued triggers after dialogue ends
+                        if (dogTriggerQueueRef.current.length > 0) {
+                            const nextEvent = dogTriggerQueueRef.current.shift();
+                            setTimeout(() => processEventTrigger(nextEvent), 500);
+                        }
                     }
                 }, waitTime);
             };
@@ -10258,15 +10265,60 @@ Good luck.`;
                 'scanTruth': 'ACT3_SYSTEM_CRASH',
             };
 
-            // Notify dog of game events
-            const notifyDogEvent = (event, data = {}) => {
+            // Map events to their required phase and dialogue
+            const EVENT_TO_DIALOGUE = {
+                'terminalOpened': { phase: 'ACT1_TERMINAL', dialogue: 'ACT1_TERMINAL_OPENED' },
+                'matrixExit': { phase: 'ACT2', dialogue: 'ACT2_POST_MATRIX' },
+                'snekLost': { phase: 'ACT2', dialogue: 'ACT2_SNEK_HINT' },
+                'snekComplete': { phase: 'ACT2', dialogue: 'ACT2_SNEK_COMPLETE' },
+                'mapComplete': { phase: 'ACT2', dialogue: 'ACT2_MAP_COMPLETE' },
+                'labyrinthWord': { phase: 'ACT2', dialogue: 'ACT2_LABYRINTH_WORD' },
+                'sudoStars': { phase: 'ACT2', dialogue: 'ACT2_SUDO_STARS' },
+                'starshipOpen': { phase: 'ACT2', dialogue: 'ACT2_STARSHIP' },
+                'starshipLost': { phase: 'ACT2', dialogue: 'ACT2_STARSHIP_HINT' },
+                'booksUnlocked': { phase: 'ACT2', dialogue: 'ACT2_BOOKS_UNLOCKED' },
+                'truthBookFound': { phase: 'ACT2', dialogue: 'ACT2_TRUTH_BOOK' },
+                'truthUnlocked': { phase: 'ACT2', dialogue: 'ACT3_TRUTH_UNLOCKED' },
+                'terminalScan': { phase: 'ACT2', dialogue: 'ACT2_TERMINAL_SCAN' },
+                'voidScan': { phase: 'ACT2', dialogue: 'ACT2_VOID_SCAN' },
+            };
+
+            // Process a single event trigger (called when dog is free)
+            const processEventTrigger = (event) => {
                 if (!dogCompanionActive) return;
 
-                // Check if waiting for this action - start the next dialogue sequence
+                // Special case: dogReturn has different handling
+                if (event === 'dogReturn') {
+                    if (dogCompanionStoryPhase === 'ACT3_SACRIFICE') {
+                        setDogCompanionActive(true);
+                        setTimeout(() => startDogDialogue('ACT3_RETURN'), 1000);
+                    }
+                    return;
+                }
+
+                // Regular events - check phase and start dialogue
+                const eventConfig = EVENT_TO_DIALOGUE[event];
+                if (eventConfig && dogCompanionStoryPhase === eventConfig.phase) {
+                    startDogDialogue(eventConfig.dialogue);
+                }
+            };
+
+            // Check if dog is busy (in dialogue or waiting for action)
+            const isDogBusy = () => {
+                return dogCompanionDialogue !== null || dogCompanionWaitingFor !== null;
+            };
+
+            // Notify dog of game events - queues if busy, processes immediately if free
+            const notifyDogEvent = (event, data = {}) => {
+                if (!dogCompanionActive && event !== 'dogReturn') return;
+
+                // Check if waiting for this action - this takes priority
                 if (dogCompanionWaitingFor === event) {
                     setDogCompanionWaitingFor(null);
                     setDogCompanionDialogue(null);
                     setDogCompanionDialogueQueue([]);
+                    // Clear the queue when a wait action is completed
+                    dogTriggerQueueRef.current = [];
                     const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[event];
                     if (nextDialogue) {
                         setTimeout(() => startDogDialogue(nextDialogue), 500);
@@ -10274,108 +10326,47 @@ Good luck.`;
                     return;
                 }
 
-                // Handle automatic/ambient events (no waitForAction before them)
-                switch (event) {
-                    case 'terminalOpened':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT1_TERMINAL_OPENED');
-                        }
-                        break;
-                    case 'matrixExit':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_POST_MATRIX');
-                        }
-                        break;
-                    case 'snekLost':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_SNEK_HINT');
-                        }
-                        break;
-                    case 'snekComplete':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_SNEK_COMPLETE');
-                        }
-                        break;
-                    case 'mapComplete':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_MAP_COMPLETE');
-                        }
-                        break;
-                    case 'labyrinthWord':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_LABYRINTH_WORD');
-                        }
-                        break;
-                    case 'sudoStars':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_SUDO_STARS');
-                        }
-                        break;
-                    case 'starshipOpen':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_STARSHIP');
-                        }
-                        break;
-                    case 'starshipLost':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_STARSHIP_HINT');
-                        }
-                        break;
-                    case 'booksUnlocked':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_BOOKS_UNLOCKED');
-                        }
-                        break;
-                    case 'truthBookFound':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_TRUTH_BOOK');
-                        }
-                        break;
-                    case 'truthUnlocked':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT3_TRUTH_UNLOCKED');
-                        }
-                        break;
-                    case 'dogReturn':
-                        if (dogCompanionStoryPhase === 'ACT3_SACRIFICE') {
-                            // Dog comes back after sacrifice
-                            setDogCompanionActive(true);
-                            setTimeout(() => startDogDialogue('ACT3_RETURN'), 1000);
-                        }
-                        break;
-                    case 'terminalScan':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_TERMINAL_SCAN');
-                        }
-                        break;
-                    case 'voidScan':
-                        if (dogCompanionStoryPhase === 'ACT2' && !dogCompanionDialogue) {
-                            startDogDialogue('ACT2_VOID_SCAN');
-                        }
-                        break;
-                    default:
-                        break;
+                // Check if this event should be queued or processed immediately
+                if (isDogBusy()) {
+                    // Don't queue duplicate events or events already in queue
+                    if (!dogTriggerQueueRef.current.includes(event)) {
+                        dogTriggerQueueRef.current.push(event);
+                    }
+                } else {
+                    // Dog is free - process immediately
+                    processEventTrigger(event);
                 }
             };
 
             // Close error window
             const closeDogError = (id) => {
-                setDogErrorWindows(prev => prev.filter(e => e.id !== id));
-                // Check if all errors closed
-                if (dogErrorWindows.length === 1 && dogCompanionWaitingFor === 'closeErrors') {
-                    setDogCompanionWaitingFor(null);
-                    setTimeout(() => startDogDialogue('ACT1_POST_ERRORS'), 500);
-                }
+                setDogErrorWindows(prev => {
+                    const remaining = prev.filter(e => e.id !== id);
+                    // Check if all errors closed (use remaining.length, not stale state)
+                    if (remaining.length === 0 && dogCompanionWaitingFor === 'closeErrors') {
+                        setTimeout(() => {
+                            setDogCompanionWaitingFor(null);
+                            startDogDialogue('ACT1_POST_ERRORS');
+                        }, 500);
+                    }
+                    return remaining;
+                });
             };
 
-            // Idle dialogue system
+            // Idle dialogue system - only runs when dog is completely free
             useEffect(() => {
-                if (!dogCompanionActive || dogCompanionDialogue || dogCompanionStoryPhase === 'inactive') return;
+                // Don't start idle if dog is busy with anything
+                if (!dogCompanionActive || dogCompanionDialogue || dogCompanionWaitingFor || dogCompanionStoryPhase === 'inactive') return;
 
                 // Start idle timer
                 const scheduleIdle = () => {
                     const delay = 30000 + Math.random() * 30000; // 30-60 seconds
                     dogIdleTimerRef.current = setTimeout(() => {
+                        // Double-check dog is still free before showing idle dialogue
+                        if (dogCompanionDialogue || dogCompanionWaitingFor) {
+                            scheduleIdle();
+                            return;
+                        }
                         const now = Date.now();
                         if (now - lastIdleDialogueRef.current > 30000) {
                             const pool = dogCompanionStoryPhase === 'POST_GAME'
@@ -10386,13 +10377,19 @@ Good luck.`;
                             setDogCompanionEmotion(randomDialogue.emotion || 'speaking');
                             lastIdleDialogueRef.current = now;
 
-                            // Auto-dismiss after dialogue
+                            // Auto-dismiss after dialogue (6 second pause after finishing)
                             const displayTime = randomDialogue.waitAfter || 3000;
                             setTimeout(() => {
                                 setDogCompanionDialogue(null);
                                 setDogCompanionEmotion('idle');
-                                scheduleIdle();
-                            }, displayTime + randomDialogue.text.length * 40 + 2000);
+                                // Process any queued triggers after idle dialogue ends
+                                if (dogTriggerQueueRef.current.length > 0) {
+                                    const nextEvent = dogTriggerQueueRef.current.shift();
+                                    setTimeout(() => processEventTrigger(nextEvent), 500);
+                                } else {
+                                    scheduleIdle();
+                                }
+                            }, displayTime + randomDialogue.text.length * 40 + 6000);
                         } else {
                             scheduleIdle();
                         }
@@ -10401,7 +10398,7 @@ Good luck.`;
 
                 scheduleIdle();
                 return () => clearTimeout(dogIdleTimerRef.current);
-            }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
+            }, [dogCompanionActive, dogCompanionDialogue, dogCompanionWaitingFor, dogCompanionStoryPhase]);
 
             // Resume dialogue on page reload (if was mid-dialogue)
             useEffect(() => {
