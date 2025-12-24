@@ -2250,7 +2250,7 @@
         };
 
         // Speech bubble component - positions smartly to avoid screen clipping
-        const DogSpeechBubble = ({ text, highlight = null, isTyping = true, onComplete, onClick, dogX = 0, dogY = 0 }) => {
+        const DogSpeechBubble = ({ text, highlight = null, isTyping = true, onComplete, dogX = 0, dogY = 0 }) => {
             const [displayedText, setDisplayedText] = useState('');
             const [typingComplete, setTypingComplete] = useState(false);
             const typingRef = useRef(null);
@@ -2329,8 +2329,7 @@
             return (
                 <div
                     ref={bubbleRef}
-                    onClick={onClick}
-                    className="absolute cursor-pointer"
+                    className="absolute"
                     style={{
                         left: bubbleStyle.left,
                         bottom: bubbleStyle.bottom,
@@ -8165,7 +8164,7 @@ Good luck.`;
         };
 
         // --- TERMINAL.EXE - Command line interface (v3.0 Narrative Bible) ---
-        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive }) => {
+        const TerminalApp = ({ onClose, onOpenApp, onReleaseDog, onMatrixMode, onUnlockPrivate, onAchievement, onGodMode, onUnlockApp, unlockedApps, thirdEyeActive, onDogEvent }) => {
             // Initial archived history
             const archivedHistory = [
                 { type: 'archive', text: '[ARCHIVE] user@system:~$ ping mateus' },
@@ -8374,12 +8373,14 @@ Good luck.`;
                     }
 
                     addOutput(helpText);
+                    onDogEvent?.('runHelp');
 
                 } else if (trimmed === 'list user') {
                     addOutput(`REGISTERED USERS:
   MATEUS ........... ADMIN
   ████████ ......... ████████
   UNKNOWN .......... CURRENT`);
+                    onDogEvent?.('runListUsers');
 
                 } else if (trimmed === 'chkdsk') {
                     addOutput('SCANNING SYSTEM...\n');
@@ -8421,6 +8422,7 @@ Good luck.`;
                     output += `\nTOTAL: 21 APPLICATIONS\nSTATUS: ${locked} LOCKED, ${apps.filter(a => a.special).length} MISSING\n`;
                     output += "\n> TYPE 'help' FOR AVAILABLE COMMANDS";
                     addOutput(output);
+                    onDogEvent?.('runChkdsk');
 
                 } else if (trimmed === 'sudo reveal') {
                     addOutput('REVEALING HIDDEN LAYER...\n');
@@ -8428,6 +8430,7 @@ Good luck.`;
                     addOutput('████████████████████████ 100%\n');
                     addOutput('THIRD_EYE.EXE UNLOCKED');
                     onUnlockApp?.('THIRD_EYE');
+                    onDogEvent?.('runSudoReveal');
 
                 } else if (trimmed === 'ping mateus' || trimmed === 'ping mateus') {
                     addOutput('PINGING MATEUS...\n');
@@ -8439,6 +8442,7 @@ Good luck.`;
                     addOutput('BUT SOMETHING RESPONDED.\n');
                     addOutput('PAINT.EXE UNLOCKED');
                     onUnlockApp?.('PAINT');
+                    onDogEvent?.('runPingMateus');
 
                 } else if (trimmed === 'cmatrix') {
                     addOutput('MATRIX PROTOCOL INITIATED...\n');
@@ -10081,7 +10085,7 @@ Good luck.`;
                     return;
                 }
 
-                // Handle specific events
+                // Handle specific events based on story phase
                 switch (event) {
                     case 'terminalOpened':
                         if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
@@ -10089,8 +10093,28 @@ Good luck.`;
                         }
                         break;
                     case 'runChkdsk':
-                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL') {
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
                             startDogDialogue('ACT1_POST_CHKDSK');
+                        }
+                        break;
+                    case 'runListUsers':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_LIST_USERS');
+                        }
+                        break;
+                    case 'runHelp':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_HELP');
+                        }
+                        break;
+                    case 'runSudoReveal':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_SUDO_REVEAL');
+                        }
+                        break;
+                    case 'runPingMateus':
+                        if (dogCompanionStoryPhase === 'ACT1_TERMINAL' && !dogCompanionDialogue) {
+                            startDogDialogue('ACT1_PING_MATEUS');
                         }
                         break;
                     case 'matrixExit':
@@ -10153,13 +10177,23 @@ Good luck.`;
                 return () => clearTimeout(dogIdleTimerRef.current);
             }, [dogCompanionActive, dogCompanionDialogue, dogCompanionStoryPhase]);
 
-            // Dog companion dragging handlers
+            // Dog companion dragging handlers with 100ms hold timer
+            const dogHoldTimerRef = useRef(null);
+            const dogPendingDragRef = useRef(false);
+
             const handleDogCompanionMouseDown = (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                setDogCompanionDragging(true);
-                setDogCompanionEmotion('panicked');
-                dogCompanionVelRef.current = { x: 0, y: 0 };
+                dogPendingDragRef.current = true;
+
+                // Start 100ms hold timer before enabling drag
+                dogHoldTimerRef.current = setTimeout(() => {
+                    if (dogPendingDragRef.current) {
+                        setDogCompanionDragging(true);
+                        setDogCompanionEmotion('panicked');
+                        dogCompanionVelRef.current = { x: 0, y: 0 };
+                    }
+                }, 100);
             };
 
             const handleDogCompanionMouseMove = (e) => {
@@ -10171,6 +10205,13 @@ Good luck.`;
             };
 
             const handleDogCompanionMouseUp = (e) => {
+                // Cancel hold timer if released early
+                if (dogHoldTimerRef.current) {
+                    clearTimeout(dogHoldTimerRef.current);
+                    dogHoldTimerRef.current = null;
+                }
+                dogPendingDragRef.current = false;
+
                 if (!dogCompanionDragging) return;
                 setDogCompanionDragging(false);
                 // Give a small random velocity when released
@@ -10183,14 +10224,25 @@ Good luck.`;
 
             // Global mouse handlers for companion dragging
             useEffect(() => {
-                if (!dogCompanionDragging) return;
+                // Always listen for mouseup to cancel pending drags
+                const handleGlobalMouseUp = (e) => {
+                    if (dogHoldTimerRef.current) {
+                        clearTimeout(dogHoldTimerRef.current);
+                        dogHoldTimerRef.current = null;
+                    }
+                    dogPendingDragRef.current = false;
+                    handleDogCompanionMouseUp(e);
+                };
 
-                window.addEventListener('mousemove', handleDogCompanionMouseMove);
-                window.addEventListener('mouseup', handleDogCompanionMouseUp);
+                window.addEventListener('mouseup', handleGlobalMouseUp);
+
+                if (dogCompanionDragging) {
+                    window.addEventListener('mousemove', handleDogCompanionMouseMove);
+                }
 
                 return () => {
+                    window.removeEventListener('mouseup', handleGlobalMouseUp);
                     window.removeEventListener('mousemove', handleDogCompanionMouseMove);
-                    window.removeEventListener('mouseup', handleDogCompanionMouseUp);
                 };
             }, [dogCompanionDragging]);
 
@@ -10444,7 +10496,7 @@ Good luck.`;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
                     case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
-                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} />;
+                    case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} onDogEvent={notifyDogEvent} />;
                     case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
                     case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
@@ -10722,6 +10774,11 @@ Good luck.`;
                 setWindowAnimations(p => ({ ...p, [targetId]: 'opening' }));
                 setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n[targetId]; return n; }), 200);
                 setTopZ(newZ);
+
+                // Notify dog when terminal opens
+                if (id === 'TERMINAL') {
+                    notifyDogEvent('terminalOpened');
+                }
             }
             const close = (id) => {
                 sounds.windowClose();
@@ -12185,7 +12242,10 @@ Good luck.`;
                                 <DogSpeechBubble
                                     text={dogCompanionDialogue.text}
                                     highlight={dogCompanionDialogue.highlight}
-                                    onClick={advanceDogDialogue}
+                                    onComplete={() => {
+                                        // Auto-advance after 1 second when typing completes
+                                        setTimeout(() => advanceDogDialogue(), 1000);
+                                    }}
                                     dogX={dogCompanionPos.x}
                                     dogY={dogCompanionPos.y}
                                 />
