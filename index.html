@@ -9949,32 +9949,44 @@ Good luck.`;
                 }, waitTime);
             };
 
+            // Helper to create error with random position
+            const createDogError = (id, message, index = 0) => ({
+                id,
+                message,
+                x: 100 + (index % 5) * 50 + Math.random() * 100,
+                y: 100 + Math.floor(index / 5) * 60 + Math.random() * 100
+            });
+
             // Handle dog story triggers
             const handleDogTrigger = (trigger) => {
                 switch (trigger) {
                     case 'spawnErrors':
                         // Spawn 1 error window
-                        setDogErrorWindows([{ id: Date.now(), message: 'MEMORY_CORRUPTION_ERROR' }]);
+                        setDogErrorWindows([createDogError(Date.now(), 'MEMORY_CORRUPTION_ERROR', 0)]);
                         setTimeout(() => startDogDialogue('ACT1_ERRORS'), 500);
                         break;
                     case 'moreErrors':
                         // Spawn 2-3 more errors
                         setDogErrorWindows(prev => [
                             ...prev,
-                            { id: Date.now() + 1, message: 'SYSTEM_FAULT_0x00A3' },
-                            { id: Date.now() + 2, message: 'KERNEL_PANIC_DETECTED' }
+                            createDogError(Date.now() + 1, 'SYSTEM_FAULT_0x00A3', prev.length),
+                            createDogError(Date.now() + 2, 'KERNEL_PANIC_DETECTED', prev.length + 1)
                         ]);
                         break;
                     case 'manyErrors':
                         // Spawn 12-15 errors
-                        const errors = [];
-                        for (let i = 0; i < 12; i++) {
-                            errors.push({
-                                id: Date.now() + i + 10,
-                                message: ['FATAL_ERROR', 'MEMORY_LEAK', 'STACK_OVERFLOW', 'NULL_POINTER', 'BUFFER_OVERFLOW', 'SEGFAULT'][Math.floor(Math.random() * 6)]
-                            });
-                        }
-                        setDogErrorWindows(prev => [...prev, ...errors]);
+                        setDogErrorWindows(prev => {
+                            const errors = [];
+                            const errorMessages = ['FATAL_ERROR', 'MEMORY_LEAK', 'STACK_OVERFLOW', 'NULL_POINTER', 'BUFFER_OVERFLOW', 'SEGFAULT'];
+                            for (let i = 0; i < 12; i++) {
+                                errors.push(createDogError(
+                                    Date.now() + i + 10,
+                                    errorMessages[Math.floor(Math.random() * errorMessages.length)],
+                                    prev.length + i
+                                ));
+                            }
+                            return [...prev, ...errors];
+                        });
                         break;
                     case 'unlockTerminal':
                         // Terminal is already unlocked by default
@@ -12104,13 +12116,13 @@ Good luck.`;
                     )}
 
                     {/* Dog error windows */}
-                    {dogErrorWindows.map((error, index) => (
+                    {dogErrorWindows.map((error) => (
                         <div
                             key={error.id}
                             className="fixed z-[999990] bg-red-900 text-white border-2 border-red-500 p-4 font-mono shadow-lg"
                             style={{
-                                left: 100 + (index % 5) * 50 + Math.random() * 100,
-                                top: 100 + Math.floor(index / 5) * 60 + Math.random() * 100,
+                                left: error.x,
+                                top: error.y,
                                 minWidth: 200
                             }}
                         >
@@ -12123,7 +12135,7 @@ Good luck.`;
                                     onClick={() => closeDogError(error.id)}
                                     className="w-6 h-6 flex items-center justify-center hover:bg-red-800 border border-red-500"
                                 >
-                                    <Icons.Close size={12} />
+                                    <Icons.X size={12} />
                                 </button>
                             </div>
                             <div className="text-sm">{error.message}</div>
