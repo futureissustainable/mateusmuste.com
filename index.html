@@ -10053,36 +10053,44 @@ Good luck.`;
                 y: 100 + Math.floor(index / 5) * 60 + Math.random() * 100
             });
 
+            // Helper to spawn a single error with sound
+            const spawnSingleError = (message, index) => {
+                sounds.error();
+                setDogErrorWindows(prev => [...prev, createDogError(Date.now() + Math.random() * 1000, message, prev.length)]);
+            };
+
+            // Helper to spawn multiple errors with staggered random delays
+            const spawnErrorsStaggered = (errorList) => {
+                let cumulativeDelay = 0;
+                errorList.forEach((message, i) => {
+                    // Random delay between 100ms and 1000ms for each error
+                    const delay = 100 + Math.random() * 900;
+                    cumulativeDelay += delay;
+                    setTimeout(() => spawnSingleError(message, i), cumulativeDelay);
+                });
+                return cumulativeDelay; // Return total time for all errors
+            };
+
             // Handle dog story triggers
             const handleDogTrigger = (trigger) => {
                 switch (trigger) {
                     case 'spawnErrors':
-                        // Spawn 1 error window
-                        setDogErrorWindows([createDogError(Date.now(), 'MEMORY_CORRUPTION_ERROR', 0)]);
-                        setTimeout(() => startDogDialogue('ACT1_ERRORS'), 500);
+                        // Spawn 1 error window with sound
+                        spawnSingleError('MEMORY_CORRUPTION_ERROR', 0);
+                        setTimeout(() => startDogDialogue('ACT1_ERRORS'), 600);
                         break;
                     case 'moreErrors':
-                        // Spawn 2-3 more errors
-                        setDogErrorWindows(prev => [
-                            ...prev,
-                            createDogError(Date.now() + 1, 'SYSTEM_FAULT_0x00A3', prev.length),
-                            createDogError(Date.now() + 2, 'KERNEL_PANIC_DETECTED', prev.length + 1)
-                        ]);
+                        // Spawn 2-3 more errors with staggered delays
+                        spawnErrorsStaggered(['SYSTEM_FAULT_0x00A3', 'KERNEL_PANIC_DETECTED']);
                         break;
                     case 'manyErrors':
-                        // Spawn 12-15 errors
-                        setDogErrorWindows(prev => {
-                            const errors = [];
-                            const errorMessages = ['FATAL_ERROR', 'MEMORY_LEAK', 'STACK_OVERFLOW', 'NULL_POINTER', 'BUFFER_OVERFLOW', 'SEGFAULT'];
-                            for (let i = 0; i < 12; i++) {
-                                errors.push(createDogError(
-                                    Date.now() + i + 10,
-                                    errorMessages[Math.floor(Math.random() * errorMessages.length)],
-                                    prev.length + i
-                                ));
-                            }
-                            return [...prev, ...errors];
-                        });
+                        // Spawn 12 errors with staggered delays
+                        const errorMessages = [];
+                        const errorTypes = ['FATAL_ERROR', 'MEMORY_LEAK', 'STACK_OVERFLOW', 'NULL_POINTER', 'BUFFER_OVERFLOW', 'SEGFAULT'];
+                        for (let i = 0; i < 12; i++) {
+                            errorMessages.push(errorTypes[Math.floor(Math.random() * errorTypes.length)]);
+                        }
+                        spawnErrorsStaggered(errorMessages);
                         break;
                     case 'unlockTerminal':
                         // Terminal is already unlocked by default
