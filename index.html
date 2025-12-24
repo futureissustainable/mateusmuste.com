@@ -8386,7 +8386,6 @@ Good luck.`;
                     await new Promise(r => setTimeout(r, 1000));
 
                     const apps = [
-                        { name: 'ABOUT.EXE', id: 'ABOUT', alwaysOk: true },
                         { name: 'VOID.EXE', id: 'VOID' },
                         { name: 'PAINT.EXE', id: 'PAINT' },
                         { name: 'SNEK.EXE', id: 'SNAKE' },
@@ -8403,6 +8402,10 @@ Good luck.`;
                         { name: 'SCANNER.EXE', id: 'SCANNER' },
                         { name: 'BROWSER.EXE', id: 'BROWSER' },
                         { name: 'THIRD_EYE.EXE', id: 'THIRD_EYE' },
+                        { name: 'THIRD_EYE_2.EXE', id: 'THIRD_EYE_2' },
+                        { name: 'DESTRUCTION.EXE', id: 'DESTRUCTION' },
+                        { name: 'DOG.EXE', id: 'DOG_STORY' },
+                        { name: 'DOG_GOLD.EXE', id: 'GOLDY' },
                         { name: 'TRUTH.EXE', id: 'TRUTH', special: true }
                     ];
 
@@ -8410,7 +8413,7 @@ Good luck.`;
                     let locked = 0;
                     apps.forEach(app => {
                         const status = app.special ? 'FILE MISSING' :
-                                      (app.alwaysOk || isAppUnlocked(app.id)) ? 'OK' : 'LOCKED';
+                                      isAppUnlocked(app.id) ? 'OK' : 'LOCKED';
                         if (status === 'LOCKED') locked++;
                         const padding = '.'.repeat(Math.max(1, 22 - app.name.length));
                         output += `├── ${app.name} ${padding} ${status}\n`;
@@ -9548,7 +9551,7 @@ Good luck.`;
             // Starting apps: Only TERMINAL visible in APPS folder after intro
             // Desktop icons in story mode: APPS, TRASH (ABOUT and FILES hidden initially)
             // STARSHIP unlocked via sudo stars, not initial
-            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES', 'TAROT'];
+            const INITIAL_APPS = ['TERMINAL', 'ABOUT', 'SYSTEM', 'FILES', 'APPS', 'CONTACT', 'TRASH', 'END', 'MESSAGES'];
 
             // Get all unlocked apps (initial + narrative unlocks + god mode unlocks)
             // In about mode: only show base apps, no story progression
