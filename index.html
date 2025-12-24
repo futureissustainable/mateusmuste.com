@@ -10387,8 +10387,8 @@ Good luck.`;
             // Return to idle after being grounded for 0.1 second (after being dropped)
             const groundedTimerRef = useRef(null);
             useEffect(() => {
-                // Only trigger when grounded and in panicked state (was just dropped)
-                if (dogCompanionGrounded && dogCompanionEmotion === 'panicked' && !dogCompanionDragging) {
+                // Only trigger when grounded and in panicked state from being airborne (not from dialogue)
+                if (dogCompanionGrounded && dogCompanionEmotion === 'panicked' && !dogCompanionDragging && !dogCompanionDialogue) {
                     groundedTimerRef.current = setTimeout(() => {
                         setDogCompanionEmotion('idle');
                     }, 100);
@@ -10404,7 +10404,7 @@ Good luck.`;
                         clearTimeout(groundedTimerRef.current);
                     }
                 };
-            }, [dogCompanionGrounded, dogCompanionEmotion, dogCompanionDragging]);
+            }, [dogCompanionGrounded, dogCompanionEmotion, dogCompanionDragging, dogCompanionDialogue]);
 
             // Handle Goldy click (flip and disappear)
             const handleGoldyClick = () => {
