@@ -12380,9 +12380,9 @@ Good luck.`;
                                     text={dogCompanionDialogue.text}
                                     highlight={dogCompanionDialogue.highlight}
                                     onComplete={() => {
-                                        // Auto-advance after 1 second when typing completes (unless waiting for name)
+                                        // Auto-advance after 2 seconds when typing completes (unless waiting for name)
                                         if (dogCompanionWaitingFor !== 'enterName') {
-                                            setTimeout(() => advanceDogDialogue(), 1000);
+                                            setTimeout(() => advanceDogDialogue(), 2000);
                                         }
                                     }}
                                     dogX={dogCompanionPos.x}
