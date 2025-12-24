@@ -2137,22 +2137,22 @@
 
         // --- DOG COMPANION SPRITE SHEET SYSTEM ---
         // Sprite sheet: DOG_BLACK_SPRITE.png (128x288px, 32x32 sprites)
-        // Row layout: idle(3 breathing), speaking(1), happy(2), thinking(4), sad(1), panicked(2), sleeping(2), angry(1), smug(1)
+        // Row layout: idle(4 breathing), speaking(4), happy(2), thinking(4), sad(4), panicked(2), sleeping(2), angry(4), smug(4)
         const DOG_SPRITE_CONFIG = {
             spriteSize: 32,
             sheetWidth: 128,
             sheetHeight: 288,
             fps: 4,
             rows: {
-                idle: { row: 0, frames: 3, breathe: true },  // Special breathing animation
-                speaking: { row: 1, frames: 1 },
+                idle: { row: 0, frames: 4, breathe: true },  // Special breathing animation
+                speaking: { row: 1, frames: 4 },
                 happy: { row: 2, frames: 2 },
                 thinking: { row: 3, frames: 4 },
-                sad: { row: 4, frames: 1 },
+                sad: { row: 4, frames: 4 },
                 panicked: { row: 5, frames: 2 },
                 sleeping: { row: 6, frames: 2 },
-                angry: { row: 7, frames: 1 },
-                smug: { row: 8, frames: 1 }
+                angry: { row: 7, frames: 4 },
+                smug: { row: 8, frames: 4 }
             }
         };
 
@@ -2164,14 +2164,14 @@
             const breatheTimerRef = useRef(null);
             const breatheAnimRef = useRef(null);
 
-            // Special idle breathing animation: hold frame 0, every 1s play full 3-frame cycle
+            // Special idle breathing animation: hold frame 0, every 1s play full 4-frame cycle
             useEffect(() => {
                 if (config.breathe) {
                     const startBreatheCycle = () => {
                         setIsBreathing(true);
                         let breatheFrame = 0;
 
-                        // Play 3 frames at 4fps (250ms each)
+                        // Play 4 frames at 4fps (250ms each)
                         breatheAnimRef.current = setInterval(() => {
                             breatheFrame++;
                             if (breatheFrame >= config.frames) {
@@ -10010,7 +10010,7 @@ Good luck.`;
                 }
             };
 
-            const advanceDogDialogue = () => {
+            const advanceDogDialogue = (skipWaitCheck = false) => {
                 const current = dogCompanionDialogue;
 
                 // Handle trigger before advancing
@@ -10018,8 +10018,8 @@ Good luck.`;
                     handleDogTrigger(current.trigger);
                 }
 
-                // Check if waiting for an action
-                if (current?.waitForAction) {
+                // Check if waiting for an action (unless action was just completed)
+                if (!skipWaitCheck && current?.waitForAction) {
                     setDogCompanionWaitingFor(current.waitForAction);
                     return;
                 }
@@ -10121,7 +10121,7 @@ Good luck.`;
                 // Check if waiting for this action
                 if (dogCompanionWaitingFor === event) {
                     setDogCompanionWaitingFor(null);
-                    advanceDogDialogue();
+                    advanceDogDialogue(true);  // Skip wait check since action was just completed
                     return;
                 }
 
