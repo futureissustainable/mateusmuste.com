@@ -3991,8 +3991,8 @@
             const [highScore, setHighScore] = useState(() => HighScoreManager.getHighScore('snake'));
             const [gameOver, setGameOver] = useState(false);
             const [gameStarted, setGameStarted] = useState(false);
-            const snake = useRef([{ x: 5, y: 4 }]);
-            const food = useRef({ x: 7, y: 4 });
+            const snake = useRef([{ x: 5, y: 5 }]);
+            const food = useRef({ x: 7, y: 5 });
             const dir = useRef({ x: 1, y: 0 });
             const nextDir = useRef({ x: 1, y: 0 });
             const runningRef = useRef(false);
@@ -4000,7 +4000,7 @@
             const frameRef = useRef(null);
 
             const GRID_W = 10;
-            const GRID_H = 8;
+            const GRID_H = 10;
             const CELL = 40;
 
             // Load high score from storage when IP is ready
@@ -4013,7 +4013,7 @@
             }, []);
 
             const start = () => {
-                snake.current = [{ x: 5, y: 4 }, { x: 4, y: 4 }, { x: 3, y: 4 }];
+                snake.current = [{ x: 5, y: 5 }, { x: 4, y: 5 }, { x: 3, y: 5 }];
                 dir.current = { x: 1, y: 0 };
                 nextDir.current = { x: 1, y: 0 };
                 food.current = { x: Math.floor(Math.random() * GRID_W), y: Math.floor(Math.random() * GRID_H) };
@@ -4104,7 +4104,7 @@
                     // Display letters on body segments 1-10
                     if (i > 0 && i <= 10) {
                         ctx.fillStyle = '#fff';
-                        ctx.font = 'bold 10px "PPNeueBit", monospace';
+                        ctx.font = 'bold 20px "PPNeueBit", monospace';
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillText(SNEK_LETTERS[i - 1], s.x * CELL + CELL / 2, s.y * CELL + CELL / 2);
@@ -4227,8 +4227,8 @@
                         </div>
                     </div>
                     <div className="flex-grow flex items-center justify-center p-2 md:p-4 bg-gray-50 overflow-hidden">
-                        <div className="relative border-2 border-black" style={{ width: 'min(100%, 600px)', aspectRatio: '3/2' }}>
-                            <canvas ref={canvasRef} width={600} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} role="img" aria-label="Snake game canvas" />
+                        <div className="relative border-2 border-black" style={{ width: 'min(100%, 400px)', aspectRatio: '1/1' }}>
+                            <canvas ref={canvasRef} width={400} height={400} className="block w-full h-full" style={{ imageRendering: 'pixelated' }} role="img" aria-label="Snake game canvas" />
                             {!gameStarted && (
                                 <div className="absolute inset-0 bg-white/95 flex flex-col items-center justify-center">
                                     <div className="text-4xl font-black mb-2 tracking-widest">SNEK</div>
