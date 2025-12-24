@@ -12389,15 +12389,15 @@ Good luck.`;
                                     dogY={dogCompanionPos.y}
                                 />
                             )}
-                            {/* Name input when waiting for enterName */}
+                            {/* Name input when waiting for enterName - positioned above dog, below dialogue */}
                             {dogCompanionWaitingFor === 'enterName' && (
                                 <div
-                                    className="fixed bg-black border-2 border-white p-4 font-mono"
+                                    className="absolute bg-black border-2 border-white p-4 font-mono"
                                     style={{
-                                        bottom: dogCompanionPos.y + 110,
-                                        left: dogCompanionPos.x,
+                                        bottom: 100,
+                                        left: 0,
                                         minWidth: 240,
-                                        zIndex: 999999
+                                        zIndex: 10
                                     }}
                                 >
                                     <div className="text-white text-[10px] uppercase tracking-widest mb-3 opacity-60">ENTER YOUR NAME</div>
@@ -12431,8 +12431,6 @@ Good luck.`;
                                             CONFIRM
                                         </button>
                                     </form>
-                                    {/* Connector line to dog */}
-                                    <div className="absolute top-full left-8 w-px h-3 bg-white" />
                                 </div>
                             )}
                             <DogCompanionSprite emotion={dogCompanionEmotion} scale={3} />
