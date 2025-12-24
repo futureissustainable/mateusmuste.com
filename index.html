@@ -8333,6 +8333,7 @@ Good luck.`;
                     addOutput('████████████████████████ 100%\n');
                     addOutput('STARSHIP.EXE UNLOCKED');
                     onUnlockApp?.('STARSHIP');
+                    onDogEvent?.('runSudoStars');
 
                 } else if (trimmed === 'sudo unlock zen') {
                     addOutput('ZEN PATHWAY ACTIVATED\n');
@@ -10071,12 +10072,12 @@ Good luck.`;
                 'runListUsers': 'ACT1_LIST_USERS',
                 'runHelp': 'ACT1_HELP',
                 'runSudoReveal': 'ACT1_SUDO_REVEAL',
-                'runPingMateus': 'ACT1_PING_MATEUS',
                 'runCmatrix': 'ACT2_POST_MATRIX',
                 'triggerInception': 'ACT2_INCEPTION',
                 'runSudoUnlock': 'ACT2_PRIVATE_FOUND',
                 'scanPrivate': 'ACT2_CHMOD',
                 'runChmod': 'ACT2_GOLDY_FOUND',
+                'runSudoStars': 'ACT2_STARSHIP',
                 'scanTruth': 'ACT3_SYSTEM_CRASH',
             };
 
