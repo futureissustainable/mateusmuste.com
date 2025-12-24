@@ -10405,9 +10405,11 @@ Good luck.`;
             const aboutModeIcons = ["ABOUT", "FILES", "CONTACT"];
 
             // If intro not complete, show only MESSAGES. If revealing, show progressively revealed apps
-            const desktopIcons = !introComplete
+            // In story mode (dogCompanionActive), hide CONTACT
+            const desktopIcons = (!introComplete
                 ? (revealingApps ? ["MESSAGES", ...revealedApps] : ["MESSAGES"])
-                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons);
+                : (modeSelected === 'about' ? aboutModeIcons : allDesktopIcons))
+                .filter(id => !(dogCompanionActive && id === 'CONTACT'));
 
             // Window State (Position x/y added for dragging) - content rendered separately
             // Base sizes are for 1920x1080, will be scaled for smaller screens
