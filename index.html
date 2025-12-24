@@ -8545,8 +8545,6 @@ Good luck.`;
 
         // --- APPS Folder - Shows ALL apps with locked/unlocked states ---
         const AppsFolder = ({ onOpenApp, onDragStart, isMobile, unlockedApps }) => {
-            const [hoveredApp, setHoveredApp] = useState(null);
-
             // All available apps organized by narrative progression order
             const ALL_APPS = [
                 // Core - always available after intro
@@ -8555,23 +8553,23 @@ Good luck.`;
                 { id: 'TAROT', title: 'TAROT.DAT', icon: 'Tarot', category: 'CORE' },
 
                 // Narrative progression apps (unlock in order through gameplay)
-                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'LOCKED', hint: 'Terminal: sudo reveal' },
-                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette', category: 'LOCKED', hint: 'Terminal: ping mateus' },
-                { id: 'VOID', title: 'VOID.EXE', icon: 'Void', category: 'LOCKED', hint: 'Terminal: cmatrix' },
-                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek', category: 'LOCKED', hint: 'Stack two Third Eyes' },
-                { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED', hint: 'Play SNEK' },
-                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED', hint: 'The dog knows' },
-                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED', hint: '100 clicks' },
-                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED', hint: 'Accept fate in Tarot' },
-                { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED', hint: 'Score 1000 in Starship' },
-                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED', hint: 'Read the truth' },
-                { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED', hint: 'Terminal: sudo unlock zen' },
-                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED', hint: 'Extract revelation' },
+                { id: 'THIRD_EYE', title: 'THIRD_EYE.EXE', icon: 'ThirdEye', category: 'LOCKED' },
+                { id: 'PAINT', title: 'PAINT.EXE', icon: 'Palette', category: 'LOCKED' },
+                { id: 'VOID', title: 'VOID.EXE', icon: 'Void', category: 'LOCKED' },
+                { id: 'SNAKE', title: 'SNEK.EXE', icon: 'Snek', category: 'LOCKED' },
+                { id: 'PERSONAL', title: 'PRIVATE.EXE', icon: 'Lock', category: 'LOCKED' },
+                { id: 'MAP', title: 'MAP.EXE', icon: 'Globe', category: 'LOCKED' },
+                { id: 'LABYRINTH', title: 'LABYRINTH.EXE', icon: 'Labyrinth', category: 'LOCKED' },
+                { id: 'MINESWEEPER', title: 'MINESWEEPER.EXE', icon: 'Minesweeper', category: 'LOCKED' },
+                { id: 'BOOKS', title: 'BOOKS.EXE', icon: 'FileDoc', category: 'LOCKED' },
+                { id: 'DICE', title: 'DICE.EXE', icon: 'Dice', category: 'LOCKED' },
+                { id: 'BROWSER', title: 'BROWSER.EXE', icon: 'Browser', category: 'LOCKED' },
+                { id: 'DESTRUCTION', title: 'DESTRUCTION.EXE', icon: 'Destruction', category: 'LOCKED' },
 
                 // Bonus apps (unlock after god mode)
-                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS', hint: 'Extract revelation' },
-                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS', hint: 'Extract revelation' },
-                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS', hint: 'Extract revelation' },
+                { id: 'RADIO', title: 'RADIO.WAV', icon: 'Radio', category: 'BONUS' },
+                { id: 'POMODORO', title: 'POMODORO.EXE', icon: 'Pomodoro', category: 'BONUS' },
+                { id: 'SCANNER', title: 'SCANNER.EXE', icon: 'HealthScanner', category: 'BONUS' },
 
                 // Special
                 { id: 'END', title: 'ACHIEVEMENTS', icon: 'Trophy', category: 'CORE' }
@@ -8605,8 +8603,6 @@ Good luck.`;
                                                 : 'border-gray-300 bg-gray-100 opacity-50'
                                         }`}
                                         onClick={() => isUnlocked && onOpenApp(app.id)}
-                                        onMouseEnter={() => setHoveredApp(app.id)}
-                                        onMouseLeave={() => setHoveredApp(null)}
                                         draggable={isUnlocked && !isMobile}
                                         onDragStart={(e) => isUnlocked && !isMobile && onDragStart?.(e, app.id, app.title, app.icon)}
                                     >
