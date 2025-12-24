@@ -2137,22 +2137,22 @@
 
         // --- DOG COMPANION SPRITE SHEET SYSTEM ---
         // Sprite sheet: DOG_BLACK_SPRITE.png (128x288px, 32x32 sprites)
-        // Row layout: idle(3 breathing), speaking(1), happy(2), thinking(4), sad(1), panicked(2), sleeping(2), angry(1), smug(1)
+        // Row layout: idle(4 breathing), speaking(4), happy(2), thinking(4), sad(4), panicked(2), sleeping(2), angry(4), smug(4)
         const DOG_SPRITE_CONFIG = {
             spriteSize: 32,
             sheetWidth: 128,
             sheetHeight: 288,
             fps: 4,
             rows: {
-                idle: { row: 0, frames: 3, breathe: true },  // Special breathing animation
-                speaking: { row: 1, frames: 1 },
+                idle: { row: 0, frames: 4, breathe: true },  // Special breathing animation
+                speaking: { row: 1, frames: 4 },
                 happy: { row: 2, frames: 2 },
                 thinking: { row: 3, frames: 4 },
-                sad: { row: 4, frames: 1 },
+                sad: { row: 4, frames: 4 },
                 panicked: { row: 5, frames: 2 },
                 sleeping: { row: 6, frames: 2 },
-                angry: { row: 7, frames: 1 },
-                smug: { row: 8, frames: 1 }
+                angry: { row: 7, frames: 4 },
+                smug: { row: 8, frames: 4 }
             }
         };
 
@@ -2164,14 +2164,14 @@
             const breatheTimerRef = useRef(null);
             const breatheAnimRef = useRef(null);
 
-            // Special idle breathing animation: hold frame 0, every 1s play full 3-frame cycle
+            // Special idle breathing animation: hold frame 0, every 1s play full 4-frame cycle
             useEffect(() => {
                 if (config.breathe) {
                     const startBreatheCycle = () => {
                         setIsBreathing(true);
                         let breatheFrame = 0;
 
-                        // Play 3 frames at 4fps (250ms each)
+                        // Play 4 frames at 4fps (250ms each)
                         breatheAnimRef.current = setInterval(() => {
                             breatheFrame++;
                             if (breatheFrame >= config.frames) {
@@ -8487,6 +8487,7 @@ Good luck.`;
                         addOutput('VOID.EXE UNLOCKED');
                         onUnlockApp?.('VOID');
                     }, 2300);
+                    onDogEvent?.('runCmatrix');
 
                 } else if (trimmed === 'sudo unlock') {
                     addOutput('UNLOCKING RESTRICTED ACCESS...\n');
@@ -8495,6 +8496,7 @@ Good luck.`;
                     addOutput('PRIVATE.EXE REVEALED');
                     addOutput('WARNING: PASSWORD PROTECTED');
                     onUnlockApp?.('PERSONAL');
+                    onDogEvent?.('runSudoUnlock');
 
                 } else if (trimmed === 'sudo chmod 777 /private') {
                     addOutput('CHANGING PERMISSIONS...\n');
@@ -8505,6 +8507,7 @@ Good luck.`;
                     addOutput('PRIVATE.EXE UNLOCKED');
                     onUnlockPrivate?.();
                     onAchievement?.('LOCKSMITH');
+                    onDogEvent?.('runChmod');
 
                 } else if (trimmed === 'sudo stars') {
                     addOutput('TARGETING SYSTEMS ONLINE...\n');
@@ -8611,7 +8614,7 @@ Good luck.`;
         };
 
         // --- THIRD_EYE.EXE - X-ray view of app code ---
-        const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions, onOpenTruth }) => {
+        const ThirdEyeApp = ({ windowId, windows, stackOverflow, stackErrors, iconPositions, onOpenTruth, onDogEvent }) => {
             const thisWindow = windows[windowId];
             const windowX = thisWindow?.x || 0;
             const windowY = thisWindow?.y || 0;
@@ -8635,8 +8638,29 @@ Good luck.`;
             const handleClick = () => {
                 if (isTruthInBounds() && onOpenTruth) {
                     onOpenTruth();
+                    onDogEvent?.('scanTruth');
                 }
             };
+
+            // Check if PERSONAL window is visible in the portal view
+            const isPersonalVisible = windows.PERSONAL?.isOpen && !windows.PERSONAL?.isMin;
+            const personalVisibleRef = useRef(false);
+
+            useEffect(() => {
+                if (isPersonalVisible && !personalVisibleRef.current) {
+                    personalVisibleRef.current = true;
+                    onDogEvent?.('scanPrivate');
+                }
+            }, [isPersonalVisible]);
+
+            // Trigger triggerInception when stack overflow occurs
+            const inceptionTriggeredRef = useRef(false);
+            useEffect(() => {
+                if (stackOverflow && !inceptionTriggeredRef.current) {
+                    inceptionTriggeredRef.current = true;
+                    onDogEvent?.('triggerInception');
+                }
+            }, [stackOverflow]);
 
             const appCode = {
                 SNAKE: `// SNEK.JS\nfunction eat() {\n  grow();\n  // ouroboros.exe\n  if (head === tail) become(god);\n}`,
@@ -10010,7 +10034,7 @@ Good luck.`;
                 }
             };
 
-            const advanceDogDialogue = () => {
+            const advanceDogDialogue = (skipWaitCheck = false) => {
                 const current = dogCompanionDialogue;
 
                 // Handle trigger before advancing
@@ -10018,8 +10042,8 @@ Good luck.`;
                     handleDogTrigger(current.trigger);
                 }
 
-                // Check if waiting for an action
-                if (current?.waitForAction) {
+                // Check if waiting for an action (unless action was just completed)
+                if (!skipWaitCheck && current?.waitForAction) {
                     setDogCompanionWaitingFor(current.waitForAction);
                     return;
                 }
@@ -10121,7 +10145,7 @@ Good luck.`;
                 // Check if waiting for this action
                 if (dogCompanionWaitingFor === event) {
                     setDogCompanionWaitingFor(null);
-                    advanceDogDialogue();
+                    advanceDogDialogue(true);  // Skip wait check since action was just completed
                     return;
                 }
 
@@ -10539,8 +10563,8 @@ Good luck.`;
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} onDogEvent={notifyDogEvent} />;
                     case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
-                    case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
-                    case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} />;
+                    case "THIRD_EYE": return <ThirdEyeApp windowId="THIRD_EYE" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} onDogEvent={notifyDogEvent} />;
+                    case "THIRD_EYE_2": return <ThirdEyeApp windowId="THIRD_EYE_2" windows={windows} stackOverflow={stackOverflow} stackErrors={stackErrors} iconPositions={iconPositions} onOpenTruth={() => open('TRUTH')} onDogEvent={notifyDogEvent} />;
                     case "BROWSER": return <BrowserApp onOpenApp={open} onAchievement={unlockAchievement} isMobile={isMobile} />;
                     case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
                     case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} />;
@@ -12283,12 +12307,48 @@ Good luck.`;
                                     text={dogCompanionDialogue.text}
                                     highlight={dogCompanionDialogue.highlight}
                                     onComplete={() => {
-                                        // Auto-advance after 1 second when typing completes
-                                        setTimeout(() => advanceDogDialogue(), 1000);
+                                        // Auto-advance after 1 second when typing completes (unless waiting for name)
+                                        if (dogCompanionWaitingFor !== 'enterName') {
+                                            setTimeout(() => advanceDogDialogue(), 1000);
+                                        }
                                     }}
                                     dogX={dogCompanionPos.x}
                                     dogY={dogCompanionPos.y}
                                 />
+                            )}
+                            {/* Name input when waiting for enterName */}
+                            {dogCompanionWaitingFor === 'enterName' && (
+                                <div
+                                    className="absolute bg-black/90 border-2 border-cyan-400 p-2 font-mono text-xs"
+                                    style={{
+                                        bottom: 100,
+                                        left: '50%',
+                                        transform: 'translateX(-50%)',
+                                        minWidth: 200
+                                    }}
+                                >
+                                    <form onSubmit={(e) => {
+                                        e.preventDefault();
+                                        const input = e.target.elements.nameInput;
+                                        if (input.value.trim()) {
+                                            setPlayerName(input.value.trim());
+                                            setDogCompanionWaitingFor(null);
+                                            startDogDialogue('ACT1_NAME_ENTERED');
+                                        }
+                                    }}>
+                                        <input
+                                            name="nameInput"
+                                            type="text"
+                                            placeholder="Enter your name..."
+                                            className="w-full bg-black border border-cyan-400 text-cyan-400 px-2 py-1 text-xs font-mono focus:outline-none focus:border-cyan-300"
+                                            autoFocus
+                                            maxLength={20}
+                                        />
+                                        <button type="submit" className="w-full mt-1 bg-cyan-400/20 border border-cyan-400 text-cyan-400 px-2 py-1 text-xs hover:bg-cyan-400/40">
+                                            SUBMIT
+                                        </button>
+                                    </form>
+                                </div>
                             )}
                             <DogCompanionSprite emotion={dogCompanionEmotion} scale={3} />
                         </div>
