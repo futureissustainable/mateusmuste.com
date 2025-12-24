@@ -8716,16 +8716,32 @@ Good luck.`;
                 }
             }, [isTerminalVisible]);
 
-            // Check if VOID window is visible in the portal view
-            const isVoidVisible = windows.VOID?.isOpen && !windows.VOID?.isMin;
+            // Check if VOID window is actually visible THROUGH this Third Eye (overlapping)
+            const isVoidOverlapping = () => {
+                const voidWin = windows.VOID;
+                if (!voidWin?.isOpen || voidWin?.isMin) return false;
+                // Check if VOID window overlaps with this Third Eye's portal area
+                const voidX = voidWin.x || 0;
+                const voidY = voidWin.y || 0;
+                const voidW = voidWin.w || 400;
+                const voidH = voidWin.h || 300;
+                // Portal area is the Third Eye window minus header
+                const portalLeft = windowX;
+                const portalTop = windowY + headerHeight;
+                const portalRight = windowX + windowW;
+                const portalBottom = windowY + windowH;
+                // Check for rectangle overlap
+                return !(voidX + voidW < portalLeft || voidX > portalRight ||
+                         voidY + voidH < portalTop || voidY > portalBottom);
+            };
             const voidScanRef = useRef(false);
 
             useEffect(() => {
-                if (isVoidVisible && !voidScanRef.current) {
+                if (isVoidOverlapping() && !voidScanRef.current) {
                     voidScanRef.current = true;
                     onDogEvent?.('voidScan');
                 }
-            }, [isVoidVisible]);
+            }, [windows.VOID?.isOpen, windows.VOID?.isMin, windows.VOID?.x, windows.VOID?.y, windowX, windowY]);
 
             // Trigger triggerInception when stack overflow occurs
             const inceptionTriggeredRef = useRef(false);
@@ -9543,9 +9559,14 @@ Good luck.`;
             const [dogCompanionDialogueQueue, setDogCompanionDialogueQueue] = useState([]);
             const [dogCompanionStoryPhase, setDogCompanionStoryPhase] = useState(() => localStorage.getItem('dog_story_phase') || 'inactive');
             const [playerName, setPlayerName] = useState(() => localStorage.getItem('player_name') || 'USER');
-            const [dogCompanionWaitingFor, setDogCompanionWaitingFor] = useState(null); // Action to wait for
+            const [dogCompanionWaitingFor, setDogCompanionWaitingFor] = useState(() => localStorage.getItem('dog_waiting_for')); // Action to wait for
             const [dogCompanionCurrentDialogueKey, setDogCompanionCurrentDialogueKey] = useState(null); // Track which dialogue sequence is active
             const [dogCompanionDialogueIndex, setDogCompanionDialogueIndex] = useState(0); // Track position in dialogue
+            const [dogCompletedDialogues, setDogCompletedDialogues] = useState(() => {
+                // Load completed dialogues from localStorage
+                const stored = localStorage.getItem('dog_completed_dialogues');
+                return stored ? JSON.parse(stored) : [];
+            });
             const [dogErrorWindows, setDogErrorWindows] = useState([]); // Error windows spawned by dog
             const dogCompanionVelRef = useRef({ x: 0, y: 0 });
             const dogIdleTimerRef = useRef(null);
@@ -9577,6 +9598,18 @@ Good luck.`;
                     localStorage.removeItem('dog_dialogue_index');
                 }
             }, [dogCompanionCurrentDialogueKey, dogCompanionDialogueIndex]);
+            // Save completed dialogues list
+            useEffect(() => {
+                localStorage.setItem('dog_completed_dialogues', JSON.stringify(dogCompletedDialogues));
+            }, [dogCompletedDialogues]);
+            // Save waitingFor state for resume
+            useEffect(() => {
+                if (dogCompanionWaitingFor) {
+                    localStorage.setItem('dog_waiting_for', dogCompanionWaitingFor);
+                } else {
+                    localStorage.removeItem('dog_waiting_for');
+                }
+            }, [dogCompanionWaitingFor]);
 
             // Legacy dog state (kept for backward compatibility)
             const [dogReleased, setDogReleased] = useState(false);
@@ -10110,6 +10143,15 @@ Good luck.`;
                 const dialogues = customDialogues || DOG_DIALOGUES[dialogueKey];
                 if (!dialogues || dialogues.length === 0) return;
 
+                // Skip if this dialogue was already completed (except for resume and idle)
+                const isIdleDialogue = dialogueKey === 'IDLE_GENERAL' || dialogueKey === 'IDLE_POST_GAME' || dialogueKey === 'RESUME_DIALOGUE';
+                if (!isIdleDialogue && !customDialogues && startIndex === 0) {
+                    if (dogCompletedDialogues.includes(dialogueKey)) {
+                        console.log('Skipping already-completed dialogue:', dialogueKey);
+                        return;
+                    }
+                }
+
                 // Replace {playerName} in dialogues
                 const processedDialogues = dialogues.map(d => ({
                     ...d,
@@ -10117,7 +10159,6 @@ Good luck.`;
                 }));
 
                 // Track current dialogue key and index (skip for idle dialogues and resume)
-                const isIdleDialogue = dialogueKey === 'IDLE_GENERAL' || dialogueKey === 'IDLE_POST_GAME' || dialogueKey === 'RESUME_DIALOGUE';
                 if (!isIdleDialogue && !customDialogues) {
                     setDogCompanionCurrentDialogueKey(dialogueKey);
                     setDogCompanionDialogueIndex(startIndex);
@@ -10165,7 +10206,15 @@ Good luck.`;
                             setDogCompanionWaitingFor(next.waitForAction);
                         }
                     } else {
-                        // Dialogue complete - clear tracking
+                        // Dialogue complete - mark as completed and clear tracking
+                        if (dogCompanionCurrentDialogueKey) {
+                            setDogCompletedDialogues(prev => {
+                                if (!prev.includes(dogCompanionCurrentDialogueKey)) {
+                                    return [...prev, dogCompanionCurrentDialogueKey];
+                                }
+                                return prev;
+                            });
+                        }
                         setDogCompanionDialogue(null);
                         setDogCompanionEmotion('idle');
                         setDogCompanionWaitingFor(null);
@@ -10314,9 +10363,20 @@ Good luck.`;
 
                 // Check if waiting for this action - this takes priority
                 if (dogCompanionWaitingFor === event) {
+                    // Mark current dialogue as completed before transitioning
+                    if (dogCompanionCurrentDialogueKey) {
+                        setDogCompletedDialogues(prev => {
+                            if (!prev.includes(dogCompanionCurrentDialogueKey)) {
+                                return [...prev, dogCompanionCurrentDialogueKey];
+                            }
+                            return prev;
+                        });
+                    }
                     setDogCompanionWaitingFor(null);
                     setDogCompanionDialogue(null);
                     setDogCompanionDialogueQueue([]);
+                    setDogCompanionCurrentDialogueKey(null);
+                    setDogCompanionDialogueIndex(0);
                     // Clear the queue when a wait action is completed
                     dogTriggerQueueRef.current = [];
                     const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[event];
@@ -10344,8 +10404,20 @@ Good luck.`;
                     const remaining = prev.filter(e => e.id !== id);
                     // Check if all errors closed (use remaining.length, not stale state)
                     if (remaining.length === 0 && dogCompanionWaitingFor === 'closeErrors') {
+                        // Mark current dialogue as completed before transitioning
+                        if (dogCompanionCurrentDialogueKey) {
+                            setDogCompletedDialogues(prevCompleted => {
+                                if (!prevCompleted.includes(dogCompanionCurrentDialogueKey)) {
+                                    return [...prevCompleted, dogCompanionCurrentDialogueKey];
+                                }
+                                return prevCompleted;
+                            });
+                        }
                         setTimeout(() => {
                             setDogCompanionWaitingFor(null);
+                            setDogCompanionDialogue(null);
+                            setDogCompanionCurrentDialogueKey(null);
+                            setDogCompanionDialogueIndex(0);
                             startDogDialogue('ACT1_POST_ERRORS');
                         }, 500);
                     }
@@ -10408,6 +10480,13 @@ Good luck.`;
                 // Check if there's a saved dialogue to resume
                 const savedKey = localStorage.getItem('dog_dialogue_key');
                 const savedIndex = parseInt(localStorage.getItem('dog_dialogue_index') || '0', 10);
+                const savedWaiting = localStorage.getItem('dog_waiting_for');
+
+                // If dog is waiting for action but no saved key, just let the wait state continue
+                if (savedWaiting && !savedKey) {
+                    // Dog is waiting for an action - no dialogue resume needed
+                    return;
+                }
 
                 if (!savedKey || !dogCompanionActive) return;
 
@@ -10421,6 +10500,13 @@ Good luck.`;
 
                 // Check if the dialogue key exists
                 if (!DOG_DIALOGUES[savedKey]) {
+                    localStorage.removeItem('dog_dialogue_key');
+                    localStorage.removeItem('dog_dialogue_index');
+                    return;
+                }
+
+                // Skip if this dialogue was already completed
+                if (dogCompletedDialogues.includes(savedKey)) {
                     localStorage.removeItem('dog_dialogue_key');
                     localStorage.removeItem('dog_dialogue_index');
                     return;
