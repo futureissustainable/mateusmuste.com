@@ -9045,26 +9045,14 @@ Good luck.`;
             const [attempts, setAttempts] = useState(0);
             const [error, setError] = useState('');
             const [shaking, setShaking] = useState(false);
-            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: sprite revealing, 3: fully revealed
-            const [goldyRevealProgress, setGoldyRevealProgress] = useState(0);
+            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: approaching, 3: revealed
 
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
                     sounds.passwordCorrect();
                     setRevealPhase(1);
-                    setTimeout(() => {
-                        setRevealPhase(2);
-                        // Start revealing goldy sprite line by line
-                        let progress = 0;
-                        const revealInterval = setInterval(() => {
-                            progress += 0.02; // ~50 steps over 5 seconds
-                            setGoldyRevealProgress(Math.min(1, progress));
-                            if (progress >= 1) {
-                                clearInterval(revealInterval);
-                                setRevealPhase(3);
-                            }
-                        }, 100);
-                    }, 3000); // Panels start opening, sprite starts at 3s
+                    setTimeout(() => setRevealPhase(2), 3000);
+                    setTimeout(() => setRevealPhase(3), 10000);
                 }
             }, [unlocked]);
 
@@ -9117,13 +9105,13 @@ Good luck.`;
                             <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
                         </div>
 
-                        {/* GOLDY sprite - revealed line by line */}
+                        {/* GOLDY sprite - slowly grows and fades in (same animation as before) */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
                                 style={{
-                                    transform: `scale(${revealPhase < 2 ? 0.5 : 1})`,
-                                    opacity: revealPhase < 2 ? 0 : 1,
-                                    transition: 'transform 1s ease-out, opacity 1s ease-out'
+                                    transform: `scale(${revealPhase < 2 ? 0.2 : revealPhase < 3 ? 0.2 + ((revealPhase - 2) * 0.8) : 1})`,
+                                    opacity: revealPhase < 2 ? 0 : revealPhase < 3 ? 0.3 : 1,
+                                    transition: 'transform 7s ease-out, opacity 7s ease-out'
                                 }}
                             >
                                 <button
@@ -9133,7 +9121,7 @@ Good luck.`;
                                     style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
                                 >
                                     <div className="bg-white border-4 border-black p-6 group-hover:bg-gray-100 transition-colors">
-                                        <GoldySprite scale={4} revealProgress={goldyRevealProgress} />
+                                        <GoldySprite scale={4} />
                                     </div>
                                     <div className="font-mono text-black text-lg font-bold mt-4">UNIT_GOLD.SPRITE</div>
                                     <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-black" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to release</div>
