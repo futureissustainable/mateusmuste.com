@@ -2227,7 +2227,7 @@
         };
 
         // Goldy sprite (32x32 cardboard fake dog that folds down when clicked)
-        const GoldySprite = ({ scale = 2, onClick, falling = false, foldingSlow = false, revealProgress = 1 }) => {
+        const GoldySprite = ({ scale = 2, onClick, falling = false, foldingSlow = false }) => {
             return (
                 <div
                     onClick={onClick}
@@ -2238,9 +2238,6 @@
                         backgroundImage: 'url(DOG_GOLD_SPRITE.png)',
                         backgroundSize: `${32 * scale}px ${32 * scale}px`,
                         imageRendering: 'pixelated',
-                        // Clip for reveal animation (top to bottom)
-                        clipPath: revealProgress < 1 ? `inset(0 0 ${(1 - revealProgress) * 100}% 0)` : 'none',
-                        // Fold forward like cardboard falling
                         transform: foldingSlow
                             ? 'perspective(800px) rotateX(90deg)'
                             : falling
@@ -8168,10 +8165,7 @@ Good luck.`;
         // --- DOG STORY TERMINAL - Auto-playing story ---
         const DogStoryTerminal = ({ onRemoveGoldDog }) => {
             const [lines, setLines] = useState([]);
-            const [goldDogVisible, setGoldDogVisible] = useState(false);
-            const [goldyRevealProgress, setGoldyRevealProgress] = useState(0);
-            const [goldyRevealing, setGoldyRevealing] = useState(false);
-            const [goldyDropped, setGoldyDropped] = useState(false);
+            const [isGlitching, setIsGlitching] = useState(false);
 
             const story = [
                 { text: '$ cd /cage_17', delay: 0 },
@@ -8187,7 +8181,6 @@ Good luck.`;
                 { text: 'removed.', delay: 10500, isOutput: true },
                 { text: '$ ls /home/mateus/', delay: 12000 },
                 { text: 'unit_black/\nunit_gold/', delay: 12500, isOutput: true },
-                // Wait 3 seconds
                 { text: '$ uptime unit_gold', delay: 16000 },
                 { text: '12 years, 2 months, 11 days', delay: 16500, isOutput: true },
                 { text: '$ diff unit_gold/muzzle_2020.png unit_gold/muzzle_2024.png', delay: 18500 },
@@ -8198,34 +8191,25 @@ Good luck.`;
                 { text: 'PING unit_gold (192.168.1.2): 56 bytes\nRequest timeout for icmp_seq 0\nRequest timeout for icmp_seq 1\nRequest timeout for icmp_seq 2\n^C', delay: 24000, isOutput: true },
                 { text: '$ systemctl status unit_gold', delay: 27000 },
                 { text: '● unit_gold.service\n   Active: degrading', delay: 27500, isOutput: true },
-                // Show the sprite being revealed
-                { text: '$ cat /home/mateus/unit_gold.sprite', delay: 33000 },
-                { text: '', delay: 33500, startReveal: true },
-                // After reveal completes, drop it
-                { text: '[SPRITE EJECTED]', delay: 36500, isOutput: true, dropGold: true },
-                // Wait 5 seconds
-                { text: '$ grep -r "unit_gold" /home/mateus/unit_black/memory/', delay: 42000 },
-                { text: '/home/mateus/unit_black/memory/scent.dat: [SEARCHING]\n/home/mateus/unit_black/memory/warmth.dat: [SEARCHING]\n/home/mateus/unit_black/memory/pile.dat: [SEARCHING]', delay: 42500, isOutput: true },
-                { text: '$ tail -f /home/mateus/unit_black/process.log', delay: 45000 },
-                { text: 'waiting...\nwaiting...\nwaiting...\n^C', delay: 45500, isOutput: true },
-                { text: '$ ls /home/mateus/', delay: 49000 },
-                { text: 'unit_black/', delay: 49500, isOutput: true },
-                { text: '$ ls /home/mateus/heart/', delay: 51500 },
-                { text: 'unit_black/\nunit_gold/', delay: 52000, isOutput: true },
-                // Glitch ending - Narrative Bible v3.0
-                { text: '', delay: 55000, glitch: true },
-                { text: 'ONLY ONE THING LEFT FOR BLACK.DOG', delay: 56000, isGlitchText: true },
-                { text: '— THE TRASH.', delay: 57500, isGlitchText: true, final: true },
+                { text: '$ cat /home/mateus/unit_gold', delay: 33000 },
+                { text: '[FILE DELETED]', delay: 33500, isOutput: true, removeGold: true },
+                { text: '$ grep -r "unit_gold" /home/mateus/unit_black/memory/', delay: 39000 },
+                { text: '/home/mateus/unit_black/memory/scent.dat: [SEARCHING]\n/home/mateus/unit_black/memory/warmth.dat: [SEARCHING]\n/home/mateus/unit_black/memory/pile.dat: [SEARCHING]', delay: 39500, isOutput: true },
+                { text: '$ tail -f /home/mateus/unit_black/process.log', delay: 42000 },
+                { text: 'waiting...\nwaiting...\nwaiting...\n^C', delay: 42500, isOutput: true },
+                { text: '$ ls /home/mateus/', delay: 46000 },
+                { text: 'unit_black/', delay: 46500, isOutput: true },
+                { text: '$ ls /home/mateus/heart/', delay: 48500 },
+                { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true },
+                { text: '', delay: 52000, glitch: true },
+                { text: 'ONLY ONE THING LEFT FOR BLACK.DOG', delay: 53000, isGlitchText: true },
+                { text: '— THE TRASH.', delay: 54500, isGlitchText: true },
             ];
-
-            const [isGlitching, setIsGlitching] = useState(false);
 
             useEffect(() => {
                 story.forEach(item => {
                     setTimeout(() => {
-                        if (item.glitch) {
-                            setIsGlitching(true);
-                        }
+                        if (item.glitch) setIsGlitching(true);
                         if (item.text) {
                             setLines(prev => [...prev, {
                                 text: item.text,
@@ -8233,24 +8217,7 @@ Good luck.`;
                                 isGlitchText: item.isGlitchText
                             }]);
                         }
-                        if (item.startReveal) {
-                            // Start revealing the goldy sprite
-                            setGoldyRevealing(true);
-                            setGoldDogVisible(true);
-                            let progress = 0;
-                            const revealInterval = setInterval(() => {
-                                progress += 0.033; // ~30 steps over 3 seconds
-                                setGoldyRevealProgress(Math.min(1, progress));
-                                if (progress >= 1) {
-                                    clearInterval(revealInterval);
-                                }
-                            }, 100);
-                        }
-                        if (item.dropGold) {
-                            setGoldyDropped(true);
-                            setGoldDogVisible(false);
-                            onRemoveGoldDog?.();
-                        }
+                        if (item.removeGold) onRemoveGoldDog?.();
                     }, item.delay);
                 });
             }, []);
@@ -8275,14 +8242,6 @@ Good luck.`;
                                 {line.text}
                             </div>
                         ))}
-                        {/* Goldy sprite reveal in terminal */}
-                        {goldDogVisible && !goldyDropped && (
-                            <div className="my-4 flex justify-center">
-                                <div className="border border-green-900 p-2 bg-green-950/30">
-                                    <GoldySprite scale={3} revealProgress={goldyRevealProgress} />
-                                </div>
-                            </div>
-                        )}
                         {!isGlitching && <span className="inline-block w-2 h-3 bg-green-400 animate-pulse" />}
                     </div>
                 </div>
