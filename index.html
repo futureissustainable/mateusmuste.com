@@ -7005,13 +7005,21 @@
 
         // --- BOOKS.EXE - Library with truth saga and classics (Cover Flow) ---
         const BOOKS_DB = [
-            { id: 'truth', title: 'TRUTH.EXE: A SAGA', author: 'SYSTEM', cover: PLACEHOLDER_COVER, isTruth: true },
-            { id: 'brothers', title: 'Brothers Karamazov', author: 'Fyodor Dostoevsky', cover: 'assets/Brothers Karamazov.avif', link: 'https://www.gutenberg.org/ebooks/28054' },
-            { id: 'demons', title: 'Demons', author: 'Fyodor Dostoevsky', cover: 'assets/Demons.avif', link: 'https://www.gutenberg.org/ebooks/8117' },
-            { id: 'crime', title: 'Crime and Punishment', author: 'Fyodor Dostoevsky', cover: PLACEHOLDER_COVER, link: 'https://www.gutenberg.org/ebooks/2554' },
-            { id: 'notes', title: 'Notes from Underground', author: 'Fyodor Dostoevsky', cover: PLACEHOLDER_COVER, link: 'https://www.gutenberg.org/ebooks/600' },
-            { id: 'meta', title: 'The Metamorphosis', author: 'Franz Kafka', cover: PLACEHOLDER_COVER, link: 'https://www.gutenberg.org/ebooks/5200' },
-            { id: 'trial', title: 'The Trial', author: 'Franz Kafka', cover: PLACEHOLDER_COVER, link: 'https://www.gutenberg.org/ebooks/7849' }
+            { id: 'truth', title: 'TRUTH.EXE: A SAGA', author: 'SYSTEM', cover: 'assets/Truth.avif', isTruth: true },
+            { id: 'brothers', title: 'Brothers Karamazov', author: 'Fyodor Dostoevsky', cover: 'assets/Brothers Karamazov.avif', link: '' },
+            { id: 'demons', title: 'Demons', author: 'Fyodor Dostoevsky', cover: 'assets/Demons.avif', link: '' },
+            { id: 'alaska', title: 'Looking for Alaska', author: 'John Green', cover: 'assets/Looking for Alaska.avif', link: '' },
+            { id: 'atlas', title: 'Atlas Shrugged', author: 'Ayn Rand', cover: 'assets/Atlas Shrugged.avif', link: '' },
+            { id: 'pale', title: 'Pale Blue Dot', author: 'Carl Sagan', cover: 'assets/Pale Blue Dot.avif', link: '' },
+            { id: 'lean', title: 'Lean Startup', author: 'Eric Ries', cover: 'assets/Lean Startup.avif', link: '' },
+            { id: 'fightclub', title: 'Fight Club', author: 'Chuck Palahniuk', cover: 'assets/Fight Club.avif', link: '' },
+            { id: 'principles', title: 'Principles', author: 'Ray Dalio', cover: 'assets/Principles Dalio.avif', link: '' },
+            { id: '1984', title: '1984', author: 'George Orwell', cover: 'assets/1984.avif', link: '' },
+            { id: 'master', title: 'Master & Margarita', author: 'Mikhail Bulgakov', cover: 'assets/Master and Margerita.avif', link: '' },
+            { id: 'psycho', title: 'American Psycho', author: 'Bret Easton Ellis', cover: 'assets/American Psycho.avif', link: '' },
+            { id: 'musk', title: 'Elon Musk', author: 'Walter Isaacson', cover: 'assets/Elon Musk Biography.jpg', link: '' },
+            { id: 'filthy', title: 'How to Get Filthy Rich in Rising Asia', author: 'Mohsin Hamid', cover: 'assets/How to get filthy rich in rising asia.avif', link: '' },
+            { id: 'ocelots', title: 'Geometry for Ocelots', author: 'Exurb1a', cover: 'assets/Geometry for Ocelots.avif', link: '' }
         ];
 
         const BooksApp = ({ onUnlockApp, unlockedApps, onDogEvent }) => {
@@ -7260,11 +7268,6 @@ Good luck.`;
                                                 }}
                                                 draggable={false}
                                             />
-                                            {book.isTruth && (
-                                                <div className="absolute inset-0 flex items-center justify-center bg-black/60">
-                                                    <span className="text-white text-[10px] tracking-widest font-bold">TRUTH.EXE</span>
-                                                </div>
-                                            )}
                                         </div>
                                         {/* Reflection */}
                                         <div className="absolute w-full overflow-hidden" style={{
