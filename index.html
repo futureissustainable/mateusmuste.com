@@ -2227,7 +2227,7 @@
         };
 
         // Goldy sprite (32x32 cardboard fake dog that folds down when clicked)
-        const GoldySprite = ({ scale = 2, onClick, falling = false }) => {
+        const GoldySprite = ({ scale = 2, onClick, falling = false, foldingSlow = false }) => {
             return (
                 <div
                     onClick={onClick}
@@ -2238,11 +2238,16 @@
                         backgroundImage: 'url(DOG_GOLD_SPRITE.png)',
                         backgroundSize: `${32 * scale}px ${32 * scale}px`,
                         imageRendering: 'pixelated',
-                        // Fold forward like cardboard falling (opposite of window-fold-in animation)
-                        transform: falling ? 'perspective(800px) rotateX(90deg) scaleY(0)' : 'perspective(800px) rotateX(0deg) scaleY(1)',
+                        transform: foldingSlow
+                            ? 'perspective(800px) rotateX(90deg)'
+                            : falling
+                                ? 'perspective(800px) rotateX(90deg) scaleY(0)'
+                                : 'perspective(800px) rotateX(0deg) scaleY(1)',
                         transformOrigin: 'bottom center',
-                        opacity: falling ? 0 : 1,
-                        transition: 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s'
+                        opacity: foldingSlow ? 0.8 : falling ? 0 : 1,
+                        transition: foldingSlow
+                            ? 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.5s'
+                            : 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s'
                     }}
                 />
             );
@@ -8160,7 +8165,7 @@ Good luck.`;
         // --- DOG STORY TERMINAL - Auto-playing story ---
         const DogStoryTerminal = ({ onRemoveGoldDog }) => {
             const [lines, setLines] = useState([]);
-            const [goldDogVisible, setGoldDogVisible] = useState(true);
+            const [isGlitching, setIsGlitching] = useState(false);
 
             const story = [
                 { text: '$ cd /cage_17', delay: 0 },
@@ -8176,7 +8181,6 @@ Good luck.`;
                 { text: 'removed.', delay: 10500, isOutput: true },
                 { text: '$ ls /home/mateus/', delay: 12000 },
                 { text: 'unit_black/\nunit_gold/', delay: 12500, isOutput: true },
-                // Wait 3 seconds
                 { text: '$ uptime unit_gold', delay: 16000 },
                 { text: '12 years, 2 months, 11 days', delay: 16500, isOutput: true },
                 { text: '$ diff unit_gold/muzzle_2020.png unit_gold/muzzle_2024.png', delay: 18500 },
@@ -8187,10 +8191,8 @@ Good luck.`;
                 { text: 'PING unit_gold (192.168.1.2): 56 bytes\nRequest timeout for icmp_seq 0\nRequest timeout for icmp_seq 1\nRequest timeout for icmp_seq 2\n^C', delay: 24000, isOutput: true },
                 { text: '$ systemctl status unit_gold', delay: 27000 },
                 { text: '● unit_gold.service\n   Active: degrading', delay: 27500, isOutput: true },
-                // Wait 5 seconds
                 { text: '$ cat /home/mateus/unit_gold', delay: 33000 },
                 { text: '[FILE DELETED]', delay: 33500, isOutput: true, removeGold: true },
-                // Wait 5 seconds
                 { text: '$ grep -r "unit_gold" /home/mateus/unit_black/memory/', delay: 39000 },
                 { text: '/home/mateus/unit_black/memory/scent.dat: [SEARCHING]\n/home/mateus/unit_black/memory/warmth.dat: [SEARCHING]\n/home/mateus/unit_black/memory/pile.dat: [SEARCHING]', delay: 39500, isOutput: true },
                 { text: '$ tail -f /home/mateus/unit_black/process.log', delay: 42000 },
@@ -8199,20 +8201,15 @@ Good luck.`;
                 { text: 'unit_black/', delay: 46500, isOutput: true },
                 { text: '$ ls /home/mateus/heart/', delay: 48500 },
                 { text: 'unit_black/\nunit_gold/', delay: 49000, isOutput: true },
-                // Glitch ending - Narrative Bible v3.0
                 { text: '', delay: 52000, glitch: true },
                 { text: 'ONLY ONE THING LEFT FOR BLACK.DOG', delay: 53000, isGlitchText: true },
-                { text: '— THE TRASH.', delay: 54500, isGlitchText: true, final: true },
+                { text: '— THE TRASH.', delay: 54500, isGlitchText: true },
             ];
-
-            const [isGlitching, setIsGlitching] = useState(false);
 
             useEffect(() => {
                 story.forEach(item => {
                     setTimeout(() => {
-                        if (item.glitch) {
-                            setIsGlitching(true);
-                        }
+                        if (item.glitch) setIsGlitching(true);
                         if (item.text) {
                             setLines(prev => [...prev, {
                                 text: item.text,
@@ -8220,10 +8217,7 @@ Good luck.`;
                                 isGlitchText: item.isGlitchText
                             }]);
                         }
-                        if (item.removeGold) {
-                            setGoldDogVisible(false);
-                            onRemoveGoldDog?.();
-                        }
+                        if (item.removeGold) onRemoveGoldDog?.();
                     }, item.delay);
                 });
             }, []);
@@ -9004,20 +8998,20 @@ Good luck.`;
             );
         };
 
-        // --- PRIVATE.EXE - Password Protected (with DOG.TXT reveal when unlocked) ---
+        // --- PRIVATE.EXE - Password Protected (with GOLDY sprite reveal when unlocked) ---
         const PersonalApp = ({ unlocked, onOpenDogStory }) => {
             const [password, setPassword] = useState('');
             const [attempts, setAttempts] = useState(0);
             const [error, setError] = useState('');
             const [shaking, setShaking] = useState(false);
-            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: file approaching, 3: file revealed
+            const [revealPhase, setRevealPhase] = useState(0); // 0: closed, 1: opening, 2: approaching, 3: revealed
 
             useEffect(() => {
                 if (unlocked && revealPhase === 0) {
                     sounds.passwordCorrect();
                     setRevealPhase(1);
-                    setTimeout(() => setRevealPhase(2), 3000); // File starts appearing at 3s
-                    setTimeout(() => setRevealPhase(3), 10000); // Fully revealed at 10s
+                    setTimeout(() => setRevealPhase(2), 3000);
+                    setTimeout(() => setRevealPhase(3), 10000);
                 }
             }, [unlocked]);
 
@@ -9070,7 +9064,7 @@ Good luck.`;
                             <div className="font-mono text-red-500 text-xs mt-4">LOADING SECRETS...</div>
                         </div>
 
-                        {/* DOG.TXT file - slowly grows and fades in */}
+                        {/* GOLDY sprite - slowly grows and fades in (same animation as before) */}
                         <div className="absolute inset-0 flex items-center justify-center">
                             <div
                                 style={{
@@ -9086,10 +9080,10 @@ Good luck.`;
                                     style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
                                 >
                                     <div className="bg-white border-4 border-black p-6 group-hover:bg-gray-100 transition-colors">
-                                        <Icons.FileDoc size={64} />
+                                        <GoldySprite scale={4} />
                                     </div>
-                                    <div className="font-mono text-black text-lg font-bold mt-4">DOG.TXT</div>
-                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-black" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to open</div>
+                                    <div className="font-mono text-black text-lg font-bold mt-4">UNIT_GOLD.SPRITE</div>
+                                    <div className="font-mono text-gray-600 text-xs mt-2 group-hover:text-black" style={{ opacity: revealPhase >= 3 ? 1 : 0 }}>Click to release</div>
                                 </button>
                             </div>
                         </div>
@@ -9584,8 +9578,12 @@ Good luck.`;
             // Goldy state - cardboard fake dog that sits on taskbar next to dog.exe
             const [goldyVisible, setGoldyVisible] = useState(false);
             const [goldyFalling, setGoldyFalling] = useState(false);
-            // Position goldy on taskbar: x next to dog companion (dog is at 16, size 96), y on top of taskbar (48px)
-            const [goldyPos, setGoldyPos] = useState({ x: 120, y: window.innerHeight - 48 - 64 });
+            const [goldyBouncing, setGoldyBouncing] = useState(false);
+            const [goldyBounceY, setGoldyBounceY] = useState(0);
+            const [goldyFoldingOver, setGoldyFoldingOver] = useState(false);
+            // Position goldy on taskbar: x next to dog companion, y on top of taskbar (48px) with 4px padding
+            const goldyRestY = window.innerHeight - 48 - 96 - 4;
+            const [goldyPos, setGoldyPos] = useState({ x: 120, y: goldyRestY });
 
             // Save companion state
             useEffect(() => {
@@ -9933,8 +9931,12 @@ Good luck.`;
                 setGoldyVisible(true);
             };
             const openDogStory = () => {
-                // Spawn goldy (cardboard dog on taskbar)
-                setGoldyVisible(true);
+                // Position goldy at DOG_STORY window center (will be revealed in terminal, then drop)
+                // Don't make visible yet - terminal will reveal it first, then call removeGoldDog to drop it
+                setGoldyPos({ x: 200 + 320 - 48, y: 140 + 260 - 48 }); // Center of DOG_STORY window
+                setGoldyVisible(false); // Hidden until terminal reveals and drops it
+                setGoldyBouncing(false);
+                setGoldyFoldingOver(false);
                 // Bring DOG_STORY to front on top of everything
                 sounds.windowOpen();
                 topZRef.current += 1;
@@ -9949,8 +9951,70 @@ Good luck.`;
                 setTimeout(() => setWindowAnimations(p => { const n = {...p}; delete n.DOG_STORY; return n; }), 200);
             };
             const removeGoldDog = () => {
-                setGoldyFalling(true);
-                setTimeout(() => setGoldyVisible(false), 500);
+                // Make goldy visible (sprite "drops" from terminal into the world)
+                setGoldyVisible(true);
+                // Start bounce animation from current position (in terminal window)
+                // Goldy falls from DOG_STORY window, bounces on taskbar, then slowly folds
+                setGoldyBouncing(true);
+
+                // Bounce physics simulation
+                let velocity = 0;
+                let y = goldyPos.y;
+                const gravity = 0.8;
+                const bounceDamping = 0.6;
+                const groundY = goldyRestY;
+                let bounceCount = 0;
+                const maxBounces = 5;
+
+                const bounceLoop = () => {
+                    velocity += gravity;
+                    y += velocity;
+
+                    // Hit the ground (taskbar)
+                    if (y >= groundY) {
+                        y = groundY;
+                        velocity = -velocity * bounceDamping;
+                        bounceCount++;
+                        // Play bounce sound
+                        playDogBounceSound();
+
+                        if (bounceCount >= maxBounces || Math.abs(velocity) < 2) {
+                            // Stop bouncing, start slow fold
+                            setGoldyBounceY(0);
+                            setGoldyPos(prev => ({ ...prev, y: groundY }));
+                            setGoldyBouncing(false);
+
+                            // Slow fold after landing
+                            setTimeout(() => {
+                                setGoldyFoldingOver(true);
+                                // Play sad fold sound
+                                const ctx = getAudioCtx();
+                                if (ctx) {
+                                    const now = ctx.currentTime;
+                                    const osc = ctx.createOscillator();
+                                    const gain = ctx.createGain();
+                                    osc.type = 'sine';
+                                    osc.frequency.setValueAtTime(300, now);
+                                    osc.frequency.exponentialRampToValueAtTime(80, now + 1.5);
+                                    gain.gain.setValueAtTime(0.15, now);
+                                    gain.gain.exponentialRampToValueAtTime(0.001, now + 1.5);
+                                    osc.connect(gain);
+                                    gain.connect(ctx.destination);
+                                    osc.start(now);
+                                    osc.stop(now + 1.5);
+                                }
+                                // Hide after fold completes
+                                setTimeout(() => setGoldyVisible(false), 1500);
+                            }, 500);
+                            return;
+                        }
+                    }
+
+                    setGoldyBounceY(y - goldyRestY);
+                    requestAnimationFrame(bounceLoop);
+                };
+
+                requestAnimationFrame(bounceLoop);
             };
 
             // Handle dog stealing the destruction button - dog starts running around!
@@ -12662,12 +12726,13 @@ Good luck.`;
                             className="fixed z-[999997] cursor-pointer select-none"
                             style={{
                                 left: goldyPos.x,
-                                top: goldyPos.y,
+                                top: goldyBouncing ? goldyRestY + goldyBounceY : goldyPos.y,
                             }}
                         >
                             <GoldySprite
-                                scale={2}
+                                scale={3}
                                 falling={goldyFalling}
+                                foldingSlow={goldyFoldingOver}
                                 onClick={handleGoldyClick}
                             />
                         </div>
