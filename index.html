@@ -9584,8 +9584,8 @@ Good luck.`;
             // Goldy state - cardboard fake dog that sits on taskbar next to dog.exe
             const [goldyVisible, setGoldyVisible] = useState(false);
             const [goldyFalling, setGoldyFalling] = useState(false);
-            // Position goldy on taskbar: x next to dog companion (dog is at 16, size 96), y on top of taskbar (48px)
-            const [goldyPos, setGoldyPos] = useState({ x: 120, y: window.innerHeight - 48 - 64 });
+            // Position goldy on taskbar: x next to dog companion, y on top of taskbar (48px) with 4px padding
+            const [goldyPos, setGoldyPos] = useState({ x: 120, y: window.innerHeight - 48 - 96 - 4 });
 
             // Save companion state
             useEffect(() => {
@@ -12666,7 +12666,7 @@ Good luck.`;
                             }}
                         >
                             <GoldySprite
-                                scale={2}
+                                scale={3}
                                 falling={goldyFalling}
                                 onClick={handleGoldyClick}
                             />
