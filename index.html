@@ -2434,58 +2434,61 @@
         };
 
         // --- DATA ---
+        // Placeholder cover - replace with actual covers
+        const PLACEHOLDER_COVER = 'https://mir-s3-cdn-cf.behance.net/project_modules/hd_webp/646ee452003795.5608cb3c699ab.jpg';
+
         const MEDIA_DB = {
             "CINEMA_TV": [
-                { title: "Blade Runner 2049" },
-                { title: "Mr. Robot" },
-                { title: "True Detective" },
-                { title: "Succession" },
-                { title: "The Bear" },
-                { title: "Ex Machina" },
-                { title: "Fight Club" },
-                { title: "Better Call Saul" },
-                { title: "Whiplash" },
-                { title: "Black Mirror" }
+                { title: "Blade Runner 2049", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Mr. Robot", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "True Detective", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Succession", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Bear", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Ex Machina", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Better Call Saul", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Whiplash", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Black Mirror", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "LITERATURE": [
-                { title: "Brothers Karamazov" },
-                { title: "Looking for Alaska" },
-                { title: "Atlas Shrugged" },
-                { title: "Pale Blue Dot" },
-                { title: "Lean Startup" },
-                { title: "Fight Club" },
-                { title: "Principles by Ray Dalio" },
-                { title: "The Fountainhead" },
-                { title: "Crime & Punishment" },
-                { title: "1984" },
-                { title: "Master & Margarita" },
-                { title: "American Psycho" },
-                { title: "Elon Musk Biography" },
-                { title: "How to Get Filthy Rich in Rising Asia" },
-                { title: "Fathers and Sons" },
-                { title: "Geometry for Ocelots" }
+                { title: "Brothers Karamazov", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Looking for Alaska", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Atlas Shrugged", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Pale Blue Dot", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Lean Startup", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Principles by Ray Dalio", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Fountainhead", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Crime & Punishment", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "1984", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Master & Margarita", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "American Psycho", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Elon Musk Biography", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "How to Get Filthy Rich in Rising Asia", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fathers and Sons", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Geometry for Ocelots", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "GAMES": [
-                { title: "Dark Souls III" },
-                { title: "The Last of Us Pt II" },
-                { title: "Outer Wilds" },
-                { title: "God of War Ragnarok" },
-                { title: "Blue Prince" },
-                { title: "Cyberpunk 2077" },
-                { title: "Night in the Woods" }
+                { title: "Dark Souls III", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Last of Us Pt II", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Outer Wilds", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "God of War Ragnarok", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Blue Prince", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Cyberpunk 2077", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Night in the Woods", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "AUDIO": [
-                { title: "Demos EP", artist: "Daughter" },
-                { title: "Mr. Morale...", artist: "Kendrick Lamar" },
-                { title: "The Life of Pablo", artist: "Kanye West" },
-                { title: "Ison", artist: "Sevdaliza" },
-                { title: "If You're Reading This It's Too Late", artist: "Drake" },
-                { title: "LP!", artist: "JPEGMAFIA" },
-                { title: "Miss Anthropocene", artist: "Grimes" },
-                { title: "The Eminem Show", artist: "Eminem" },
-                { title: "4 Your Eyez Only", artist: "J. Cole" },
-                { title: "Yeezus", artist: "Kanye West" },
-                { title: "This story is dedicated...", artist: "Grimes" }
+                { title: "Demos EP", artist: "Daughter", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Mr. Morale...", artist: "Kendrick Lamar", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Life of Pablo", artist: "Kanye West", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Ison", artist: "Sevdaliza", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "If You're Reading This It's Too Late", artist: "Drake", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "LP!", artist: "JPEGMAFIA", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Miss Anthropocene", artist: "Grimes", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Eminem Show", artist: "Eminem", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "4 Your Eyez Only", artist: "J. Cole", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Yeezus", artist: "Kanye West", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "This story is dedicated...", artist: "Grimes", cover: PLACEHOLDER_COVER, link: "" }
             ]
         };
 
@@ -2888,118 +2891,360 @@
             )
         }
 
-        // --- MEDIA LIST - Clean Brutalist Design ---
-        const MediaList = ({ items, mediaType }) => {
+        // --- LUXURY COVER FLOW - Swiss International Design ---
+        const CoverFlow = ({ onAchievement }) => {
+            // Flatten all media items with category info
+            const allItems = useMemo(() => {
+                const items = [];
+                const categories = [
+                    { key: 'CINEMA_TV', label: 'FILM' },
+                    { key: 'LITERATURE', label: 'LITERATURE' },
+                    { key: 'GAMES', label: 'GAMES' },
+                    { key: 'AUDIO', label: 'AUDIO' }
+                ];
+                categories.forEach(cat => {
+                    MEDIA_DB[cat.key].forEach(item => {
+                        items.push({ ...item, category: cat.label, categoryKey: cat.key });
+                    });
+                });
+                return items;
+            }, []);
+
+            const [currentIndex, setCurrentIndex] = useState(Math.floor(allItems.length / 2));
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragStart, setDragStart] = useState({ x: 0, index: 0 });
+            const [velocity, setVelocity] = useState(0);
+            const [visitedCategories, setVisitedCategories] = useState(() => {
+                const stored = localStorage.getItem('media_lib_visited');
+                return stored ? JSON.parse(stored) : [];
+            });
+            const containerRef = useRef(null);
+            const lastMoveTime = useRef(Date.now());
+            const lastMoveX = useRef(0);
+            const animationRef = useRef(null);
+            const dragStartTime = useRef(0);
+
+            // Aspect ratios: AUDIO = 1:1, others = 4:5 (portrait)
+            const getAspectRatio = (categoryKey) => categoryKey === 'AUDIO' ? 1 : 0.8;
+            const getCoverDimensions = (categoryKey) => {
+                const isSquare = categoryKey === 'AUDIO';
+                return {
+                    width: 140,
+                    height: isSquare ? 140 : 175 // 4:5 ratio = 140 * 1.25
+                };
+            };
+
+            // Track category visits for achievement
+            useEffect(() => {
+                const currentItem = allItems[currentIndex];
+                if (currentItem && !visitedCategories.includes(currentItem.categoryKey)) {
+                    const newVisited = [...visitedCategories, currentItem.categoryKey];
+                    setVisitedCategories(newVisited);
+                    localStorage.setItem('media_lib_visited', JSON.stringify(newVisited));
+                    if (newVisited.length >= 4) {
+                        onAchievement?.('DEEP_LISTENER');
+                    }
+                }
+            }, [currentIndex, allItems, visitedCategories, onAchievement]);
+
+            // Momentum animation
+            useEffect(() => {
+                if (!isDragging && Math.abs(velocity) > 0.1) {
+                    animationRef.current = requestAnimationFrame(() => {
+                        const newIndex = Math.max(0, Math.min(allItems.length - 1,
+                            Math.round(currentIndex - velocity)));
+                        setCurrentIndex(newIndex);
+                        setVelocity(velocity * 0.92);
+                    });
+                }
+                return () => {
+                    if (animationRef.current) cancelAnimationFrame(animationRef.current);
+                };
+            }, [isDragging, velocity, currentIndex, allItems.length]);
+
+            const handleDragStart = (e) => {
+                setIsDragging(true);
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                setDragStart({ x: clientX, index: currentIndex });
+                lastMoveX.current = clientX;
+                lastMoveTime.current = Date.now();
+                dragStartTime.current = Date.now();
+                setVelocity(0);
+            };
+
+            const handleDragMove = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+                const containerWidth = containerRef.current?.offsetWidth || 400;
+                const dragSensitivity = containerWidth / 3;
+                const delta = (dragStart.x - clientX) / dragSensitivity;
+                const newIndex = Math.max(0, Math.min(allItems.length - 1,
+                    Math.round(dragStart.index + delta)));
+
+                // Calculate velocity
+                const now = Date.now();
+                const dt = now - lastMoveTime.current;
+                if (dt > 0) {
+                    const dx = clientX - lastMoveX.current;
+                    setVelocity(dx / dt * 10);
+                }
+                lastMoveX.current = clientX;
+                lastMoveTime.current = now;
+
+                if (newIndex !== currentIndex) {
+                    setCurrentIndex(newIndex);
+                    sounds.click();
+                }
+            };
+
+            const handleDragEnd = () => {
+                setIsDragging(false);
+            };
+
+            const handleWheel = (e) => {
+                e.preventDefault();
+                const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
+                const newIndex = Math.max(0, Math.min(allItems.length - 1,
+                    currentIndex + Math.sign(delta)));
+                if (newIndex !== currentIndex) {
+                    setCurrentIndex(newIndex);
+                    sounds.click();
+                }
+            };
+
+            const handleKeyDown = (e) => {
+                if (e.key === 'ArrowLeft') {
+                    setCurrentIndex(i => Math.max(0, i - 1));
+                    sounds.click();
+                } else if (e.key === 'ArrowRight') {
+                    setCurrentIndex(i => Math.min(allItems.length - 1, i + 1));
+                    sounds.click();
+                }
+            };
+
+            const getCoverStyle = (index, item) => {
+                const offset = index - currentIndex;
+                const absOffset = Math.abs(offset);
+                const dims = getCoverDimensions(item.categoryKey);
+
+                // Core positioning
+                const translateX = offset * 85;
+                const translateZ = -absOffset * 100;
+                const rotateY = offset * -45;
+                const scale = 1 - absOffset * 0.12;
+                const opacity = Math.max(0, 1 - absOffset * 0.2);
+                const zIndex = 100 - absOffset;
+
+                // Only show 5 covers on each side
+                if (absOffset > 5) {
+                    return { display: 'none', dims };
+                }
+
+                return {
+                    position: 'absolute',
+                    left: '50%',
+                    top: '50%',
+                    width: `${dims.width}px`,
+                    height: `${dims.height}px`,
+                    marginLeft: `${-dims.width / 2}px`,
+                    marginTop: `${-dims.height / 2}px`,
+                    transform: `translateX(${translateX}px) translateZ(${translateZ}px) rotateY(${rotateY}deg) scale(${scale})`,
+                    opacity,
+                    zIndex,
+                    transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
+                    cursor: 'pointer',
+                    transformStyle: 'preserve-3d',
+                    dims,
+                };
+            };
+
+            const handleCoverClick = (index, item) => {
+                // Only navigate if it was a quick tap (not a drag)
+                const dragDuration = Date.now() - dragStartTime.current;
+                const wasDrag = dragDuration > 200 || Math.abs(dragStart.x - lastMoveX.current) > 10;
+
+                if (index === currentIndex && !wasDrag && item.link) {
+                    window.open(item.link, '_blank', 'noopener,noreferrer');
+                } else if (!wasDrag && index !== currentIndex) {
+                    setCurrentIndex(index);
+                    sounds.click();
+                }
+            };
+
+            const currentItem = allItems[currentIndex];
+
             return (
-                <div className="h-full overflow-auto bg-white">
-                    <div className="divide-y-2 divide-black">
-                        {items.map((item, idx) => (
-                            <div
-                                key={idx}
-                                className="group flex items-baseline gap-4 px-4 py-3 hover:bg-black hover:text-white transition-colors cursor-default"
-                            >
-                                <span className="text-[10px] text-gray-400 group-hover:text-gray-500 w-6 tabular-nums">
-                                    {String(idx + 1).padStart(2, '0')}
-                                </span>
-                                <span className="font-mono text-sm font-bold tracking-tight flex-grow">
-                                    {item.title}
-                                </span>
-                                {item.artist && (
-                                    <span className="font-mono text-xs text-gray-500 group-hover:text-gray-400">
-                                        {item.artist}
-                                    </span>
+                <div
+                    className="h-full flex flex-col select-none overflow-hidden"
+                    style={{
+                        background: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a1a 50%, #0a0a0a 100%)',
+                        fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif"
+                    }}
+                    onKeyDown={handleKeyDown}
+                    tabIndex={0}
+                >
+                    {/* Minimal Swiss Header */}
+                    <div className="flex-shrink-0 px-6 py-4 flex justify-between items-center border-b border-white/10">
+                        <div className="flex items-center gap-4">
+                            <span className="text-[10px] tracking-[0.3em] text-white/40 font-light uppercase">
+                                Collection
+                            </span>
+                        </div>
+                        <div className="text-[10px] tracking-[0.2em] text-white/30 font-light tabular-nums">
+                            {String(currentIndex + 1).padStart(2, '0')} / {String(allItems.length).padStart(2, '0')}
+                        </div>
+                    </div>
+
+                    {/* Cover Flow Container */}
+                    <div
+                        ref={containerRef}
+                        className="flex-grow relative overflow-hidden"
+                        style={{ perspective: '1000px', perspectiveOrigin: '50% 40%' }}
+                        onMouseDown={handleDragStart}
+                        onMouseMove={handleDragMove}
+                        onMouseUp={handleDragEnd}
+                        onMouseLeave={handleDragEnd}
+                        onTouchStart={handleDragStart}
+                        onTouchMove={handleDragMove}
+                        onTouchEnd={handleDragEnd}
+                        onWheel={handleWheel}
+                    >
+                        {/* Ambient glow */}
+                        <div
+                            className="absolute inset-0 pointer-events-none"
+                            style={{
+                                background: 'radial-gradient(ellipse 60% 40% at 50% 40%, rgba(255,255,255,0.03) 0%, transparent 70%)'
+                            }}
+                        />
+
+                        {/* Covers */}
+                        <div
+                            className="absolute inset-0"
+                            style={{ transformStyle: 'preserve-3d' }}
+                        >
+                            {allItems.map((item, index) => {
+                                const style = getCoverStyle(index, item);
+                                if (style.display === 'none') return null;
+                                const { dims, ...styleWithoutDims } = style;
+
+                                return (
+                                    <div
+                                        key={index}
+                                        style={styleWithoutDims}
+                                        onClick={() => handleCoverClick(index, item)}
+                                    >
+                                        {/* Cover */}
+                                        <div
+                                            className="w-full h-full relative"
+                                            style={{
+                                                boxShadow: index === currentIndex
+                                                    ? '0 25px 80px rgba(0,0,0,0.8), 0 10px 30px rgba(0,0,0,0.6)'
+                                                    : '0 15px 40px rgba(0,0,0,0.5)',
+                                                borderRadius: '2px',
+                                                overflow: 'hidden',
+                                                backfaceVisibility: 'hidden',
+                                            }}
+                                        >
+                                            <img
+                                                src={item.cover}
+                                                alt={item.title}
+                                                className="w-full h-full object-cover"
+                                                style={{
+                                                    filter: index === currentIndex ? 'none' : 'brightness(0.7)',
+                                                    transition: 'filter 0.4s ease'
+                                                }}
+                                                draggable={false}
+                                            />
+                                            {/* Subtle overlay gradient */}
+                                            <div
+                                                className="absolute inset-0 pointer-events-none"
+                                                style={{
+                                                    background: 'linear-gradient(180deg, transparent 60%, rgba(0,0,0,0.4) 100%)'
+                                                }}
+                                            />
+                                        </div>
+
+                                        {/* Reflection */}
+                                        <div
+                                            className="absolute w-full overflow-hidden"
+                                            style={{
+                                                top: '100%',
+                                                height: `${dims.height * 0.35}px`,
+                                                transform: 'scaleY(-1)',
+                                                opacity: 0.12,
+                                                maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)',
+                                                WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 100%)',
+                                            }}
+                                        >
+                                            <img
+                                                src={item.cover}
+                                                alt=""
+                                                className="w-full h-full object-cover object-bottom"
+                                                style={{ filter: 'blur(1px)' }}
+                                                draggable={false}
+                                            />
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+
+                        {/* Navigation hints */}
+                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-8 pointer-events-none">
+                            <div className="text-white/20 text-[10px] tracking-[0.2em] uppercase">
+                                ← Drag to browse →
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Info Panel - Swiss Typography */}
+                    <div
+                        className="flex-shrink-0 px-6 py-5 border-t border-white/10"
+                        style={{ background: 'rgba(0,0,0,0.5)' }}
+                    >
+                        <div className="flex items-end justify-between gap-4">
+                            <div className="min-w-0 flex-1">
+                                <div className="text-[9px] tracking-[0.4em] text-white/40 uppercase mb-2 font-light">
+                                    {currentItem?.category}
+                                </div>
+                                <h2
+                                    className="text-white font-light text-lg tracking-tight truncate"
+                                    style={{
+                                        fontWeight: 300,
+                                        letterSpacing: '-0.02em'
+                                    }}
+                                >
+                                    {currentItem?.title}
+                                </h2>
+                                {currentItem?.artist && (
+                                    <p className="text-white/50 text-xs mt-1 font-light tracking-wide">
+                                        {currentItem.artist}
+                                    </p>
                                 )}
                             </div>
-                        ))}
+
+                            {/* Progress indicator */}
+                            <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                                <div
+                                    className="w-20 h-px bg-white/10 relative overflow-hidden"
+                                >
+                                    <div
+                                        className="h-full bg-white/60 transition-all duration-300"
+                                        style={{
+                                            width: `${((currentIndex + 1) / allItems.length) * 100}%`
+                                        }}
+                                    />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             );
         };
 
-        const FileExplorer = ({ onAchievement }) => {
-            const [selectedFolder, setSelectedFolder] = useState(null);
-            const [visitedFolders, setVisitedFolders] = useState(() => {
-                const stored = localStorage.getItem('media_lib_visited');
-                return stored ? JSON.parse(stored) : [];
-            });
-
-            const folders = [
-                { key: 'CINEMA_TV', name: 'TV', icon: 'Movies' },
-                { key: 'LITERATURE', name: 'BOOKS', icon: 'Books' },
-                { key: 'GAMES', name: 'GAMES', icon: 'Games' },
-                { key: 'AUDIO', name: 'MUSIC', icon: 'Music' }
-            ];
-
-            const handleFolderSelect = (key) => {
-                sounds.folderOpen();
-                setSelectedFolder(key);
-                if (!visitedFolders.includes(key)) {
-                    const newVisited = [...visitedFolders, key];
-                    setVisitedFolders(newVisited);
-                    localStorage.setItem('media_lib_visited', JSON.stringify(newVisited));
-                    // Check if all folders visited
-                    if (newVisited.length >= folders.length) {
-                        onAchievement?.('DEEP_LISTENER');
-                    }
-                }
-            };
-
-            if (selectedFolder) {
-                const FolderIcon = Icons[folders.find(f => f.key === selectedFolder)?.icon || 'Folder'];
-                return (
-                    <div className="h-full flex flex-col bg-white select-none">
-                        <div className="p-2 border-b-2 border-black bg-white flex items-center gap-3">
-                            <button onClick={() => { sounds.folderClose(); setSelectedFolder(null); }} className="p-1 border-2 border-black hover:bg-black hover:text-white">
-                                <Icons.Back size={16} />
-                            </button>
-                            <FolderIcon size={24} />
-                            <span className="font-mono text-xs font-bold uppercase">{folders.find(f => f.key === selectedFolder)?.name}</span>
-                            <span className="app-footer-text">({MEDIA_DB[selectedFolder].length} ITEMS)</span>
-                        </div>
-                        <div className="flex-grow overflow-hidden">
-                            <MediaList items={MEDIA_DB[selectedFolder]} mediaType={selectedFolder} />
-                        </div>
-                        <div className="app-footer">
-                            <span className="app-footer-text">{MEDIA_DB[selectedFolder].length} ITEMS</span>
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div className="h-full flex flex-col bg-white select-none">
-                    <div className="p-2 border-b-2 border-black bg-white flex items-center gap-2">
-                        <Icons.Folder size={24} />
-                        <span className="app-header-title">MEDIA_LIB</span>
-                        <span className="app-footer-text">/ROOT/MEDIA</span>
-                    </div>
-                    <div className="flex-grow p-4 md:p-6 flex items-start justify-center bg-gray-50">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-                            {folders.map(folder => {
-                                const FolderIcon = Icons[folder.icon];
-                                const isVisited = visitedFolders.includes(folder.key);
-                                return (
-                                    <button
-                                        key={folder.key}
-                                        onClick={() => handleFolderSelect(folder.key)}
-                                        className="group flex flex-col items-center gap-2 p-4 hover:bg-white border-2 border-transparent hover:border-black transition-all"
-                                    >
-                                        <div className={`bg-white border-2 border-black p-3 icon-shadow group-hover:translate-x-1 group-hover:translate-y-1 group-hover:shadow-none transition-all ${isVisited ? 'opacity-100' : 'opacity-70'}`}>
-                                            <FolderIcon size={48} />
-                                        </div>
-                                        <span className="font-mono text-xs font-bold uppercase">{folder.name}</span>
-                                        <span className="app-footer-text">{MEDIA_DB[folder.key].length} ITEMS</span>
-                                    </button>
-                                );
-                            })}
-                        </div>
-                    </div>
-                    <div className="app-footer">
-                        <span className="app-footer-text">MOVIES - BOOKS - GAMES - MUSIC</span>
-                    </div>
-                </div>
-            );
-        }
+        // Keep FileExplorer as alias for backward compatibility
+        const FileExplorer = CoverFlow;
 
         const SystemInfo = ({ onThirdEyeWorld, totalVisitors }) => {
             const [konamiProgress, setKonamiProgress] = useState(0);
