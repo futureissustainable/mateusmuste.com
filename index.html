@@ -2439,43 +2439,43 @@
 
         const MEDIA_DB = {
             "CINEMA_TV": [
-                { title: "Blade Runner 2049", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Mr. Robot", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "True Detective", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Succession", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "The Bear", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Ex Machina", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Better Call Saul", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Whiplash", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Black Mirror", cover: PLACEHOLDER_COVER, link: "" }
+                { title: "Blade Runner 2049", artist: "Denis Villeneuve", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Mr. Robot", artist: "Sam Esmail", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "True Detective", artist: "Nic Pizzolatto", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Succession", artist: "Jesse Armstrong", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Bear", artist: "Christopher Storer", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Ex Machina", artist: "Alex Garland", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", artist: "David Fincher", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Better Call Saul", artist: "Vince Gilligan", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Whiplash", artist: "Damien Chazelle", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Black Mirror", artist: "Charlie Brooker", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "LITERATURE": [
-                { title: "Brothers Karamazov", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Looking for Alaska", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Atlas Shrugged", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Pale Blue Dot", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Lean Startup", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Fight Club", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Principles by Ray Dalio", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "The Fountainhead", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Crime & Punishment", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "1984", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Master & Margarita", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "American Psycho", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Elon Musk Biography", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "How to Get Filthy Rich in Rising Asia", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Fathers and Sons", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Geometry for Ocelots", cover: PLACEHOLDER_COVER, link: "" }
+                { title: "Brothers Karamazov", artist: "Fyodor Dostoevsky", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Looking for Alaska", artist: "John Green", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Atlas Shrugged", artist: "Ayn Rand", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Pale Blue Dot", artist: "Carl Sagan", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Lean Startup", artist: "Eric Ries", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fight Club", artist: "Chuck Palahniuk", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Principles", artist: "Ray Dalio", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Fountainhead", artist: "Ayn Rand", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Crime & Punishment", artist: "Fyodor Dostoevsky", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "1984", artist: "George Orwell", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Master & Margarita", artist: "Mikhail Bulgakov", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "American Psycho", artist: "Bret Easton Ellis", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Elon Musk", artist: "Walter Isaacson", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "How to Get Filthy Rich in Rising Asia", artist: "Mohsin Hamid", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Fathers and Sons", artist: "Ivan Turgenev", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Geometry for Ocelots", artist: "Exurb1a", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "GAMES": [
-                { title: "Dark Souls III", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "The Last of Us Pt II", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Outer Wilds", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "God of War Ragnarok", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Blue Prince", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Cyberpunk 2077", cover: PLACEHOLDER_COVER, link: "" },
-                { title: "Night in the Woods", cover: PLACEHOLDER_COVER, link: "" }
+                { title: "Dark Souls III", artist: "FromSoftware", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "The Last of Us Pt II", artist: "Naughty Dog", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Outer Wilds", artist: "Mobius Digital", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "God of War Ragnarok", artist: "Santa Monica Studio", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Blue Prince", artist: "Dogubomb", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Cyberpunk 2077", artist: "CD Projekt Red", cover: PLACEHOLDER_COVER, link: "" },
+                { title: "Night in the Woods", artist: "Infinite Fall", cover: PLACEHOLDER_COVER, link: "" }
             ],
             "AUDIO": [
                 { title: "Demos EP", artist: "Daughter", cover: PLACEHOLDER_COVER, link: "" },
@@ -3190,12 +3190,6 @@
                             })}
                         </div>
 
-                        {/* Navigation hints */}
-                        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-8 pointer-events-none">
-                            <div className="text-white/20 text-[10px] tracking-[0.2em] uppercase">
-                                ← Drag to browse →
-                            </div>
-                        </div>
                     </div>
 
                     {/* Info Panel - Swiss Typography */}
@@ -12562,8 +12556,8 @@ Good luck.`;
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
-                    {/* DOG COMPANION - New sprite-based companion with physics */}
-                    {dogCompanionActive && (
+                    {/* DOG COMPANION - New sprite-based companion with physics (story mode only) */}
+                    {dogCompanionActive && modeSelected === 'story' && (
                         <div
                             className={`fixed z-[999999] cursor-pointer select-none ${dogCompanionDragging ? 'animate-shake' : ''}`}
                             style={{
@@ -12635,8 +12629,8 @@ Good luck.`;
                         </div>
                     )}
 
-                    {/* Dog error windows */}
-                    {dogErrorWindows.map((error) => (
+                    {/* Dog error windows (story mode only) */}
+                    {modeSelected === 'story' && dogErrorWindows.map((error) => (
                         <div
                             key={error.id}
                             className="fixed z-[999990] bg-red-900 text-white border-2 border-red-500 p-4 font-mono shadow-lg"
