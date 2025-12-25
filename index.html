@@ -12556,8 +12556,8 @@ Good luck.`;
                         <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
-                    {/* DOG COMPANION - New sprite-based companion with physics */}
-                    {dogCompanionActive && (
+                    {/* DOG COMPANION - New sprite-based companion with physics (story mode only) */}
+                    {dogCompanionActive && modeSelected === 'story' && (
                         <div
                             className={`fixed z-[999999] cursor-pointer select-none ${dogCompanionDragging ? 'animate-shake' : ''}`}
                             style={{
@@ -12629,8 +12629,8 @@ Good luck.`;
                         </div>
                     )}
 
-                    {/* Dog error windows */}
-                    {dogErrorWindows.map((error) => (
+                    {/* Dog error windows (story mode only) */}
+                    {modeSelected === 'story' && dogErrorWindows.map((error) => (
                         <div
                             key={error.id}
                             className="fixed z-[999990] bg-red-900 text-white border-2 border-red-500 p-4 font-mono shadow-lg"
