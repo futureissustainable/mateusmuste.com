@@ -9737,6 +9737,11 @@ Good luck.`;
                 const stored = localStorage.getItem('dog_completed_dialogues');
                 return stored ? JSON.parse(stored) : [];
             });
+            const [dogCompletedActions, setDogCompletedActions] = useState(() => {
+                // Load completed actions from localStorage (actions done before dog asked)
+                const stored = localStorage.getItem('dog_completed_actions');
+                return stored ? JSON.parse(stored) : [];
+            });
             const [dogErrorWindows, setDogErrorWindows] = useState([]); // Error windows spawned by dog
             const dogCompanionVelRef = useRef({ x: 0, y: 0 });
             const dogIdleTimerRef = useRef(null);
@@ -9777,6 +9782,10 @@ Good luck.`;
             useEffect(() => {
                 localStorage.setItem('dog_completed_dialogues', JSON.stringify(dogCompletedDialogues));
             }, [dogCompletedDialogues]);
+            // Save completed actions list (actions done before dog asked)
+            useEffect(() => {
+                localStorage.setItem('dog_completed_actions', JSON.stringify(dogCompletedActions));
+            }, [dogCompletedActions]);
             // Save waitingFor state for resume
             useEffect(() => {
                 if (dogCompanionWaitingFor) {
@@ -10340,6 +10349,20 @@ Good luck.`;
                 setDogCompanionEmotion('happy');
             };
 
+            // Check if an action was already completed (out-of-order detection)
+            // If so, skip the wait and proceed to the next dialogue
+            const checkAndHandleCompletedAction = (action) => {
+                if (dogCompletedActions.includes(action)) {
+                    // Action was already completed - skip wait and proceed
+                    const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[action];
+                    if (nextDialogue) {
+                        setTimeout(() => startDogDialogue(nextDialogue), 500);
+                    }
+                    return true; // Action was already completed
+                }
+                return false; // Action not yet completed, wait as normal
+            };
+
             // Dog companion dialogue controller
             const startDogDialogue = (dialogueKey, customDialogues = null, startIndex = 0) => {
                 const dialogues = customDialogues || DOG_DIALOGUES[dialogueKey];
@@ -10375,7 +10398,10 @@ Good luck.`;
                 setDogCompanionDialogue(first);
                 setDogCompanionEmotion(first.emotion || 'speaking');
                 if (first.waitForAction) {
-                    setDogCompanionWaitingFor(first.waitForAction);
+                    // Check if action was already completed out-of-order
+                    if (!checkAndHandleCompletedAction(first.waitForAction)) {
+                        setDogCompanionWaitingFor(first.waitForAction);
+                    }
                 }
             };
 
@@ -10389,8 +10415,12 @@ Good luck.`;
 
                 // Check if waiting for an action (unless action was just completed)
                 if (!skipWaitCheck && current?.waitForAction) {
-                    setDogCompanionWaitingFor(current.waitForAction);
-                    return;
+                    // Check if action was already completed out-of-order
+                    if (!checkAndHandleCompletedAction(current.waitForAction)) {
+                        setDogCompanionWaitingFor(current.waitForAction);
+                        return;
+                    }
+                    // Action was already completed, continue without waiting
                 }
 
                 // Wait after current dialogue if specified
@@ -10405,7 +10435,10 @@ Good luck.`;
                         // Track dialogue progress
                         setDogCompanionDialogueIndex(prev => prev + 1);
                         if (next.waitForAction) {
-                            setDogCompanionWaitingFor(next.waitForAction);
+                            // Check if action was already completed out-of-order
+                            if (!checkAndHandleCompletedAction(next.waitForAction)) {
+                                setDogCompanionWaitingFor(next.waitForAction);
+                            }
                         }
                     } else {
                         // Dialogue complete - mark as completed and clear tracking
@@ -10562,6 +10595,17 @@ Good luck.`;
             // Notify dog of game events - queues if busy, processes immediately if free
             const notifyDogEvent = (event, data = {}) => {
                 if (!dogCompanionActive && event !== 'dogReturn') return;
+
+                // Record this action as completed (for out-of-order detection)
+                // Only track wait-type actions that might be completed before dog asks
+                if (WAIT_ACTION_TO_NEXT_DIALOGUE[event]) {
+                    setDogCompletedActions(prev => {
+                        if (!prev.includes(event)) {
+                            return [...prev, event];
+                        }
+                        return prev;
+                    });
+                }
 
                 // Check if waiting for this action - this takes priority
                 if (dogCompanionWaitingFor === event) {
