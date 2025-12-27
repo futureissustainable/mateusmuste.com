@@ -3086,6 +3086,8 @@
             const [isDragging, setIsDragging] = useState(false);
             const [dragStart, setDragStart] = useState({ x: 0, index: 0 });
             const [velocity, setVelocity] = useState(0);
+            // Continuous offset for smooth 1:1 dragging on mobile
+            const [dragOffset, setDragOffset] = useState(0);
             const [visitedCategories, setVisitedCategories] = useState(() => {
                 const stored = localStorage.getItem('media_lib_visited');
                 return stored ? JSON.parse(stored) : [];
@@ -3145,22 +3147,38 @@
                 lastMoveTime.current = Date.now();
                 dragStartTime.current = Date.now();
                 setVelocity(0);
+                setDragOffset(0);
             };
 
             const handleDragMove = (e) => {
                 if (!isDragging) return;
                 e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-                const containerWidth = containerRef.current?.offsetWidth || 400;
-                // Mobile: much less sensitive - need to drag ~80px per item
-                // Desktop: more sensitive for quick browsing
-                const pixelsPerItem = isMobile ? 80 : 50;
-                const delta = (dragStart.x - clientX) / pixelsPerItem;
-                const newIndex = Math.max(0, Math.min(allItems.length - 1,
-                    Math.round(dragStart.index + delta)));
 
-                // Calculate velocity - only for desktop momentum
-                if (!isMobile) {
+                // Pixels per item - matched to the visual spacing (128px translateX per item)
+                // This creates true 1:1 feel where finger movement = visual movement
+                const pixelsPerItem = isMobile ? 128 : 50;
+                const delta = (dragStart.x - clientX) / pixelsPerItem;
+
+                if (isMobile) {
+                    // On mobile: track continuous offset for smooth 1:1 dragging
+                    // Clamp to valid range
+                    const continuousPosition = dragStart.index + delta;
+                    const clampedOffset = Math.max(0, Math.min(allItems.length - 1, continuousPosition)) - dragStart.index;
+                    setDragOffset(clampedOffset);
+
+                    // Update currentIndex when crossing thresholds (for sound feedback)
+                    const newIndex = Math.max(0, Math.min(allItems.length - 1, Math.round(continuousPosition)));
+                    if (newIndex !== currentIndex) {
+                        setCurrentIndex(newIndex);
+                        sounds.click();
+                    }
+                } else {
+                    // Desktop: snap to integer indices
+                    const newIndex = Math.max(0, Math.min(allItems.length - 1,
+                        Math.round(dragStart.index + delta)));
+
+                    // Calculate velocity for momentum
                     const now = Date.now();
                     const dt = now - lastMoveTime.current;
                     if (dt > 0) {
@@ -3169,18 +3187,24 @@
                     }
                     lastMoveX.current = clientX;
                     lastMoveTime.current = now;
-                }
 
-                if (newIndex !== currentIndex) {
-                    setCurrentIndex(newIndex);
-                    sounds.click();
+                    if (newIndex !== currentIndex) {
+                        setCurrentIndex(newIndex);
+                        sounds.click();
+                    }
                 }
             };
 
             const handleDragEnd = () => {
                 setIsDragging(false);
-                // On mobile, clear velocity to prevent any momentum
-                if (isMobile) setVelocity(0);
+                if (isMobile) {
+                    // Snap to nearest index based on final position
+                    const finalPosition = dragStart.index + dragOffset;
+                    const snappedIndex = Math.max(0, Math.min(allItems.length - 1, Math.round(finalPosition)));
+                    setCurrentIndex(snappedIndex);
+                    setDragOffset(0);
+                    setVelocity(0);
+                }
             };
 
             const handleWheel = (e) => {
@@ -3207,20 +3231,24 @@
             };
 
             const getCoverStyle = (index, item) => {
-                const offset = index - currentIndex;
+                // On mobile during drag, use continuous position for smooth 1:1 movement
+                const effectivePosition = (isMobile && isDragging)
+                    ? dragStart.index + dragOffset
+                    : currentIndex;
+                const offset = index - effectivePosition;
                 const absOffset = Math.abs(offset);
                 const dims = getCoverDimensions(item.categoryKey);
 
-                // Core positioning (50% more spacing)
+                // Core positioning (128px spacing matches pixelsPerItem for 1:1 feel)
                 const translateX = offset * 128;
                 const translateZ = -absOffset * 100;
                 const rotateY = offset * -45;
                 const scale = 1 - absOffset * 0.12;
                 const opacity = Math.max(0, 1 - absOffset * 0.2);
-                const zIndex = 100 - absOffset;
+                const zIndex = 100 - Math.round(absOffset);
 
-                // Only show 5 covers on each side
-                if (absOffset > 5) {
+                // Only show 6 covers on each side (extra buffer for smooth scrolling)
+                if (absOffset > 6) {
                     return { display: 'none', dims };
                 }
 
