@@ -794,7 +794,7 @@
                 });
             },
 
-            // Window bounce - consistent with dog bounce sound
+            // Window bounce - same tone as dog but louder
             bounce: (vel = 1) => {
                 if (!canPlaySound('bounce')) return;
                 const ctx = getAudioCtx();
@@ -809,8 +809,8 @@
                 const startFreq = 150 + Math.min(vel, 15) * 8;
                 osc.frequency.setValueAtTime(startFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
-                // Higher velocity = louder (same formula as dog)
-                const volume = Math.min(0.08 + vel * 0.015, 0.2);
+                // Higher velocity = louder (louder than dog bounce)
+                const volume = Math.min(0.15 + vel * 0.025, 0.35);
                 gain.gain.setValueAtTime(volume, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 osc.start(now);
