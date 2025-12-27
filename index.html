@@ -523,19 +523,31 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Goldy sparkle burst animation */
+        /* Goldy sparkle burst animation - 8-bit pixel style */
         @keyframes sparkle-burst {
             0% {
                 opacity: 0;
-                transform: scale(0) translate(0, 0);
+                transform: translate(0, 0);
             }
-            15% {
+            12.5% {
                 opacity: 1;
-                transform: scale(1.5) translate(0, 0);
+                transform: translate(0, 0);
+            }
+            25% {
+                opacity: 1;
+                transform: translate(calc(var(--move-x) * 0.25), calc(var(--move-y) * 0.25));
+            }
+            50% {
+                opacity: 1;
+                transform: translate(calc(var(--move-x) * 0.5), calc(var(--move-y) * 0.5));
+            }
+            75% {
+                opacity: 0.6;
+                transform: translate(calc(var(--move-x) * 0.75), calc(var(--move-y) * 0.75));
             }
             100% {
                 opacity: 0;
-                transform: scale(0.3) translate(var(--move-x), var(--move-y));
+                transform: translate(var(--move-x), var(--move-y));
             }
         }
     </style>
@@ -10227,9 +10239,10 @@ Good luck.`;
                 // Play magical appearance sound
                 sounds.appUnlock();
 
-                // Create sparkle particles with varied directions
+                // Create sparkle particles with varied directions (8-bit pixel style)
                 const sparkleCount = 16;
                 const newSparkles = [];
+                const pixelSizes = [4, 4, 6, 6, 8]; // Discrete pixel sizes for 8-bit look
                 for (let i = 0; i < sparkleCount; i++) {
                     const angle = (i / sparkleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
                     const distance = 20 + Math.random() * 40;
@@ -10239,10 +10252,10 @@ Good luck.`;
                         startY: goldyRestY + 48,
                         endX: taskbarX + 48 + Math.cos(angle) * distance * 2,
                         endY: goldyRestY + 48 + Math.sin(angle) * distance * 2 - 30, // Bias upward
-                        size: 4 + Math.random() * 8,
-                        delay: Math.random() * 200,
-                        duration: 800 + Math.random() * 400,
-                        color: ['#FFD700', '#FFA500', '#FFEC8B', '#FFFACD', '#FFE4B5'][Math.floor(Math.random() * 5)]
+                        size: pixelSizes[Math.floor(Math.random() * pixelSizes.length)],
+                        delay: Math.floor(Math.random() * 4) * 50, // Stepped delays for choppy 8-bit feel
+                        duration: 600 + Math.floor(Math.random() * 3) * 200,
+                        color: ['#FFD700', '#FFA500', '#FFFF00', '#FFFFFF'][Math.floor(Math.random() * 4)]
                     });
                 }
                 setGoldySparkles(newSparkles);
@@ -13379,7 +13392,7 @@ Good luck.`;
                         </div>
                     )}
 
-                    {/* Goldy sparkle particles */}
+                    {/* Goldy sparkle particles - 8-bit pixel style */}
                     {goldySparkles.map(sparkle => (
                         <div
                             key={sparkle.id}
@@ -13392,9 +13405,8 @@ Good luck.`;
                                 width: sparkle.size,
                                 height: sparkle.size,
                                 backgroundColor: sparkle.color,
-                                borderRadius: '50%',
-                                boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.color}`,
-                                animation: `sparkle-burst ${sparkle.duration}ms ease-out ${sparkle.delay}ms forwards`,
+                                imageRendering: 'pixelated',
+                                animation: `sparkle-burst ${sparkle.duration}ms steps(8) ${sparkle.delay}ms forwards`,
                                 opacity: 0,
                             }}
                         />
