@@ -13451,23 +13451,19 @@ Good luck.`;
                         <div className="flex-grow"></div>
                         <button
                             onClick={handleToggleMute}
-                            className={`border-l-2 border-black flex items-center justify-center hover:bg-gray-100 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
+                            className={`border-l border-black/20 flex items-center justify-center hover:bg-black/5 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
                             title={isMuted ? 'Unmute' : 'Mute'}
                         >
                             {isMuted ? <Icons.SpeakerOff size={16} /> : <Icons.Speaker size={16} />}
                         </button>
                         <button
                             onClick={handleToggleDarkMode}
-                            className={`border-l-2 border-black flex items-center justify-center hover:bg-gray-100 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
+                            className={`border-l border-black/20 flex items-center justify-center hover:bg-black/5 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
                             title={darkMode ? 'Light Mode' : 'Dark Mode'}
                         >
                             <Icons.Moon size={16} />
                         </button>
-                        <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
-                            <span className="text-gray-500">POWER:</span>
-                            <span className="font-bold">AC</span>
-                        </div>
-                        <div className={`font-mono font-bold border-l-2 border-black ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
+                        <div className={`font-mono font-bold border-l border-black/20 ${isMobile ? 'text-[10px] px-2' : 'text-xs px-4'}`}>{new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</div>
                     </div>
 
                     {/* DOG COMPANION - New sprite-based companion with physics (story mode only) */}
