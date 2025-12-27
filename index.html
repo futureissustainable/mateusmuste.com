@@ -537,9 +537,59 @@
         let activeDragNodes = null;
         let soundMuted = localStorage.getItem('sound_muted') === 'true';
 
+        // Sound management: track last play times and one-time sounds
+        const soundState = {
+            lastPlayed: {},      // Track last play time for debouncing
+            playedOnce: {},      // Track one-time sounds (boot, etc.)
+            cooldowns: {         // Cooldown times in ms for specific sounds
+                bounce: 50,
+                bounceIcon: 50,
+                click: 30,
+                labyrinthStep: 100,
+                labyrinthBump: 150,
+                bark: 200,
+                snekMove: 80,
+                keyPress: 20,
+                flowerBloom: 100,
+                dogTyping: 30,
+                dogBounce: 100,
+            },
+            oneTimeSounds: ['bootWindup', 'bootSequence', 'konamiActivate', 'godMode']
+        };
+
+        // Check if a sound can play based on cooldown
+        const canPlaySound = (soundName) => {
+            const now = Date.now();
+
+            // Check if it's a one-time sound that already played
+            if (soundState.oneTimeSounds.includes(soundName) && soundState.playedOnce[soundName]) {
+                return false;
+            }
+
+            // Check cooldown
+            const cooldown = soundState.cooldowns[soundName] || 0;
+            const lastPlayed = soundState.lastPlayed[soundName] || 0;
+
+            if (now - lastPlayed < cooldown) {
+                return false;
+            }
+
+            // Update tracking
+            soundState.lastPlayed[soundName] = now;
+            if (soundState.oneTimeSounds.includes(soundName)) {
+                soundState.playedOnce[soundName] = true;
+            }
+
+            return true;
+        };
+
         const getAudioCtx = () => {
             if (soundMuted) return null;
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            // Resume suspended audio context (required after user interaction)
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             return audioCtx;
         };
 
@@ -717,6 +767,7 @@
             },
 
             bounce: (vel = 1) => {
+                if (!canPlaySound('bounce')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -736,6 +787,7 @@
             },
 
             bounceIcon: (vel = 1) => {
+                if (!canPlaySound('bounceIcon')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -753,6 +805,7 @@
             },
 
             bootSequence: () => {
+                if (!canPlaySound('bootSequence')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -936,6 +989,7 @@
             },
 
             bark: () => {
+                if (!canPlaySound('bark')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1008,6 +1062,7 @@
 
             // UI click sound - subtle, satisfying
             click: () => {
+                if (!canPlaySound('click')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1046,6 +1101,7 @@
 
             // Key press sound for typing games
             keyPress: () => {
+                if (!canPlaySound('keyPress')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1082,6 +1138,7 @@
 
             // Classic Y2K/early 2010s boot chime - warm major chord like Windows XP/Mac startup
             bootWindup: () => {
+                if (!canPlaySound('bootWindup')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1409,6 +1466,7 @@
 
             // Konami code activation - secret unlock whoosh with chime cascade
             konamiActivate: () => {
+                if (!canPlaySound('konamiActivate')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1447,6 +1505,7 @@
 
             // God mode activation - transcendence with deep bass and ascending harmonics
             godMode: () => {
+                if (!canPlaySound('godMode')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1587,6 +1646,7 @@
 
             // Flower bloom - soft organic pop
             flowerBloom: () => {
+                if (!canPlaySound('flowerBloom')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1610,6 +1670,7 @@
 
             // Snek movement - subtle slither
             snekMove: () => {
+                if (!canPlaySound('snekMove')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1656,6 +1717,7 @@
 
             // Labyrinth footstep - soft alternating taps
             labyrinthStep: (isLeft = true) => {
+                if (!canPlaySound('labyrinthStep')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -1673,6 +1735,7 @@
 
             // Labyrinth wall bump - blocked thud
             labyrinthBump: () => {
+                if (!canPlaySound('labyrinthBump')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
@@ -2270,6 +2333,7 @@
 
         // Dog dialogue typing sound (Undertale-style)
         const playDogTypingSound = () => {
+            if (!canPlaySound('dogTyping')) return;
             const ctx = getAudioCtx();
             if (!ctx) return;
             const now = ctx.currentTime;
@@ -2290,6 +2354,7 @@
 
         // Dog bounce sound
         const playDogBounceSound = () => {
+            if (!canPlaySound('dogBounce')) return;
             const ctx = getAudioCtx();
             if (!ctx) return;
             const now = ctx.currentTime;
