@@ -10537,18 +10537,11 @@ Good luck.`;
                 const dialogues = customDialogues || DOG_DIALOGUES[dialogueKey];
                 if (!dialogues || dialogues.length === 0) return;
 
-                // --- ANTI-SOFTLOCK: Check if game state has advanced past this dialogue ---
-                const isIdleDialogue = dialogueKey === 'IDLE_GENERAL' || dialogueKey === 'IDLE_POST_GAME' || dialogueKey === 'RESUME_DIALOGUE';
-                if (!isIdleDialogue) {
-                    const minRequiredPhase = getMinPhaseFromGameState();
-                    if (isPhaseAhead(dogCompanionStoryPhase, minRequiredPhase)) {
-                        console.log('[Anti-Softlock] startDogDialogue: Phase mismatch, skipping', dialogueKey, 'to phase', minRequiredPhase);
-                        forceSkipToPhase(minRequiredPhase);
-                        return;
-                    }
-                }
+                // SYNC: Make sure dog state matches game state before starting any dialogue
+                if (syncDogToGameState()) return; // If sync made changes, abort this dialogue start
 
                 // Skip if this dialogue was already completed (except for resume and idle)
+                const isIdleDialogue = dialogueKey === 'IDLE_GENERAL' || dialogueKey === 'IDLE_POST_GAME' || dialogueKey === 'RESUME_DIALOGUE';
                 if (!isIdleDialogue && !customDialogues && startIndex === 0) {
                     if (dogCompletedDialogues.includes(dialogueKey)) {
                         console.log('Skipping already-completed dialogue:', dialogueKey);
@@ -10587,13 +10580,8 @@ Good luck.`;
             const advanceDogDialogue = (skipWaitCheck = false) => {
                 const current = dogCompanionDialogue;
 
-                // --- ANTI-SOFTLOCK: Check if game state has advanced past current dialogue ---
-                const minRequiredPhase = getMinPhaseFromGameState();
-                if (isPhaseAhead(dogCompanionStoryPhase, minRequiredPhase)) {
-                    console.log('[Anti-Softlock] advanceDogDialogue: Phase mismatch, skipping to', minRequiredPhase);
-                    forceSkipToPhase(minRequiredPhase);
-                    return;
-                }
+                // SYNC: Make sure dog state matches game state before advancing
+                if (syncDogToGameState()) return; // If sync made changes, abort
 
                 // Handle trigger before advancing
                 if (current?.trigger) {
@@ -10754,137 +10742,94 @@ Good luck.`;
                 'voidScan': { phase: 'ACT2', dialogue: 'ACT2_VOID_SCAN' },
             };
 
-            // --- ANTI-SOFTLOCK SYSTEM (COMPREHENSIVE) ---
-            // This system detects when the player has advanced beyond the current
-            // dialogue/story state and automatically skips ahead to prevent softlocks.
+            // ============================================================
+            // BULLETPROOF ANTI-SOFTLOCK SYSTEM
+            // ============================================================
+            // Core principle: Dog state is DERIVED from game state.
+            // One function syncs everything. Called on EVERY state change.
+            // It is IMPOSSIBLE for the dog to softlock.
+            // ============================================================
 
-            // Story phase progression order (used to compare phases)
-            const PHASE_ORDER = [
-                'inactive',
-                'ACT1_BOOT',
-                'ACT1_TERMINAL',
-                'ACT2',
-                'ACT3_SACRIFICE',
-                'POST_GAME'
+            // Ordered phases (index = progress level)
+            const PHASE_ORDER = ['inactive', 'ACT1_BOOT', 'ACT1_TERMINAL', 'ACT2', 'ACT3_SACRIFICE', 'POST_GAME'];
+
+            // What each unlocked app tells us about minimum progress
+            const APP_TO_MIN_PHASE = {
+                'THIRD_EYE': 'ACT2', 'VOID': 'ACT2', 'SNEK': 'ACT2', 'PRIVATE': 'ACT2',
+                'MAP': 'ACT2', 'LABYRINTH': 'ACT2', 'STARSHIP': 'ACT2', 'BOOKS': 'ACT2',
+                'DICE': 'ACT2', 'TRUTH': 'ACT2',
+            };
+
+            // All dialogues that belong to phases BEFORE ACT2 (will be marked complete when skipping)
+            const PRE_ACT2_DIALOGUES = [
+                'ACT1_BOOT', 'ACT1_ERRORS', 'ACT1_POST_ERRORS', 'ACT1_TERMINAL_OPENED',
+                'ACT1_POST_CHKDSK', 'ACT1_LIST_USERS', 'ACT1_NAME_ENTERED', 'ACT1_HELP', 'ACT1_SUDO_REVEAL'
             ];
 
-            // Map unlocked apps to the MINIMUM story phase they indicate
-            // If an app is unlocked, player must be AT LEAST at this phase
-            const APP_TO_MIN_PHASE = {
-                'THIRD_EYE': 'ACT2',      // Unlocked via sudo reveal (end of ACT1)
-                'VOID': 'ACT2',           // Unlocked via cmatrix
-                'SNEK': 'ACT2',           // Unlocked via inception (third eye on void)
-                'PRIVATE': 'ACT2',        // Unlocked via sudo unlock
-                'MAP': 'ACT2',            // Unlocked via chmod (found goldy)
-                'LABYRINTH': 'ACT2',      // Unlocked via map 100 clicks
-                'STARSHIP': 'ACT2',       // Unlocked via sudo stars
-                'BOOKS': 'ACT2',          // Unlocked via starship 1000
-                'DICE': 'ACT2',           // Unlocked with books
-                'TRUTH': 'ACT2',          // Unlocked via codes
+            // THE CORE FUNCTION: Syncs dog state to match game reality
+            // Call this whenever ANYTHING changes. It's idempotent and fast.
+            const syncDogToGameState = () => {
+                if (!dogCompanionActive || dogCompanionStoryPhase === 'POST_GAME' || dogCompanionStoryPhase === 'ACT3_SACRIFICE') {
+                    return false; // Nothing to sync
+                }
+
+                // Calculate where game state says we should be
+                let requiredPhaseIdx = PHASE_ORDER.indexOf(dogCompanionStoryPhase);
+
+                // Check all unlocked apps - find the furthest phase any of them require
+                for (const [appId, minPhase] of Object.entries(APP_TO_MIN_PHASE)) {
+                    if (unlockedApps.has(appId)) {
+                        const phaseIdx = PHASE_ORDER.indexOf(minPhase);
+                        if (phaseIdx > requiredPhaseIdx) {
+                            requiredPhaseIdx = phaseIdx;
+                        }
+                    }
+                }
+
+                const requiredPhase = PHASE_ORDER[requiredPhaseIdx];
+                const currentPhaseIdx = PHASE_ORDER.indexOf(dogCompanionStoryPhase);
+
+                // If we need to skip ahead, do it
+                if (requiredPhaseIdx > currentPhaseIdx) {
+                    console.log('[SYNC] Dog behind! Current:', dogCompanionStoryPhase, 'Required:', requiredPhase);
+
+                    // Mark all pre-ACT2 dialogues as complete if jumping to ACT2+
+                    if (requiredPhaseIdx >= PHASE_ORDER.indexOf('ACT2')) {
+                        setDogCompletedDialogues(prev => {
+                            const newCompleted = [...prev];
+                            PRE_ACT2_DIALOGUES.forEach(d => {
+                                if (!newCompleted.includes(d)) newCompleted.push(d);
+                            });
+                            return newCompleted;
+                        });
+                    }
+
+                    // Clear ALL current dialogue state
+                    setDogCompanionWaitingFor(null);
+                    setDogCompanionDialogue(null);
+                    setDogCompanionDialogueQueue([]);
+                    setDogCompanionCurrentDialogueKey(null);
+                    setDogCompanionDialogueIndex(0);
+                    setDogErrorWindows([]); // Clear ACT1 error windows
+                    dogTriggerQueueRef.current = [];
+
+                    // Update to correct phase
+                    setDogCompanionStoryPhase(requiredPhase);
+
+                    return true; // We made changes
+                }
+
+                return false; // Already in sync
             };
 
-            // Map phases to the dialogue that should start when skipping to that phase
-            const PHASE_ENTRY_DIALOGUE = {
-                'ACT1_TERMINAL': 'ACT1_TERMINAL_OPENED',
-                'ACT2': null,  // ACT2 is open-ended, no specific entry dialogue
-                'POST_GAME': null,
-            };
-
-            // Dialogues that belong to each phase (for marking complete when skipping)
-            const PHASE_DIALOGUES = {
-                'ACT1_BOOT': ['ACT1_BOOT', 'ACT1_ERRORS', 'ACT1_POST_ERRORS'],
-                'ACT1_TERMINAL': ['ACT1_TERMINAL_OPENED', 'ACT1_POST_CHKDSK', 'ACT1_LIST_USERS', 'ACT1_NAME_ENTERED', 'ACT1_HELP', 'ACT1_SUDO_REVEAL'],
-            };
-
-            // Action progression order (for action-based checks)
+            // Action progression order (for action-based checks within ACT2)
             const STORY_PROGRESSION_ORDER = [
                 'closeErrors', 'runChkdsk', 'runListUsers', 'enterName', 'runHelp', 'runSudoReveal',
                 'runCmatrix', 'triggerInception', 'runSudoUnlock', 'scanPrivate', 'runChmod', 'runSudoStars', 'scanTruth',
             ];
 
-            // Get phase index for comparison
-            const getPhaseIndex = (phase) => PHASE_ORDER.indexOf(phase);
-
-            // Check if phase2 is ahead of phase1
-            const isPhaseAhead = (phase1, phase2) => {
-                const idx1 = getPhaseIndex(phase1);
-                const idx2 = getPhaseIndex(phase2);
-                if (idx1 === -1 || idx2 === -1) return false;
-                return idx2 > idx1;
-            };
-
-            // Determine the minimum phase based on what apps are unlocked
-            const getMinPhaseFromGameState = () => {
-                let minPhaseIdx = 0; // Start at 'inactive'
-
-                // Check each unlocked app
-                for (const [appId, requiredPhase] of Object.entries(APP_TO_MIN_PHASE)) {
-                    if (unlockedApps.has(appId)) {
-                        const phaseIdx = getPhaseIndex(requiredPhase);
-                        if (phaseIdx > minPhaseIdx) {
-                            minPhaseIdx = phaseIdx;
-                        }
-                    }
-                }
-
-                return PHASE_ORDER[minPhaseIdx];
-            };
-
-            // Force skip to a specific phase (marks all prior dialogues complete)
-            const forceSkipToPhase = (targetPhase) => {
-                console.log('[Anti-Softlock] Force skipping to phase:', targetPhase);
-
-                // Mark all dialogues from earlier phases as completed
-                const targetIdx = getPhaseIndex(targetPhase);
-                const dialoguesToMark = [];
-
-                for (const [phase, dialogues] of Object.entries(PHASE_DIALOGUES)) {
-                    if (getPhaseIndex(phase) < targetIdx) {
-                        dialoguesToMark.push(...dialogues);
-                    }
-                }
-
-                if (dialoguesToMark.length > 0) {
-                    setDogCompletedDialogues(prev => {
-                        const newCompleted = [...prev];
-                        dialoguesToMark.forEach(d => {
-                            if (!newCompleted.includes(d)) newCompleted.push(d);
-                        });
-                        return newCompleted;
-                    });
-                }
-
-                // Clear current dialogue state
-                setDogCompanionWaitingFor(null);
-                setDogCompanionDialogue(null);
-                setDogCompanionDialogueQueue([]);
-                setDogCompanionCurrentDialogueKey(null);
-                setDogCompanionDialogueIndex(0);
-                dogTriggerQueueRef.current = [];
-
-                // Clear any error windows from ACT1
-                setDogErrorWindows([]);
-
-                // Update phase
-                setDogCompanionStoryPhase(targetPhase);
-
-                // Start entry dialogue if there is one
-                const entryDialogue = PHASE_ENTRY_DIALOGUE[targetPhase];
-                if (entryDialogue) {
-                    setTimeout(() => startDogDialogue(entryDialogue), 500);
-                }
-            };
-
             // Get the progression index of an action (-1 if not in the ordered list)
             const getProgressionIndex = (action) => STORY_PROGRESSION_ORDER.indexOf(action);
-
-            // Check if action is ahead of another in the story progression
-            const isActionAhead = (currentAction, newAction) => {
-                const currentIdx = getProgressionIndex(currentAction);
-                const newIdx = getProgressionIndex(newAction);
-                if (currentIdx === -1 || newIdx === -1) return false;
-                return newIdx > currentIdx;
-            };
 
             // Mark all preceding actions as complete when a later action is triggered
             const markPrecedingActionsComplete = (completedAction) => {
@@ -10898,49 +10843,6 @@ Good luck.`;
                     });
                     return newCompleted;
                 });
-            };
-
-            // Find the furthest completed action in progression order
-            const getFurthestCompletedAction = () => {
-                let furthestIdx = -1;
-                let furthestAction = null;
-                dogCompletedActions.forEach(action => {
-                    const idx = getProgressionIndex(action);
-                    if (idx > furthestIdx) {
-                        furthestIdx = idx;
-                        furthestAction = action;
-                    }
-                });
-                return furthestAction;
-            };
-
-            // Force skip to a later point in the story (used for anti-softlock)
-            const forceSkipToAction = (action) => {
-                console.log('[Anti-Softlock] Forcing skip to action:', action);
-
-                // Mark current dialogue as completed
-                if (dogCompanionCurrentDialogueKey) {
-                    setDogCompletedDialogues(prev => {
-                        if (!prev.includes(dogCompanionCurrentDialogueKey)) {
-                            return [...prev, dogCompanionCurrentDialogueKey];
-                        }
-                        return prev;
-                    });
-                }
-
-                // Clear current state
-                setDogCompanionWaitingFor(null);
-                setDogCompanionDialogue(null);
-                setDogCompanionDialogueQueue([]);
-                setDogCompanionCurrentDialogueKey(null);
-                setDogCompanionDialogueIndex(0);
-                dogTriggerQueueRef.current = [];
-
-                // Start the dialogue for this action
-                const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[action];
-                if (nextDialogue) {
-                    setTimeout(() => startDogDialogue(nextDialogue), 500);
-                }
             };
 
             // Process a single event trigger (called when dog is free)
@@ -10985,6 +10887,9 @@ Good luck.`;
                     markPrecedingActionsComplete(event);
                 }
 
+                // SYNC first - make sure dog is at correct phase before processing event
+                syncDogToGameState();
+
                 // Check if waiting for this action - this takes priority
                 if (dogCompanionWaitingFor === event) {
                     // Mark current dialogue as completed before transitioning
@@ -11001,40 +10906,12 @@ Good luck.`;
                     setDogCompanionDialogueQueue([]);
                     setDogCompanionCurrentDialogueKey(null);
                     setDogCompanionDialogueIndex(0);
-                    // Clear the queue when a wait action is completed
                     dogTriggerQueueRef.current = [];
                     const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[event];
                     if (nextDialogue) {
                         setTimeout(() => startDogDialogue(nextDialogue), 500);
                     }
                     return;
-                }
-
-                // --- ANTI-SOFTLOCK: Skip-ahead detection ---
-                // If we're waiting for an earlier action but a LATER action was triggered,
-                // skip ahead to the later action to prevent softlock
-                if (dogCompanionWaitingFor && WAIT_ACTION_TO_NEXT_DIALOGUE[event]) {
-                    if (isActionAhead(dogCompanionWaitingFor, event)) {
-                        console.log('[Anti-Softlock] Detected ahead action:', event, 'while waiting for:', dogCompanionWaitingFor);
-                        forceSkipToAction(event);
-                        return;
-                    }
-                }
-
-                // --- ANTI-SOFTLOCK: Skip-ahead when in dialogue (not yet waiting) ---
-                // If dog is in the middle of a dialogue sequence but player has already
-                // completed a later action, skip to that point
-                if (dogCompanionDialogue && !dogCompanionWaitingFor && WAIT_ACTION_TO_NEXT_DIALOGUE[event]) {
-                    // Check if current dialogue will eventually wait for something earlier
-                    const currentDialogueActions = getCurrentDialogueWaitActions();
-                    const shouldSkip = currentDialogueActions.some(waitAction =>
-                        isActionAhead(waitAction, event)
-                    );
-                    if (shouldSkip) {
-                        console.log('[Anti-Softlock] Skipping dialogue sequence for ahead action:', event);
-                        forceSkipToAction(event);
-                        return;
-                    }
                 }
 
                 // Check if this event should be queued or processed immediately
@@ -11047,17 +10924,6 @@ Good luck.`;
                     // Dog is free - process immediately
                     processEventTrigger(event);
                 }
-            };
-
-            // Get the waitForAction values from the current dialogue sequence
-            const getCurrentDialogueWaitActions = () => {
-                if (!dogCompanionCurrentDialogueKey || !DOG_DIALOGUES[dogCompanionCurrentDialogueKey]) {
-                    return [];
-                }
-                const dialogues = DOG_DIALOGUES[dogCompanionCurrentDialogueKey];
-                return dialogues
-                    .filter(d => d.waitForAction)
-                    .map(d => d.waitForAction);
             };
 
             // Close error window
@@ -11134,146 +11000,41 @@ Good luck.`;
                 return () => clearTimeout(dogIdleTimerRef.current);
             }, [dogCompanionActive, dogCompanionDialogue, dogCompanionWaitingFor, dogCompanionStoryPhase]);
 
-            // --- ANTI-SOFTLOCK: Comprehensive periodic detection system ---
-            // Runs every 5 seconds to detect if dog is stuck and game state has advanced
-            // This checks GAME STATE (unlocked apps) not just dialogue state
+            // ============================================================
+            // SYNC DOG STATE - Runs on EVERY relevant state change
+            // This is the ONLY anti-softlock mechanism needed.
+            // ============================================================
             useEffect(() => {
-                if (!dogCompanionActive || dogCompanionStoryPhase === 'inactive' || dogCompanionStoryPhase === 'POST_GAME') return;
+                syncDogToGameState();
+            }, [narrativeUnlocks, dogCompanionActive, dogCompanionStoryPhase, dogCompanionDialogue, dogCompanionWaitingFor]);
 
-                const checkForSoftlock = () => {
-                    // PRIMARY CHECK: Compare current phase against what unlocked apps indicate
-                    const minRequiredPhase = getMinPhaseFromGameState();
-                    const currentPhase = dogCompanionStoryPhase;
-
-                    if (isPhaseAhead(currentPhase, minRequiredPhase)) {
-                        console.log('[Anti-Softlock] PHASE MISMATCH DETECTED!',
-                            'Current phase:', currentPhase,
-                            'Required phase based on unlocked apps:', minRequiredPhase);
-                        forceSkipToPhase(minRequiredPhase);
-                        return;
-                    }
-
-                    // SECONDARY CHECK: If waiting for action, check if already completed
-                    if (dogCompanionWaitingFor) {
-                        const waitingFor = dogCompanionWaitingFor;
-
-                        // Check if a later action was completed
-                        const furthestCompleted = getFurthestCompletedAction();
-                        if (furthestCompleted && isActionAhead(waitingFor, furthestCompleted)) {
-                            console.log('[Anti-Softlock] Action ahead detected:',
-                                'Waiting for:', waitingFor,
-                                'But completed:', furthestCompleted);
-                            forceSkipToAction(furthestCompleted);
-                            return;
-                        }
-
-                        // Check if the exact action we're waiting for is already completed
-                        if (dogCompletedActions.includes(waitingFor)) {
-                            console.log('[Anti-Softlock] Waiting action already completed:', waitingFor);
-                            const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[waitingFor];
-                            if (nextDialogue) {
-                                setDogCompanionWaitingFor(null);
-                                setDogCompanionDialogue(null);
-                                setDogCompanionDialogueQueue([]);
-                                setTimeout(() => startDogDialogue(nextDialogue), 500);
-                            }
-                            return;
-                        }
-                    }
-
-                    // TERTIARY CHECK: If in mid-dialogue (not waiting), check if should skip ahead
-                    if (dogCompanionDialogue && !dogCompanionWaitingFor) {
-                        const furthestCompleted = getFurthestCompletedAction();
-                        if (furthestCompleted) {
-                            // Get what the current dialogue sequence eventually waits for
-                            const currentDialogueActions = getCurrentDialogueWaitActions();
-                            const shouldSkip = currentDialogueActions.some(waitAction =>
-                                isActionAhead(waitAction, furthestCompleted)
-                            );
-                            if (shouldSkip) {
-                                console.log('[Anti-Softlock] Mid-dialogue skip needed for:', furthestCompleted);
-                                forceSkipToAction(furthestCompleted);
-                                return;
-                            }
-                        }
-                    }
-                };
-
-                // Run check every 5 seconds (more frequent for better responsiveness)
-                dogSoftlockCheckRef.current = setInterval(checkForSoftlock, 5000);
-
-                // Also run immediately on mount/change
-                setTimeout(checkForSoftlock, 500);
-
-                return () => {
-                    if (dogSoftlockCheckRef.current) {
-                        clearInterval(dogSoftlockCheckRef.current);
-                    }
-                };
-            }, [dogCompanionActive, dogCompanionWaitingFor, dogCompanionStoryPhase, dogCompletedActions, dogCompanionDialogue]);
-
-            // --- ANTI-SOFTLOCK: Immediate check when apps are unlocked ---
-            // This triggers IMMEDIATELY when an app is unlocked, not just periodically
+            // Backup: Also run sync every 2 seconds in case something was missed
             useEffect(() => {
-                if (!dogCompanionActive || dogCompanionStoryPhase === 'inactive' || dogCompanionStoryPhase === 'POST_GAME') return;
-
-                // Check if current phase is behind what unlocked apps indicate
-                const minRequiredPhase = getMinPhaseFromGameState();
-                const currentPhase = dogCompanionStoryPhase;
-
-                if (isPhaseAhead(currentPhase, minRequiredPhase)) {
-                    console.log('[Anti-Softlock] APP UNLOCK TRIGGERED PHASE SKIP!',
-                        'Current:', currentPhase, 'Required:', minRequiredPhase,
-                        'Unlocked apps:', Array.from(unlockedApps));
-                    forceSkipToPhase(minRequiredPhase);
-                }
-            }, [narrativeUnlocks, dogCompanionActive, dogCompanionStoryPhase]);
+                if (!dogCompanionActive) return;
+                const interval = setInterval(() => {
+                    syncDogToGameState();
+                }, 2000);
+                return () => clearInterval(interval);
+            }, [dogCompanionActive]);
 
             // Resume dialogue on page reload (if was mid-dialogue)
             useEffect(() => {
                 if (dogResumeCheckedRef.current) return;
                 dogResumeCheckedRef.current = true;
 
+                // SYNC FIRST - this handles ALL anti-softlock logic
+                if (syncDogToGameState()) {
+                    // If sync made changes, clear saved state and don't resume old dialogue
+                    localStorage.removeItem('dog_dialogue_key');
+                    localStorage.removeItem('dog_dialogue_index');
+                    localStorage.removeItem('dog_waiting_for');
+                    return;
+                }
+
                 // Check if there's a saved dialogue to resume
                 const savedKey = localStorage.getItem('dog_dialogue_key');
                 const savedIndex = parseInt(localStorage.getItem('dog_dialogue_index') || '0', 10);
                 const savedWaiting = localStorage.getItem('dog_waiting_for');
-
-                // --- ANTI-SOFTLOCK: Check if player has progressed past saved state ---
-                // If the furthest completed action is ahead of what we're waiting for,
-                // skip to that point instead of resuming the old state
-                if (savedWaiting && dogCompletedActions.length > 0) {
-                    const furthestCompleted = getFurthestCompletedAction();
-                    if (furthestCompleted && isActionAhead(savedWaiting, furthestCompleted)) {
-                        console.log('[Anti-Softlock] Resume: skipping ahead from', savedWaiting, 'to', furthestCompleted);
-                        localStorage.removeItem('dog_dialogue_key');
-                        localStorage.removeItem('dog_dialogue_index');
-                        localStorage.removeItem('dog_waiting_for');
-                        setDogCompanionWaitingFor(null);
-                        setTimeout(() => {
-                            const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[furthestCompleted];
-                            if (nextDialogue) {
-                                startDogDialogue(nextDialogue);
-                            }
-                        }, 1000);
-                        return;
-                    }
-                    // Also check if we're waiting for an action that's already completed
-                    if (dogCompletedActions.includes(savedWaiting)) {
-                        console.log('[Anti-Softlock] Resume: action already completed:', savedWaiting);
-                        localStorage.removeItem('dog_dialogue_key');
-                        localStorage.removeItem('dog_dialogue_index');
-                        localStorage.removeItem('dog_waiting_for');
-                        setDogCompanionWaitingFor(null);
-                        setTimeout(() => {
-                            const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[savedWaiting];
-                            if (nextDialogue) {
-                                startDogDialogue(nextDialogue);
-                            }
-                        }, 1000);
-                        return;
-                    }
-                }
 
                 // If dog is waiting for action but no saved key, just let the wait state continue
                 if (savedWaiting && !savedKey) {
