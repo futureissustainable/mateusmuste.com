@@ -558,49 +558,49 @@
         /* Custom Cursors */
         /* Normal cursor - default for all elements */
         *, *::before, *::after {
-            cursor: url('assets/cursor/Cursor%20Normal.png'), auto;
+            cursor: url('assets/cursor/Cursor%20Normal.png') 0 0, auto;
         }
 
         /* Pointer/hover cursor for interactive elements */
         a, button, [role="button"], .cursor-pointer,
         input[type="submit"], input[type="button"], input[type="checkbox"], input[type="radio"],
         select, label, summary, .clickable, .interactive {
-            cursor: url('assets/cursor/Cursor%20Normal.png'), pointer;
+            cursor: url('assets/cursor/Cursor%20Normal.png') 0 0, pointer;
         }
 
         /* Drag hover cursor - for draggable elements on hover */
         .draggable, [draggable="true"], .window-header, .resize-handle,
         .drag-handle, .grabbable {
-            cursor: url('assets/cursor/Cursor%20Drag%20Hover.png'), grab;
+            cursor: url('assets/cursor/Cursor%20Drag%20Hover.png') 16 16, grab;
         }
 
         /* Drag hold cursor - when actively dragging */
         .dragging, .grabbing, .is-dragging,
         .draggable:active, [draggable="true"]:active, .window-header:active,
         .drag-handle:active, .grabbable:active {
-            cursor: url('assets/cursor/Cursor%20Drag%20Hold.png'), grabbing !important;
+            cursor: url('assets/cursor/Cursor%20Drag%20Hold.png') 16 16, grabbing !important;
         }
 
         /* Loading cursor */
         .loading, .is-loading, [aria-busy="true"], .wait {
-            cursor: url('assets/cursor/Loading.png'), wait !important;
+            cursor: url('assets/cursor/Loading.png') 16 16, wait !important;
         }
 
         /* Body loading state */
         body.loading * {
-            cursor: url('assets/cursor/Loading.png'), wait !important;
+            cursor: url('assets/cursor/Loading.png') 16 16, wait !important;
         }
 
         /* Not-allowed cursor - keep using custom normal with fallback */
         .btn-primary:disabled, .btn-secondary:disabled, [disabled], .disabled {
-            cursor: url('assets/cursor/Cursor%20Normal.png'), not-allowed;
+            cursor: url('assets/cursor/Cursor%20Normal.png') 0 0, not-allowed;
         }
 
         /* Text selection cursor for text inputs */
         input[type="text"], input[type="email"], input[type="password"],
         input[type="search"], input[type="url"], input[type="tel"],
         input[type="number"], textarea, [contenteditable="true"] {
-            cursor: url('assets/cursor/Cursor%20Normal.png'), text;
+            cursor: url('assets/cursor/Cursor%20Normal.png') 0 0, text;
         }
     </style>
 </head>
@@ -3223,7 +3223,7 @@
                     opacity,
                     zIndex,
                     transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                    cursor: "url('assets/cursor/Cursor%20Normal.png'), pointer",
+                    cursor: "url('assets/cursor/Cursor%20Normal.png') 0 0, pointer",
                     transformStyle: 'preserve-3d',
                     dims,
                 };
@@ -7300,7 +7300,7 @@ Good luck.`;
                     opacity,
                     zIndex,
                     transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                    cursor: "url('assets/cursor/Cursor%20Normal.png'), pointer",
+                    cursor: "url('assets/cursor/Cursor%20Normal.png') 0 0, pointer",
                     transformStyle: 'preserve-3d',
                     dims,
                 };
@@ -7852,12 +7852,12 @@ Good luck.`;
             const handlePointerDown = (e) => {
                 pointerInteracting.current = { x: e.clientX, y: e.clientY };
                 pointerInteractionMovement.current = 0;
-                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hold.png'), grabbing";
+                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hold.png') 16 16, grabbing";
             };
 
             const handlePointerUp = () => {
                 pointerInteracting.current = null;
-                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hover.png'), grab";
+                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hover.png') 16 16, grab";
             };
 
             const handlePointerMove = (e) => {
@@ -8006,7 +8006,7 @@ Good luck.`;
                                 transform: 'translate(-50%, -50%)',
                                 width: canvasSize,
                                 height: canvasSize,
-                                cursor: "url('assets/cursor/Cursor%20Drag%20Hover.png'), grab",
+                                cursor: "url('assets/cursor/Cursor%20Drag%20Hover.png') 16 16, grab",
                                 touchAction: 'none'
                             }}
                             onPointerDown={handlePointerDown}
