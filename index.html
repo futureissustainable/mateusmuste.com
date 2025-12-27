@@ -522,6 +522,22 @@
         .animate-fade-in {
             animation: fadeIn 0.3s ease-out forwards;
         }
+
+        /* Goldy sparkle burst animation */
+        @keyframes sparkle-burst {
+            0% {
+                opacity: 0;
+                transform: scale(0) translate(0, 0);
+            }
+            15% {
+                opacity: 1;
+                transform: scale(1.5) translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.3) translate(var(--move-x), var(--move-y));
+            }
+        }
     </style>
 </head>
 
@@ -9247,7 +9263,7 @@ Good luck.`;
         };
 
         // --- PRIVATE.EXE - Password Protected (with GOLDY sprite reveal when unlocked) ---
-        const PersonalApp = ({ unlocked, onOpenDogStory }) => {
+        const PersonalApp = ({ unlocked, onSpawnGoldy }) => {
             const [password, setPassword] = useState('');
             const [attempts, setAttempts] = useState(0);
             const [error, setError] = useState('');
@@ -9322,7 +9338,7 @@ Good luck.`;
                                 }}
                             >
                                 <button
-                                    onClick={() => onOpenDogStory?.()}
+                                    onClick={() => onSpawnGoldy?.()}
                                     className="text-center cursor-pointer group"
                                     disabled={revealPhase < 3}
                                     style={{ pointerEvents: revealPhase < 3 ? 'none' : 'auto' }}
@@ -9843,6 +9859,7 @@ Good luck.`;
             const [goldyBouncing, setGoldyBouncing] = useState(false);
             const [goldyBounceY, setGoldyBounceY] = useState(0);
             const [goldyFoldingOver, setGoldyFoldingOver] = useState(false);
+            const [goldySparkles, setGoldySparkles] = useState([]); // Sparkle particles
             // Position goldy on taskbar: x next to dog companion, y on top of taskbar (48px) with 4px padding
             const goldyRestY = window.innerHeight - 48 - 96 - 4;
             const [goldyPos, setGoldyPos] = useState({ x: 120, y: goldyRestY });
@@ -10192,9 +10209,44 @@ Good luck.`;
             const unlockPrivate = () => {
                 setPrivateUnlocked(true);
                 unlockAchievement('LOCKSMITH');
-                // Unlock MAP and spawn goldy (cardboard dog on taskbar)
+                // Unlock MAP (goldy will appear when sprite is clicked in PRIVATE.EXE)
                 unlockApp('MAP');
+            };
+            // Spawn goldy on taskbar with sparkle effect (called when unit_gold.sprite is clicked)
+            const spawnGoldyOnTaskbar = () => {
+                // Position goldy on taskbar
+                const taskbarX = 120; // Next to dog companion area
+                setGoldyPos({ x: taskbarX, y: goldyRestY });
+                setGoldyFalling(false);
+                setGoldyBouncing(false);
+                setGoldyFoldingOver(false);
                 setGoldyVisible(true);
+
+                // Play magical appearance sound
+                sounds.appUnlock();
+
+                // Create sparkle particles with varied directions
+                const sparkleCount = 16;
+                const newSparkles = [];
+                for (let i = 0; i < sparkleCount; i++) {
+                    const angle = (i / sparkleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+                    const distance = 20 + Math.random() * 40;
+                    newSparkles.push({
+                        id: Date.now() + i,
+                        startX: taskbarX + 48,
+                        startY: goldyRestY + 48,
+                        endX: taskbarX + 48 + Math.cos(angle) * distance * 2,
+                        endY: goldyRestY + 48 + Math.sin(angle) * distance * 2 - 30, // Bias upward
+                        size: 4 + Math.random() * 8,
+                        delay: Math.random() * 200,
+                        duration: 800 + Math.random() * 400,
+                        color: ['#FFD700', '#FFA500', '#FFEC8B', '#FFFACD', '#FFE4B5'][Math.floor(Math.random() * 5)]
+                    });
+                }
+                setGoldySparkles(newSparkles);
+
+                // Clear sparkles after animation
+                setTimeout(() => setGoldySparkles([]), 1500);
             };
             const openDogStory = () => {
                 // Position goldy at DOG_STORY window center (will be revealed in terminal, then drop)
@@ -11189,7 +11241,7 @@ Good luck.`;
                     case "MAP": return <MapApp onAchievement={unlockAchievement} onUnlockApp={unlockApp} onDogEvent={notifyDogEvent} />;
                     case "POMODORO": return <PomodoroApp onAchievement={unlockAchievement} />;
                     case "SCANNER": return <HealthScannerApp />;
-                    case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onOpenDogStory={openDogStory} />;
+                    case "PERSONAL": return <PersonalApp unlocked={privateUnlocked} onSpawnGoldy={spawnGoldyOnTaskbar} />;
                     case "TERMINAL": return <TerminalApp onClose={close} onOpenApp={open} onReleaseDog={() => setDogReleased(true)} onMatrixMode={toggleMatrixMode} onUnlockPrivate={unlockPrivate} onAchievement={unlockAchievement} onGodMode={handleGodMode} onUnlockApp={unlockApp} unlockedApps={unlockedApps} thirdEyeActive={windows.THIRD_EYE?.isOpen || windows.THIRD_EYE_2?.isOpen} onDogEvent={notifyDogEvent} />;
                     case "TRUTH": return <TruthApp onAchievement={unlockAchievement} onOpenTruthMessages={() => { open('TRUTH_MESSAGES'); close('TRUTH'); }} godModeCompleted={achievements.BECOME_GOD} />;
                     case "DOG_STORY": return <DogStoryTerminal onRemoveGoldDog={removeGoldDog} />;
@@ -13045,6 +13097,27 @@ Good luck.`;
                             />
                         </div>
                     )}
+
+                    {/* Goldy sparkle particles */}
+                    {goldySparkles.map(sparkle => (
+                        <div
+                            key={sparkle.id}
+                            className="fixed z-[999998] pointer-events-none"
+                            style={{
+                                '--move-x': `${sparkle.endX - sparkle.startX}px`,
+                                '--move-y': `${sparkle.endY - sparkle.startY}px`,
+                                left: sparkle.startX,
+                                top: sparkle.startY,
+                                width: sparkle.size,
+                                height: sparkle.size,
+                                backgroundColor: sparkle.color,
+                                borderRadius: '50%',
+                                boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.color}`,
+                                animation: `sparkle-burst ${sparkle.duration}ms ease-out ${sparkle.delay}ms forwards`,
+                                opacity: 0,
+                            }}
+                        />
+                    ))}
 
                     {/* Legacy DOG - Cute pixel dog with running animation (for destruction mode) */}
                     {dogReleased && (
