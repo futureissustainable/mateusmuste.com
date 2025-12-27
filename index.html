@@ -3062,6 +3062,9 @@
 
         // --- LUXURY COVER FLOW - Swiss International Design ---
         const CoverFlow = ({ onAchievement }) => {
+            // Detect mobile
+            const isMobile = window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
             // Flatten all media items with category info
             const allItems = useMemo(() => {
                 const items = [];
@@ -3148,17 +3151,19 @@
                 e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const containerWidth = containerRef.current?.offsetWidth || 400;
-                const dragSensitivity = containerWidth / 3;
+                // Mobile: less sensitive (need to drag further to change items)
+                const dragSensitivity = isMobile ? containerWidth / 1.5 : containerWidth / 3;
                 const delta = (dragStart.x - clientX) / dragSensitivity;
                 const newIndex = Math.max(0, Math.min(allItems.length - 1,
                     Math.round(dragStart.index + delta)));
 
-                // Calculate velocity
+                // Calculate velocity - much lower on mobile for smoother feel
                 const now = Date.now();
                 const dt = now - lastMoveTime.current;
                 if (dt > 0) {
                     const dx = clientX - lastMoveX.current;
-                    setVelocity(dx / dt * 10);
+                    const velocityMultiplier = isMobile ? 3 : 10;
+                    setVelocity(dx / dt * velocityMultiplier);
                 }
                 lastMoveX.current = clientX;
                 lastMoveTime.current = now;
@@ -3174,6 +3179,8 @@
             };
 
             const handleWheel = (e) => {
+                // Disable wheel on mobile - only use touch drag
+                if (isMobile) return;
                 e.preventDefault();
                 const delta = e.deltaX !== 0 ? e.deltaX : e.deltaY;
                 const newIndex = Math.max(0, Math.min(allItems.length - 1,
