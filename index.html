@@ -3601,25 +3601,8 @@
                 <div className="h-full flex flex-col bg-white select-none overflow-hidden">
                     {/* FIXED HEADER */}
                     <div className="flex-shrink-0 border-b-4 border-black bg-white">
-                        <div className="flex justify-between items-center px-4 py-3">
+                        <div className="px-4 py-3">
                             <span className="font-mono text-[10px] tracking-[0.3em] uppercase">mateusmuste.com</span>
-                            <div className="flex items-center gap-1">
-                                <button
-                                    onClick={goBack}
-                                    disabled={page === 0}
-                                    className={`w-8 h-8 border-2 border-black font-mono text-sm flex items-center justify-center transition-all ${page === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-black hover:text-white'}`}
-                                >
-                                    ←
-                                </button>
-                                <span className="font-mono text-[10px] px-2">{page + 1}/{maxPage + 1}</span>
-                                <button
-                                    onClick={goNext}
-                                    disabled={page === maxPage}
-                                    className={`w-8 h-8 border-2 border-black font-mono text-sm flex items-center justify-center transition-all ${page === maxPage ? 'opacity-20 cursor-not-allowed' : 'hover:bg-black hover:text-white'}`}
-                                >
-                                    →
-                                </button>
-                            </div>
                         </div>
                     </div>
 
@@ -3692,7 +3675,13 @@
 
                                 {/* Fixed position CTA */}
                                 <div className="flex-shrink-0 pt-8">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={goBack}
+                                            className="px-4 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all"
+                                        >
+                                            ←
+                                        </button>
                                         <button
                                             onClick={goNext}
                                             className="bg-black text-white px-6 py-4 font-mono text-xs uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all"
@@ -3753,7 +3742,13 @@
 
                                 {/* Fixed position CTA */}
                                 <div className="flex-shrink-0 pt-8">
-                                    <div className="flex items-center gap-4">
+                                    <div className="flex items-center gap-3">
+                                        <button
+                                            onClick={goBack}
+                                            className="px-4 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all"
+                                        >
+                                            ←
+                                        </button>
                                         <button
                                             onClick={goNext}
                                             className="bg-black text-white px-6 py-4 font-mono text-xs uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all"
@@ -3813,12 +3808,20 @@
                                                 <h3 className="font-black text-2xl md:text-3xl">LET'S BUILD.</h3>
                                                 <p className="font-mono text-[10px] opacity-40 mt-2 tracking-wider">READY WHEN YOU ARE</p>
                                             </div>
-                                            <a
-                                                href="mailto:mateusmuste9@gmail.com"
-                                                className="bg-black text-white px-8 py-5 font-mono text-sm uppercase tracking-widest hover:bg-white hover:text-black border-4 border-black transition-all inline-block text-center"
-                                            >
-                                                LET'S TALK →
-                                            </a>
+                                            <div className="flex items-center gap-3">
+                                                <button
+                                                    onClick={goBack}
+                                                    className="px-4 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all"
+                                                >
+                                                    ←
+                                                </button>
+                                                <a
+                                                    href="mailto:mateusmuste9@gmail.com"
+                                                    className="bg-black text-white px-6 py-4 font-mono text-xs uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all inline-block text-center"
+                                                >
+                                                    LET'S TALK →
+                                                </a>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
