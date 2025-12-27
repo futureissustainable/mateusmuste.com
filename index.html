@@ -9853,6 +9853,8 @@ Good luck.`;
             const lastIdleDialogueRef = useRef(0);
             const dogResumeCheckedRef = useRef(false); // Track if we've checked for resume
             const dogTriggerQueueRef = useRef([]); // Queue for triggers that arrive while dog is busy
+            const dogSoftlockCheckRef = useRef(null); // Timer for periodic softlock detection
+            const dogLastWaitingStateRef = useRef({ action: null, timestamp: 0 }); // Track how long dog has been waiting
             // Goldy state - cardboard fake dog that sits on taskbar next to dog.exe
             const [goldyVisible, setGoldyVisible] = useState(false);
             const [goldyFalling, setGoldyFalling] = useState(false);
@@ -10708,6 +10710,144 @@ Good luck.`;
                 'voidScan': { phase: 'ACT2', dialogue: 'ACT2_VOID_SCAN' },
             };
 
+            // --- ANTI-SOFTLOCK SYSTEM ---
+            // Defines the canonical order of story progression triggers.
+            // If a player completes a later action while dog is waiting for an earlier one,
+            // the system will automatically skip ahead to prevent softlocks.
+            const STORY_PROGRESSION_ORDER = [
+                // ACT1 - Linear progression
+                'closeErrors',
+                'runChkdsk',
+                'runListUsers',
+                'enterName',
+                'runHelp',
+                'runSudoReveal',
+                // ACT2 - Multiple paths, but these have dependencies
+                'runCmatrix',
+                'triggerInception',
+                'runSudoUnlock',
+                'scanPrivate',
+                'runChmod',
+                'runSudoStars',
+                // ACT3
+                'scanTruth',
+            ];
+
+            // Get the progression index of an action (-1 if not in the ordered list)
+            const getProgressionIndex = (action) => STORY_PROGRESSION_ORDER.indexOf(action);
+
+            // Check if action is ahead of another in the story progression
+            const isActionAhead = (currentAction, newAction) => {
+                const currentIdx = getProgressionIndex(currentAction);
+                const newIdx = getProgressionIndex(newAction);
+                // Both must be in the ordered list, and new action must come later
+                if (currentIdx === -1 || newIdx === -1) return false;
+                return newIdx > currentIdx;
+            };
+
+            // Mark all preceding actions as complete when a later action is triggered
+            // This prevents the dog from getting stuck waiting for actions that are now irrelevant
+            const markPrecedingActionsComplete = (completedAction) => {
+                const completedIdx = getProgressionIndex(completedAction);
+                if (completedIdx === -1) return;
+
+                // Get all actions that come before this one
+                const precedingActions = STORY_PROGRESSION_ORDER.slice(0, completedIdx);
+
+                setDogCompletedActions(prev => {
+                    const newCompleted = [...prev];
+                    precedingActions.forEach(action => {
+                        if (!newCompleted.includes(action)) {
+                            newCompleted.push(action);
+                        }
+                    });
+                    return newCompleted;
+                });
+
+                // Also mark the related dialogues as completed
+                const dialoguesToComplete = [];
+                precedingActions.forEach(action => {
+                    const dialogueKey = WAIT_ACTION_TO_NEXT_DIALOGUE[action];
+                    if (dialogueKey) {
+                        // Find the dialogue that LEADS to this action and mark it complete
+                        // This is the dialogue before the waitForAction
+                        const precedingDialogues = {
+                            'runChkdsk': 'ACT1_TERMINAL_OPENED',
+                            'runListUsers': 'ACT1_POST_CHKDSK',
+                            'enterName': 'ACT1_LIST_USERS',
+                            'runHelp': 'ACT1_NAME_ENTERED',
+                            'runSudoReveal': 'ACT1_HELP',
+                            'runCmatrix': 'ACT2_TERMINAL_SCAN',
+                            'triggerInception': 'ACT2_VOID_SCAN',
+                            'runSudoUnlock': 'ACT2_SNEK_COMPLETE',
+                            'scanPrivate': 'ACT2_PRIVATE_FOUND',
+                            'runChmod': 'ACT2_CHMOD',
+                            'runSudoStars': 'ACT2_SUDO_STARS',
+                            'scanTruth': 'ACT3_TRUTH_UNLOCKED',
+                        };
+                        const precedingDialogue = precedingDialogues[action];
+                        if (precedingDialogue) {
+                            dialoguesToComplete.push(precedingDialogue);
+                        }
+                    }
+                });
+
+                if (dialoguesToComplete.length > 0) {
+                    setDogCompletedDialogues(prev => {
+                        const newCompleted = [...prev];
+                        dialoguesToComplete.forEach(d => {
+                            if (!newCompleted.includes(d)) {
+                                newCompleted.push(d);
+                            }
+                        });
+                        return newCompleted;
+                    });
+                }
+            };
+
+            // Find the furthest completed action in progression order
+            const getFurthestCompletedAction = () => {
+                let furthestIdx = -1;
+                let furthestAction = null;
+                dogCompletedActions.forEach(action => {
+                    const idx = getProgressionIndex(action);
+                    if (idx > furthestIdx) {
+                        furthestIdx = idx;
+                        furthestAction = action;
+                    }
+                });
+                return furthestAction;
+            };
+
+            // Force skip to a later point in the story (used for anti-softlock)
+            const forceSkipToAction = (action) => {
+                console.log('[Anti-Softlock] Forcing skip to action:', action);
+
+                // Mark current dialogue as completed
+                if (dogCompanionCurrentDialogueKey) {
+                    setDogCompletedDialogues(prev => {
+                        if (!prev.includes(dogCompanionCurrentDialogueKey)) {
+                            return [...prev, dogCompanionCurrentDialogueKey];
+                        }
+                        return prev;
+                    });
+                }
+
+                // Clear current state
+                setDogCompanionWaitingFor(null);
+                setDogCompanionDialogue(null);
+                setDogCompanionDialogueQueue([]);
+                setDogCompanionCurrentDialogueKey(null);
+                setDogCompanionDialogueIndex(0);
+                dogTriggerQueueRef.current = [];
+
+                // Start the dialogue for this action
+                const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[action];
+                if (nextDialogue) {
+                    setTimeout(() => startDogDialogue(nextDialogue), 500);
+                }
+            };
+
             // Process a single event trigger (called when dog is free)
             const processEventTrigger = (event) => {
                 if (!dogCompanionActive) return;
@@ -10746,6 +10886,8 @@ Good luck.`;
                         }
                         return prev;
                     });
+                    // Mark all preceding actions as complete too (anti-softlock)
+                    markPrecedingActionsComplete(event);
                 }
 
                 // Check if waiting for this action - this takes priority
@@ -10773,6 +10915,33 @@ Good luck.`;
                     return;
                 }
 
+                // --- ANTI-SOFTLOCK: Skip-ahead detection ---
+                // If we're waiting for an earlier action but a LATER action was triggered,
+                // skip ahead to the later action to prevent softlock
+                if (dogCompanionWaitingFor && WAIT_ACTION_TO_NEXT_DIALOGUE[event]) {
+                    if (isActionAhead(dogCompanionWaitingFor, event)) {
+                        console.log('[Anti-Softlock] Detected ahead action:', event, 'while waiting for:', dogCompanionWaitingFor);
+                        forceSkipToAction(event);
+                        return;
+                    }
+                }
+
+                // --- ANTI-SOFTLOCK: Skip-ahead when in dialogue (not yet waiting) ---
+                // If dog is in the middle of a dialogue sequence but player has already
+                // completed a later action, skip to that point
+                if (dogCompanionDialogue && !dogCompanionWaitingFor && WAIT_ACTION_TO_NEXT_DIALOGUE[event]) {
+                    // Check if current dialogue will eventually wait for something earlier
+                    const currentDialogueActions = getCurrentDialogueWaitActions();
+                    const shouldSkip = currentDialogueActions.some(waitAction =>
+                        isActionAhead(waitAction, event)
+                    );
+                    if (shouldSkip) {
+                        console.log('[Anti-Softlock] Skipping dialogue sequence for ahead action:', event);
+                        forceSkipToAction(event);
+                        return;
+                    }
+                }
+
                 // Check if this event should be queued or processed immediately
                 if (isDogBusy()) {
                     // Don't queue duplicate events or events already in queue
@@ -10783,6 +10952,17 @@ Good luck.`;
                     // Dog is free - process immediately
                     processEventTrigger(event);
                 }
+            };
+
+            // Get the waitForAction values from the current dialogue sequence
+            const getCurrentDialogueWaitActions = () => {
+                if (!dogCompanionCurrentDialogueKey || !DOG_DIALOGUES[dogCompanionCurrentDialogueKey]) {
+                    return [];
+                }
+                const dialogues = DOG_DIALOGUES[dogCompanionCurrentDialogueKey];
+                return dialogues
+                    .filter(d => d.waitForAction)
+                    .map(d => d.waitForAction);
             };
 
             // Close error window
@@ -10859,6 +11039,71 @@ Good luck.`;
                 return () => clearTimeout(dogIdleTimerRef.current);
             }, [dogCompanionActive, dogCompanionDialogue, dogCompanionWaitingFor, dogCompanionStoryPhase]);
 
+            // --- ANTI-SOFTLOCK: Periodic detection system ---
+            // Runs every 10 seconds to detect if dog is stuck waiting for an action
+            // that has already been completed (or superseded by a later action)
+            useEffect(() => {
+                if (!dogCompanionActive || dogCompanionStoryPhase === 'inactive') return;
+
+                // Track when waiting state changes
+                if (dogCompanionWaitingFor !== dogLastWaitingStateRef.current.action) {
+                    dogLastWaitingStateRef.current = {
+                        action: dogCompanionWaitingFor,
+                        timestamp: Date.now()
+                    };
+                }
+
+                const checkForSoftlock = () => {
+                    // Only check if we're waiting for something
+                    if (!dogCompanionWaitingFor) return;
+
+                    const waitingFor = dogCompanionWaitingFor;
+
+                    // Check 1: Is there a completed action that comes AFTER what we're waiting for?
+                    const furthestCompleted = getFurthestCompletedAction();
+                    if (furthestCompleted && isActionAhead(waitingFor, furthestCompleted)) {
+                        console.log('[Anti-Softlock] Periodic check detected softlock:',
+                            'Waiting for:', waitingFor,
+                            'But already completed:', furthestCompleted);
+                        forceSkipToAction(furthestCompleted);
+                        return;
+                    }
+
+                    // Check 2: Is the action we're waiting for already in completedActions?
+                    if (dogCompletedActions.includes(waitingFor)) {
+                        console.log('[Anti-Softlock] Periodic check: action already completed:', waitingFor);
+                        const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[waitingFor];
+                        if (nextDialogue) {
+                            setDogCompanionWaitingFor(null);
+                            setDogCompanionDialogue(null);
+                            setDogCompanionDialogueQueue([]);
+                            setTimeout(() => startDogDialogue(nextDialogue), 500);
+                        }
+                        return;
+                    }
+
+                    // Check 3: Have we been waiting too long (> 2 minutes)?
+                    // If player might be stuck, give a hint
+                    const waitDuration = Date.now() - dogLastWaitingStateRef.current.timestamp;
+                    if (waitDuration > 120000) { // 2 minutes
+                        console.log('[Anti-Softlock] Long wait detected for:', waitingFor, 'Duration:', waitDuration);
+                        // Could add hint system here in the future
+                    }
+                };
+
+                // Run check every 10 seconds
+                dogSoftlockCheckRef.current = setInterval(checkForSoftlock, 10000);
+
+                // Also run immediately on mount/change
+                setTimeout(checkForSoftlock, 1000);
+
+                return () => {
+                    if (dogSoftlockCheckRef.current) {
+                        clearInterval(dogSoftlockCheckRef.current);
+                    }
+                };
+            }, [dogCompanionActive, dogCompanionWaitingFor, dogCompanionStoryPhase, dogCompletedActions]);
+
             // Resume dialogue on page reload (if was mid-dialogue)
             useEffect(() => {
                 if (dogResumeCheckedRef.current) return;
@@ -10868,6 +11113,42 @@ Good luck.`;
                 const savedKey = localStorage.getItem('dog_dialogue_key');
                 const savedIndex = parseInt(localStorage.getItem('dog_dialogue_index') || '0', 10);
                 const savedWaiting = localStorage.getItem('dog_waiting_for');
+
+                // --- ANTI-SOFTLOCK: Check if player has progressed past saved state ---
+                // If the furthest completed action is ahead of what we're waiting for,
+                // skip to that point instead of resuming the old state
+                if (savedWaiting && dogCompletedActions.length > 0) {
+                    const furthestCompleted = getFurthestCompletedAction();
+                    if (furthestCompleted && isActionAhead(savedWaiting, furthestCompleted)) {
+                        console.log('[Anti-Softlock] Resume: skipping ahead from', savedWaiting, 'to', furthestCompleted);
+                        localStorage.removeItem('dog_dialogue_key');
+                        localStorage.removeItem('dog_dialogue_index');
+                        localStorage.removeItem('dog_waiting_for');
+                        setDogCompanionWaitingFor(null);
+                        setTimeout(() => {
+                            const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[furthestCompleted];
+                            if (nextDialogue) {
+                                startDogDialogue(nextDialogue);
+                            }
+                        }, 1000);
+                        return;
+                    }
+                    // Also check if we're waiting for an action that's already completed
+                    if (dogCompletedActions.includes(savedWaiting)) {
+                        console.log('[Anti-Softlock] Resume: action already completed:', savedWaiting);
+                        localStorage.removeItem('dog_dialogue_key');
+                        localStorage.removeItem('dog_dialogue_index');
+                        localStorage.removeItem('dog_waiting_for');
+                        setDogCompanionWaitingFor(null);
+                        setTimeout(() => {
+                            const nextDialogue = WAIT_ACTION_TO_NEXT_DIALOGUE[savedWaiting];
+                            if (nextDialogue) {
+                                startDogDialogue(nextDialogue);
+                            }
+                        }, 1000);
+                        return;
+                    }
+                }
 
                 // If dog is waiting for action but no saved key, just let the wait state continue
                 if (savedWaiting && !savedKey) {
@@ -10922,7 +11203,7 @@ Good luck.`;
                         }, secondLineTime);
                     }, firstLineTime);
                 }, 3000);
-            }, [dogCompanionActive, dogCompanionStoryPhase]);
+            }, [dogCompanionActive, dogCompanionStoryPhase, dogCompletedActions]);
 
             // Dog companion dragging handlers with 100ms hold timer
             const dogHoldTimerRef = useRef(null);
