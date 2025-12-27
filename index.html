@@ -484,6 +484,19 @@
             opacity: 0.15;
         }
 
+        /* Dark mode styles */
+        .dark-mode {
+            filter: invert(1) hue-rotate(180deg);
+        }
+        /* Double-invert images/video/canvas to keep them normal, except dog sprite */
+        .dark-mode img:not(.dog-sprite),
+        .dark-mode video,
+        .dark-mode canvas,
+        .dark-mode .no-invert {
+            filter: invert(1) hue-rotate(180deg);
+        }
+        /* Dog sprite stays inverted (no double-invert) */
+
         /* Icon drag shake animation */
         @keyframes iconShake {
             0%, 100% { transform: rotate(-1deg); }
@@ -2136,6 +2149,8 @@
             Fire: (p) => <PixelartIcon name="zap" {...p} />,
             Bomb: (p) => <PixelartIcon name="close-box" {...p} />,
             Badge: (p) => <PixelartIcon name="calendar" {...p} />,
+            Moon: (p) => <PixelartIcon name="moon" {...p} />,
+            Sun: (p) => <PixelartIcon name="sun" {...p} />,
         };
 
         // --- DOG COMPANION SPRITE SHEET SYSTEM ---
@@ -2214,7 +2229,7 @@
             const spriteY = config.row * DOG_SPRITE_CONFIG.spriteSize;
 
             return (
-                <div style={{
+                <div className="dog-sprite" style={{
                     width: DOG_SPRITE_CONFIG.spriteSize * scale,
                     height: DOG_SPRITE_CONFIG.spriteSize * scale,
                     backgroundImage: 'url(DOG_BLACK_SPRITE.png)',
@@ -3030,8 +3045,8 @@
                 const absOffset = Math.abs(offset);
                 const dims = getCoverDimensions(item.categoryKey);
 
-                // Core positioning
-                const translateX = offset * 85;
+                // Core positioning (50% more spacing)
+                const translateX = offset * 128;
                 const translateZ = -absOffset * 100;
                 const rotateY = offset * -45;
                 const scale = 1 - absOffset * 0.12;
@@ -9715,6 +9730,15 @@ Good luck.`;
             const [paintShowHint, setPaintShowHint] = useState(false);
             const [isMuted, setIsMuted] = useState(() => localStorage.getItem('sound_muted') === 'true');
             const handleToggleMute = () => setIsMuted(toggleMute());
+            const [darkMode, setDarkMode] = useState(() => localStorage.getItem('dark_mode') === 'true');
+            const handleToggleDarkMode = () => {
+                setDarkMode(prev => {
+                    const newVal = !prev;
+                    localStorage.setItem('dark_mode', newVal.toString());
+                    return newVal;
+                });
+                sounds.click();
+            };
             const [topZ, setTopZ] = useState(100);
             const topZRef = useRef(100);
             const [destructionMode, setDestructionMode] = useState(false);
@@ -12550,7 +12574,7 @@ Good luck.`;
 
             return (
                 <div
-                    className={`w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''} ${isMobile ? 'mobile-safe-height' : 'h-screen'}`}
+                    className={`w-screen relative overflow-hidden desktop-bg-${desktopBg} ${destructionMode ? 'animate-pulse' : ''} ${matrixMode ? 'matrix-mode' : ''} ${isMobile ? 'mobile-safe-height' : 'h-screen'} ${darkMode ? 'dark-mode' : ''}`}
                     onMouseMove={(e) => {
                         handleMouseMove(e);
                         handleIconMouseMove(e);
@@ -12824,6 +12848,13 @@ Good luck.`;
                             title={isMuted ? 'Unmute' : 'Mute'}
                         >
                             {isMuted ? <Icons.SpeakerOff size={16} /> : <Icons.Speaker size={16} />}
+                        </button>
+                        <button
+                            onClick={handleToggleDarkMode}
+                            className={`border-l-2 border-black flex items-center justify-center hover:bg-gray-100 transition-colors ${isMobile ? 'px-2' : 'px-3'}`}
+                            title={darkMode ? 'Light Mode' : 'Dark Mode'}
+                        >
+                            <Icons.Moon size={16} />
                         </button>
                         <div className={`font-mono border-l-2 border-black flex items-center gap-2 ${isMobile ? 'text-[8px] px-1' : 'text-[10px] px-3'}`}>
                             <span className="text-gray-500">POWER:</span>
