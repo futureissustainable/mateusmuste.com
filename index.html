@@ -2351,9 +2351,10 @@
                                 : 'perspective(800px) rotateX(0deg) scaleY(1)',
                         transformOrigin: 'bottom center',
                         opacity: foldingSlow ? 0.8 : falling ? 0 : 1,
+                        // Falling: 1s duration (2x slower), exponential ease-in (starts slow, accelerates)
                         transition: foldingSlow
                             ? 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.5s'
-                            : 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s'
+                            : 'transform 1s cubic-bezier(0.7, 0, 1, 0.5), opacity 1s cubic-bezier(0.7, 0, 1, 0.5)'
                     }}
                 />
             );
@@ -11316,7 +11317,7 @@ Good luck.`;
             // Handle Goldy click (fold down like cardboard falling and disappear forever)
             const handleGoldyClick = () => {
                 setGoldyFalling(true);
-                setTimeout(() => setGoldyVisible(false), 500);
+                setTimeout(() => setGoldyVisible(false), 1000); // Match the 1s animation duration
             };
 
             // Legacy dog dragging handlers
