@@ -488,14 +488,14 @@
         .dark-mode {
             filter: invert(1) hue-rotate(180deg);
         }
-        /* Double-invert images/video/canvas to keep them normal, except dog sprite */
-        .dark-mode img:not(.dog-sprite),
+        /* Double-invert cover images/video/canvas to keep them normal */
+        /* Exclude: icons (.pixelart-icon), dog sprite (.dog-sprite) - these stay inverted */
+        .dark-mode img:not(.pixelart-icon):not(.dog-sprite),
         .dark-mode video,
         .dark-mode canvas,
         .dark-mode .no-invert {
             filter: invert(1) hue-rotate(180deg);
         }
-        /* Dog sprite stays inverted (no double-invert) */
 
         /* Icon drag shake animation */
         @keyframes iconShake {
@@ -2060,7 +2060,7 @@
                 height={size}
                 alt={name}
                 style={{ imageRendering: 'pixelated', ...style }}
-                className={className}
+                className={`pixelart-icon ${className}`}
                 {...props}
             />
         );
