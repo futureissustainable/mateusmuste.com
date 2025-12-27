@@ -3555,9 +3555,26 @@
             );
         };
 
-        // ABOUT.EXE - Static portfolio page (no animations)
+        // ABOUT.EXE - Engaging portfolio with staged reveals
         const AboutApp = ({ onAchievement }) => {
             const achievementTriggered = useRef(false);
+            const [stage, setStage] = useState(0);
+            const [activeSection, setActiveSection] = useState(null); // 'credentials' or 'projects'
+            const [titlesRevealed, setTitlesRevealed] = useState(0);
+
+            const titles = [
+                "RADICAL OPTIMIST",
+                "ENVIRONMENTALIST",
+                "DIGITAL ARCHITECT",
+                "WORLD BUILDER"
+            ];
+
+            const credentials = [
+                { name: "SAT", score: "1480", max: "1600", note: "Top 1%" },
+                { name: "IELTS", score: "8.5", max: "9.0", note: "Expert" },
+                { name: "CAMBRIDGE C2", score: "PROFICIENT", max: "", note: "Highest Level" }
+            ];
+
             const skills = [
                 { name: 'PHOTOSHOP', yrs: 9 },
                 { name: 'PREMIERE', yrs: 8 },
@@ -3574,55 +3591,183 @@
             ];
 
             const projects = [
-                { t: "BIOBUILDS", s: "Web / Video / Marketing", d: "Sustainable construction across Europe." },
-                { t: "ROMANIA OLYMPICS 2024", s: "Premiere / After Effects", d: "National contest winner." },
-                { t: "ULT", s: "Documentary / Editing", d: "Self-directed channel." }
+                { t: "BIOBUILDS", s: "Web / Video / Marketing", d: "Sustainable construction across Europe.", link: "#" },
+                { t: "ROMANIA OLYMPICS 2024", s: "Premiere / After Effects", d: "National contest winner.", link: "#" },
+                { t: "ULT", s: "Documentary / Editing", d: "Self-directed channel.", link: "#" }
             ];
+
+            // Animate titles one by one when stage 1 is reached
+            useEffect(() => {
+                if (stage === 1 && titlesRevealed < titles.length) {
+                    const timer = setTimeout(() => {
+                        setTitlesRevealed(prev => prev + 1);
+                    }, 300);
+                    return () => clearTimeout(timer);
+                }
+            }, [stage, titlesRevealed, titles.length]);
+
+            const handleAboutClick = () => {
+                setStage(1);
+                setTimeout(() => setStage(2), titles.length * 300 + 800);
+            };
+
+            const handleSectionClick = (section) => {
+                setActiveSection(section);
+                setStage(3);
+            };
 
             return (
                 <div className="h-full flex flex-col bg-white select-none overflow-auto">
-                    <div className="p-6 md:p-8 space-y-8">
-                        {/* Name */}
-                        <h1 className="font-black" style={{ fontSize: 'clamp(6rem, 22.5vw, 15rem)' }}>
-                            MATEUS<br />MUSTE
-                        </h1>
+                    <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-8 min-h-full">
 
-                        {/* Badges */}
-                        <div className="flex flex-wrap gap-2">
-                            <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">DIGITAL DESIGNER</span>
-                            <span className="bg-black text-white px-2 py-1 font-mono text-[10px] md:text-xs">RADICAL OPTIMIST</span>
-                            <span className="border-2 border-black px-2 py-1 font-mono text-[10px] md:text-xs">ROMANIA</span>
+                        {/* STAGE 0: Hero intro */}
+                        <div className={`text-center transition-all duration-700 ${stage >= 1 ? 'opacity-0 absolute pointer-events-none' : 'opacity-100'}`}>
+                            <h1 className="font-black mb-4" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', lineHeight: 1.1 }}>
+                                I'm Mateus.
+                            </h1>
+                            <p className="font-mono text-sm md:text-lg mb-8 max-w-md mx-auto opacity-70" style={{ lineHeight: 1.6 }}>
+                                I build worlds from blueprints<br />and meaning from noise.
+                            </p>
+                            <button
+                                onClick={handleAboutClick}
+                                className="bg-black text-white px-8 py-4 font-mono text-sm uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-all duration-200 btn-shadow"
+                            >
+                                ABOUT ME →
+                            </button>
                         </div>
 
-                        {/* Skills */}
-                        <div>
-                            <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Skills</h3>
-                            <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                {skills.map((skill, i) => (
-                                    <div key={i} className="border-2 border-black p-2 text-center" style={{ opacity: 1 - (i / skills.length) * 0.5 }}>
-                                        <div className="font-bold text-[10px]">{skill.name}</div>
-                                        <div className="font-mono text-[10px] text-gray-500">{skill.yrs} YRS</div>
-                                    </div>
+                        {/* STAGE 1+: Titles reveal */}
+                        <div className={`text-center transition-all duration-700 ${stage >= 1 ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'} ${stage >= 3 ? 'scale-90 -translate-y-8' : ''}`}>
+                            <h1 className="font-black mb-6" style={{ fontSize: 'clamp(3rem, 12vw, 8rem)', lineHeight: 0.9 }}>
+                                MATEUS<br />MUSTE
+                            </h1>
+
+                            {/* Animated titles */}
+                            <div className="flex flex-wrap justify-center gap-2 mb-8 min-h-[80px]">
+                                {titles.map((title, i) => (
+                                    <span
+                                        key={i}
+                                        className={`bg-black text-white px-3 py-2 font-mono text-[10px] md:text-xs tracking-wider transition-all duration-500 ${
+                                            i < titlesRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                                        }`}
+                                        style={{ transitionDelay: `${i * 100}ms` }}
+                                    >
+                                        {title}
+                                    </span>
                                 ))}
+                            </div>
+
+                            {/* STAGE 2: Two buttons */}
+                            <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-500 ${stage >= 2 && stage < 3 ? 'opacity-100 translate-y-0' : stage >= 3 ? 'opacity-0 -translate-y-4 absolute pointer-events-none' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                                <button
+                                    onClick={() => handleSectionClick('credentials')}
+                                    className="bg-white text-black px-6 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all duration-200 btn-shadow"
+                                >
+                                    SEE CREDENTIALS ↓
+                                </button>
+                                <button
+                                    onClick={() => handleSectionClick('projects')}
+                                    className="bg-white text-black px-6 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all duration-200 btn-shadow"
+                                >
+                                    SEE PROJECTS ↓
+                                </button>
                             </div>
                         </div>
 
-                        {/* Projects */}
-                        <div>
-                            <h3 className="font-black text-lg uppercase mb-4 border-b-2 border-black pb-2">Projects</h3>
-                            <div className="space-y-2">
-                                {projects.map((p, i) => (
-                                    <div key={i} className="border-2 border-black p-3 hover:bg-black hover:text-white transition-colors cursor-pointer" onClick={() => {
-                                        if (!achievementTriggered.current) {
-                                            achievementTriggered.current = true;
-                                            onAchievement?.('WORK_IN_PROGRESS');
-                                        }
-                                    }}>
-                                        <div className="font-bold text-sm uppercase">{p.t}</div>
-                                        <div className="font-mono text-[10px] text-gray-500">{p.s}</div>
-                                        <div className="text-[13px] mt-1">{p.d}</div>
+                        {/* STAGE 3: Full content section */}
+                        <div className={`w-full max-w-2xl transition-all duration-700 ${stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 absolute pointer-events-none'}`}>
+
+                            {/* Tab buttons */}
+                            <div className="flex border-b-2 border-black mb-6">
+                                <button
+                                    onClick={() => setActiveSection('credentials')}
+                                    className={`flex-1 py-3 font-mono text-xs uppercase tracking-widest transition-colors ${activeSection === 'credentials' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
+                                >
+                                    CREDENTIALS
+                                </button>
+                                <button
+                                    onClick={() => setActiveSection('projects')}
+                                    className={`flex-1 py-3 font-mono text-xs uppercase tracking-widest border-l-2 border-black transition-colors ${activeSection === 'projects' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
+                                >
+                                    PROJECTS
+                                </button>
+                            </div>
+
+                            {/* Credentials Section */}
+                            <div className={`transition-all duration-500 ${activeSection === 'credentials' ? 'block' : 'hidden'}`}>
+                                {/* Test Scores */}
+                                <div className="mb-6">
+                                    <h3 className="font-black text-sm uppercase mb-4 opacity-50">TEST SCORES</h3>
+                                    <div className="grid gap-3">
+                                        {credentials.map((cred, i) => (
+                                            <div key={i} className="border-2 border-black p-4 flex justify-between items-center hover:bg-black hover:text-white transition-colors group">
+                                                <div>
+                                                    <div className="font-bold text-sm">{cred.name}</div>
+                                                    <div className="font-mono text-[10px] opacity-50 group-hover:opacity-70">{cred.note}</div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="font-black text-xl">{cred.score}</div>
+                                                    {cred.max && <div className="font-mono text-[10px] opacity-50">/{cred.max}</div>}
+                                                </div>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                </div>
+
+                                {/* Skills */}
+                                <div className="mb-6">
+                                    <h3 className="font-black text-sm uppercase mb-4 opacity-50">SKILLS & TOOLS</h3>
+                                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                                        {skills.map((skill, i) => (
+                                            <div key={i} className="border-2 border-black p-2 text-center hover:bg-black hover:text-white transition-colors" style={{ animationDelay: `${i * 50}ms` }}>
+                                                <div className="font-bold text-[10px]">{skill.name}</div>
+                                                <div className="font-mono text-[10px] opacity-50">{skill.yrs} YRS</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Projects Section */}
+                            <div className={`transition-all duration-500 ${activeSection === 'projects' ? 'block' : 'hidden'}`}>
+                                <div className="space-y-3">
+                                    {projects.map((p, i) => (
+                                        <div
+                                            key={i}
+                                            className="border-2 border-black p-4 hover:bg-black hover:text-white transition-colors cursor-pointer group"
+                                            onClick={() => {
+                                                if (!achievementTriggered.current) {
+                                                    achievementTriggered.current = true;
+                                                    onAchievement?.('WORK_IN_PROGRESS');
+                                                }
+                                            }}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <div className="font-bold text-sm uppercase">{p.t}</div>
+                                                    <div className="font-mono text-[10px] opacity-50 group-hover:opacity-70">{p.s}</div>
+                                                </div>
+                                                <span className="font-mono text-lg opacity-30 group-hover:opacity-100 transition-opacity">→</span>
+                                            </div>
+                                            <div className="text-[13px] mt-2 opacity-70 group-hover:opacity-100">{p.d}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Let's Talk CTA */}
+                            <div className="mt-8 pt-6 border-t-2 border-black text-center">
+                                <p className="font-mono text-[10px] uppercase tracking-widest opacity-50 mb-4">Ready to build something?</p>
+                                <button
+                                    onClick={() => {
+                                        // Find and open the CONTACT window
+                                        const contactEvent = new CustomEvent('openContact');
+                                        window.dispatchEvent(contactEvent);
+                                    }}
+                                    className="bg-black text-white px-8 py-4 font-mono text-sm uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-all duration-200 btn-shadow"
+                                >
+                                    LET'S TALK →
+                                </button>
                             </div>
                         </div>
 
@@ -11716,6 +11861,13 @@ Good luck.`;
                 }
                 setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
             };
+
+            // Listen for openContact custom event from AboutApp
+            useEffect(() => {
+                const handleOpenContact = () => open('CONTACT');
+                window.addEventListener('openContact', handleOpenContact);
+                return () => window.removeEventListener('openContact', handleOpenContact);
+            }, []);
 
             // Drag Handlers with velocity tracking
             const handleMouseDown = (e, id) => {
