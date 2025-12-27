@@ -3121,8 +3121,9 @@
                 }
             }, [currentIndex, allItems, visitedCategories, onAchievement]);
 
-            // Momentum animation
+            // Momentum animation - disabled on mobile for smoother direct control
             useEffect(() => {
+                if (isMobile) return; // No momentum on mobile
                 if (!isDragging && Math.abs(velocity) > 0.1) {
                     animationRef.current = requestAnimationFrame(() => {
                         const newIndex = Math.max(0, Math.min(allItems.length - 1,
@@ -3134,7 +3135,7 @@
                 return () => {
                     if (animationRef.current) cancelAnimationFrame(animationRef.current);
                 };
-            }, [isDragging, velocity, currentIndex, allItems.length]);
+            }, [isDragging, velocity, currentIndex, allItems.length, isMobile]);
 
             const handleDragStart = (e) => {
                 setIsDragging(true);
@@ -3151,22 +3152,24 @@
                 e.preventDefault();
                 const clientX = e.touches ? e.touches[0].clientX : e.clientX;
                 const containerWidth = containerRef.current?.offsetWidth || 400;
-                // Mobile: less sensitive (need to drag further to change items)
-                const dragSensitivity = isMobile ? containerWidth / 1.5 : containerWidth / 3;
-                const delta = (dragStart.x - clientX) / dragSensitivity;
+                // Mobile: much less sensitive - need to drag ~80px per item
+                // Desktop: more sensitive for quick browsing
+                const pixelsPerItem = isMobile ? 80 : 50;
+                const delta = (dragStart.x - clientX) / pixelsPerItem;
                 const newIndex = Math.max(0, Math.min(allItems.length - 1,
                     Math.round(dragStart.index + delta)));
 
-                // Calculate velocity - much lower on mobile for smoother feel
-                const now = Date.now();
-                const dt = now - lastMoveTime.current;
-                if (dt > 0) {
-                    const dx = clientX - lastMoveX.current;
-                    const velocityMultiplier = isMobile ? 3 : 10;
-                    setVelocity(dx / dt * velocityMultiplier);
+                // Calculate velocity - only for desktop momentum
+                if (!isMobile) {
+                    const now = Date.now();
+                    const dt = now - lastMoveTime.current;
+                    if (dt > 0) {
+                        const dx = clientX - lastMoveX.current;
+                        setVelocity(dx / dt * 10);
+                    }
+                    lastMoveX.current = clientX;
+                    lastMoveTime.current = now;
                 }
-                lastMoveX.current = clientX;
-                lastMoveTime.current = now;
 
                 if (newIndex !== currentIndex) {
                     setCurrentIndex(newIndex);
@@ -3176,6 +3179,8 @@
 
             const handleDragEnd = () => {
                 setIsDragging(false);
+                // On mobile, clear velocity to prevent any momentum
+                if (isMobile) setVelocity(0);
             };
 
             const handleWheel = (e) => {
