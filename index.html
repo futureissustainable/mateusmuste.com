@@ -3555,12 +3555,11 @@
             );
         };
 
-        // ABOUT.EXE - Engaging portfolio with staged reveals
+        // ABOUT.EXE - Neo-brutalist Swiss international style portfolio
         const AboutApp = ({ onAchievement }) => {
             const achievementTriggered = useRef(false);
-            const [stage, setStage] = useState(0);
-            const [activeSection, setActiveSection] = useState(null); // 'credentials' or 'projects'
-            const [titlesRevealed, setTitlesRevealed] = useState(0);
+            const [page, setPage] = useState(0);
+            const maxPage = 3;
 
             const titles = [
                 "RADICAL OPTIMIST",
@@ -3570,9 +3569,8 @@
             ];
 
             const credentials = [
-                { name: "SAT", score: "1480", max: "1600", note: "Top 1%" },
-                { name: "IELTS", score: "8.5", max: "9.0", note: "Expert" },
-                { name: "CAMBRIDGE C2", score: "PROFICIENT", max: "", note: "Highest Level" }
+                { name: "SAT", score: "1570", max: "1600", percentile: "99th" },
+                { name: "CAMBRIDGE C2", score: "PROFICIENT", max: "", percentile: "HIGHEST" }
             ];
 
             const skills = [
@@ -3591,185 +3589,235 @@
             ];
 
             const projects = [
-                { t: "BIOBUILDS", s: "Web / Video / Marketing", d: "Sustainable construction across Europe.", link: "#" },
-                { t: "ROMANIA OLYMPICS 2024", s: "Premiere / After Effects", d: "National contest winner.", link: "#" },
-                { t: "ULT", s: "Documentary / Editing", d: "Self-directed channel.", link: "#" }
+                { t: "BIOBUILDS", s: "Web / Video / Marketing", d: "Sustainable construction across Europe." },
+                { t: "ROMANIA OLYMPICS 2024", s: "Premiere / After Effects", d: "National contest winner." },
+                { t: "ULT", s: "Documentary / Editing", d: "Self-directed channel." }
             ];
 
-            // Animate titles one by one when stage 1 is reached
-            useEffect(() => {
-                if (stage === 1 && titlesRevealed < titles.length) {
-                    const timer = setTimeout(() => {
-                        setTitlesRevealed(prev => prev + 1);
-                    }, 300);
-                    return () => clearTimeout(timer);
-                }
-            }, [stage, titlesRevealed, titles.length]);
-
-            const handleAboutClick = () => {
-                setStage(1);
-                setTimeout(() => setStage(2), titles.length * 300 + 800);
-            };
-
-            const handleSectionClick = (section) => {
-                setActiveSection(section);
-                setStage(3);
-            };
+            const goNext = () => setPage(p => Math.min(p + 1, maxPage));
+            const goBack = () => setPage(p => Math.max(p - 1, 0));
 
             return (
-                <div className="h-full flex flex-col bg-white select-none overflow-auto">
-                    <div className="flex-1 flex flex-col justify-center items-center p-6 md:p-8 min-h-full">
-
-                        {/* STAGE 0: Hero intro */}
-                        <div className={`text-center transition-all duration-700 ${stage >= 1 ? 'opacity-0 absolute pointer-events-none' : 'opacity-100'}`}>
-                            <h1 className="font-black mb-4" style={{ fontSize: 'clamp(2.5rem, 8vw, 5rem)', lineHeight: 1.1 }}>
-                                I'm Mateus.
-                            </h1>
-                            <p className="font-mono text-sm md:text-lg mb-8 max-w-md mx-auto opacity-70" style={{ lineHeight: 1.6 }}>
-                                I build worlds from blueprints<br />and meaning from noise.
-                            </p>
-                            <button
-                                onClick={handleAboutClick}
-                                className="bg-black text-white px-8 py-4 font-mono text-sm uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-all duration-200 btn-shadow"
-                            >
-                                ABOUT ME →
-                            </button>
-                        </div>
-
-                        {/* STAGE 1+: Titles reveal */}
-                        <div className={`text-center transition-all duration-700 ${stage >= 1 ? 'opacity-100' : 'opacity-0 absolute pointer-events-none'} ${stage >= 3 ? 'scale-90 -translate-y-8' : ''}`}>
-                            <h1 className="font-black mb-6" style={{ fontSize: 'clamp(3rem, 12vw, 8rem)', lineHeight: 0.9 }}>
-                                MATEUS<br />MUSTE
-                            </h1>
-
-                            {/* Animated titles */}
-                            <div className="flex flex-wrap justify-center gap-2 mb-8 min-h-[80px]">
-                                {titles.map((title, i) => (
-                                    <span
-                                        key={i}
-                                        className={`bg-black text-white px-3 py-2 font-mono text-[10px] md:text-xs tracking-wider transition-all duration-500 ${
-                                            i < titlesRevealed ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                                        }`}
-                                        style={{ transitionDelay: `${i * 100}ms` }}
-                                    >
-                                        {title}
-                                    </span>
-                                ))}
-                            </div>
-
-                            {/* STAGE 2: Two buttons */}
-                            <div className={`flex flex-col sm:flex-row gap-4 justify-center transition-all duration-500 ${stage >= 2 && stage < 3 ? 'opacity-100 translate-y-0' : stage >= 3 ? 'opacity-0 -translate-y-4 absolute pointer-events-none' : 'opacity-0 translate-y-4 pointer-events-none'}`}>
+                <div className="h-full flex flex-col bg-white select-none overflow-hidden">
+                    {/* FIXED HEADER */}
+                    <div className="flex-shrink-0 border-b-4 border-black bg-white">
+                        <div className="flex justify-between items-center px-4 py-3">
+                            <span className="font-mono text-[10px] tracking-[0.3em] uppercase">mateusmuste.com</span>
+                            <div className="flex items-center gap-1">
                                 <button
-                                    onClick={() => handleSectionClick('credentials')}
-                                    className="bg-white text-black px-6 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all duration-200 btn-shadow"
+                                    onClick={goBack}
+                                    disabled={page === 0}
+                                    className={`w-8 h-8 border-2 border-black font-mono text-sm flex items-center justify-center transition-all ${page === 0 ? 'opacity-20 cursor-not-allowed' : 'hover:bg-black hover:text-white'}`}
                                 >
-                                    SEE CREDENTIALS ↓
+                                    ←
                                 </button>
+                                <span className="font-mono text-[10px] px-2">{page + 1}/{maxPage + 1}</span>
                                 <button
-                                    onClick={() => handleSectionClick('projects')}
-                                    className="bg-white text-black px-6 py-4 font-mono text-xs uppercase tracking-widest border-2 border-black hover:bg-black hover:text-white transition-all duration-200 btn-shadow"
+                                    onClick={goNext}
+                                    disabled={page === maxPage}
+                                    className={`w-8 h-8 border-2 border-black font-mono text-sm flex items-center justify-center transition-all ${page === maxPage ? 'opacity-20 cursor-not-allowed' : 'hover:bg-black hover:text-white'}`}
                                 >
-                                    SEE PROJECTS ↓
+                                    →
                                 </button>
                             </div>
                         </div>
+                    </div>
 
-                        {/* STAGE 3: Full content section */}
-                        <div className={`w-full max-w-2xl transition-all duration-700 ${stage >= 3 ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 absolute pointer-events-none'}`}>
+                    {/* CONTENT AREA */}
+                    <div className="flex-1 overflow-auto">
 
-                            {/* Tab buttons */}
-                            <div className="flex border-b-2 border-black mb-6">
-                                <button
-                                    onClick={() => setActiveSection('credentials')}
-                                    className={`flex-1 py-3 font-mono text-xs uppercase tracking-widest transition-colors ${activeSection === 'credentials' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
-                                >
-                                    CREDENTIALS
-                                </button>
-                                <button
-                                    onClick={() => setActiveSection('projects')}
-                                    className={`flex-1 py-3 font-mono text-xs uppercase tracking-widest border-l-2 border-black transition-colors ${activeSection === 'projects' ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-100'}`}
-                                >
-                                    PROJECTS
-                                </button>
-                            </div>
+                        {/* PAGE 0: HERO */}
+                        {page === 0 && (
+                            <div className="min-h-full flex flex-col justify-center p-6 md:p-12">
+                                <div className="max-w-3xl">
+                                    {/* Oversized name */}
+                                    <h1 className="font-black leading-none tracking-tighter" style={{ fontSize: 'clamp(4rem, 20vw, 12rem)', marginLeft: '-0.05em' }}>
+                                        MATEUS
+                                    </h1>
 
-                            {/* Credentials Section */}
-                            <div className={`transition-all duration-500 ${activeSection === 'credentials' ? 'block' : 'hidden'}`}>
-                                {/* Test Scores */}
-                                <div className="mb-6">
-                                    <h3 className="font-black text-sm uppercase mb-4 opacity-50">TEST SCORES</h3>
-                                    <div className="grid gap-3">
-                                        {credentials.map((cred, i) => (
-                                            <div key={i} className="border-2 border-black p-4 flex justify-between items-center hover:bg-black hover:text-white transition-colors group">
-                                                <div>
-                                                    <div className="font-bold text-sm">{cred.name}</div>
-                                                    <div className="font-mono text-[10px] opacity-50 group-hover:opacity-70">{cred.note}</div>
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="font-black text-xl">{cred.score}</div>
-                                                    {cred.max && <div className="font-mono text-[10px] opacity-50">/{cred.max}</div>}
-                                                </div>
+                                    {/* Tagline with asymmetric layout */}
+                                    <div className="mt-8 grid grid-cols-12 gap-4">
+                                        <div className="col-span-12 md:col-span-8 md:col-start-4">
+                                            <div className="border-l-4 border-black pl-4">
+                                                <p className="font-mono text-xs md:text-sm uppercase tracking-wider leading-relaxed">
+                                                    I build worlds from blueprints.<br />
+                                                    I extract meaning from noise.
+                                                </p>
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
-
-                                {/* Skills */}
-                                <div className="mb-6">
-                                    <h3 className="font-black text-sm uppercase mb-4 opacity-50">SKILLS & TOOLS</h3>
-                                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
-                                        {skills.map((skill, i) => (
-                                            <div key={i} className="border-2 border-black p-2 text-center hover:bg-black hover:text-white transition-colors" style={{ animationDelay: `${i * 50}ms` }}>
-                                                <div className="font-bold text-[10px]">{skill.name}</div>
-                                                <div className="font-mono text-[10px] opacity-50">{skill.yrs} YRS</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Projects Section */}
-                            <div className={`transition-all duration-500 ${activeSection === 'projects' ? 'block' : 'hidden'}`}>
-                                <div className="space-y-3">
-                                    {projects.map((p, i) => (
-                                        <div
-                                            key={i}
-                                            className="border-2 border-black p-4 hover:bg-black hover:text-white transition-colors cursor-pointer group"
-                                            onClick={() => {
-                                                if (!achievementTriggered.current) {
-                                                    achievementTriggered.current = true;
-                                                    onAchievement?.('WORK_IN_PROGRESS');
-                                                }
-                                            }}
-                                        >
-                                            <div className="flex justify-between items-start">
-                                                <div>
-                                                    <div className="font-bold text-sm uppercase">{p.t}</div>
-                                                    <div className="font-mono text-[10px] opacity-50 group-hover:opacity-70">{p.s}</div>
-                                                </div>
-                                                <span className="font-mono text-lg opacity-30 group-hover:opacity-100 transition-opacity">→</span>
-                                            </div>
-                                            <div className="text-[13px] mt-2 opacity-70 group-hover:opacity-100">{p.d}</div>
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* CTA */}
+                                    <div className="mt-12 flex items-center gap-4">
+                                        <button
+                                            onClick={goNext}
+                                            className="bg-black text-white px-6 py-4 font-mono text-xs uppercase tracking-widest hover:bg-white hover:text-black border-2 border-black transition-all"
+                                        >
+                                            ENTER →
+                                        </button>
+                                        <span className="font-mono text-[10px] opacity-40">SCROLL OR NAVIGATE</span>
+                                    </div>
                                 </div>
                             </div>
+                        )}
 
-                            {/* Let's Talk CTA */}
-                            <div className="mt-8 pt-6 border-t-2 border-black text-center">
-                                <p className="font-mono text-[10px] uppercase tracking-widest opacity-50 mb-4">Ready to build something?</p>
-                                <button
-                                    onClick={() => {
-                                        // Find and open the CONTACT window
-                                        const contactEvent = new CustomEvent('openContact');
-                                        window.dispatchEvent(contactEvent);
-                                    }}
-                                    className="bg-black text-white px-8 py-4 font-mono text-sm uppercase tracking-widest border-2 border-black hover:bg-white hover:text-black transition-all duration-200 btn-shadow"
-                                >
-                                    LET'S TALK →
-                                </button>
+                        {/* PAGE 1: IDENTITY */}
+                        {page === 1 && (
+                            <div className="min-h-full flex flex-col p-6 md:p-12">
+                                {/* Section label */}
+                                <div className="flex items-center gap-4 mb-8">
+                                    <span className="font-mono text-[10px] tracking-widest opacity-40">01</span>
+                                    <div className="flex-1 h-[2px] bg-black opacity-20"></div>
+                                    <span className="font-mono text-[10px] tracking-widest uppercase">Identity</span>
+                                </div>
+
+                                {/* Big statement */}
+                                <div className="flex-1 flex flex-col justify-center">
+                                    <h2 className="font-black text-3xl md:text-5xl leading-tight mb-12" style={{ maxWidth: '16ch' }}>
+                                        NOT JUST A DESIGNER.
+                                    </h2>
+
+                                    {/* Titles grid */}
+                                    <div className="grid grid-cols-2 gap-3 max-w-lg">
+                                        {titles.map((title, i) => (
+                                            <div
+                                                key={i}
+                                                className="bg-black text-white p-4 font-mono text-[10px] md:text-xs tracking-wider"
+                                            >
+                                                {title}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Continue hint */}
+                                    <div className="mt-12">
+                                        <button
+                                            onClick={goNext}
+                                            className="font-mono text-[10px] tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                                        >
+                                            <span>CREDENTIALS</span>
+                                            <span>→</span>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
+                        )}
+
+                        {/* PAGE 2: CREDENTIALS */}
+                        {page === 2 && (
+                            <div className="min-h-full flex flex-col p-6 md:p-12">
+                                {/* Section label */}
+                                <div className="flex items-center gap-4 mb-8">
+                                    <span className="font-mono text-[10px] tracking-widest opacity-40">02</span>
+                                    <div className="flex-1 h-[2px] bg-black opacity-20"></div>
+                                    <span className="font-mono text-[10px] tracking-widest uppercase">Credentials</span>
+                                </div>
+
+                                <div className="flex-1">
+                                    {/* Test Scores - Big numbers */}
+                                    <div className="mb-12">
+                                        <h3 className="font-mono text-[10px] tracking-widest uppercase opacity-40 mb-6">TEST SCORES</h3>
+                                        <div className="space-y-4">
+                                            {credentials.map((cred, i) => (
+                                                <div key={i} className="border-b-2 border-black pb-4 flex justify-between items-end">
+                                                    <div>
+                                                        <div className="font-black text-2xl md:text-4xl">{cred.name}</div>
+                                                        <div className="font-mono text-[10px] opacity-40 mt-1">{cred.percentile} PERCENTILE</div>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-black text-3xl md:text-5xl">{cred.score}</div>
+                                                        {cred.max && <div className="font-mono text-[10px] opacity-40">/{cred.max}</div>}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Skills - Compact grid */}
+                                    <div>
+                                        <h3 className="font-mono text-[10px] tracking-widest uppercase opacity-40 mb-4">TOOLS & YEARS</h3>
+                                        <div className="flex flex-wrap gap-2">
+                                            {skills.map((skill, i) => (
+                                                <div
+                                                    key={i}
+                                                    className="border-2 border-black px-3 py-2 hover:bg-black hover:text-white transition-colors cursor-default"
+                                                >
+                                                    <span className="font-mono text-[10px]">{skill.name}</span>
+                                                    <span className="font-mono text-[10px] opacity-40 ml-2">{skill.yrs}Y</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    {/* Continue */}
+                                    <div className="mt-12">
+                                        <button
+                                            onClick={goNext}
+                                            className="font-mono text-[10px] tracking-widest opacity-40 hover:opacity-100 transition-opacity flex items-center gap-2"
+                                        >
+                                            <span>PROJECTS</span>
+                                            <span>→</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PAGE 3: PROJECTS + CTA */}
+                        {page === 3 && (
+                            <div className="min-h-full flex flex-col p-6 md:p-12">
+                                {/* Section label */}
+                                <div className="flex items-center gap-4 mb-8">
+                                    <span className="font-mono text-[10px] tracking-widest opacity-40">03</span>
+                                    <div className="flex-1 h-[2px] bg-black opacity-20"></div>
+                                    <span className="font-mono text-[10px] tracking-widest uppercase">Projects</span>
+                                </div>
+
+                                <div className="flex-1">
+                                    {/* Projects list */}
+                                    <div className="space-y-4 mb-12">
+                                        {projects.map((p, i) => (
+                                            <div
+                                                key={i}
+                                                className="border-4 border-black p-6 hover:bg-black hover:text-white transition-colors cursor-pointer group"
+                                                onClick={() => {
+                                                    if (!achievementTriggered.current) {
+                                                        achievementTriggered.current = true;
+                                                        onAchievement?.('WORK_IN_PROGRESS');
+                                                    }
+                                                }}
+                                            >
+                                                <div className="flex justify-between items-start mb-2">
+                                                    <h4 className="font-black text-lg md:text-2xl">{p.t}</h4>
+                                                    <span className="font-mono text-2xl opacity-20 group-hover:opacity-100 transition-opacity">→</span>
+                                                </div>
+                                                <div className="font-mono text-[10px] opacity-40 group-hover:opacity-70">{p.s}</div>
+                                                <p className="font-mono text-xs mt-3 opacity-60 group-hover:opacity-100">{p.d}</p>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Final CTA */}
+                                    <div className="border-t-4 border-black pt-8">
+                                        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                                            <div>
+                                                <h3 className="font-black text-2xl md:text-3xl">LET'S BUILD.</h3>
+                                                <p className="font-mono text-[10px] opacity-40 mt-2 tracking-wider">READY WHEN YOU ARE</p>
+                                            </div>
+                                            <button
+                                                onClick={() => {
+                                                    const contactEvent = new CustomEvent('openContact');
+                                                    window.dispatchEvent(contactEvent);
+                                                }}
+                                                className="bg-black text-white px-8 py-5 font-mono text-sm uppercase tracking-widest hover:bg-white hover:text-black border-4 border-black transition-all"
+                                            >
+                                                CONTACT →
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                     </div>
                 </div>
