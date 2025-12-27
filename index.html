@@ -554,6 +554,54 @@
                 transform: translate(var(--move-x), var(--move-y));
             }
         }
+
+        /* Custom Cursors */
+        /* Normal cursor - default for all elements */
+        *, *::before, *::after {
+            cursor: url('assets/cursor/Cursor%20Normal.png'), auto;
+        }
+
+        /* Pointer/hover cursor for interactive elements */
+        a, button, [role="button"], .cursor-pointer,
+        input[type="submit"], input[type="button"], input[type="checkbox"], input[type="radio"],
+        select, label, summary, .clickable, .interactive {
+            cursor: url('assets/cursor/Cursor%20Normal.png'), pointer;
+        }
+
+        /* Drag hover cursor - for draggable elements on hover */
+        .draggable, [draggable="true"], .window-header, .resize-handle,
+        .drag-handle, .grabbable {
+            cursor: url('assets/cursor/Cursor%20Drag%20Hover.png'), grab;
+        }
+
+        /* Drag hold cursor - when actively dragging */
+        .dragging, .grabbing, .is-dragging,
+        .draggable:active, [draggable="true"]:active, .window-header:active,
+        .drag-handle:active, .grabbable:active {
+            cursor: url('assets/cursor/Cursor%20Drag%20Hold.png'), grabbing !important;
+        }
+
+        /* Loading cursor */
+        .loading, .is-loading, [aria-busy="true"], .wait {
+            cursor: url('assets/cursor/Loading.png'), wait !important;
+        }
+
+        /* Body loading state */
+        body.loading * {
+            cursor: url('assets/cursor/Loading.png'), wait !important;
+        }
+
+        /* Not-allowed cursor - keep using custom normal with fallback */
+        .btn-primary:disabled, .btn-secondary:disabled, [disabled], .disabled {
+            cursor: url('assets/cursor/Cursor%20Normal.png'), not-allowed;
+        }
+
+        /* Text selection cursor for text inputs */
+        input[type="text"], input[type="email"], input[type="password"],
+        input[type="search"], input[type="url"], input[type="tel"],
+        input[type="number"], textarea, [contenteditable="true"] {
+            cursor: url('assets/cursor/Cursor%20Normal.png'), text;
+        }
     </style>
 </head>
 
@@ -3175,7 +3223,7 @@
                     opacity,
                     zIndex,
                     transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                    cursor: 'pointer',
+                    cursor: "url('assets/cursor/Cursor%20Normal.png'), pointer",
                     transformStyle: 'preserve-3d',
                     dims,
                 };
@@ -7252,7 +7300,7 @@ Good luck.`;
                     opacity,
                     zIndex,
                     transition: isDragging ? 'none' : 'all 0.4s cubic-bezier(0.23, 1, 0.32, 1)',
-                    cursor: 'pointer',
+                    cursor: "url('assets/cursor/Cursor%20Normal.png'), pointer",
                     transformStyle: 'preserve-3d',
                     dims,
                 };
@@ -7804,12 +7852,12 @@ Good luck.`;
             const handlePointerDown = (e) => {
                 pointerInteracting.current = { x: e.clientX, y: e.clientY };
                 pointerInteractionMovement.current = 0;
-                if (canvasRef.current) canvasRef.current.style.cursor = 'grabbing';
+                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hold.png'), grabbing";
             };
 
             const handlePointerUp = () => {
                 pointerInteracting.current = null;
-                if (canvasRef.current) canvasRef.current.style.cursor = 'grab';
+                if (canvasRef.current) canvasRef.current.style.cursor = "url('assets/cursor/Cursor%20Drag%20Hover.png'), grab";
             };
 
             const handlePointerMove = (e) => {
@@ -7958,7 +8006,7 @@ Good luck.`;
                                 transform: 'translate(-50%, -50%)',
                                 width: canvasSize,
                                 height: canvasSize,
-                                cursor: 'grab',
+                                cursor: "url('assets/cursor/Cursor%20Drag%20Hover.png'), grab",
                                 touchAction: 'none'
                             }}
                             onPointerDown={handlePointerDown}
