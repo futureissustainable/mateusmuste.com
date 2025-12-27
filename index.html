@@ -3639,8 +3639,8 @@
                                     <div className="mt-8">
                                         <div className="border-l-4 border-black pl-4">
                                             <p className="font-mono text-xs md:text-sm uppercase tracking-wider leading-relaxed">
-                                                I build worlds from blueprints.<br />
-                                                I extract meaning from noise.
+                                                I BUILD DIGITAL WORLDS<br />
+                                                AROUND VISIONARY PRODUCTS.
                                             </p>
                                         </div>
                                     </div>
@@ -3783,6 +3783,13 @@
                                                 key={i}
                                                 className="border-4 border-black p-6 hover:bg-black hover:text-white transition-colors cursor-pointer group"
                                                 onClick={() => {
+                                                    if (i === 0) {
+                                                        // BIOBUILDS - open iframe window
+                                                        window.dispatchEvent(new CustomEvent('openBiobuilds'));
+                                                    } else {
+                                                        // Other projects - show WIP
+                                                        window.dispatchEvent(new CustomEvent('openProjectWIP'));
+                                                    }
                                                     if (!achievementTriggered.current) {
                                                         achievementTriggered.current = true;
                                                         onAchievement?.('WORK_IN_PROGRESS');
@@ -11510,7 +11517,9 @@ Good luck.`;
                 "BROWSER": { id: "BROWSER", title: "KONAMI by zen", icon: "Browser", x: 160, y: 70, w: 500, h: 400, isOpen: false, isMin: false, z: 38 },
                 "END": { id: "END", title: "ACHIEVEMENTS", icon: "Trophy", x: 200, y: 100, w: 400, h: 350, isOpen: false, isMin: false, z: 39 },
                 "BOOKS": { id: "BOOKS", title: "BOOKS.EXE", icon: "FileDoc", x: 150, y: 80, w: 600, h: 500, isOpen: false, isMin: false, z: 40 },
-                                "TRUTH_MESSAGES": { id: "TRUTH_MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 42 }
+                                "TRUTH_MESSAGES": { id: "TRUTH_MESSAGES", title: "MESSAGES.EXE", icon: "Email", x: 200, y: 80, w: 380, h: 500, isOpen: false, isMin: false, z: 42 },
+                "BIOBUILDS": { id: "BIOBUILDS", title: "BIOBUILDS.COM", icon: "Browser", x: 100, y: 50, w: 900, h: 650, isOpen: false, isMin: false, z: 43 },
+                "PROJECT_WIP": { id: "PROJECT_WIP", title: "PROJECT.EXE", icon: "FileDoc", x: 250, y: 120, w: 400, h: 250, isOpen: false, isMin: false, z: 44 }
             });
 
             // Auto-scale windows based on viewport - designed for 1920x1080, scales down for smaller screens
@@ -11615,6 +11624,23 @@ Good luck.`;
                     case "END": return <EndApp achievements={achievements} totalClicks={totalClicks} />;
                     case "BOOKS": return <BooksApp onUnlockApp={unlockApp} unlockedApps={unlockedApps} onDogEvent={notifyDogEvent} />;
                     case "TRUTH_MESSAGES": return <MessagesApp isTruthSequence={true} onTruthComplete={() => { unlockAchievement('TRUTH_SEEKER'); notifyDogEvent('dogReturn'); setTimeout(() => close('TRUTH_MESSAGES'), 10000); }} />;
+                    case "BIOBUILDS": return (
+                        <div className="h-full w-full bg-white">
+                            <iframe
+                                src="https://www.biobuilds.com"
+                                className="w-full h-full border-0"
+                                title="Biobuilds"
+                                sandbox="allow-scripts allow-same-origin allow-popups allow-forms"
+                            />
+                        </div>
+                    );
+                    case "PROJECT_WIP": return (
+                        <div className="h-full w-full bg-white flex flex-col items-center justify-center p-8 select-none">
+                            <PixelartIcon name="loader" size={64} className="mb-4" />
+                            <h2 className="font-black text-xl md:text-2xl text-center mb-2">WORK IN PROGRESS</h2>
+                            <p className="font-mono text-xs text-center opacity-50">This project page is coming soon.</p>
+                        </div>
+                    );
                     default: return null;
                 }
             };
@@ -11909,11 +11935,19 @@ Good luck.`;
                 setWindows(p => ({ ...p, [id]: { ...p[id], isMin: !p[id].isMin } }));
             };
 
-            // Listen for openContact custom event from AboutApp
+            // Listen for custom events from AboutApp
             useEffect(() => {
                 const handleOpenContact = () => open('CONTACT');
+                const handleOpenBiobuilds = () => open('BIOBUILDS');
+                const handleOpenProjectWIP = () => open('PROJECT_WIP');
                 window.addEventListener('openContact', handleOpenContact);
-                return () => window.removeEventListener('openContact', handleOpenContact);
+                window.addEventListener('openBiobuilds', handleOpenBiobuilds);
+                window.addEventListener('openProjectWIP', handleOpenProjectWIP);
+                return () => {
+                    window.removeEventListener('openContact', handleOpenContact);
+                    window.removeEventListener('openBiobuilds', handleOpenBiobuilds);
+                    window.removeEventListener('openProjectWIP', handleOpenProjectWIP);
+                };
             }, []);
 
             // Drag Handlers with velocity tracking
