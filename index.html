@@ -523,19 +523,31 @@
             animation: fadeIn 0.3s ease-out forwards;
         }
 
-        /* Goldy sparkle burst animation */
+        /* Goldy sparkle burst animation - 8-bit pixel style */
         @keyframes sparkle-burst {
             0% {
                 opacity: 0;
-                transform: scale(0) translate(0, 0);
+                transform: translate(0, 0);
             }
-            15% {
+            12.5% {
                 opacity: 1;
-                transform: scale(1.5) translate(0, 0);
+                transform: translate(0, 0);
+            }
+            25% {
+                opacity: 1;
+                transform: translate(calc(var(--move-x) * 0.25), calc(var(--move-y) * 0.25));
+            }
+            50% {
+                opacity: 1;
+                transform: translate(calc(var(--move-x) * 0.5), calc(var(--move-y) * 0.5));
+            }
+            75% {
+                opacity: 0.6;
+                transform: translate(calc(var(--move-x) * 0.75), calc(var(--move-y) * 0.75));
             }
             100% {
                 opacity: 0;
-                transform: scale(0.3) translate(var(--move-x), var(--move-y));
+                transform: translate(var(--move-x), var(--move-y));
             }
         }
     </style>
@@ -782,24 +794,27 @@
                 });
             },
 
+            // Window bounce - consistent with dog bounce sound
             bounce: (vel = 1) => {
                 if (!canPlaySound('bounce')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
-                const dist = makeDistortion(ctx, 12);
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(dist);
-                dist.connect(gain);
+                osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(220 + (vel * 100), now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
-                gain.gain.setValueAtTime(0.4 * Math.min(vel, 1.2), now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                // Higher velocity = higher starting pitch (same formula as dog)
+                const startFreq = 150 + Math.min(vel, 15) * 8;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+                // Higher velocity = louder (same formula as dog)
+                const volume = Math.min(0.08 + vel * 0.015, 0.2);
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.15);
             },
 
             bounceIcon: (vel = 1) => {
@@ -2339,9 +2354,10 @@
                                 : 'perspective(800px) rotateX(0deg) scaleY(1)',
                         transformOrigin: 'bottom center',
                         opacity: foldingSlow ? 0.8 : falling ? 0 : 1,
+                        // Falling: 1s duration (2x slower), exponential ease-in (starts slow, accelerates)
                         transition: foldingSlow
                             ? 'transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 1.5s'
-                            : 'transform 0.5s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.5s'
+                            : 'transform 1s cubic-bezier(0.7, 0, 1, 0.5), opacity 1s cubic-bezier(0.7, 0, 1, 0.5)'
                     }}
                 />
             );
@@ -2368,8 +2384,8 @@
             osc.stop(now + 0.04);
         };
 
-        // Dog bounce sound
-        const playDogBounceSound = () => {
+        // Dog bounce sound (with velocity scaling)
+        const playDogBounceSound = (vel = 1) => {
             if (!canPlaySound('dogBounce')) return;
             const ctx = getAudioCtx();
             if (!ctx) return;
@@ -2377,9 +2393,13 @@
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(200, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-            gain.gain.setValueAtTime(0.15, now);
+            // Higher velocity = higher starting pitch
+            const startFreq = 150 + Math.min(vel, 15) * 8;
+            osc.frequency.setValueAtTime(startFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+            // Higher velocity = louder
+            const volume = Math.min(0.08 + vel * 0.015, 0.2);
+            gain.gain.setValueAtTime(volume, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -7922,12 +7942,16 @@ Good luck.`;
                             </div>
                         ))}
 
-                        {/* Globe canvas */}
+                        {/* Globe canvas - absolutely centered */}
                         <canvas
                             ref={canvasRef}
                             role="img"
                             aria-label="Interactive 3D globe"
                             style={{
+                                position: 'absolute',
+                                left: '50%',
+                                top: '50%',
+                                transform: 'translate(-50%, -50%)',
                                 width: canvasSize,
                                 height: canvasSize,
                                 cursor: 'grab',
@@ -10227,9 +10251,10 @@ Good luck.`;
                 // Play magical appearance sound
                 sounds.appUnlock();
 
-                // Create sparkle particles with varied directions
+                // Create sparkle particles with varied directions (8-bit pixel style)
                 const sparkleCount = 16;
                 const newSparkles = [];
+                const pixelSizes = [4, 4, 6, 6, 8]; // Discrete pixel sizes for 8-bit look
                 for (let i = 0; i < sparkleCount; i++) {
                     const angle = (i / sparkleCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
                     const distance = 20 + Math.random() * 40;
@@ -10239,10 +10264,10 @@ Good luck.`;
                         startY: goldyRestY + 48,
                         endX: taskbarX + 48 + Math.cos(angle) * distance * 2,
                         endY: goldyRestY + 48 + Math.sin(angle) * distance * 2 - 30, // Bias upward
-                        size: 4 + Math.random() * 8,
-                        delay: Math.random() * 200,
-                        duration: 800 + Math.random() * 400,
-                        color: ['#FFD700', '#FFA500', '#FFEC8B', '#FFFACD', '#FFE4B5'][Math.floor(Math.random() * 5)]
+                        size: pixelSizes[Math.floor(Math.random() * pixelSizes.length)],
+                        delay: Math.floor(Math.random() * 4) * 50, // Stepped delays for choppy 8-bit feel
+                        duration: 600 + Math.floor(Math.random() * 3) * 200,
+                        color: ['#FFD700', '#FFA500', '#FFFF00', '#FFFFFF'][Math.floor(Math.random() * 4)]
                     });
                 }
                 setGoldySparkles(newSparkles);
@@ -10293,10 +10318,11 @@ Good luck.`;
                     // Hit the ground (taskbar)
                     if (y >= groundY) {
                         y = groundY;
+                        const impactVel = Math.abs(velocity);
                         velocity = -velocity * bounceDamping;
                         bounceCount++;
-                        // Play bounce sound
-                        playDogBounceSound();
+                        // Play bounce sound with impact velocity
+                        playDogBounceSound(impactVel);
 
                         if (bounceCount >= maxBounces || Math.abs(velocity) < 2) {
                             // Stop bouncing, start slow fold
@@ -10433,7 +10459,7 @@ Good luck.`;
                         if (newX <= 0) {
                             newX = 0;
                             if (Math.abs(vel.x) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.x));
                             }
                             vel.x = Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
@@ -10441,7 +10467,7 @@ Good luck.`;
                         if (newX >= window.innerWidth - DOG_PHYSICS.DOG_SIZE) {
                             newX = window.innerWidth - DOG_PHYSICS.DOG_SIZE;
                             if (Math.abs(vel.x) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.x));
                             }
                             vel.x = -Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
@@ -10451,7 +10477,7 @@ Good luck.`;
                             newY = taskbarY;
                             if (Math.abs(vel.y) > DOG_PHYSICS.SETTLE_THRESHOLD) {
                                 if (Math.abs(vel.y) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                    playDogBounceSound();
+                                    playDogBounceSound(Math.abs(vel.y));
                                 }
                                 vel.y = -Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
                             } else {
@@ -10465,7 +10491,7 @@ Good luck.`;
                         if (newY <= 0) {
                             newY = 0;
                             if (Math.abs(vel.y) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.y));
                             }
                             vel.y = Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
@@ -11299,7 +11325,7 @@ Good luck.`;
             // Handle Goldy click (fold down like cardboard falling and disappear forever)
             const handleGoldyClick = () => {
                 setGoldyFalling(true);
-                setTimeout(() => setGoldyVisible(false), 500);
+                setTimeout(() => setGoldyVisible(false), 1000); // Match the 1s animation duration
             };
 
             // Legacy dog dragging handlers
@@ -13379,7 +13405,7 @@ Good luck.`;
                         </div>
                     )}
 
-                    {/* Goldy sparkle particles */}
+                    {/* Goldy sparkle particles - 8-bit pixel style */}
                     {goldySparkles.map(sparkle => (
                         <div
                             key={sparkle.id}
@@ -13392,9 +13418,8 @@ Good luck.`;
                                 width: sparkle.size,
                                 height: sparkle.size,
                                 backgroundColor: sparkle.color,
-                                borderRadius: '50%',
-                                boxShadow: `0 0 ${sparkle.size * 2}px ${sparkle.color}`,
-                                animation: `sparkle-burst ${sparkle.duration}ms ease-out ${sparkle.delay}ms forwards`,
+                                imageRendering: 'pixelated',
+                                animation: `sparkle-burst ${sparkle.duration}ms steps(8) ${sparkle.delay}ms forwards`,
                                 opacity: 0,
                             }}
                         />
