@@ -12261,8 +12261,11 @@ Good luck.`;
                 } else if (iconPendingDrag.current) {
                     // Drag wasn't active - this was a click - open app immediately
                     const id = iconPendingDrag.current.id;
+                    // CONTACT opens mailto directly instead of window
+                    if (id === 'CONTACT') {
+                        window.location.href = 'mailto:mateusmuste9@gmail.com';
                     // TRUTH.EXE can only be opened when Third Eye is scanning it
-                    if (id === 'TRUTH') {
+                    } else if (id === 'TRUTH') {
                         if (isThirdEyeOver(iconPositions[id])) {
                             if (openCallback) openCallback(id);
                         }
@@ -12388,8 +12391,11 @@ Good luck.`;
                     });
                 } else if (iconPendingDrag.current) {
                     const id = iconPendingDrag.current.id;
+                    // CONTACT opens mailto directly instead of window
+                    if (id === 'CONTACT') {
+                        window.location.href = 'mailto:mateusmuste9@gmail.com';
                     // TRUTH.EXE can only be opened when Third Eye is scanning it
-                    if (id === 'TRUTH') {
+                    } else if (id === 'TRUTH') {
                         if (isThirdEyeOver(iconPositions[id])) {
                             if (openCallback) openCallback(id);
                         }
