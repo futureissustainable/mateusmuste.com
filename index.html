@@ -794,24 +794,27 @@
                 });
             },
 
+            // Window bounce - consistent with dog bounce sound
             bounce: (vel = 1) => {
                 if (!canPlaySound('bounce')) return;
                 const ctx = getAudioCtx();
                 if (!ctx) return;
                 const now = ctx.currentTime;
-                const dist = makeDistortion(ctx, 12);
                 const osc = ctx.createOscillator();
                 const gain = ctx.createGain();
-                osc.connect(dist);
-                dist.connect(gain);
+                osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(220 + (vel * 100), now);
-                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
-                gain.gain.setValueAtTime(0.4 * Math.min(vel, 1.2), now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+                // Higher velocity = higher starting pitch (same formula as dog)
+                const startFreq = 150 + Math.min(vel, 15) * 8;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+                // Higher velocity = louder (same formula as dog)
+                const volume = Math.min(0.08 + vel * 0.015, 0.2);
+                gain.gain.setValueAtTime(volume, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                 osc.start(now);
-                osc.stop(now + 0.2);
+                osc.stop(now + 0.15);
             },
 
             bounceIcon: (vel = 1) => {
@@ -2381,8 +2384,8 @@
             osc.stop(now + 0.04);
         };
 
-        // Dog bounce sound
-        const playDogBounceSound = () => {
+        // Dog bounce sound (with velocity scaling)
+        const playDogBounceSound = (vel = 1) => {
             if (!canPlaySound('dogBounce')) return;
             const ctx = getAudioCtx();
             if (!ctx) return;
@@ -2390,9 +2393,13 @@
             const osc = ctx.createOscillator();
             const gain = ctx.createGain();
             osc.type = 'sine';
-            osc.frequency.setValueAtTime(200, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.1);
-            gain.gain.setValueAtTime(0.15, now);
+            // Higher velocity = higher starting pitch
+            const startFreq = 150 + Math.min(vel, 15) * 8;
+            osc.frequency.setValueAtTime(startFreq, now);
+            osc.frequency.exponentialRampToValueAtTime(60, now + 0.12);
+            // Higher velocity = louder
+            const volume = Math.min(0.08 + vel * 0.015, 0.2);
+            gain.gain.setValueAtTime(volume, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
             osc.connect(gain);
             gain.connect(ctx.destination);
@@ -10311,10 +10318,11 @@ Good luck.`;
                     // Hit the ground (taskbar)
                     if (y >= groundY) {
                         y = groundY;
+                        const impactVel = Math.abs(velocity);
                         velocity = -velocity * bounceDamping;
                         bounceCount++;
-                        // Play bounce sound
-                        playDogBounceSound();
+                        // Play bounce sound with impact velocity
+                        playDogBounceSound(impactVel);
 
                         if (bounceCount >= maxBounces || Math.abs(velocity) < 2) {
                             // Stop bouncing, start slow fold
@@ -10451,7 +10459,7 @@ Good luck.`;
                         if (newX <= 0) {
                             newX = 0;
                             if (Math.abs(vel.x) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.x));
                             }
                             vel.x = Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
@@ -10459,7 +10467,7 @@ Good luck.`;
                         if (newX >= window.innerWidth - DOG_PHYSICS.DOG_SIZE) {
                             newX = window.innerWidth - DOG_PHYSICS.DOG_SIZE;
                             if (Math.abs(vel.x) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.x));
                             }
                             vel.x = -Math.abs(vel.x) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
@@ -10469,7 +10477,7 @@ Good luck.`;
                             newY = taskbarY;
                             if (Math.abs(vel.y) > DOG_PHYSICS.SETTLE_THRESHOLD) {
                                 if (Math.abs(vel.y) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                    playDogBounceSound();
+                                    playDogBounceSound(Math.abs(vel.y));
                                 }
                                 vel.y = -Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
                             } else {
@@ -10483,7 +10491,7 @@ Good luck.`;
                         if (newY <= 0) {
                             newY = 0;
                             if (Math.abs(vel.y) > DOG_PHYSICS.MIN_BOUNCE_SOUND_VEL) {
-                                playDogBounceSound();
+                                playDogBounceSound(Math.abs(vel.y));
                             }
                             vel.y = Math.abs(vel.y) * DOG_PHYSICS.BOUNCE_DAMPING;
                         }
