@@ -10079,6 +10079,9 @@ Good luck.`;
 
         const OS = () => {
             const [modeSelected, setModeSelected] = useState(null); // null = show selector, 'story' or 'about'
+            const [showStoryPasswordPrompt, setShowStoryPasswordPrompt] = useState(false);
+            const [storyPasswordInput, setStoryPasswordInput] = useState('');
+            const [storyPasswordError, setStoryPasswordError] = useState(false);
             const [booted, setBooted] = useState(false);
             const [bootPhase, setBootPhase] = useState(0); // 0: mobile notice (mobile only), 1: kernel, 2: ready
             const [isMobile, setIsMobile] = useState(false);
@@ -12993,11 +12996,13 @@ Good luck.`;
                                     <div className="text-[10px] tracking-widest opacity-60">PORTFOLIO</div>
                                 </button>
 
-                                {/* STORYMODE Button - disabled on mobile */}
+                                {/* STORYMODE Button - disabled on mobile, shows password prompt */}
                                 <button
                                     onClick={() => {
                                         if (!isMobile) {
-                                            setModeSelected('story');
+                                            setShowStoryPasswordPrompt(true);
+                                            setStoryPasswordInput('');
+                                            setStoryPasswordError(false);
                                         }
                                     }}
                                     disabled={isMobile}
@@ -13028,6 +13033,69 @@ Good luck.`;
                         <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-black"></div>
                         <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-black"></div>
                         <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-black"></div>
+
+                        {/* Story Mode Password Prompt Modal */}
+                        {showStoryPasswordPrompt && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50" onClick={() => setShowStoryPasswordPrompt(false)}>
+                                <div className="bg-white border-2 border-black p-8 max-w-sm w-full mx-4" onClick={(e) => e.stopPropagation()}>
+                                    <div className="text-center mb-6">
+                                        <div className="text-[10px] tracking-[0.3em] text-black/40 mb-2">STATUS</div>
+                                        <div className="text-2xl font-bold tracking-tight">WORK IN PROGRESS</div>
+                                        <div className="w-16 h-[2px] bg-black mx-auto mt-4"></div>
+                                    </div>
+
+                                    <div className="mb-6">
+                                        <label className="block text-[10px] tracking-widest mb-2">ENTER PASSWORD</label>
+                                        <input
+                                            type="password"
+                                            value={storyPasswordInput}
+                                            onChange={(e) => {
+                                                setStoryPasswordInput(e.target.value);
+                                                setStoryPasswordError(false);
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    if (storyPasswordInput.toLowerCase() === 'dog') {
+                                                        setShowStoryPasswordPrompt(false);
+                                                        setModeSelected('story');
+                                                    } else {
+                                                        setStoryPasswordError(true);
+                                                    }
+                                                }
+                                            }}
+                                            className="w-full border-2 border-black px-4 py-3 font-mono text-lg focus:outline-none focus:ring-2 focus:ring-black/20"
+                                            autoFocus
+                                            placeholder="••••••"
+                                        />
+                                        {storyPasswordError && (
+                                            <div className="text-red-600 text-[10px] tracking-widest mt-2">INCORRECT PASSWORD</div>
+                                        )}
+                                    </div>
+
+                                    <div className="flex gap-4">
+                                        <button
+                                            onClick={() => setShowStoryPasswordPrompt(false)}
+                                            className="flex-1 border-2 border-black px-4 py-3 text-[10px] tracking-widest hover:bg-black/5 transition-colors"
+                                        >
+                                            CANCEL
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                if (storyPasswordInput.toLowerCase() === 'dog') {
+                                                    setShowStoryPasswordPrompt(false);
+                                                    setModeSelected('story');
+                                                } else {
+                                                    setStoryPasswordError(true);
+                                                }
+                                            }}
+                                            className="flex-1 border-2 border-black bg-black text-white px-4 py-3 text-[10px] tracking-widest hover:bg-black/80 transition-colors"
+                                        >
+                                            ENTER
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 );
             }
